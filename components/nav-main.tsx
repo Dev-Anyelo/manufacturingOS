@@ -1,0 +1,59 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
+
+export function NavMain({
+  items,
+}: {
+  items: {
+    title: string
+    url: string
+    icon?: React.ComponentType<{ className?: string }>
+  }[]
+}) {
+  const pathname = usePathname()
+
+  const isItemActive = (url: string) => {
+    if (url === "/") {
+      return pathname === "/"
+    }
+
+    return pathname === url || pathname.startsWith(`${url}/`)
+  }
+
+  return (
+    <SidebarGroup>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => {
+            const Icon = item.icon
+
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  isActive={isItemActive(item.url)}
+                >
+                  <Link href={item.url}>
+                    {Icon ? <Icon /> : null}
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  )
+}
