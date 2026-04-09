@@ -1,6 +1,5 @@
-import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
-
+import { createServerClient } from "@supabase/ssr"
 import type { Database } from "@/lib/supabase/types"
 
 export async function createServerSupabaseClient() {
@@ -25,9 +24,7 @@ export async function createServerSupabaseClient() {
           cookiesToSet.forEach(({ name, value, options }) => {
             cookieStore.set(name, value, options)
           })
-        } catch {
-          // setAll can run from a Server Component where cookie mutation is not allowed.
-        }
+        } catch {}
       },
     },
   })

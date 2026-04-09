@@ -9,7 +9,7 @@ export const inventoryItemSchema = z.object({
     .min(2, "El nombre debe tener al menos 2 caracteres")
     .max(120, "El nombre no puede exceder 120 caracteres"),
   category: z.nativeEnum(MaterialCategory),
-  fabricType: z
+  fabric_type: z
     .string()
     .trim()
     .max(80, "El tipo de tela no puede exceder 80 caracteres")
@@ -21,7 +21,7 @@ export const inventoryItemSchema = z.object({
     .max(80, "El color no puede exceder 80 caracteres")
     .optional()
     .nullable(),
-  quantity: z
+  quantity: z.coerce
     .number({ message: "La cantidad es obligatoria" })
     .min(0, "La cantidad no puede ser negativa"),
   unit: z
@@ -29,12 +29,11 @@ export const inventoryItemSchema = z.object({
     .trim()
     .min(1, "La unidad es obligatoria")
     .max(20, "La unidad no puede exceder 20 caracteres"),
-  unitPrice: z
+  unit_price: z.coerce
     .number({ message: "El precio unitario es obligatorio" })
     .min(0, "El precio unitario no puede ser negativo"),
-  minimumStock: z
+  minimum_stock: z.coerce
     .number({ message: "El stock minimo es obligatorio" })
-    .int("El stock minimo debe ser un numero entero")
     .min(0, "El stock minimo no puede ser negativo"),
   supplier: z
     .string()
@@ -48,26 +47,26 @@ export const inventoryItemSchema = z.object({
     .max(1000, "Las notas no pueden exceder 1000 caracteres")
     .optional()
     .nullable(),
-  imageUrl: z
+  image_url: z
     .string()
     .url("La URL de la imagen no es valida")
     .optional()
     .nullable(),
-  isActive: z.boolean().default(true),
+  is_active: z.boolean().optional().default(true),
 })
 
 export const inventoryAdjustSchema = z.object({
-  inventoryItemId: z.string().uuid("El material seleccionado no es valido"),
-  adjustmentType: z.enum(["in", "out", "adjustment"], {
+  inventory_item_id: z.string().uuid("El material seleccionado no es valido"),
+  adjustment_type: z.enum(["add", "subtract", "set"], {
     message: "Selecciona un tipo de ajuste valido",
   }),
-  quantity: z
+  quantity: z.coerce
     .number({ message: "La cantidad es obligatoria" })
-    .positive("La cantidad debe ser mayor que cero"),
+    .gt(0, "La cantidad debe ser mayor que cero"),
   reason: z
     .string()
     .trim()
-    .min(3, "Indica el motivo del ajuste")
+    .min(10, "El motivo debe tener al menos 10 caracteres")
     .max(250, "El motivo no puede exceder 250 caracteres"),
 })
 

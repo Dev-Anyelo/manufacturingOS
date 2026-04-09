@@ -52,56 +52,143 @@ enum InventoryMovementType {
     adjustment
 }
 
+enum PaymentMethod {
+    cash
+    transfer
+    credit
+    mixed
+}
+
+enum SaleChannel {
+    in_person
+    order
+    whatsapp
+    marketplace
+    other
+}
+
+enum SaleStatus {
+    paid
+    partial
+    pending
+    cancelled
+}
+
+enum WorkOrderStatus {
+    received
+    confirmed
+    in_production
+    ready
+    delivered
+    cancelled
+}
+
+enum WorkOrderChannel {
+    in_person
+    referral
+    social_media
+    returning_customer
+    other
+}
+
+enum ExpenseCategory {
+    fabrics
+    supplies
+    tools
+    machinery
+    outsourced_labor
+    services
+    packaging
+    office
+    payroll
+    other
+}
+
+enum PayrollStatus {
+    pending
+    paid
+}
+
+enum PayrollPaymentMethod {
+    cash
+    transfer
+    other
+}
+
+enum GarmentType {
+    shirt
+    skirt
+    shorts
+    leggings
+    pajamas
+    suit
+    sheets
+    blankets
+    other
+}
+
 model Profile {
-    id            String         @id @db.Uuid
-    fullName      String?        @map("full_name")
-    role          UserRole       @default(employee)
-    phone         String?
-    avatarUrl     String?        @map("avatar_url")
-    isActive      Boolean        @default(true) @map("is_active")
-    createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-    updatedAt     DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
-    employee      Employee?
-    notifications Notification[]
+    id                        String              @id @db.Uuid
+    fullName                  String?             @map("full_name")
+    role                      UserRole            @default(employee)
+    phone                     String?
+    avatarUrl                 String?             @map("avatar_url")
+    isActive                  Boolean             @default(true) @map("is_active")
+    createdAt                 DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+    updatedAt                 DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+    employee                  Employee?
+    notifications             Notification[]
+    inventoryMovementsCreated InventoryMovement[] @relation("InventoryMovementCreatedBy")
+    productionSessionsCreated ProductionSession[] @relation("ProductionSessionCreatedBy")
+    salesCreated              Sale[]              @relation("SaleCreatedBy")
+    workOrdersCreated         WorkOrder[]         @relation("WorkOrderCreatedBy")
+    expensesCreated           Expense[]           @relation("ExpenseCreatedBy")
+    payrollPaymentsCreated    PayrollPayment[]    @relation("PayrollPaymentCreatedBy")
+    auditLogsCreated          AuditLog[]          @relation("AuditLogCreatedBy")
 
     @@map("profiles")
 }
 
 model Employee {
-    id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    fullName     String       @map("full_name")
-    documentId   String?      @map("document_id")
-    phone        String?
-    email        String?
-    hireDate     DateTime     @map("hire_date") @db.Date
-    contractType ContractType @map("contract_type")
-    baseSalary   Decimal?     @map("base_salary") @db.Decimal(12, 2)
-    isActive     Boolean      @default(true) @map("is_active")
-    profileId    String?      @unique @map("profile_id") @db.Uuid
-    createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-    updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
-    profile      Profile?     @relation(fields: [profileId], references: [id], onDelete: SetNull)
+    id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    fullName           String              @map("full_name")
+    documentId         String?             @map("document_id")
+    phone              String?
+    email              String?
+    hireDate           DateTime            @map("hire_date") @db.Date
+    contractType       ContractType        @map("contract_type")
+    baseSalary         Decimal?            @map("base_salary") @db.Decimal(12, 2)
+    isActive           Boolean             @default(true) @map("is_active")
+    profileId          String?             @unique @map("profile_id") @db.Uuid
+    createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+    updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+    profile            Profile?            @relation(fields: [profileId], references: [id], onDelete: SetNull)
+    productionSessions ProductionSession[]
+    payrollPayments    PayrollPayment[]
 
     @@map("employees")
 }
 
 model InventoryItem {
-    id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name               String
-    category           MaterialCategory
-    fabricType         String?             @map("fabric_type")
-    color              String?
-    quantity           Decimal             @default(0) @db.Decimal(12, 2)
-    unit               String              @default("yd")
-    unitPrice          Decimal             @default(0) @map("unit_price") @db.Decimal(12, 2)
-    minimumStock       Decimal             @default(0) @map("minimum_stock") @db.Decimal(12, 2)
-    supplier           String?
-    notes              String?
-    imageUrl           String?             @map("image_url")
-    isActive           Boolean             @default(true) @map("is_active")
-    createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-    updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
-    inventoryMovements InventoryMovement[]
+    id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name                   String
+    category               MaterialCategory
+    fabricType             String?                 @map("fabric_type")
+    color                  String?
+    quantity               Decimal                 @default(0) @db.Decimal(12, 2)
+    unit                   String                  @default("yd")
+    unitPrice              Decimal                 @default(0) @map("unit_price") @db.Decimal(12, 2)
+    minimumStock           Decimal                 @default(0) @map("minimum_stock") @db.Decimal(12, 2)
+    supplier               String?
+    notes                  String?
+    imageUrl               String?                 @map("image_url")
+    isActive               Boolean                 @default(true) @map("is_active")
+    createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+    updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+    inventoryMovements     InventoryMovement[]
+    productionSessionItems ProductionSessionItem[]
+    workOrderItems         WorkOrderItem[]
+    expenses               Expense[]
 
     @@map("inventory_items")
 }
@@ -117,35 +204,210 @@ model InventoryMovement {
     createdBy        String?               @map("created_by") @db.Uuid
     createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
     inventoryItem    InventoryItem         @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+    createdByProfile Profile?              @relation("InventoryMovementCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
 
     @@map("inventory_movements")
 }
 
 model Customer {
-    id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    fullName       String   @map("full_name")
+    id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    fullName       String      @map("full_name")
     phone          String?
     email          String?
     address        String?
     notes          String?
-    totalPurchases Decimal  @default(0) @map("total_purchases") @db.Decimal(12, 2)
-    createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-    updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+    totalPurchases Decimal     @default(0) @map("total_purchases") @db.Decimal(12, 2)
+    createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+    updatedAt      DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+    sales          Sale[]
+    workOrders     WorkOrder[]
 
     @@map("customers")
 }
 
 model CatalogItem {
-    id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name          String
-    description   String?
-    salePrice     Decimal  @map("sale_price") @db.Decimal(12, 2)
-    estimatedCost Decimal? @map("estimated_cost") @db.Decimal(12, 2)
-    isActive      Boolean  @default(true) @map("is_active")
-    createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-    updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+    id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name             String
+    description      String?
+    garmentType      String?         @map("garment_type")
+    marketPriceUnit  Decimal?        @map("market_price_unit") @db.Decimal(12, 2)
+    marketPriceDozen Decimal?        @map("market_price_dozen") @db.Decimal(12, 2)
+    ourPriceUnit     Decimal?        @map("our_price_unit") @db.Decimal(12, 2)
+    ourPriceDozen    Decimal?        @map("our_price_dozen") @db.Decimal(12, 2)
+    salePrice        Decimal         @default(0) @map("sale_price") @db.Decimal(12, 2)
+    estimatedCost    Decimal?        @map("estimated_cost") @db.Decimal(12, 2)
+    imageUrl         String?         @map("image_url")
+    notes            String?
+    isActive         Boolean         @default(true) @map("is_active")
+    createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+    updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+    saleItems        SaleItem[]
+    workOrderItems   WorkOrderItem[]
 
     @@map("catalog_items")
+}
+
+model ProductionSession {
+    id               String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    employeeId       String                  @map("employee_id") @db.Uuid
+    sessionDate      DateTime                @map("session_date") @db.Date
+    totalGarments    Int                     @default(0) @map("total_garments")
+    totalYardsUsed   Decimal                 @default(0) @map("total_yards_used") @db.Decimal(12, 2)
+    notes            String?
+    createdBy        String?                 @map("created_by") @db.Uuid
+    createdAt        DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+    employee         Employee                @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+    createdByProfile Profile?                @relation("ProductionSessionCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+    items            ProductionSessionItem[]
+
+    @@map("production_sessions")
+}
+
+model ProductionSessionItem {
+    id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    sessionId       String            @map("session_id") @db.Uuid
+    inventoryItemId String            @map("inventory_item_id") @db.Uuid
+    garmentType     GarmentType       @map("garment_type")
+    size            String
+    quantity        Int
+    yardsUsed       Decimal           @map("yards_used") @db.Decimal(12, 2)
+    notes           String?
+    session         ProductionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+    inventoryItem   InventoryItem     @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+
+    @@map("production_session_items")
+}
+
+model Sale {
+    id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    customerId       String?       @map("customer_id") @db.Uuid
+    saleDate         DateTime      @map("sale_date") @db.Date
+    channel          SaleChannel
+    paymentMethod    PaymentMethod @map("payment_method")
+    total            Decimal       @db.Decimal(12, 2)
+    discount         Decimal       @default(0) @db.Decimal(12, 2)
+    amountPaid       Decimal       @default(0) @map("amount_paid") @db.Decimal(12, 2)
+    changeGiven      Decimal       @default(0) @map("change_given") @db.Decimal(12, 2)
+    balanceDue       Decimal       @default(dbgenerated()) @map("balance_due") @db.Decimal(12, 2)
+    status           SaleStatus    @default(pending)
+    notes            String?
+    createdBy        String?       @map("created_by") @db.Uuid
+    createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+    customer         Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+    createdByProfile Profile?      @relation("SaleCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+    items            SaleItem[]
+
+    @@map("sales")
+}
+
+model SaleItem {
+    id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    saleId        String       @map("sale_id") @db.Uuid
+    catalogItemId String?      @map("catalog_item_id") @db.Uuid
+    description   String
+    size          String?
+    quantity      Int
+    unitPrice     Decimal      @map("unit_price") @db.Decimal(12, 2)
+    discount      Decimal      @default(0) @db.Decimal(12, 2)
+    subtotal      Decimal      @default(dbgenerated()) @db.Decimal(12, 2)
+    sale          Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
+    catalogItem   CatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+
+    @@map("sale_items")
+}
+
+model WorkOrder {
+    id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    customerId        String           @map("customer_id") @db.Uuid
+    receivedDate      DateTime         @default(now()) @map("received_date") @db.Date
+    deliveryDate      DateTime         @map("delivery_date") @db.Date
+    status            WorkOrderStatus  @default(received)
+    channel           WorkOrderChannel @default(in_person)
+    advancePaid       Decimal          @default(0) @map("advance_paid") @db.Decimal(12, 2)
+    total             Decimal          @default(0) @db.Decimal(12, 2)
+    balanceDue        Decimal          @default(dbgenerated()) @map("balance_due") @db.Decimal(12, 2)
+    reservedMaterials Json?            @map("reserved_materials")
+    referenceImages   String[]         @default([]) @map("reference_images")
+    notes             String?
+    cancelledReason   String?          @map("cancelled_reason")
+    createdBy         String?          @map("created_by") @db.Uuid
+    createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+    updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+    customer          Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+    createdByProfile  Profile?         @relation("WorkOrderCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+    items             WorkOrderItem[]
+
+    @@map("work_orders")
+}
+
+model WorkOrderItem {
+    id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    workOrderId     String         @map("work_order_id") @db.Uuid
+    catalogItemId   String?        @map("catalog_item_id") @db.Uuid
+    description     String
+    size            String?
+    measurements    Json?
+    inventoryItemId String?        @map("inventory_item_id") @db.Uuid
+    color           String?
+    designNotes     String?        @map("design_notes")
+    quantity        Int            @default(1)
+    unitPrice       Decimal        @map("unit_price") @db.Decimal(12, 2)
+    subtotal        Decimal        @default(dbgenerated()) @db.Decimal(12, 2)
+    workOrder       WorkOrder      @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+    catalogItem     CatalogItem?   @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+    inventoryItem   InventoryItem? @relation(fields: [inventoryItemId], references: [id], onDelete: SetNull)
+
+    @@map("work_order_items")
+}
+
+model Expense {
+    id                     String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    expenseDate            DateTime        @map("expense_date") @db.Date
+    category               ExpenseCategory
+    concept                String
+    supplier               String?
+    quantity               Decimal?        @db.Decimal(12, 2)
+    unitPrice              Decimal?        @map("unit_price") @db.Decimal(12, 2)
+    total                  Decimal         @db.Decimal(12, 2)
+    updatesInventory       Boolean         @default(false) @map("updates_inventory")
+    inventoryItemId        String?         @map("inventory_item_id") @db.Uuid
+    inventoryQuantityAdded Decimal?        @map("inventory_quantity_added") @db.Decimal(12, 2)
+    receiptUrl             String?         @map("receipt_url")
+    notes                  String?
+    payrollPaymentId       String?         @map("payroll_payment_id") @db.Uuid
+    createdBy              String?         @map("created_by") @db.Uuid
+    createdAt              DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+    inventoryItem          InventoryItem?  @relation(fields: [inventoryItemId], references: [id], onDelete: SetNull)
+    payrollPayment         PayrollPayment? @relation(fields: [payrollPaymentId], references: [id], onDelete: SetNull)
+    createdByProfile       Profile?        @relation("ExpenseCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+    @@map("expenses")
+}
+
+model PayrollPayment {
+    id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    employeeId       String                @map("employee_id") @db.Uuid
+    periodStart      DateTime              @map("period_start") @db.Date
+    periodEnd        DateTime              @map("period_end") @db.Date
+    piecesProduced   Int?                  @map("pieces_produced")
+    hoursWorked      Decimal?              @map("hours_worked") @db.Decimal(8, 2)
+    baseAmount       Decimal               @default(0) @map("base_amount") @db.Decimal(12, 2)
+    bonuses          Decimal               @default(0) @db.Decimal(12, 2)
+    deductions       Decimal               @default(0) @db.Decimal(12, 2)
+    total            Decimal               @default(dbgenerated()) @db.Decimal(12, 2)
+    status           PayrollStatus         @default(pending)
+    paymentDate      DateTime?             @map("payment_date") @db.Date
+    paymentMethod    PayrollPaymentMethod? @map("payment_method")
+    notes            String?
+    receiptUrl       String?               @map("receipt_url")
+    createdBy        String?               @map("created_by") @db.Uuid
+    createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+    updatedAt        DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+    employee         Employee              @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+    createdByProfile Profile?              @relation("PayrollPaymentCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+    expenses         Expense[]
+
+    @@map("payroll_payments")
 }
 
 model Notification {
@@ -172,6 +434,7 @@ model SystemSetting {
     companyPhone      String?  @map("company_phone")
     companyEmail      String?  @map("company_email")
     companyAddress    String?  @map("company_address")
+    payrollDay        Int      @default(30) @map("payroll_day")
     createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
     updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -179,14 +442,15 @@ model SystemSetting {
 }
 
 model AuditLog {
-    id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    tableName String      @map("table_name")
-    recordId  String?     @map("record_id") @db.Uuid
-    action    AuditAction
-    oldValues Json?       @map("old_values")
-    newValues Json?       @map("new_values")
-    createdBy String?     @map("created_by") @db.Uuid
-    createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+    id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    tableName        String      @map("table_name")
+    recordId         String?     @map("record_id") @db.Uuid
+    action           AuditAction
+    oldValues        Json?       @map("old_values")
+    newValues        Json?       @map("new_values")
+    createdBy        String?     @map("created_by") @db.Uuid
+    createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+    createdByProfile Profile?    @relation("AuditLogCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
 
     @@map("audit_log")
 }
