@@ -1,8 +1,7 @@
-import data from "@/app/dashboard/data.json"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
-import { PageHeader } from "@/components/shared/page-header"
 import { SectionCards } from "@/components/section-cards"
+import { PageHeader } from "@/components/shared/page-header"
+import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 
 export default function DashboardPage() {
   return (
@@ -12,13 +11,13 @@ export default function DashboardPage() {
         description="Vista general de inventario, ventas y operaciones del taller."
       />
 
-      <SectionCards />
+      {/* <SectionCards /> */}
 
-      <div>
+      {/* <div>
         <ChartAreaInteractive />
-      </div>
+      </div> */}
 
-      <DataTable data={data} />
+      {/* <DataTable data={data} /> */}
     </div>
   )
 }
