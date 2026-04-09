@@ -1,14 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2Icon } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-
-import { createClient } from "@/lib/supabase/client"
-import { loginSchema, type LoginInput } from "@/lib/validations/auth"
+import { Loader2Icon } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { loginSchema, type LoginInput } from "@/lib/validations/auth"
+
 import {
   Card,
   CardContent,
@@ -16,8 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 const authErrorMap: Record<string, string> = {
   invalid_credentials: "Correo o contrasena incorrectos.",
@@ -26,6 +27,7 @@ const authErrorMap: Record<string, string> = {
 
 export function LoginForm() {
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const router = useRouter()
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -52,7 +54,7 @@ export function LoginForm() {
       return
     }
 
-    window.location.href = "/"
+    router.push("/")
   })
 
   return (
