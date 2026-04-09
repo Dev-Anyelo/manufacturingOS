@@ -25,6 +25,47 @@ type RouteParams = {
   id: string
 }
 
+export async function GET(
+  _request: Request,
+  context: { params: Promise<RouteParams> | RouteParams }
+) {
+  try {
+    await requireAuth()
+    const { id } = await resolveRouteParams(context.params)
+
+    const user = await prisma.profile.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        fullName: true,
+        role: true,
+        isActive: true,
+        phone: true,
+        avatarUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        employee: true,
+        notifications: true,
+        inventoryMovementsCreated: true,
+        productionSessionsCreated: true,
+        salesCreated: true,
+        workOrdersCreated: true,
+        expensesCreated: true,
+        payrollPaymentsCreated: true,
+        auditLogsCreated: true,
+      },
+    })
+
+    if (!user) {
+      return apiSuccess(null)
+    }
+
+    return apiSuccess(user)
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
 export async function PATCH(
   request: Request,
   context: { params: Promise<RouteParams> | RouteParams }

@@ -13,6 +13,8 @@ enum UserRole {
     manager
     employee
     readonly
+
+    @@map("user_role")
 }
 
 enum MaterialCategory {
@@ -20,12 +22,16 @@ enum MaterialCategory {
     supplies
     tools
     machinery
+
+    @@map("material_category")
 }
 
 enum ContractType {
     fixed_salary
     per_piece
     hourly
+
+    @@map("contract_type")
 }
 
 enum NotificationType {
@@ -44,12 +50,16 @@ enum AuditAction {
     insert
     update
     delete
+
+    @@map("audit_action")
 }
 
 enum InventoryMovementType {
     in
     out
     adjustment
+
+    @@map("inventory_movement_type")
 }
 
 enum PaymentMethod {

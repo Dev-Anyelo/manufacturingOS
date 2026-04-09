@@ -1,9 +1,9 @@
 import { z } from "zod"
-import { UserRole } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
-import { createSupabaseAdminClient } from "@/lib/supabase/admin"
+import { UserRole } from "@prisma/client"
 import { sendWelcomeEmail } from "@/lib/email/send"
+import { createSupabaseAdminClient } from "@/lib/supabase/admin"
+
 import {
   apiError,
   apiSuccess,
@@ -25,6 +25,49 @@ const createUserSchema = z.object({
     .min(8, "La contrasena debe tener al menos 8 caracteres")
     .optional(),
 })
+
+type SupabaseAdminError = {
+  code?: string
+  message?: string
+  status?: number
+}
+
+function buildCreateUserErrorResponse(error: SupabaseAdminError | null) {
+  if (!error) {
+    return apiError(
+      "No se pudo crear el usuario en autenticacion. Verifica los datos e intenta nuevamente.",
+      400
+    )
+  }
+
+  const errorText = `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase()
+
+  if (
+    errorText.includes("already been registered") ||
+    errorText.includes("already registered") ||
+    errorText.includes("email_exists")
+  ) {
+    return apiError("Ya existe un usuario con ese correo electronico.", 409)
+  }
+
+  if (errorText.includes("invalid email") || errorText.includes("email")) {
+    return apiError("El correo electronico no es valido.", 422)
+  }
+
+  if (errorText.includes("password")) {
+    return apiError(
+      "La contrasena no cumple con los requisitos de seguridad.",
+      422
+    )
+  }
+
+  return apiError(
+    "No se pudo crear el usuario en autenticacion. Verifica los datos e intenta nuevamente.",
+    error.status && error.status >= 400 && error.status < 500
+      ? error.status
+      : 400
+  )
+}
 
 function getAccessUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
@@ -67,8 +110,10 @@ export async function POST(request: Request) {
     const generatedPassword =
       payload.password ?? `${Math.random().toString(36).slice(2)}A1!`
 
+    const normalizedEmail = payload.email.toLowerCase()
+
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
-      email: payload.email,
+      email: normalizedEmail,
       password: generatedPassword,
       email_confirm: true,
       user_metadata: {
@@ -77,10 +122,13 @@ export async function POST(request: Request) {
     })
 
     if (error || !data.user?.id) {
-      return apiError(
-        "No se pudo crear el usuario en autenticacion. Verifica los datos e intenta nuevamente.",
-        400
-      )
+      console.error("[api/settings/users] createUser failed", {
+        code: error?.code,
+        status: error?.status,
+        message: error?.message,
+      })
+
+      return buildCreateUserErrorResponse(error)
     }
 
     const created = await prisma.profile.upsert({
@@ -98,9 +146,9 @@ export async function POST(request: Request) {
       },
     })
 
-    await sendWelcomeEmail(payload.email, {
+    await sendWelcomeEmail(normalizedEmail, {
       fullName: payload.full_name,
-      email: payload.email,
+      email: normalizedEmail,
       role: payload.role,
       accessUrl: `${getAccessUrl()}/login`,
     })

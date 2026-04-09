@@ -1,7 +1,8 @@
+import { prisma } from "@/lib/prisma"
+import { toPrismaDecimal } from "@/lib/api/utils"
+import { inventoryAdjustSchema } from "@/lib/validations/inventory"
 import { NotificationType, Prisma, UserRole } from "@prisma/client"
 
-import { prisma } from "@/lib/prisma"
-import { inventoryAdjustSchema } from "@/lib/validations/inventory"
 import {
   ApiRouteError,
   apiSuccess,
@@ -11,7 +12,6 @@ import {
   requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
-import { toPrismaDecimal } from "@/lib/api/utils"
 
 type RouteParams = {
   id: string
@@ -47,7 +47,7 @@ export async function POST(
         Prisma.sql`
           SELECT id, quantity, minimum_stock, name
           FROM public.inventory_items
-          WHERE id = ${id}
+          WHERE id = CAST(${id} AS uuid)
           FOR UPDATE
         `
       )
