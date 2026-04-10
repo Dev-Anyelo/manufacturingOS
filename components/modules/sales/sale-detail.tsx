@@ -174,9 +174,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
             <span className="font-medium">Saldo pendiente</span>
             <CurrencyDisplay
               amount={sale.balanceDue}
-              className={
-                sale.balanceDue > 0 ? "text-amber-600 dark:text-amber-400" : ""
-              }
+              className={sale.balanceDue > 0 ? "text-warning" : ""}
             />
           </div>
         </CardContent>

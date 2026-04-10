@@ -85,7 +85,7 @@ export function ForgotPasswordForm() {
             <p className="text-sm text-destructive">{submitError}</p>
           ) : null}
           {successMessage ? (
-            <p className="text-sm text-emerald-600">{successMessage}</p>
+            <p className="text-success text-sm">{successMessage}</p>
           ) : null}
 
           <Link href="/login" className="text-xs text-primary hover:underline">

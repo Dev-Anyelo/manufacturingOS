@@ -19,9 +19,9 @@ interface StatCardProps {
 
 const variantClasses: Record<NonNullable<StatCardProps["variant"]>, string> = {
   default: "border-border/50 bg-card",
-  warning: "border-amber-300/40 bg-amber-50 dark:bg-amber-950/30",
-  danger: "border-red-300/40 bg-red-50 dark:bg-red-950/30",
-  success: "border-emerald-300/40 bg-emerald-50 dark:bg-emerald-950/30",
+  warning: "tone-warning",
+  danger: "tone-danger",
+  success: "tone-success",
 }
 
 export function StatCard({
@@ -68,9 +68,9 @@ export function StatCard({
         ) : trend ? (
           <Badge variant="outline" className="gap-1">
             {isPositiveTrend ? (
-              <TrendingUpIcon className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+              <TrendingUpIcon className="text-success size-3.5" />
             ) : (
-              <TrendingDownIcon className="size-3.5 text-red-600 dark:text-red-400" />
+              <TrendingDownIcon className="text-danger size-3.5" />
             )}
             {Math.abs(trend.value)}% {trend.label}
           </Badge>

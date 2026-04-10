@@ -39,14 +39,14 @@ function getIconByType(type: NotificationType) {
     type === NotificationType.LowStock ||
     type === NotificationType.OutOfStock
   ) {
-    return <TriangleAlertIcon className="size-4 text-amber-500" />
+    return <TriangleAlertIcon className="text-warning size-4" />
   }
 
   if (
     type === NotificationType.SaleCompleted ||
     type === NotificationType.ProductionSaved
   ) {
-    return <CheckCircle2Icon className="size-4 text-emerald-500" />
+    return <CheckCircle2Icon className="text-success size-4" />
   }
 
   return <PackageIcon className="size-4 text-primary" />

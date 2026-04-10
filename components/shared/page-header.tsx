@@ -26,7 +26,7 @@ export function PageHeader({
   breadcrumbs,
 }: PageHeaderProps) {
   return (
-    <header className="mb-6 border-b border-border/60 pb-4">
+    <header className="p-0 m-0">
       {breadcrumbs?.length ? (
         <Breadcrumb className="mb-2">
           <BreadcrumbList>

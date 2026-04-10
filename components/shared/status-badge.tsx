@@ -10,7 +10,6 @@ import {
   XCircleIcon,
 } from "lucide-react"
 
-
 interface StatusBadgeProps {
   status: string
   type: "work-order" | "sale" | "payroll" | "stock"
@@ -26,35 +25,32 @@ const workOrderMap: Record<string, BadgeConfig> = {
   received: {
     label: "Recibido",
     icon: PackageSearchIcon,
-    className: "border-border text-muted-foreground",
+    className: "status-subtle",
   },
   confirmed: {
     label: "Confirmado",
     icon: CheckCircle2Icon,
-    className:
-      "border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-300",
+    className: "status-info",
   },
   in_production: {
     label: "En produccion",
     icon: Clock3Icon,
-    className:
-      "border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    className: "status-warning",
   },
   ready: {
     label: "Listo",
     icon: CheckCircle2Icon,
-    className: "border-brand/30 bg-brand-muted text-brand",
+    className: "status-brand",
   },
   delivered: {
     label: "Entregado",
     icon: BadgeDollarSignIcon,
-    className:
-      "border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+    className: "status-success",
   },
   cancelled: {
     label: "Cancelado",
     icon: XCircleIcon,
-    className: "border-red-500/30 bg-red-500/15 text-red-700 dark:text-red-300",
+    className: "status-danger",
   },
 }
 
@@ -62,23 +58,22 @@ const saleMap: Record<string, BadgeConfig> = {
   paid: {
     label: "Pagada",
     icon: CheckCircle2Icon,
-    className: "border-brand/30 bg-brand-muted text-brand",
+    className: "status-brand",
   },
   partial: {
     label: "Parcial",
     icon: Clock3Icon,
-    className:
-      "border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    className: "status-warning",
   },
   pending: {
     label: "Pendiente",
     icon: PackageSearchIcon,
-    className: "border-border text-muted-foreground",
+    className: "status-subtle",
   },
   cancelled: {
     label: "Cancelada",
     icon: XCircleIcon,
-    className: "border-red-500/30 bg-red-500/15 text-red-700 dark:text-red-300",
+    className: "status-danger",
   },
 }
 
@@ -86,13 +81,12 @@ const payrollMap: Record<string, BadgeConfig> = {
   pending: {
     label: "Pendiente",
     icon: Clock3Icon,
-    className:
-      "border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    className: "status-warning",
   },
   paid: {
     label: "Pagada",
     icon: CheckCircle2Icon,
-    className: "border-brand/30 bg-brand-muted text-brand",
+    className: "status-brand",
   },
 }
 
@@ -100,24 +94,22 @@ const stockMap: Record<string, BadgeConfig> = {
   normal: {
     label: "Normal",
     icon: CheckCircle2Icon,
-    className: "border-brand/30 bg-brand-muted text-brand",
+    className: "status-brand",
   },
   low: {
     label: "Bajo",
     icon: Clock3Icon,
-    className:
-      "border-amber-500/30 bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    className: "status-warning",
   },
   critical: {
     label: "Critico",
     icon: AlertTriangleIcon,
-    className: "border-red-500/30 bg-red-500/15 text-red-700 dark:text-red-300",
+    className: "status-danger",
   },
   out: {
     label: "Agotado",
     icon: XCircleIcon,
-    className:
-      "border-black/20 bg-black text-white dark:border-white/20 dark:bg-white dark:text-black",
+    className: "status-subtle",
   },
 }
 
@@ -137,7 +129,7 @@ function getConfig(
     mapByType[normalized] ?? {
       label: status,
       icon: PackageSearchIcon,
-      className: "border-border text-muted-foreground",
+      className: "status-subtle",
     }
   )
 }

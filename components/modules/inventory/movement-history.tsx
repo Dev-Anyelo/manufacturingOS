@@ -28,7 +28,7 @@ function getMovementMeta(type: InventoryMovementEntry["movementType"]) {
     return {
       label: "Entrada",
       icon: ArrowUpCircleIcon,
-      iconClassName: "text-emerald-600 dark:text-emerald-400",
+      iconClassName: "text-success",
     }
   }
 
@@ -36,14 +36,14 @@ function getMovementMeta(type: InventoryMovementEntry["movementType"]) {
     return {
       label: "Salida",
       icon: ArrowDownCircleIcon,
-      iconClassName: "text-red-600 dark:text-red-400",
+      iconClassName: "text-danger",
     }
   }
 
   return {
     label: "Ajuste",
     icon: ArrowLeftRightIcon,
-    iconClassName: "text-blue-600 dark:text-blue-400",
+    iconClassName: "text-brand",
   }
 }
 

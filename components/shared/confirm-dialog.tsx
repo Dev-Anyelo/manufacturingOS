@@ -64,21 +64,23 @@ export function ConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded-xl border border-border/60 p-0 sm:max-w-136">
-        <DialogHeader className="border-b border-border/60 p-5">
+        <DialogHeader className="border-b border-border/60 p-3">
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription className="text-pretty">
+            {description}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 p-5">
+        <div className="space-y-2 px-3">
           {variant === "danger" ? (
             <Alert variant="destructive" className="rounded-none border-x-0">
               <div className="flex items-start gap-3">
-                <AlertTriangleIcon className="mt-0.5 size-4 text-red-600 dark:text-red-400" />
+                <AlertTriangleIcon className="text-danger mt-0.5 size-4" />
                 <div>
                   <AlertTitle className="text-foreground">
                     {warningText ?? "Eliminar recurso es irreversible"}
                   </AlertTitle>
-                  <AlertDescription>
+                  <AlertDescription className="text-pretty">
                     Esto eliminara el recurso y todos los datos asociados.
                   </AlertDescription>
                 </div>
@@ -87,14 +89,14 @@ export function ConfirmDialog({
           ) : null}
 
           {highlightedText ? (
-            <p className="text-sm text-foreground">
+            <p className="text-sm text-pretty text-foreground">
               Esta accion es permanente. ¿Seguro que deseas continuar con
               <span className="ml-1 font-semibold">{highlightedText}</span>?
             </p>
           ) : null}
         </div>
 
-        <DialogFooter className="border-t border-border/60 p-5 sm:justify-end">
+        <DialogFooter className="border-t border-border/60 p-3 sm:justify-end">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}

@@ -39,8 +39,8 @@ export function CurrencyDisplay({
   const toneClass =
     colored && value !== 0
       ? value > 0
-        ? "text-emerald-600 dark:text-emerald-400"
-        : "text-red-600 dark:text-red-400"
+        ? "text-success"
+        : "text-danger"
       : "text-foreground"
 
   return (

@@ -39,14 +39,14 @@ function getIndicatorClassName(status: StockStatus) {
   }
 
   if (status === "low") {
-    return "bg-amber-500"
+    return "bg-warning"
   }
 
   if (status === "critical") {
-    return "bg-red-500"
+    return "bg-danger"
   }
 
-  return "bg-zinc-700 dark:bg-zinc-200"
+  return "bg-muted-foreground"
 }
 
 export function StockIndicator({

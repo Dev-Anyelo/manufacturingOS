@@ -37,16 +37,14 @@ export function FormFieldWrapper({
         <div className="space-y-2">
           <Label htmlFor={field.name} className="text-sm font-medium">
             {label}
-            {required ? <span className="ml-1 text-red-500">*</span> : null}
+            {required ? <span className="text-danger ml-1">*</span> : null}
           </Label>
           {children(field)}
           {description ? (
             <p className="text-xs text-muted-foreground">{description}</p>
           ) : null}
           {fieldState.error?.message ? (
-            <p className="text-xs text-red-600 dark:text-red-400">
-              {fieldState.error.message}
-            </p>
+            <p className="text-danger text-xs">{fieldState.error.message}</p>
           ) : null}
         </div>
       )}

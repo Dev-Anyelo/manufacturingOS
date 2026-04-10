@@ -190,13 +190,7 @@ export function AdjustStockDialog({
             <p className="text-muted-foreground">Vista previa</p>
             <p className="font-medium">
               {currentItem.quantity.toFixed(2)} {currentItem.unit} -&gt;{" "}
-              <span
-                className={
-                  isDecrease
-                    ? "text-red-600 dark:text-red-400"
-                    : "text-emerald-600 dark:text-emerald-400"
-                }
-              >
+              <span className={isDecrease ? "text-danger" : "text-success"}>
                 {nextQuantity.toFixed(2)} {currentItem.unit}
               </span>
             </p>
