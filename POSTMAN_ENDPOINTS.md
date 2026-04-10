@@ -278,7 +278,7 @@ Catalogo:
 - Auth: admin
 - Body: none
 - Esperado: 200
-- Recibes: {"id":"...","deactivated":true}
+- Recibes: {"id":"...","desactivated":true}
 
 ## 5.2 Inventory
 

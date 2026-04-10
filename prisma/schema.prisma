@@ -44,6 +44,8 @@ enum NotificationType {
     payment_due
     monthly_report
     inventory_updated
+
+    @@map("notification_type")
 }
 
 enum AuditAction {
@@ -67,6 +69,8 @@ enum PaymentMethod {
     transfer
     credit
     mixed
+
+    @@map("payment_method")
 }
 
 enum SaleChannel {
@@ -75,6 +79,8 @@ enum SaleChannel {
     whatsapp
     marketplace
     other
+
+    @@map("sale_channel")
 }
 
 enum SaleStatus {
@@ -82,6 +88,8 @@ enum SaleStatus {
     partial
     pending
     cancelled
+
+    @@map("sale_status")
 }
 
 enum WorkOrderStatus {
@@ -91,6 +99,8 @@ enum WorkOrderStatus {
     ready
     delivered
     cancelled
+
+    @@map("work_order_status")
 }
 
 enum WorkOrderChannel {
@@ -99,6 +109,8 @@ enum WorkOrderChannel {
     social_media
     returning_customer
     other
+
+    @@map("work_order_channel")
 }
 
 enum ExpenseCategory {
@@ -112,17 +124,23 @@ enum ExpenseCategory {
     office
     payroll
     other
+
+    @@map("expense_category")
 }
 
 enum PayrollStatus {
     pending
     paid
+
+    @@map("payroll_status")
 }
 
 enum PayrollPaymentMethod {
     cash
     transfer
     other
+
+    @@map("payroll_payment_method")
 }
 
 enum GarmentType {
@@ -135,6 +153,8 @@ enum GarmentType {
     sheets
     blankets
     other
+
+    @@map("garment_type")
 }
 
 model Profile {

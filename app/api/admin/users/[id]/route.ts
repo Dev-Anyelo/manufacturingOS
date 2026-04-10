@@ -115,7 +115,7 @@ export async function DELETE(
       },
     })
 
-    return apiSuccess({ id, deactivated: true })
+    return apiSuccess({ id, desactivated: true })
   } catch (error) {
     return handleApiError(error)
   }

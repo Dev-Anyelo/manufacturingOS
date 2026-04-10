@@ -84,7 +84,13 @@ export async function POST(request: Request) {
         Prisma.sql`
           SELECT id, name, quantity
           FROM public.inventory_items
-          WHERE id IN (${Prisma.join(payload.items.map((item) => item.inventory_item_id))})
+          WHERE id IN (
+            ${Prisma.join(
+              payload.items.map(
+                (item) => Prisma.sql`CAST(${item.inventory_item_id} AS uuid)`
+              )
+            )}
+          )
           FOR UPDATE
         `
       )

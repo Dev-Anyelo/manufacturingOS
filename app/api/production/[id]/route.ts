@@ -120,7 +120,13 @@ export async function PATCH(
         Prisma.sql`
           SELECT id, quantity, name
           FROM public.inventory_items
-          WHERE id IN (${Prisma.join(payload.items.map((item) => item.inventory_item_id))})
+          WHERE id IN (
+            ${Prisma.join(
+              payload.items.map(
+                (item) => Prisma.sql`CAST(${item.inventory_item_id} AS uuid)`
+              )
+            )}
+          )
           FOR UPDATE
         `
       )
