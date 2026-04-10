@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { type ColumnDef } from "@tanstack/react-table"
 import { EyeIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
+import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import type { OrderSummaryItem } from "@/components/modules/orders/types"
+
 import {
   Select,
   SelectContent,
@@ -16,8 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-import type { OrderSummaryItem } from "@/components/modules/orders/types"
 
 const channelLabelMap: Record<OrderSummaryItem["channel"], string> = {
   in_person: "En tienda",

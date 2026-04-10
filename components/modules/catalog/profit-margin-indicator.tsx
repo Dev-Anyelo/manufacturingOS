@@ -1,6 +1,5 @@
-import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
-
 import { Badge } from "@/components/ui/badge"
+import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 
 interface ProfitMarginIndicatorProps {
   ourPriceUnit: number | null

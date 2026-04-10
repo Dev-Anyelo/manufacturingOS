@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { type ColumnDef } from "@tanstack/react-table"
-import { CheckCircle2Icon, EyeIcon, MailIcon } from "lucide-react"
-
-import { DataTable } from "@/components/shared/data-table"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { type ColumnDef } from "@tanstack/react-table"
+import { DataTable } from "@/components/shared/data-table"
+import { CheckCircle2Icon, EyeIcon, MailIcon } from "lucide-react"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+
 import {
   Select,
   SelectContent,
@@ -15,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 
 export interface PayrollTableRow {
   id: string

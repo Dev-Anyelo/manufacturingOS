@@ -1,18 +1,17 @@
 "use client"
 
+import { z } from "zod"
 import * as React from "react"
 import Image from "next/image"
-import { z } from "zod"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { LayersIcon, Loader2Icon, UploadIcon, XIcon } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useRouter } from "next/navigation"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Textarea } from "@/components/ui/textarea"
+import { Loader2Icon, UploadIcon, XIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 const catalogFormSchema = z.object({

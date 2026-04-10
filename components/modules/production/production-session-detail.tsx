@@ -1,3 +1,7 @@
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { GarmentTypeBadge } from "@/components/modules/production/garment-type-badge"
+
 import {
   ClipboardListIcon,
   RulerIcon,
@@ -5,7 +9,6 @@ import {
   UserRoundIcon,
 } from "lucide-react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -14,8 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { GarmentTypeBadge } from "@/components/modules/production/garment-type-badge"
 
 export interface ProductionDetailItem {
   id: string

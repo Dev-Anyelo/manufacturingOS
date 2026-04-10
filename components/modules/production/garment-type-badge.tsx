@@ -6,12 +6,14 @@ import { GARMENT_TYPES } from "@/types"
 type GarmentTypeKey = keyof typeof GARMENT_TYPES
 
 interface GarmentTypeBadgeProps {
-  type: string
+  garmentType?: string
+  type?: string
 }
 
-export function GarmentTypeBadge({ type }: GarmentTypeBadgeProps) {
-  const normalized = type as GarmentTypeKey
-  const label = GARMENT_TYPES[normalized] ?? type
+export function GarmentTypeBadge({ garmentType, type }: GarmentTypeBadgeProps) {
+  const value = garmentType ?? type ?? "other"
+  const normalized = value as GarmentTypeKey
+  const label = GARMENT_TYPES[normalized] ?? value
 
   return (
     <Badge variant="outline" className="status-subtle gap-1.5">

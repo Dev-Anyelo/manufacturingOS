@@ -1,10 +1,21 @@
 "use client"
 
-import * as React from "react"
 import { z } from "zod"
+import { toast } from "sonner"
+import * as React from "react"
+import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
+import type { PosCustomer } from "@/components/modules/sales/types"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CustomerSelector } from "@/components/modules/sales/customer-selector"
+
 import {
   CalendarDaysIcon,
   Loader2Icon,
@@ -13,14 +24,7 @@ import {
   Trash2Icon,
   UploadIcon,
 } from "lucide-react"
-import { toast } from "sonner"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -28,9 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { CustomerSelector } from "@/components/modules/sales/customer-selector"
-import type { PosCustomer } from "@/components/modules/sales/types"
 
 const channelOptions = [
   { value: "in_person", label: "En tienda" },

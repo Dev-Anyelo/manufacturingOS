@@ -2,7 +2,15 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
 import { WorkOrderStatus } from "@prisma/client"
+import { StatusBadge } from "@/components/shared/status-badge"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import type { OrderDetailData } from "@/components/modules/orders/types"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
+import { OrderStatusStepper } from "@/components/modules/orders/order-status-stepper"
+
 import {
   CalendarClockIcon,
   CircleDollarSignIcon,
@@ -10,8 +18,6 @@ import {
   UserIcon,
 } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -20,12 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { StatusBadge } from "@/components/shared/status-badge"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { OrderStatusStepper } from "@/components/modules/orders/order-status-stepper"
-import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
-
-import type { OrderDetailData } from "@/components/modules/orders/types"
 
 const transitionMap: Record<WorkOrderStatus, WorkOrderStatus[]> = {
   [WorkOrderStatus.received]: [

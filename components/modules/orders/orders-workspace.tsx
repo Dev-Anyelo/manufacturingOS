@@ -3,11 +3,10 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { WorkOrderStatus } from "@prisma/client"
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
 import { OrderKanban } from "@/components/modules/orders/order-kanban"
 import { OrdersTable } from "@/components/modules/orders/orders-table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
 
 import type {
   OrderStatusColumns,

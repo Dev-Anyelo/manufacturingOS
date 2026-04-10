@@ -2,12 +2,13 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { WorkOrderStatus } from "@prisma/client"
-import { ArrowRightIcon, InfoIcon, Loader2Icon } from "lucide-react"
-
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { WorkOrderStatus } from "@prisma/client"
 import { Textarea } from "@/components/ui/textarea"
+import { StatusBadge } from "@/components/shared/status-badge"
+import { ArrowRightIcon, InfoIcon, Loader2Icon } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { StatusBadge } from "@/components/shared/status-badge"
 
 interface ChangeStatusDialogProps {
   orderId: string

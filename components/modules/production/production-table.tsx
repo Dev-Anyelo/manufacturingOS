@@ -2,13 +2,12 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { type ColumnDef } from "@tanstack/react-table"
 import { EyeIcon } from "lucide-react"
-
-import { DataTable } from "@/components/shared/data-table"
-import { DateRangePicker } from "@/components/shared/date-range-picker"
 import { Button } from "@/components/ui/button"
+import { type ColumnDef } from "@tanstack/react-table"
+import { DataTable } from "@/components/shared/data-table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { DateRangePicker } from "@/components/shared/date-range-picker"
 
 import {
   Select,

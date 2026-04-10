@@ -1,6 +1,13 @@
 "use client"
 
 import * as React from "react"
+import { cn } from "@/lib/utils"
+import { CSS } from "@dnd-kit/utilities"
+import { Badge } from "@/components/ui/badge"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { WorkOrderStatus } from "@prisma/client"
+import { OrderCard } from "@/components/modules/orders/order-card"
+
 import {
   DndContext,
   DragOverlay,
@@ -12,17 +19,13 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core"
+
 import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { WorkOrderStatus } from "@prisma/client"
 
-import { cn } from "@/lib/utils"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -31,7 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { OrderCard } from "@/components/modules/orders/order-card"
 import type {
   OrderStatusColumns,
   OrderSummaryItem,

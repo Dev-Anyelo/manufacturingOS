@@ -3,9 +3,13 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { PlusIcon, UsersRoundIcon, WalletCardsIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { PayrollForm } from "@/components/modules/payroll/payroll-form"
+import { PlusIcon, UsersRoundIcon, WalletCardsIcon } from "lucide-react"
+import { MarkPaidDialog } from "@/components/modules/payroll/mark-paid-dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import {
   Card,
   CardContent,
@@ -13,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+
 import {
   Dialog,
   DialogContent,
@@ -20,14 +25,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import {
   PayrollTable,
   type PayrollTableRow,
 } from "@/components/modules/payroll/payroll-table"
-import { PayrollForm } from "@/components/modules/payroll/payroll-form"
-import { MarkPaidDialog } from "@/components/modules/payroll/mark-paid-dialog"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
 
 type EmployeeSummaryRow = {
   employeeId: string

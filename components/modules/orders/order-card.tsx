@@ -1,5 +1,12 @@
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import type { ReactNode } from "react"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import type { OrderSummaryItem } from "@/components/modules/orders/types"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import {
   CalendarClockIcon,
   CircleDollarSignIcon,
@@ -8,14 +15,6 @@ import {
   StoreIcon,
   UserCircle2Icon,
 } from "lucide-react"
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { cn } from "@/lib/utils"
-
-import type { OrderSummaryItem } from "@/components/modules/orders/types"
 
 const channelLabelMap: Record<OrderSummaryItem["channel"], string> = {
   in_person: "En tienda",

@@ -2,13 +2,16 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { type ColumnDef } from "@tanstack/react-table"
-import { LayoutGridIcon, ListIcon, SlidersHorizontalIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
-
+import { Button } from "@/components/ui/button"
+import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { Button } from "@/components/ui/button"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { LayoutGridIcon, ListIcon, SlidersHorizontalIcon } from "lucide-react"
+import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
+import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+
 import {
   Select,
   SelectContent,
@@ -16,13 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+
 import {
   CatalogCard,
   type CatalogCardItem,
 } from "@/components/modules/catalog/catalog-card"
-import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
 
 interface CatalogWorkspaceProps {
   items: CatalogCardItem[]

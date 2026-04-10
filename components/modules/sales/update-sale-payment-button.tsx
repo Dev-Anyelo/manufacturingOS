@@ -1,12 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { CheckCircle2Icon } from "lucide-react"
 import { toast } from "sonner"
-
-import { ConfirmDialog } from "@/components/shared/confirm-dialog"
-import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { CheckCircle2Icon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 
 interface UpdateSalePaymentButtonProps {
   saleId: string

@@ -1,18 +1,18 @@
 "use client"
 
-import * as React from "react"
 import { z } from "zod"
+import * as React from "react"
 import { toast } from "sonner"
+import { GARMENT_TYPES } from "@/types"
 import { useRouter } from "next/navigation"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { productionSessionSchema } from "@/lib/validations/production"
-import { GARMENT_TYPES } from "@/types"
 
 import {
   CalendarDaysIcon,
@@ -28,8 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-
 
 const productionFormSchema = z.object({
   employee_id: z.string().uuid("El empleado seleccionado no es valido"),

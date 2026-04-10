@@ -1,8 +1,10 @@
 import Link from "next/link"
 import Image from "next/image"
 import { LayersIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+
 import {
   Card,
   CardContent,
@@ -10,8 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
 
 export interface CatalogCardItem {
   id: string

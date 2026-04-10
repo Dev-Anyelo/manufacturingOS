@@ -1,10 +1,9 @@
 import Link from "next/link"
 import { DownloadIcon } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export interface PayslipPreviewData {
   id: string
