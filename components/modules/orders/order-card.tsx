@@ -57,6 +57,17 @@ function getDeliveryTone(deliveryDate: string) {
   return "text-muted-foreground"
 }
 
+function getUrgency(deliveryDate: string) {
+  const now = new Date()
+  const delivery = new Date(deliveryDate)
+  const diff = delivery.getTime() - now.getTime()
+
+  return {
+    isOverdue: diff < 0,
+    isUrgent: diff >= 0 && diff <= 24 * 60 * 60 * 1000,
+  }
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("es-PA", {
     day: "2-digit",
@@ -76,12 +87,14 @@ export function OrderCard({
   isDragging = false,
   className,
 }: OrderCardProps) {
+  const { isOverdue, isUrgent } = getUrgency(order.deliveryDate)
+
   return (
     <Link href={`/orders/${order.id}`} className="block">
       <Card
         className={cn(
-          "border border-border/60 bg-card py-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
-          isDragging && "opacity-70",
+          "group border border-border/50 bg-card py-3 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-border hover:shadow-md",
+          isDragging && "scale-[1.02] rotate-1 opacity-90 shadow-lg",
           className
         )}
       >
@@ -103,10 +116,22 @@ export function OrderCard({
               </div>
             </div>
 
-            <Badge variant="outline" className="gap-1 text-xs">
-              {channelIconMap[order.channel]}
-              {channelLabelMap[order.channel]}
-            </Badge>
+            <div className="flex flex-wrap items-center justify-end gap-1">
+              {isOverdue ? (
+                <Badge variant="destructive" className="text-[10px]">
+                  Vencido
+                </Badge>
+              ) : null}
+              {isUrgent ? (
+                <Badge className="bg-warning text-[10px] text-background">
+                  Urgente
+                </Badge>
+              ) : null}
+              <Badge variant="outline" className="gap-1 text-xs">
+                {channelIconMap[order.channel]}
+                {channelLabelMap[order.channel]}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
 
@@ -133,12 +158,22 @@ export function OrderCard({
               <CircleDollarSignIcon className="size-3.5" />
               Saldo
             </span>
-            <CurrencyDisplay
-              amount={order.balanceDue}
-              size="sm"
-              colored={order.balanceDue > 0}
-              className={order.balanceDue > 0 ? "font-semibold" : ""}
-            />
+            {order.balanceDue > 0 ? (
+              <div className="bg-warning-soft border-warning-soft rounded-md border px-2 py-1">
+                <CurrencyDisplay
+                  amount={order.balanceDue}
+                  size="sm"
+                  colored={order.balanceDue > 0}
+                  className="font-semibold"
+                />
+              </div>
+            ) : (
+              <CurrencyDisplay
+                amount={order.balanceDue}
+                size="sm"
+                colored={false}
+              />
+            )}
           </div>
         </CardContent>
       </Card>

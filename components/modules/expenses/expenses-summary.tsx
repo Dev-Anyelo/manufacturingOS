@@ -1,7 +1,6 @@
-import { FolderCogIcon, SparklesIcon, WalletCardsIcon } from "lucide-react"
-
-import { StatCard } from "@/components/shared/stat-card"
 import { EXPENSE_CATEGORIES } from "@/types"
+import { StatCard } from "@/components/shared/stat-card"
+import { FolderCogIcon, SparklesIcon, WalletCardsIcon } from "lucide-react"
 
 interface ExpensesSummaryProps {
   monthlyTotal: number

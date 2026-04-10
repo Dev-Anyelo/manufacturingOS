@@ -70,7 +70,7 @@ export default async function InventoryPage() {
   const canDeactivate = user.role === UserRole.Admin
 
   return (
-    <section className="space-y-6">
+    <section className="mx-auto flex w-full max-w-350 flex-col gap-6">
       <PageHeader
         title="Inventario"
         description="Control de telas, insumos, herramientas y maquinaria."

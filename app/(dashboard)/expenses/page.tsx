@@ -26,7 +26,7 @@ export default async function ExpensesPage() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex w-full max-w-350 flex-col gap-6">
       <PageHeader
         title="Gastos"
         description="Controla egresos operativos y compras de insumos."

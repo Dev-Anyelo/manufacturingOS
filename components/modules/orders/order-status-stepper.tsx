@@ -7,15 +7,31 @@ const flow: Array<{
   label: string
   icon: React.ReactNode
 }> = [
-  { status: WorkOrderStatus.received, label: "Recibido", icon: <InboxIcon className="size-4" /> },
-  { status: WorkOrderStatus.confirmed, label: "Confirmado", icon: <CheckIcon className="size-4" /> },
+  {
+    status: WorkOrderStatus.received,
+    label: "Recibido",
+    icon: <InboxIcon className="size-4" />,
+  },
+  {
+    status: WorkOrderStatus.confirmed,
+    label: "Confirmado",
+    icon: <CheckIcon className="size-4" />,
+  },
   {
     status: WorkOrderStatus.in_production,
     label: "En produccion",
     icon: <BoxIcon className="size-4" />,
   },
-  { status: WorkOrderStatus.ready, label: "Listo", icon: <BoxIcon className="size-4" /> },
-  { status: WorkOrderStatus.delivered, label: "Entregado", icon: <CheckIcon className="size-4" /> },
+  {
+    status: WorkOrderStatus.ready,
+    label: "Listo",
+    icon: <BoxIcon className="size-4" />,
+  },
+  {
+    status: WorkOrderStatus.delivered,
+    label: "Entregado",
+    icon: <CheckIcon className="size-4" />,
+  },
 ]
 
 interface OrderStatusStepperProps {
@@ -66,7 +82,7 @@ export function OrderStatusStepper({
                     stepState === "completed" &&
                       "border-brand bg-brand text-brand-foreground",
                     stepState === "current" &&
-                      "border-brand bg-brand text-brand-foreground",
+                      "bg-brand-muted border-brand text-brand ring-2 ring-brand/20",
                     stepState === "future" &&
                       "border-border bg-background text-muted-foreground"
                   )}
@@ -79,8 +95,8 @@ export function OrderStatusStepper({
                 </span>
                 <span
                   className={cn(
-                    "text-sm text-muted-foreground",
-                    stepState === "current" && "font-semibold text-foreground",
+                    "text-[11px] whitespace-nowrap text-muted-foreground",
+                    stepState === "current" && "font-semibold text-brand",
                     stepState === "completed" && "text-foreground"
                   )}
                 >
@@ -89,7 +105,13 @@ export function OrderStatusStepper({
               </div>
 
               {index < flow.length - 1 ? (
-                <span className="h-px w-10 bg-border" aria-hidden="true" />
+                <span
+                  className={cn(
+                    "h-0.5 w-10 bg-border",
+                    stepState === "completed" && "bg-brand"
+                  )}
+                  aria-hidden="true"
+                />
               ) : null}
             </li>
           )

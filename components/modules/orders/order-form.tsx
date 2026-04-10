@@ -8,16 +8,22 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { PosCustomer } from "@/components/modules/sales/types"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 import {
-  CalendarDaysIcon,
   Loader2Icon,
   PlusIcon,
   RulerIcon,
@@ -131,6 +137,25 @@ function toNullableString(value?: string | null) {
   return normalized ? normalized : null
 }
 
+function toInputDate(value: Date) {
+  const year = value.getFullYear()
+  const month = `${value.getMonth() + 1}`.padStart(2, "0")
+  const day = `${value.getDate()}`.padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function formatDateLabel(value: string) {
+  if (!value) {
+    return "Seleccionar fecha"
+  }
+
+  return new Intl.DateTimeFormat("es-PA", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00`))
+}
+
 function normalizeMeasurements(
   mode: MeasurementMode,
   measurements?: Record<string, unknown> | null
@@ -184,6 +209,7 @@ export function OrderForm({
   const watchedCustomerId = form.watch("customer_id")
   const watchedAdvance = form.watch("advance_paid")
   const watchedTotal = form.watch("total")
+  const watchedDeliveryDate = form.watch("delivery_date")
 
   const selectedCustomer = React.useMemo(
     () =>
@@ -322,18 +348,38 @@ export function OrderForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="delivery_date" className="text-sm font-medium">
-              Fecha de entrega
-            </Label>
-            <div className="relative">
-              <CalendarDaysIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="delivery_date"
-                type="date"
-                className="pl-8"
-                {...form.register("delivery_date")}
-              />
-            </div>
+            <Label className="text-sm font-medium">Fecha de entrega</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  {formatDateLabel(watchedDeliveryDate)}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" align="start">
+                <Calendar
+                  mode="single"
+                  selected={
+                    watchedDeliveryDate
+                      ? new Date(`${watchedDeliveryDate}T00:00:00`)
+                      : undefined
+                  }
+                  onSelect={(date) => {
+                    if (!date) {
+                      return
+                    }
+
+                    form.setValue("delivery_date", toInputDate(date), {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
             {form.formState.errors.delivery_date ? (
               <p className="text-danger text-xs">
                 {form.formState.errors.delivery_date.message}
@@ -575,40 +621,39 @@ export function OrderForm({
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={mode === "standard" ? "default" : "outline"}
-                      onClick={() =>
+                    <RadioGroup
+                      value={mode}
+                      onValueChange={(value) =>
                         setMeasurementModes((prev) => ({
                           ...prev,
-                          [field.id]: "standard",
+                          [field.id]: value as MeasurementMode,
                         }))
                       }
-                      className={cn(
-                        mode === "standard"
-                          ? "bg-brand text-brand-foreground"
-                          : ""
-                      )}
+                      className="grid grid-cols-1 gap-2 sm:grid-cols-2"
                     >
-                      Talla estandar
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={mode === "exact" ? "default" : "outline"}
-                      onClick={() =>
-                        setMeasurementModes((prev) => ({
-                          ...prev,
-                          [field.id]: "exact",
-                        }))
-                      }
-                      className={cn(
-                        mode === "exact" ? "bg-brand text-brand-foreground" : ""
-                      )}
-                    >
-                      Medidas exactas
-                    </Button>
+                      <label
+                        className={cn(
+                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                          mode === "standard"
+                            ? "bg-brand-muted border-brand font-medium text-brand"
+                            : "border-border text-muted-foreground hover:bg-muted/40"
+                        )}
+                      >
+                        <RadioGroupItem value="standard" className="sr-only" />
+                        Talla estandar
+                      </label>
+                      <label
+                        className={cn(
+                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
+                          mode === "exact"
+                            ? "bg-brand-muted border-brand font-medium text-brand"
+                            : "border-border text-muted-foreground hover:bg-muted/40"
+                        )}
+                      >
+                        <RadioGroupItem value="exact" className="sr-only" />
+                        Medidas exactas
+                      </label>
+                    </RadioGroup>
                   </div>
 
                   {mode === "exact" ? (

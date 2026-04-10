@@ -173,6 +173,9 @@ export function CustomerSelector({
                   <CommandEmpty>No se encontraron clientes.</CommandEmpty>
                 ) : (
                   <CommandGroup>
+                    <p className="px-2 py-1 text-xs text-muted-foreground">
+                      Clientes
+                    </p>
                     {filteredCustomers.map((customer) => (
                       <CommandItem
                         key={customer.id}
@@ -202,20 +205,18 @@ export function CustomerSelector({
 
                 <CommandSeparator />
 
-                <div className="p-2">
+                <CommandGroup>
                   {!showCreateForm ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="w-full justify-start"
+                    <CommandItem
                       onClick={() => {
                         setShowCreateForm(true)
                         setNewCustomerName(searchValue.trim())
                       }}
+                      className="font-medium text-brand"
                     >
                       <PlusIcon className="size-4" />
                       Crear nuevo cliente
-                    </Button>
+                    </CommandItem>
                   ) : (
                     <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-2">
                       <Input
@@ -237,7 +238,11 @@ export function CustomerSelector({
                           type="button"
                           size="sm"
                           variant="ghost"
-                          onClick={() => setShowCreateForm(false)}
+                          onClick={() => {
+                            setShowCreateForm(false)
+                            setNewCustomerName("")
+                            setNewCustomerPhone("")
+                          }}
                         >
                           Cancelar
                         </Button>
@@ -253,7 +258,7 @@ export function CustomerSelector({
                       </div>
                     </div>
                   )}
-                </div>
+                </CommandGroup>
               </CommandList>
             </Command>
           </PopoverContent>

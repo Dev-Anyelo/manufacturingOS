@@ -3,19 +3,35 @@
 import { z } from "zod"
 import * as React from "react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import { GARMENT_TYPES } from "@/types"
 import { useRouter } from "next/navigation"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { productionSessionSchema } from "@/lib/validations/production"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 import {
-  CalendarDaysIcon,
+  CheckIcon,
+  ChevronsUpDownIcon,
   Loader2Icon,
   PlusIcon,
   Trash2Icon,
@@ -132,12 +148,32 @@ function normalizeOptional(value?: string | null) {
   return normalized ? normalized : null
 }
 
+function formatDateLabel(value: string) {
+  if (!value) {
+    return "Seleccionar fecha"
+  }
+
+  return new Intl.DateTimeFormat("es-PA", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00`))
+}
+
+function toInputDate(value: Date) {
+  const year = value.getFullYear()
+  const month = `${value.getMonth() + 1}`.padStart(2, "0")
+  const day = `${value.getDate()}`.padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
 export function ProductionForm({
   employees,
   inventoryItems,
 }: ProductionFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [employeeOpen, setEmployeeOpen] = React.useState(false)
 
   const form = useForm<ProductionFormInput, unknown, ProductionFormOutput>({
     resolver: zodResolver(productionFormSchema),
@@ -155,6 +191,13 @@ export function ProductionForm({
   })
 
   const watchedItems = form.watch("items")
+  const selectedEmployeeId = form.watch("employee_id")
+  const selectedSessionDate = form.watch("session_date")
+
+  const selectedEmployee = React.useMemo(
+    () => employees.find((employee) => employee.id === selectedEmployeeId),
+    [employees, selectedEmployeeId]
+  )
 
   const totalGarments = React.useMemo(() => {
     return watchedItems.reduce(
@@ -233,26 +276,54 @@ export function ProductionForm({
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label className="text-sm font-medium">Empleado</Label>
-            <Select
-              value={form.watch("employee_id")}
-              onValueChange={(value) =>
-                form.setValue("employee_id", value, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecciona empleado" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.fullName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={employeeOpen}
+                  className="w-full justify-between"
+                >
+                  <span className="truncate">
+                    {selectedEmployee?.fullName ?? "Selecciona empleado"}
+                  </span>
+                  <ChevronsUpDownIcon className="size-4 text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[min(92vw,26rem)] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar empleado..." />
+                  <CommandList>
+                    <CommandEmpty>No se encontraron empleados.</CommandEmpty>
+                    <CommandGroup>
+                      {employees.map((employee) => (
+                        <CommandItem
+                          key={employee.id}
+                          onClick={() => {
+                            form.setValue("employee_id", employee.id, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            })
+                            setEmployeeOpen(false)
+                          }}
+                        >
+                          <CheckIcon
+                            className={cn(
+                              "mr-2 size-4",
+                              employee.id === selectedEmployeeId
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          <span className="truncate">{employee.fullName}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             {form.formState.errors.employee_id ? (
               <p className="text-danger text-xs">
                 {form.formState.errors.employee_id.message}
@@ -261,18 +332,39 @@ export function ProductionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="session_date" className="text-sm font-medium">
-              Fecha de sesion
-            </Label>
-            <div className="relative">
-              <CalendarDaysIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="session_date"
-                type="date"
-                className="pl-8"
-                {...form.register("session_date")}
-              />
-            </div>
+            <Label className="text-sm font-medium">Fecha de sesion</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  {formatDateLabel(selectedSessionDate)}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" align="start">
+                <Calendar
+                  mode="single"
+                  selected={
+                    selectedSessionDate
+                      ? new Date(`${selectedSessionDate}T00:00:00`)
+                      : undefined
+                  }
+                  onSelect={(date) => {
+                    if (!date) {
+                      return
+                    }
+
+                    form.setValue("session_date", toInputDate(date), {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }}
+                  disabled={(date) => date > new Date()}
+                />
+              </PopoverContent>
+            </Popover>
             {form.formState.errors.session_date ? (
               <p className="text-danger text-xs">
                 {form.formState.errors.session_date.message as string}

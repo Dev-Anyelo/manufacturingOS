@@ -2,9 +2,10 @@
 
 import * as React from "react"
 import { CalendarDaysIcon } from "lucide-react"
+import type { DateRange } from "react-day-picker"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Calendar } from "@/components/ui/calendar"
 import {
   Popover,
   PopoverContent,
@@ -19,19 +20,8 @@ interface DateRangePickerProps {
   presets?: boolean
 }
 
-function formatDateInput(value?: Date) {
-  if (!value) {
-    return ""
-  }
-
-  const year = value.getFullYear()
-  const month = `${value.getMonth() + 1}`.padStart(2, "0")
-  const day = `${value.getDate()}`.padStart(2, "0")
-  return `${year}-${month}-${day}`
-}
-
 function formatLabel(from?: Date, to?: Date) {
-  if (!from && !to) {
+  if (!from) {
     return "Seleccionar rango"
   }
 
@@ -45,7 +35,7 @@ function formatLabel(from?: Date, to?: Date) {
     return `${fmt.format(from)} - ${fmt.format(to)}`
   }
 
-  return from ? fmt.format(from) : fmt.format(to as Date)
+  return fmt.format(from)
 }
 
 export function DateRangePicker({
@@ -57,7 +47,11 @@ export function DateRangePicker({
 }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false)
 
-  const today = new Date()
+  const today = React.useMemo(() => new Date(), [])
+  const selectedRange = React.useMemo<DateRange>(
+    () => ({ from, to }),
+    [from, to]
+  )
 
   function setRange(nextFrom?: Date, nextTo?: Date) {
     onChange({ from: nextFrom, to: nextTo })
@@ -75,7 +69,7 @@ export function DateRangePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[20rem] space-y-3 rounded-xl border-border/60 p-4"
+        className="w-auto space-y-3 rounded-xl border-border/60 p-3"
         align="start"
       >
         {presets ? (
@@ -125,29 +119,14 @@ export function DateRangePicker({
           </div>
         ) : null}
 
-        <div className="space-y-2">
-          <label className="text-xs text-muted-foreground">Desde</label>
-          <Input
-            type="date"
-            value={formatDateInput(from)}
-            onChange={(event) => {
-              const value = event.target.value
-              setRange(value ? new Date(`${value}T00:00:00`) : undefined, to)
+        <div className="rounded-lg border border-border/50 bg-card p-1">
+          <Calendar
+            mode="range"
+            selected={selectedRange}
+            onSelect={(range) => {
+              setRange(range?.from, range?.to)
             }}
-            className="h-9"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-xs text-muted-foreground">Hasta</label>
-          <Input
-            type="date"
-            value={formatDateInput(to)}
-            onChange={(event) => {
-              const value = event.target.value
-              setRange(from, value ? new Date(`${value}T00:00:00`) : undefined)
-            }}
-            className="h-9"
+            numberOfMonths={1}
           />
         </div>
 

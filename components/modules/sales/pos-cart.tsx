@@ -4,13 +4,27 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { CustomerSelector } from "./customer-selector"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Loader2Icon, MinusIcon, PlusIcon, Trash2Icon } from "lucide-react"
+
+import {
+  CalendarIcon,
+  Loader2Icon,
+  MinusIcon,
+  PlusIcon,
+  Trash2Icon,
+} from "lucide-react"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { PosCartItem, PosCustomer } from "@/components/modules/sales/types"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 import {
   Select,
@@ -56,6 +70,25 @@ const paymentMethods = [
   { value: "credit", label: "Credito" },
   { value: "mixed", label: "Mixto" },
 ]
+
+function toInputDate(value: Date) {
+  const year = value.getFullYear()
+  const month = `${value.getMonth() + 1}`.padStart(2, "0")
+  const day = `${value.getDate()}`.padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function formatDateLabel(value: string) {
+  if (!value) {
+    return "Fecha de pago"
+  }
+
+  return new Intl.DateTimeFormat("es-PA", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00`))
+}
 
 export function PosCart({
   items,
@@ -259,11 +292,33 @@ export function PosCart({
               </div>
               <div className="space-y-2">
                 <Label>Fecha de pago</Label>
-                <Input
-                  type="date"
-                  value={dueDate}
-                  onChange={(event) => onDueDateChange(event.target.value)}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 size-4" />
+                      {formatDateLabel(dueDate)}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={
+                        dueDate ? new Date(`${dueDate}T00:00:00`) : undefined
+                      }
+                      onSelect={(date) => {
+                        if (!date) {
+                          return
+                        }
+
+                        onDueDateChange(toInputDate(date))
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           ) : null}

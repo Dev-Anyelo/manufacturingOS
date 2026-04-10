@@ -20,7 +20,7 @@ export default async function ProductionPage() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex w-full max-w-350 flex-col gap-6">
       <PageHeader
         title="Produccion"
         description="Registra sesiones de confeccion y consumo de materiales."

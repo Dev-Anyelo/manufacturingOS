@@ -10,7 +10,7 @@ export default async function NewSalePage() {
   const { catalogItems, customers } = await getSalesPosBootstrap()
 
   return (
-    <section className="space-y-6">
+    <section className="mx-auto flex w-full max-w-350 flex-col gap-6">
       <PageHeader
         title="Nueva venta"
         description="Registra ventas en punto de venta con calculo de pago y recibo."

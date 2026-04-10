@@ -26,7 +26,7 @@ export default async function OrdersPage() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex w-full max-w-350 flex-col gap-6">
       <PageHeader
         title="Pedidos"
         description="Gestiona pedidos a medida con estado de produccion y entrega."

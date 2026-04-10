@@ -2,12 +2,27 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { Loader2Icon } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import type { PayrollTableRow } from "@/components/modules/payroll/payroll-table"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+
+import {
+  BanknoteIcon,
+  CalendarIcon,
+  CreditCardIcon,
+  Loader2Icon,
+  MoreHorizontalIcon,
+} from "lucide-react"
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 import {
   Dialog,
@@ -17,14 +32,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 interface MarkPaidDialogProps {
   open: boolean
@@ -40,6 +47,31 @@ function todayInputDate() {
   const day = `${now.getDate()}`.padStart(2, "0")
   return `${year}-${month}-${day}`
 }
+
+function toInputDate(value: Date) {
+  const year = value.getFullYear()
+  const month = `${value.getMonth() + 1}`.padStart(2, "0")
+  const day = `${value.getDate()}`.padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function formatDateLabel(value: string) {
+  if (!value) {
+    return "Fecha de pago"
+  }
+
+  return new Intl.DateTimeFormat("es-PA", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00`))
+}
+
+const paymentMethods = [
+  { value: "cash", label: "Efectivo", icon: BanknoteIcon },
+  { value: "transfer", label: "Transferencia", icon: CreditCardIcon },
+  { value: "other", label: "Otro", icon: MoreHorizontalIcon },
+] as const
 
 export function MarkPaidDialog({
   open,
@@ -129,34 +161,68 @@ export function MarkPaidDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="payment_date" className="text-sm font-medium">
+            <Label className="text-sm font-medium">
               Fecha de pago
             </Label>
-            <Input
-              id="payment_date"
-              type="date"
-              value={paymentDate}
-              onChange={(event) => setPaymentDate(event.target.value)}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 size-4" />
+                  {formatDateLabel(paymentDate)}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" align="start">
+                <Calendar
+                  mode="single"
+                  selected={
+                    paymentDate ? new Date(`${paymentDate}T00:00:00`) : undefined
+                  }
+                  onSelect={(date) => {
+                    if (!date) {
+                      return
+                    }
+
+                    setPaymentDate(toInputDate(date))
+                  }}
+                  disabled={(date) => date > new Date()}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">
             <Label className="text-sm font-medium">Metodo de pago</Label>
-            <Select
+            <RadioGroup
               value={paymentMethod}
               onValueChange={(value) =>
                 setPaymentMethod(value as "cash" | "transfer" | "other")
               }
+              className="grid grid-cols-3 gap-2"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona metodo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">Efectivo</SelectItem>
-                <SelectItem value="transfer">Transferencia</SelectItem>
-                <SelectItem value="other">Otro</SelectItem>
-              </SelectContent>
-            </Select>
+              {paymentMethods.map((method) => {
+                const Icon = method.icon
+
+                return (
+                  <label
+                    key={method.value}
+                    className={cn(
+                      "flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border p-2.5 text-xs transition-colors",
+                      paymentMethod === method.value
+                        ? "border-brand bg-brand-muted text-brand font-medium"
+                        : "border-border text-muted-foreground hover:bg-muted/40"
+                    )}
+                  >
+                    <RadioGroupItem value={method.value} className="sr-only" />
+                    <Icon className="size-4" />
+                    {method.label}
+                  </label>
+                )
+              })}
+            </RadioGroup>
           </div>
 
           <div className="space-y-2">

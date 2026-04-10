@@ -57,6 +57,15 @@ const statusLabelMap: Record<WorkOrderStatus, string> = {
   [WorkOrderStatus.cancelled]: "Cancelado",
 }
 
+const columnStyles: Record<WorkOrderStatus, string> = {
+  [WorkOrderStatus.received]: "border-t-slate-400",
+  [WorkOrderStatus.confirmed]: "border-t-blue-500",
+  [WorkOrderStatus.in_production]: "border-t-amber-500",
+  [WorkOrderStatus.ready]: "border-t-brand",
+  [WorkOrderStatus.delivered]: "border-t-emerald-600",
+  [WorkOrderStatus.cancelled]: "border-t-red-500",
+}
+
 interface OrderKanbanProps {
   ordersByStatus: OrderStatusColumns
   onStatusIntent: (
@@ -113,7 +122,12 @@ function KanbanColumn({
   })
 
   return (
-    <div className="w-80 shrink-0 space-y-3 rounded-xl border border-border/60 bg-muted/20 p-3">
+    <div
+      className={cn(
+        "w-80 shrink-0 space-y-3 rounded-xl border border-t-2 border-border/60 bg-muted/20 p-3",
+        columnStyles[status]
+      )}
+    >
       <header className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">
           {statusLabelMap[status]}
@@ -166,6 +180,16 @@ export function OrderKanban({
   const [mobileStatusFilter, setMobileStatusFilter] = React.useState<
     WorkOrderStatus | "all"
   >("all")
+
+  const mobileCounts = React.useMemo(() => {
+    return statuses.reduce(
+      (acc, status) => {
+        acc[status] = ordersByStatus[status].length
+        return acc
+      },
+      {} as Record<WorkOrderStatus, number>
+    )
+  }, [ordersByStatus])
 
   const mobileList = React.useMemo(() => {
     if (mobileStatusFilter === "all") {
@@ -227,7 +251,12 @@ export function OrderKanban({
             <SelectItem value="all">Todas las etapas</SelectItem>
             {statuses.map((status) => (
               <SelectItem key={status} value={status}>
-                {statusLabelMap[status]}
+                <div className="flex items-center gap-2">
+                  <span>{statusLabelMap[status]}</span>
+                  <Badge variant="secondary" className="text-xs">
+                    {mobileCounts[status]}
+                  </Badge>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>

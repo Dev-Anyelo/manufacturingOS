@@ -238,57 +238,68 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
 
   return (
     <>
-      <div className="hidden grid-cols-1 gap-4 lg:grid lg:grid-cols-[1.6fr_1fr]">
-        <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
-        
-        <PosCart
-          items={cartItems}
-          customers={customerOptions}
-          selectedCustomer={selectedCustomer}
-          onCustomerChange={setSelectedCustomer}
-          onCustomerCreated={(customer) =>
-            setCustomerOptions((previous) => [customer, ...previous])
-          }
-          onIncreaseQuantity={handleIncreaseQuantity}
-          onDecreaseQuantity={handleDecreaseQuantity}
-          onRemoveItem={handleRemoveItem}
-          onSizeChange={handleSizeChange}
-          channel={channel}
-          onChannelChange={setChannel}
-          paymentMethod={paymentMethod}
-          onPaymentMethodChange={setPaymentMethod}
-          subtotal={subtotal}
-          discountPercent={discountPercent}
-          onDiscountPercentChange={setDiscountPercent}
-          total={total}
-          receivedAmount={receivedAmount}
-          onReceivedAmountChange={setReceivedAmount}
-          amountPaid={amountPaid}
-          onAmountPaidChange={setAmountPaid}
-          dueDate={dueDate}
-          onDueDateChange={setDueDate}
-          notes={notes}
-          onNotesChange={setNotes}
-          onSubmit={handleSubmitSale}
-          isSubmitting={isSubmitting}
-        />
+      <div className="hidden h-[calc(100vh-11rem)] gap-0 overflow-hidden rounded-xl border border-border/50 md:grid md:grid-cols-[1fr_380px] lg:grid-cols-[1fr_420px]">
+        <div className="overflow-y-auto border-r border-border/50 bg-background p-4">
+          <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
+        </div>
+        <div className="overflow-y-auto bg-card p-4">
+          <PosCart
+            items={cartItems}
+            customers={customerOptions}
+            selectedCustomer={selectedCustomer}
+            onCustomerChange={setSelectedCustomer}
+            onCustomerCreated={(customer) =>
+              setCustomerOptions((previous) => [customer, ...previous])
+            }
+            onIncreaseQuantity={handleIncreaseQuantity}
+            onDecreaseQuantity={handleDecreaseQuantity}
+            onRemoveItem={handleRemoveItem}
+            onSizeChange={handleSizeChange}
+            channel={channel}
+            onChannelChange={setChannel}
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={setPaymentMethod}
+            subtotal={subtotal}
+            discountPercent={discountPercent}
+            onDiscountPercentChange={setDiscountPercent}
+            total={total}
+            receivedAmount={receivedAmount}
+            onReceivedAmountChange={setReceivedAmount}
+            amountPaid={amountPaid}
+            onAmountPaidChange={setAmountPaid}
+            dueDate={dueDate}
+            onDueDateChange={setDueDate}
+            notes={notes}
+            onNotesChange={setNotes}
+            onSubmit={handleSubmitSale}
+            isSubmitting={isSubmitting}
+          />
+        </div>
       </div>
 
-      <div className="lg:hidden">
+      <div className="md:hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="catalog">Catalogo</TabsTrigger>
-            <TabsTrigger value="cart" className="gap-1.5">
+          <TabsList className="h-12 w-full rounded-none border-b border-border/50 bg-background">
+            <TabsTrigger value="catalog" className="flex-1 text-sm">
+              Catalogo
+            </TabsTrigger>
+            <TabsTrigger value="cart" className="flex-1 gap-1.5 text-sm">
               Carrito
-              <Badge variant="secondary" className="min-w-5 justify-center">
+              <Badge className="min-w-5 justify-center rounded-full bg-brand px-1.5 text-[10px] text-brand-foreground">
                 {cartItems.length}
               </Badge>
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="catalog" className="pt-3">
+          <TabsContent
+            value="catalog"
+            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto pt-3"
+          >
             <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
           </TabsContent>
-          <TabsContent value="cart" className="pt-3">
+          <TabsContent
+            value="cart"
+            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto pt-3"
+          >
             <PosCart
               items={cartItems}
               customers={customerOptions}

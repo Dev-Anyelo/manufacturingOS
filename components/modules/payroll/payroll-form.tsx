@@ -8,8 +8,18 @@ import { Loader2Icon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Separator } from "@/components/ui/separator"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { Card, CardContent } from "@/components/ui/card"
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 import {
   Select,
@@ -74,6 +84,25 @@ function todayInputDate() {
   return `${year}-${month}-${day}`
 }
 
+function toInputDate(value: Date) {
+  const year = value.getFullYear()
+  const month = `${value.getMonth() + 1}`.padStart(2, "0")
+  const day = `${value.getDate()}`.padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function formatDateLabel(value: string) {
+  if (!value) {
+    return "Seleccionar fecha"
+  }
+
+  return new Intl.DateTimeFormat("es-PA", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00`))
+}
+
 export function PayrollForm({
   employees,
   onSuccess,
@@ -98,6 +127,13 @@ export function PayrollForm({
   })
 
   const selectedEmployeeId = form.watch("employee_id")
+  const watchBaseAmount = Number(form.watch("base_amount") ?? 0)
+  const watchBonuses = Number(form.watch("bonuses") ?? 0)
+  const watchDeductions = Number(form.watch("deductions") ?? 0)
+  const watchPeriodStart = form.watch("period_start")
+  const watchPeriodEnd = form.watch("period_end")
+
+  const total = Math.max(watchBaseAmount + watchBonuses - watchDeductions, 0)
 
   React.useEffect(() => {
     const selected = employees.find(
@@ -197,20 +233,72 @@ export function PayrollForm({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="period_start" className="text-sm font-medium">
-            Inicio
-          </Label>
-          <Input
-            id="period_start"
-            type="date"
-            {...form.register("period_start")}
-          />
+          <Label className="text-sm font-medium">Inicio</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                {formatDateLabel(watchPeriodStart)}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" align="start">
+              <Calendar
+                mode="single"
+                selected={
+                  watchPeriodStart
+                    ? new Date(`${watchPeriodStart}T00:00:00`)
+                    : undefined
+                }
+                onSelect={(date) => {
+                  if (!date) {
+                    return
+                  }
+
+                  form.setValue("period_start", toInputDate(date), {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="period_end" className="text-sm font-medium">
-            Fin
-          </Label>
-          <Input id="period_end" type="date" {...form.register("period_end")} />
+          <Label className="text-sm font-medium">Fin</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                {formatDateLabel(watchPeriodEnd)}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" align="start">
+              <Calendar
+                mode="single"
+                selected={
+                  watchPeriodEnd
+                    ? new Date(`${watchPeriodEnd}T00:00:00`)
+                    : undefined
+                }
+                onSelect={(date) => {
+                  if (!date) {
+                    return
+                  }
+
+                  form.setValue("period_end", toInputDate(date), {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }}
+              />
+            </PopoverContent>
+          </Popover>
           {form.formState.errors.period_end ? (
             <p className="text-danger text-xs">
               {form.formState.errors.period_end.message}
@@ -319,6 +407,33 @@ export function PayrollForm({
         </Label>
         <Textarea id="notes" className="min-h-20" {...form.register("notes")} />
       </div>
+
+      <Card className="bg-brand-muted sticky bottom-0 border-brand/30 sm:static">
+        <CardContent className="space-y-2 p-4 text-sm">
+          <h3 className="font-semibold">Resumen del pago</h3>
+          <div className="flex justify-between text-muted-foreground">
+            <span>Base</span>
+            <CurrencyDisplay amount={watchBaseAmount} />
+          </div>
+          {watchBonuses > 0 ? (
+            <div className="text-success flex justify-between">
+              <span>+ Bonificaciones</span>
+              <CurrencyDisplay amount={watchBonuses} />
+            </div>
+          ) : null}
+          {watchDeductions > 0 ? (
+            <div className="text-danger flex justify-between">
+              <span>- Deducciones</span>
+              <CurrencyDisplay amount={watchDeductions} />
+            </div>
+          ) : null}
+          <Separator />
+          <div className="flex justify-between text-base font-bold">
+            <span>Total a pagar</span>
+            <CurrencyDisplay amount={total} size="lg" className="text-brand" />
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {onCancel ? (

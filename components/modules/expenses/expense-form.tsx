@@ -3,17 +3,25 @@
 import { z } from "zod"
 import * as React from "react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { EXPENSE_CATEGORIES } from "@/types"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
+import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { CalendarDaysIcon, Loader2Icon, UploadIcon } from "lucide-react"
+import { Loader2Icon, UploadIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 import {
   Select,
@@ -101,6 +109,25 @@ function normalizeOptional(value?: string | null) {
   return normalized ? normalized : null
 }
 
+function toInputDate(value: Date) {
+  const year = value.getFullYear()
+  const month = `${value.getMonth() + 1}`.padStart(2, "0")
+  const day = `${value.getDate()}`.padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function formatDateLabel(value: string) {
+  if (!value) {
+    return "Seleccionar fecha"
+  }
+
+  return new Intl.DateTimeFormat("es-PA", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00`))
+}
+
 export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -126,16 +153,17 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
   const quantity = form.watch("quantity")
   const unitPrice = form.watch("unit_price")
   const updatesInventory = form.watch("updates_inventory")
+  const selectedExpenseDate = form.watch("expense_date")
+  const calculatedTotal = Number(quantity ?? 0) * Number(unitPrice ?? 0)
 
   React.useEffect(() => {
-    const nextTotal = Number(quantity ?? 0) * Number(unitPrice ?? 0)
-
-    if (Number.isFinite(nextTotal) && nextTotal > 0) {
-      form.setValue("total", Number(nextTotal.toFixed(2)), {
-        shouldDirty: true,
-      })
-    }
-  }, [form, quantity, unitPrice])
+    const nextTotal = Number.isFinite(calculatedTotal)
+      ? Number(calculatedTotal.toFixed(2))
+      : 0
+    form.setValue("total", nextTotal, {
+      shouldDirty: true,
+    })
+  }, [calculatedTotal, form])
 
   async function uploadReceipt(expenseId: string) {
     if (!receiptFile) {
@@ -239,18 +267,39 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="expense_date" className="text-sm font-medium">
-              Fecha
-            </Label>
-            <div className="relative">
-              <CalendarDaysIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="expense_date"
-                type="date"
-                className="pl-8"
-                {...form.register("expense_date")}
-              />
-            </div>
+            <Label className="text-sm font-medium">Fecha</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  {formatDateLabel(selectedExpenseDate)}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" align="start">
+                <Calendar
+                  mode="single"
+                  selected={
+                    selectedExpenseDate
+                      ? new Date(`${selectedExpenseDate}T00:00:00`)
+                      : undefined
+                  }
+                  onSelect={(date) => {
+                    if (!date) {
+                      return
+                    }
+
+                    form.setValue("expense_date", toInputDate(date), {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }}
+                  disabled={(date) => date > new Date()}
+                />
+              </PopoverContent>
+            </Popover>
             {form.formState.errors.expense_date ? (
               <p className="text-danger text-xs">
                 {form.formState.errors.expense_date.message}
@@ -357,9 +406,34 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
             ) : null}
           </div>
 
+          <div className="bg-brand-muted rounded-lg border border-brand/20 p-4 text-center md:col-span-2">
+            <p className="mb-1 text-xs font-medium tracking-wide text-brand/80 uppercase">
+              Total calculado
+            </p>
+            <p className="text-2xl font-bold text-brand">
+              {new Intl.NumberFormat("es-PA", {
+                style: "currency",
+                currency: "USD",
+              }).format(Number.isFinite(calculatedTotal) ? calculatedTotal : 0)}
+            </p>
+            {Number(quantity ?? 0) > 0 && Number(unitPrice ?? 0) > 0 ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {Number(quantity ?? 0)} x {Number(unitPrice ?? 0).toFixed(2)}
+              </p>
+            ) : null}
+          </div>
+
           <div className="space-y-2 md:col-span-2">
-            <label className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm">
-              <Checkbox
+            <div className="flex items-center justify-between rounded-lg border border-border/50 p-3 sm:p-4">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">
+                  Actualiza inventario
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Aumenta el stock del material seleccionado
+                </p>
+              </div>
+              <Switch
                 checked={updatesInventory}
                 onCheckedChange={(checked) =>
                   form.setValue("updates_inventory", checked === true, {
@@ -367,13 +441,20 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
                     shouldValidate: true,
                   })
                 }
+                className="data-checked:bg-brand"
               />
-              Este gasto actualiza inventario
-            </label>
+            </div>
           </div>
 
-          {updatesInventory ? (
-            <>
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-300 md:col-span-2",
+              updatesInventory
+                ? "max-h-120 opacity-100"
+                : "max-h-0 opacity-0"
+            )}
+          >
+            <div className="grid grid-cols-1 gap-3 rounded-lg border border-border/50 bg-muted/30 p-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Material</Label>
                 <Select
@@ -428,8 +509,8 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
                   </p>
                 ) : null}
               </div>
-            </>
-          ) : null}
+            </div>
+          </div>
 
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="notes" className="text-sm font-medium">

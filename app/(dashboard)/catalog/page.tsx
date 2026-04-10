@@ -10,7 +10,7 @@ export default async function CatalogPage() {
   const items = await getCatalogItems()
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex w-full max-w-350 flex-col gap-6">
       <PageHeader
         title="Catalogo"
         description="Define prendas, precios y estructura de costos."

@@ -6,13 +6,15 @@ import { AlertTriangleIcon, Loader2Icon } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface ConfirmDialogProps {
   open: boolean
@@ -62,14 +64,14 @@ export function ConfirmDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-xl border border-border/60 p-0 sm:max-w-136">
-        <DialogHeader className="border-b border-border/60 p-3">
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription className="text-pretty">
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="rounded-xl border border-border/60 p-0 sm:max-w-136">
+        <AlertDialogHeader className="border-b border-border/60 p-3">
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription className="text-pretty">
             {description}
-          </DialogDescription>
-        </DialogHeader>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
 
         <div className="space-y-2 px-3">
           {variant === "danger" ? (
@@ -96,26 +98,32 @@ export function ConfirmDialog({
           ) : null}
         </div>
 
-        <DialogFooter className="border-t border-border/60 p-3 sm:justify-end">
-          <Button
-            variant="outline"
+        <AlertDialogFooter className="border-t border-border/60 p-3 sm:justify-end">
+          <AlertDialogCancel
             onClick={() => onOpenChange(false)}
             disabled={pending}
             className="min-w-28"
           >
             {cancelLabel}
-          </Button>
-          <Button
+          </AlertDialogCancel>
+          <AlertDialogAction
+            asChild
             onClick={() => void handleConfirm()}
             disabled={pending}
-            variant={variant === "danger" ? "destructive" : "default"}
             className="min-w-28"
           >
-            {pending ? <Loader2Icon className="size-4 animate-spin" /> : null}
-            {confirmLabel}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <Button
+              type="button"
+              variant={variant === "danger" ? "destructive" : "default"}
+              className="w-full"
+              disabled={pending}
+            >
+              {pending ? <Loader2Icon className="size-4 animate-spin" /> : null}
+              {confirmLabel}
+            </Button>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
