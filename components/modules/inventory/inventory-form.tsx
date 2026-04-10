@@ -274,10 +274,11 @@ export function InventoryForm({
                   </p>
                 </>
               )}
-              <input
+              <Input
                 type="file"
                 accept="image/*"
                 className="hidden"
+                aria-label="Seleccionar imagen del material"
                 onChange={(event) =>
                   handleFileSelection(event.target.files?.[0] ?? null)
                 }

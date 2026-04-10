@@ -166,6 +166,7 @@ export function CustomerSelector({
               <CommandInput
                 placeholder="Buscar por nombre o telefono..."
                 value={searchValue}
+                aria-label="Buscar cliente por nombre o telefono"
                 onChange={(event) => setSearchValue(event.target.value)}
               />
               <CommandList>

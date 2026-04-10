@@ -91,6 +91,11 @@ function toInputDate(value: Date) {
   return `${year}-${month}-${day}`
 }
 
+function parseInputDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number)
+  return new Date(year, (month || 1) - 1, day || 1)
+}
+
 function formatDateLabel(value: string) {
   if (!value) {
     return "Seleccionar fecha"
@@ -100,7 +105,7 @@ function formatDateLabel(value: string) {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`))
+  }).format(parseInputDate(value))
 }
 
 export function PayrollForm({
@@ -157,8 +162,8 @@ export function PayrollForm({
     try {
       const payload = {
         employee_id: values.employee_id,
-        period_start: new Date(`${values.period_start}T00:00:00`),
-        period_end: new Date(`${values.period_end}T00:00:00`),
+        period_start: parseInputDate(values.period_start),
+        period_end: parseInputDate(values.period_end),
         pieces_produced: values.pieces_produced,
         hours_worked: values.hours_worked,
         base_amount: values.base_amount,
@@ -249,7 +254,7 @@ export function PayrollForm({
                 mode="single"
                 selected={
                   watchPeriodStart
-                    ? new Date(`${watchPeriodStart}T00:00:00`)
+                    ? parseInputDate(watchPeriodStart)
                     : undefined
                 }
                 onSelect={(date) => {
@@ -262,6 +267,7 @@ export function PayrollForm({
                     shouldValidate: true,
                   })
                 }}
+                initialFocus
               />
             </PopoverContent>
           </Popover>
@@ -282,9 +288,7 @@ export function PayrollForm({
               <Calendar
                 mode="single"
                 selected={
-                  watchPeriodEnd
-                    ? new Date(`${watchPeriodEnd}T00:00:00`)
-                    : undefined
+                  watchPeriodEnd ? parseInputDate(watchPeriodEnd) : undefined
                 }
                 onSelect={(date) => {
                   if (!date) {
@@ -296,6 +300,7 @@ export function PayrollForm({
                     shouldValidate: true,
                   })
                 }}
+                initialFocus
               />
             </PopoverContent>
           </Popover>

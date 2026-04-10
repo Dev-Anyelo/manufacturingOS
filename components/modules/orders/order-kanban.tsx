@@ -11,6 +11,7 @@ import { OrderCard } from "@/components/modules/orders/order-card"
 import {
   DndContext,
   DragOverlay,
+  KeyboardSensor,
   PointerSensor,
   useDroppable,
   useSensor,
@@ -22,6 +23,7 @@ import {
 
 import {
   SortableContext,
+  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
@@ -171,6 +173,9 @@ export function OrderKanban({
       activationConstraint: {
         distance: 6,
       },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   )
 
@@ -262,7 +267,7 @@ export function OrderKanban({
           </SelectContent>
         </Select>
 
-        <div className="space-y-2">
+        <div className="space-y-2" aria-live="polite">
           {mobileList.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border/60 p-6 text-center text-sm text-muted-foreground">
               Sin pedidos para el filtro actual.
@@ -284,7 +289,11 @@ export function OrderKanban({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div
+        className="flex gap-4 overflow-x-auto pb-2"
+        role="list"
+        aria-label="Tablero de pedidos por estado"
+      >
         {statuses.map((status) => (
           <KanbanColumn
             key={status}

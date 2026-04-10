@@ -228,10 +228,11 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
                 </>
               )}
 
-              <input
+              <Input
                 type="file"
                 accept="image/*"
                 className="hidden"
+                aria-label="Seleccionar imagen del producto"
                 onChange={(event) =>
                   handleFileSelection(event.target.files?.[0] ?? null)
                 }

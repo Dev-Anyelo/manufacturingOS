@@ -90,7 +90,11 @@ export function OrderCard({
   const { isOverdue, isUrgent } = getUrgency(order.deliveryDate)
 
   return (
-    <Link href={`/orders/${order.id}`} className="block">
+    <Link
+      href={`/orders/${order.id}`}
+      className="block"
+      aria-label={`Ver pedido ${order.id.slice(0, 8)} de ${order.customerName}`}
+    >
       <Card
         className={cn(
           "group border border-border/50 bg-card py-3 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-border hover:shadow-md",

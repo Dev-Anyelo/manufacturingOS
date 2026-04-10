@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { CustomerSelector } from "./customer-selector"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import type { PosCartItem, PosCustomer } from "@/components/modules/sales/types"
 
 import {
   CalendarIcon,
@@ -18,8 +20,6 @@ import {
   Trash2Icon,
 } from "lucide-react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { PosCartItem, PosCustomer } from "@/components/modules/sales/types"
 import {
   Popover,
   PopoverContent,
@@ -78,6 +78,11 @@ function toInputDate(value: Date) {
   return `${year}-${month}-${day}`
 }
 
+function parseInputDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number)
+  return new Date(year, (month || 1) - 1, day || 1)
+}
+
 function formatDateLabel(value: string) {
   if (!value) {
     return "Fecha de pago"
@@ -87,7 +92,7 @@ function formatDateLabel(value: string) {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`))
+  }).format(parseInputDate(value))
 }
 
 export function PosCart({
@@ -152,6 +157,7 @@ export function PosCart({
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => onRemoveItem(item.rowId)}
+                    aria-label={`Eliminar ${item.name} del carrito`}
                   >
                     <Trash2Icon className="size-4 text-destructive" />
                   </Button>
@@ -171,6 +177,7 @@ export function PosCart({
                       size="icon-sm"
                       variant="ghost"
                       onClick={() => onDecreaseQuantity(item.rowId)}
+                      aria-label={`Disminuir cantidad de ${item.name}`}
                     >
                       <MinusIcon className="size-4" />
                     </Button>
@@ -180,6 +187,7 @@ export function PosCart({
                       size="icon-sm"
                       variant="ghost"
                       onClick={() => onIncreaseQuantity(item.rowId)}
+                      aria-label={`Aumentar cantidad de ${item.name}`}
                     >
                       <PlusIcon className="size-4" />
                     </Button>
@@ -306,9 +314,7 @@ export function PosCart({
                   <PopoverContent className="w-auto p-2" align="start">
                     <Calendar
                       mode="single"
-                      selected={
-                        dueDate ? new Date(`${dueDate}T00:00:00`) : undefined
-                      }
+                      selected={dueDate ? parseInputDate(dueDate) : undefined}
                       onSelect={(date) => {
                         if (!date) {
                           return
@@ -316,6 +322,7 @@ export function PosCart({
 
                         onDueDateChange(toInputDate(date))
                       }}
+                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>

@@ -116,6 +116,11 @@ function toInputDate(value: Date) {
   return `${year}-${month}-${day}`
 }
 
+function parseInputDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number)
+  return new Date(year, (month || 1) - 1, day || 1)
+}
+
 function formatDateLabel(value: string) {
   if (!value) {
     return "Seleccionar fecha"
@@ -125,7 +130,7 @@ function formatDateLabel(value: string) {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`))
+  }).format(parseInputDate(value))
 }
 
 export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
@@ -155,6 +160,10 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
   const updatesInventory = form.watch("updates_inventory")
   const selectedExpenseDate = form.watch("expense_date")
   const calculatedTotal = Number(quantity ?? 0) * Number(unitPrice ?? 0)
+  const today = React.useMemo(() => {
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  }, [])
 
   React.useEffect(() => {
     const nextTotal = Number.isFinite(calculatedTotal)
@@ -193,7 +202,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
 
     try {
       const payload = {
-        expense_date: new Date(`${values.expense_date}T00:00:00`),
+        expense_date: parseInputDate(values.expense_date),
         category: values.category,
         concept: values.concept.trim(),
         supplier: normalizeOptional(values.supplier),
@@ -283,7 +292,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
                   mode="single"
                   selected={
                     selectedExpenseDate
-                      ? new Date(`${selectedExpenseDate}T00:00:00`)
+                      ? parseInputDate(selectedExpenseDate)
                       : undefined
                   }
                   onSelect={(date) => {
@@ -296,7 +305,8 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
                       shouldValidate: true,
                     })
                   }}
-                  disabled={(date) => date > new Date()}
+                  disabled={(date) => date > today}
+                  initialFocus
                 />
               </PopoverContent>
             </Popover>
@@ -449,9 +459,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
           <div
             className={cn(
               "overflow-hidden transition-all duration-300 md:col-span-2",
-              updatesInventory
-                ? "max-h-120 opacity-100"
-                : "max-h-0 opacity-0"
+              updatesInventory ? "max-h-120 opacity-100" : "max-h-0 opacity-0"
             )}
           >
             <div className="grid grid-cols-1 gap-3 rounded-lg border border-border/50 bg-muted/30 p-3 sm:grid-cols-2">

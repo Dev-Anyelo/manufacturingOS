@@ -55,6 +55,11 @@ function toInputDate(value: Date) {
   return `${year}-${month}-${day}`
 }
 
+function parseInputDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number)
+  return new Date(year, (month || 1) - 1, day || 1)
+}
+
 function formatDateLabel(value: string) {
   if (!value) {
     return "Fecha de pago"
@@ -64,7 +69,7 @@ function formatDateLabel(value: string) {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`))
+  }).format(parseInputDate(value))
 }
 
 const paymentMethods = [
@@ -85,6 +90,10 @@ export function MarkPaidDialog({
     "cash" | "transfer" | "other"
   >("cash")
   const [notes, setNotes] = React.useState("")
+  const today = React.useMemo(() => {
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  }, [])
 
   React.useEffect(() => {
     if (!open) {
@@ -110,7 +119,7 @@ export function MarkPaidDialog({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          payment_date: new Date(`${paymentDate}T00:00:00`),
+          payment_date: parseInputDate(paymentDate),
           payment_method: paymentMethod,
           notes: notes.trim() || null,
         }),
@@ -161,9 +170,7 @@ export function MarkPaidDialog({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium">
-              Fecha de pago
-            </Label>
+            <Label className="text-sm font-medium">Fecha de pago</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -179,7 +186,7 @@ export function MarkPaidDialog({
                 <Calendar
                   mode="single"
                   selected={
-                    paymentDate ? new Date(`${paymentDate}T00:00:00`) : undefined
+                    paymentDate ? parseInputDate(paymentDate) : undefined
                   }
                   onSelect={(date) => {
                     if (!date) {
@@ -188,7 +195,8 @@ export function MarkPaidDialog({
 
                     setPaymentDate(toInputDate(date))
                   }}
-                  disabled={(date) => date > new Date()}
+                  disabled={(date) => date > today}
+                  initialFocus
                 />
               </PopoverContent>
             </Popover>
@@ -212,7 +220,7 @@ export function MarkPaidDialog({
                     className={cn(
                       "flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border p-2.5 text-xs transition-colors",
                       paymentMethod === method.value
-                        ? "border-brand bg-brand-muted text-brand font-medium"
+                        ? "bg-brand-muted border-brand font-medium text-brand"
                         : "border-border text-muted-foreground hover:bg-muted/40"
                     )}
                   >

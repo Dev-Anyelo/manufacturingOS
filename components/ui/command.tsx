@@ -4,6 +4,7 @@ import * as React from "react"
 import { SearchIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
 
 function Command({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -22,10 +23,10 @@ function CommandInput({ className, ...props }: React.ComponentProps<"input">) {
   return (
     <div className="flex items-center border-b border-border/50 px-2">
       <SearchIcon className="size-4 text-muted-foreground" />
-      <input
+      <Input
         data-slot="command-input"
         className={cn(
-          "h-9 w-full bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+          "h-9 w-full border-0 bg-transparent px-2 text-sm shadow-none ring-0 focus-visible:ring-0",
           className
         )}
         {...props}

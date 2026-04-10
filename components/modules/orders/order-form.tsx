@@ -144,6 +144,11 @@ function toInputDate(value: Date) {
   return `${year}-${month}-${day}`
 }
 
+function parseInputDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number)
+  return new Date(year, (month || 1) - 1, day || 1)
+}
+
 function formatDateLabel(value: string) {
   if (!value) {
     return "Seleccionar fecha"
@@ -153,7 +158,7 @@ function formatDateLabel(value: string) {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`))
+  }).format(parseInputDate(value))
 }
 
 function normalizeMeasurements(
@@ -265,7 +270,7 @@ export function OrderForm({
     try {
       const payload = {
         customer_id: values.customer_id,
-        delivery_date: new Date(`${values.delivery_date}T00:00:00`),
+        delivery_date: parseInputDate(values.delivery_date),
         channel: values.channel,
         advance_paid: Number(values.advance_paid),
         total: Number(values.total),
@@ -364,7 +369,7 @@ export function OrderForm({
                   mode="single"
                   selected={
                     watchedDeliveryDate
-                      ? new Date(`${watchedDeliveryDate}T00:00:00`)
+                      ? parseInputDate(watchedDeliveryDate)
                       : undefined
                   }
                   onSelect={(date) => {
@@ -377,6 +382,7 @@ export function OrderForm({
                       shouldValidate: true,
                     })
                   }}
+                  initialFocus
                 />
               </PopoverContent>
             </Popover>
@@ -711,11 +717,12 @@ export function OrderForm({
             <UploadIcon className="mx-auto mb-2 size-5 text-muted-foreground" />
             <p className="text-sm font-medium">Sube hasta 3 imagenes</p>
             <p className="text-xs text-muted-foreground">PNG o JPG</p>
-            <input
+            <Input
               type="file"
               className="hidden"
               accept="image/*"
               multiple
+              aria-label="Subir imagenes de referencia"
               onChange={handleReferenceImages}
             />
           </label>

@@ -56,12 +56,18 @@ export function CatalogCard({ item }: CatalogCardProps) {
         <div className="absolute inset-0 flex items-center justify-center bg-background/0 opacity-0 transition-all duration-200 group-hover:bg-background/60 group-hover:opacity-100">
           <div className="flex gap-2">
             <Button size="sm" variant="secondary" asChild>
-              <Link href={`/catalog/${item.id}`}>
+              <Link
+                href={`/catalog/${item.id}`}
+                aria-label={`Ver detalle de ${item.name}`}
+              >
                 <EyeIcon className="size-4" />
               </Link>
             </Button>
             <Button size="sm" variant="secondary" asChild>
-              <Link href={`/catalog/${item.id}`}>
+              <Link
+                href={`/catalog/${item.id}`}
+                aria-label={`Editar ${item.name}`}
+              >
                 <EditIcon className="size-4" />
               </Link>
             </Button>

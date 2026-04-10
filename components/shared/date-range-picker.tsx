@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import { CalendarDaysIcon } from "lucide-react"
-import type { DateRange } from "react-day-picker"
-
 import { Button } from "@/components/ui/button"
+import type { DateRange } from "react-day-picker"
 import { Calendar } from "@/components/ui/calendar"
+
 import {
   Popover,
   PopoverContent,
@@ -18,6 +18,10 @@ interface DateRangePickerProps {
   onChange: (range: { from?: Date; to?: Date }) => void
   placeholder?: string
   presets?: boolean
+}
+
+function toDateOnly(value: Date) {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate())
 }
 
 function formatLabel(from?: Date, to?: Date) {
@@ -47,9 +51,12 @@ export function DateRangePicker({
 }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false)
 
-  const today = React.useMemo(() => new Date(), [])
+  const today = React.useMemo(() => toDateOnly(new Date()), [])
   const selectedRange = React.useMemo<DateRange>(
-    () => ({ from, to }),
+    () => ({
+      from: from ? toDateOnly(from) : undefined,
+      to: to ? toDateOnly(to) : undefined,
+    }),
     [from, to]
   )
 
@@ -61,11 +68,13 @@ export function DateRangePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           className="h-9 w-full justify-start gap-2 text-left font-normal sm:w-auto"
+          aria-label="Seleccionar rango de fechas"
         >
           <CalendarDaysIcon className="size-4 text-muted-foreground" />
-          <span>{formatLabel(from, to) || placeholder}</span>
+          <span>{from ? formatLabel(from, to) : placeholder}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -75,6 +84,7 @@ export function DateRangePicker({
         {presets ? (
           <div className="grid grid-cols-2 gap-2">
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               onClick={() => setRange(today, today)}
@@ -82,6 +92,7 @@ export function DateRangePicker({
               Hoy
             </Button>
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               onClick={() => {
@@ -95,6 +106,7 @@ export function DateRangePicker({
               Esta semana
             </Button>
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               onClick={() => {
@@ -105,6 +117,7 @@ export function DateRangePicker({
               Este mes
             </Button>
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               onClick={() => {
@@ -125,13 +138,18 @@ export function DateRangePicker({
             selected={selectedRange}
             onSelect={(range) => {
               setRange(range?.from, range?.to)
+              if (range?.from && range?.to) {
+                setOpen(false)
+              }
             }}
             numberOfMonths={1}
+            initialFocus
           />
         </div>
 
         <div className="flex justify-end">
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={() => {

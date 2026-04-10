@@ -69,12 +69,19 @@ export function OrderStatusStepper({
         className
       )}
     >
-      <ol className="flex min-w-max items-start gap-3">
+      <ol
+        className="flex min-w-max items-start gap-3"
+        aria-label="Progreso del pedido"
+      >
         {flow.map((step, index) => {
           const stepState = getStepState(step.status, status)
 
           return (
-            <li key={step.status} className="flex items-center gap-3">
+            <li
+              key={step.status}
+              className="flex items-center gap-3"
+              aria-current={stepState === "current" ? "step" : undefined}
+            >
               <div className="flex min-w-28 items-center gap-2">
                 <span
                   className={cn(
@@ -86,6 +93,7 @@ export function OrderStatusStepper({
                     stepState === "future" &&
                       "border-border bg-background text-muted-foreground"
                   )}
+                  aria-label={`Etapa ${step.label}`}
                 >
                   {stepState === "completed" ? (
                     <CheckIcon className="size-4" />

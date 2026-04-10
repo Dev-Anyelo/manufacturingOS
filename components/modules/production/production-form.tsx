@@ -13,8 +13,9 @@ import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { productionSessionSchema } from "@/lib/validations/production"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import {
   Command,
   CommandEmpty,
@@ -23,6 +24,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
+
 import {
   Popover,
   PopoverContent,
@@ -157,7 +159,7 @@ function formatDateLabel(value: string) {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`))
+  }).format(parseInputDate(value))
 }
 
 function toInputDate(value: Date) {
@@ -165,6 +167,11 @@ function toInputDate(value: Date) {
   const month = `${value.getMonth() + 1}`.padStart(2, "0")
   const day = `${value.getDate()}`.padStart(2, "0")
   return `${year}-${month}-${day}`
+}
+
+function parseInputDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number)
+  return new Date(year, (month || 1) - 1, day || 1)
 }
 
 export function ProductionForm({
@@ -193,6 +200,10 @@ export function ProductionForm({
   const watchedItems = form.watch("items")
   const selectedEmployeeId = form.watch("employee_id")
   const selectedSessionDate = form.watch("session_date")
+  const today = React.useMemo(() => {
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  }, [])
 
   const selectedEmployee = React.useMemo(
     () => employees.find((employee) => employee.id === selectedEmployeeId),
@@ -219,7 +230,7 @@ export function ProductionForm({
     try {
       const payload: ProductionSchemaInput = {
         employee_id: values.employee_id,
-        session_date: new Date(`${values.session_date}T00:00:00`),
+        session_date: parseInputDate(values.session_date),
         notes: normalizeOptional(values.notes),
         items: values.items.map((item) => ({
           inventory_item_id: item.inventory_item_id,
@@ -348,7 +359,7 @@ export function ProductionForm({
                   mode="single"
                   selected={
                     selectedSessionDate
-                      ? new Date(`${selectedSessionDate}T00:00:00`)
+                      ? parseInputDate(selectedSessionDate)
                       : undefined
                   }
                   onSelect={(date) => {
@@ -361,7 +372,8 @@ export function ProductionForm({
                       shouldValidate: true,
                     })
                   }}
-                  disabled={(date) => date > new Date()}
+                  disabled={(date) => date > today}
+                  initialFocus
                 />
               </PopoverContent>
             </Popover>
