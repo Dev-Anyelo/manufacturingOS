@@ -21,7 +21,7 @@ export default async function EditInventoryItemPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Editar ${item.name}`}
+        title={`${item.name}`}
         description="Actualiza datos generales, stock base y proveedor."
         breadcrumbs={[
           { label: "Inventario", href: "/inventory" },
