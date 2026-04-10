@@ -1,4 +1,10 @@
 import Link from "next/link"
+import { NotificationType } from "@/types"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import type { AppNotification } from "@/stores/notificationStore"
+
 import {
   BellIcon,
   CheckCircle2Icon,
@@ -6,12 +12,6 @@ import {
   PackageIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import type { AppNotification } from "@/stores/notificationStore"
-import { NotificationType } from "@/types"
 
 type NotificationPanelProps = {
   items?: AppNotification[]

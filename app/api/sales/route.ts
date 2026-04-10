@@ -1,13 +1,14 @@
-import { NotificationType, Prisma, SaleStatus, UserRole } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
 import { saleSchema } from "@/lib/validations/sales"
+import { NotificationType, Prisma, SaleStatus, UserRole } from "@prisma/client"
+
 import {
   apiSuccess,
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
 } from "@/lib/api/response"
+
 import {
   decimalToNumber,
   getSearchParam,

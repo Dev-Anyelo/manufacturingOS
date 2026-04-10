@@ -28,6 +28,13 @@ export async function GET(
       where: { id },
       include: {
         inventoryMovements: {
+          include: {
+            createdByProfile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
           orderBy: { createdAt: "desc" },
           take: 20,
         },

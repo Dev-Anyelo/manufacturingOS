@@ -1,7 +1,7 @@
 import { z } from "zod"
+import { prisma } from "@/lib/prisma"
 import { SaleStatus, UserRole } from "@prisma/client"
 
-import { prisma } from "@/lib/prisma"
 import {
   apiSuccess,
   handleApiError,

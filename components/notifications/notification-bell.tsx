@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { BellIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useNotificationStore } from "@/stores/notificationStore"
 import { NotificationPanel } from "@/components/notifications/notification-panel"
 
 import {
@@ -14,7 +15,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { useNotificationStore } from "@/stores/notificationStore"
 
 type NotificationBellProps = {
   unreadCount?: number

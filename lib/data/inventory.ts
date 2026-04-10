@@ -67,6 +67,13 @@ export async function getInventoryItem(id: string) {
     where: { id },
     include: {
       inventoryMovements: {
+        include: {
+          createdByProfile: {
+            select: {
+              fullName: true,
+            },
+          },
+        },
         orderBy: {
           createdAt: "desc",
         },

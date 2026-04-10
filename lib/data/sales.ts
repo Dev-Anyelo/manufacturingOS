@@ -48,9 +48,64 @@ export async function getSale(id: string) {
     where: { id },
     include: {
       customer: true,
-      items: true,
+      items: {
+        include: {
+          catalogItem: true,
+        },
+      },
     },
   })
+}
+
+export async function getSaleById(id: string) {
+  return prisma.sale.findUnique({
+    where: { id },
+    include: {
+      customer: true,
+      items: {
+        include: {
+          catalogItem: true,
+        },
+      },
+    },
+  })
+}
+
+export async function getSalesPosBootstrap() {
+  const [catalogItems, customers] = await Promise.all([
+    prisma.catalogItem.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        name: true,
+        garmentType: true,
+        salePrice: true,
+        imageUrl: true,
+      },
+    }),
+    prisma.customer.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        fullName: true,
+        phone: true,
+        email: true,
+      },
+      take: 120,
+    }),
+  ])
+
+  return {
+    catalogItems,
+    customers,
+  }
 }
 
 export async function getTodaySalesSummary() {

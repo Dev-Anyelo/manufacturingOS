@@ -1,7 +1,7 @@
-import { UserRole } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
+import { UserRole } from "@prisma/client"
 import { systemSettingsSchema } from "@/lib/validations/settings"
+
 import {
   apiSuccess,
   handleApiError,

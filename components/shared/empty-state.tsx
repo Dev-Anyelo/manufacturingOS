@@ -1,3 +1,5 @@
+import * as React from "react"
+
 import {
   Empty,
   EmptyContent,
@@ -8,10 +10,12 @@ import {
 } from "@/components/ui/empty"
 
 interface EmptyStateProps {
-  icon: React.ReactNode
+  icon: React.ReactNode | React.ComponentType<{ className?: string }>
   title: string
   description: string
   action?: React.ReactNode
+  compact?: boolean
+  className?: string
 }
 
 export function EmptyState({
@@ -19,19 +23,38 @@ export function EmptyState({
   title,
   description,
   action,
+  compact = false,
+  className,
 }: EmptyStateProps) {
+  const iconNode = React.useMemo(() => {
+    if (React.isValidElement(icon)) {
+      return icon
+    }
+
+    if (typeof icon === "function") {
+      const Icon = icon
+      return <Icon className={compact ? "size-4" : "size-5"} />
+    }
+
+    return null
+  }, [compact, icon])
+
   return (
-    <Empty>
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          {icon}
-        </EmptyMedia>
-        <EmptyTitle>{title}</EmptyTitle>
-        <EmptyDescription>{description}</EmptyDescription>
+    <Empty className={className}>
+      <EmptyHeader className={compact ? "max-w-md gap-1" : undefined}>
+        <EmptyMedia variant="icon">{iconNode}</EmptyMedia>
+        <EmptyTitle className={compact ? "text-xs" : undefined}>
+          {title}
+        </EmptyTitle>
+        <EmptyDescription className={compact ? "text-xs" : undefined}>
+          {description}
+        </EmptyDescription>
       </EmptyHeader>
-      <EmptyContent className="flex-row justify-center gap-2">
-        {action ? action : null}
-      </EmptyContent>
+      {action ? (
+        <EmptyContent className="flex-row justify-center gap-2">
+          {action}
+        </EmptyContent>
+      ) : null}
     </Empty>
   )
 }
