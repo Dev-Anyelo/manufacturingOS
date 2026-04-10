@@ -240,28 +240,29 @@ export function InventoryForm({
                 handleFileSelection(event.dataTransfer.files?.[0] ?? null)
               }}
               onDragOver={(event) => event.preventDefault()}
-              className="hover:bg-brand-muted flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 bg-muted/20 p-6 text-center transition-colors hover:border-brand/60"
+              className="relative flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200 hover:border-brand hover:bg-muted/50 sm:p-8 border-border/60 bg-muted/30"
             >
               {previewUrl ? (
-                <div className="relative h-40 w-full overflow-hidden rounded-lg border border-border/50 bg-background sm:w-64">
+                <div className="relative">
                   <Image
                     src={previewUrl}
                     alt="Preview del material"
-                    fill
-                    className="object-cover"
+                    width={120}
+                    height={120}
+                    className="rounded-lg object-cover"
                   />
                   <Button
                     type="button"
                     size="icon"
                     variant="destructive"
-                    className="absolute top-2 right-2 size-7"
+                    className="absolute -top-2 -right-2 size-6 rounded-full"
                     onClick={(event) => {
                       event.preventDefault()
                       setImageFile(null)
                       setPreviewUrl(null)
                     }}
                   >
-                    <XIcon className="size-4" />
+                    <XIcon className="size-3" />
                   </Button>
                 </div>
               ) : (
@@ -269,15 +270,20 @@ export function InventoryForm({
                   <div className="rounded-full bg-muted p-3">
                     <UploadIcon className="size-5 text-muted-foreground" />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Arrastra una imagen o haz click para seleccionar
-                  </p>
+                  <div className="text-center">
+                    <p className="text-sm font-medium">
+                      Arrastra una imagen o haz clic
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      PNG, JPG hasta 5MB
+                    </p>
+                  </div>
                 </>
               )}
               <input
                 type="file"
                 accept="image/*"
-                className="hidden"
+                className="absolute inset-0 cursor-pointer opacity-0"
                 onChange={(event) =>
                   handleFileSelection(event.target.files?.[0] ?? null)
                 }
@@ -329,11 +335,12 @@ export function InventoryForm({
             </FormFieldWrapper>
 
             <div
-              className={`overflow-hidden transition-all duration-200 ${
+              className={cn(
+                "overflow-hidden transition-all duration-300",
                 category === MaterialCategory.Fabric
-                  ? "max-h-28 opacity-100"
+                  ? "max-h-24 opacity-100"
                   : "max-h-0 opacity-0"
-              }`}
+              )}
             >
               <FormFieldWrapper
                 control={formControl}

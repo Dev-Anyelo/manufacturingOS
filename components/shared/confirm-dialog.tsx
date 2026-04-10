@@ -10,7 +10,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -65,60 +64,61 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="rounded-xl border border-border/60 p-0 sm:max-w-136">
-        <AlertDialogHeader className="border-b border-border/60 p-3">
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription className="text-pretty">
-            {description}
-          </AlertDialogDescription>
+      <AlertDialogContent className="gap-0 rounded-xl border border-border/60 p-0 sm:max-w-md">
+        <AlertDialogHeader className="space-y-1.5 p-4 pb-3">
+          <AlertDialogTitle className="text-base">{title}</AlertDialogTitle>
         </AlertDialogHeader>
 
-        <div className="space-y-2 px-3">
-          {variant === "danger" ? (
-            <Alert variant="destructive" className="rounded-none border-x-0">
-              <div className="flex items-start gap-3">
-                <AlertTriangleIcon className="text-danger mt-0.5 size-4" />
-                <div>
-                  <AlertTitle className="text-foreground">
-                    {warningText ?? "Eliminar recurso es irreversible"}
-                  </AlertTitle>
-                  <AlertDescription className="text-pretty">
-                    Esto eliminara el recurso y todos los datos asociados.
-                  </AlertDescription>
-                </div>
-              </div>
+        <div className="space-y-3 px-4">
+          {variant === "danger" && (
+            <Alert
+              variant="destructive"
+              className="border-destructive/50 bg-destructive/10"
+            >
+              <AlertTriangleIcon className="size-4" />
+              <AlertTitle className="font-semibold">
+                {warningText ?? "Esta accion es irreversible"}
+              </AlertTitle>
+              <AlertDescription className="text-pretty text-xs">
+                Esto eliminara el recurso y todos los datos asociados.
+              </AlertDescription>
             </Alert>
-          ) : null}
+          )}
 
-          {highlightedText ? (
-            <p className="text-sm text-pretty text-foreground">
-              Esta accion es permanente. ¿Seguro que deseas continuar con
-              <span className="ml-1 font-semibold">{highlightedText}</span>?
-            </p>
-          ) : null}
+          <p className="text-pretty text-sm text-muted-foreground">
+            {description}
+            {highlightedText && (
+              <>
+                {" "}
+                <span className="font-semibold text-foreground">
+                  {highlightedText}
+                </span>
+                ?
+              </>
+            )}
+          </p>
         </div>
 
-        <AlertDialogFooter className="border-t border-border/60 p-3 sm:justify-end">
-          <AlertDialogCancel
-            onClick={() => onOpenChange(false)}
-            disabled={pending}
-            className="min-w-28"
-          >
-            {cancelLabel}
+        <AlertDialogFooter className="flex-col-reverse gap-2 p-4 sm:flex-row">
+          <AlertDialogCancel asChild>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => onOpenChange(false)}
+              disabled={pending}
+            >
+              {cancelLabel}
+            </Button>
           </AlertDialogCancel>
-          <AlertDialogAction
-            asChild
-            onClick={() => void handleConfirm()}
-            disabled={pending}
-            className="min-w-28"
-          >
+          <AlertDialogAction asChild>
             <Button
               type="button"
               variant={variant === "danger" ? "destructive" : "default"}
-              className="w-full"
+              className="w-full sm:w-auto"
               disabled={pending}
+              onClick={() => void handleConfirm()}
             >
-              {pending ? <Loader2Icon className="size-4 animate-spin" /> : null}
+              {pending && <Loader2Icon className="mr-2 size-4 animate-spin" />}
               {confirmLabel}
             </Button>
           </AlertDialogAction>

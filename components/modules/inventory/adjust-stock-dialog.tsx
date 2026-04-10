@@ -2,10 +2,13 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { Loader2Icon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Loader2Icon, MinusIcon, PlusIcon, TargetIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 import {
   Dialog,
@@ -35,10 +38,11 @@ interface AdjustStockDialogProps {
 const adjustmentOptions: Array<{
   value: AdjustmentType
   label: string
+  icon: React.ElementType
 }> = [
-  { value: "add", label: "Agregar" },
-  { value: "subtract", label: "Restar" },
-  { value: "set", label: "Establecer en" },
+  { value: "add", label: "Agregar", icon: PlusIcon },
+  { value: "subtract", label: "Restar", icon: MinusIcon },
+  { value: "set", label: "Establecer", icon: TargetIcon },
 ]
 
 function getNextQuantity(
@@ -93,7 +97,7 @@ export function AdjustStockDialog({
     adjustmentType,
     quantity
   )
-  const isDecrease = nextQuantity < currentItem.quantity
+  const resultIsValid = nextQuantity >= 0
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -158,24 +162,36 @@ export function AdjustStockDialog({
         </DialogHeader>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {adjustmentOptions.map((option) => (
-              <Button
-                key={option.value}
-                type="button"
-                variant={
-                  adjustmentType === option.value ? "default" : "outline"
-                }
-                className="w-full"
-                onClick={() => setAdjustmentType(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
+          <RadioGroup
+            value={adjustmentType}
+            onValueChange={(value) =>
+              setAdjustmentType(value as AdjustmentType)
+            }
+            className="grid grid-cols-3 gap-2"
+          >
+            {adjustmentOptions.map((option) => {
+              const Icon = option.icon
+              return (
+                <label
+                  key={option.value}
+                  className={cn(
+                    "flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border p-3 transition-all",
+                    "hover:bg-muted/50",
+                    adjustmentType === option.value
+                      ? "border-brand bg-brand-muted text-brand"
+                      : "border-border text-muted-foreground"
+                  )}
+                >
+                  <RadioGroupItem value={option.value} className="sr-only" />
+                  <Icon className="size-4" />
+                  <span className="text-xs font-medium">{option.label}</span>
+                </label>
+              )
+            })}
+          </RadioGroup>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Cantidad</label>
+            <Label className="text-sm font-medium">Cantidad</Label>
             <Input
               type="number"
               min={0}
@@ -186,18 +202,35 @@ export function AdjustStockDialog({
             />
           </div>
 
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
-            <p className="text-muted-foreground">Vista previa</p>
-            <p className="font-medium">
-              {currentItem.quantity.toFixed(2)} {currentItem.unit} -&gt;{" "}
-              <span className={isDecrease ? "text-danger" : "text-success"}>
+          <div
+            className={cn(
+              "rounded-lg border p-3 text-center",
+              resultIsValid
+                ? "border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20"
+                : "border-red-500/30 bg-red-50 dark:bg-red-950/20"
+            )}
+          >
+            <p className="mb-1 text-xs text-muted-foreground">
+              Stock resultante
+            </p>
+            <p className="text-lg font-bold tabular-nums">
+              <span className="mr-2 text-sm text-muted-foreground line-through">
+                {currentItem.quantity.toFixed(2)} {currentItem.unit}
+              </span>
+              <span
+                className={
+                  resultIsValid
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-red-500"
+                }
+              >
                 {nextQuantity.toFixed(2)} {currentItem.unit}
               </span>
             </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Motivo del ajuste</label>
+            <Label className="text-sm font-medium">Motivo del ajuste</Label>
             <Textarea
               value={reason}
               onChange={(event) => setReason(event.target.value)}
@@ -206,19 +239,24 @@ export function AdjustStockDialog({
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 sm:flex-row">
             <Button
               type="button"
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : null}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-brand text-brand-foreground sm:w-auto"
+            >
+              {isSubmitting && (
+                <Loader2Icon className="mr-2 size-4 animate-spin" />
+              )}
               Guardar ajuste
             </Button>
           </DialogFooter>

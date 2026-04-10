@@ -101,21 +101,22 @@ function createInventoryColumns(
         const item = row.original
 
         return (
-          <div className="flex min-w-0 items-center gap-3">
-            {item.imageUrl ? (
-              <Image
-                src={item.imageUrl}
-                alt={item.name}
-                width={32}
-                height={32}
-                className="size-8 rounded-md border border-border/60 object-cover"
-              />
-            ) : (
-              <span className="flex size-8 items-center justify-center rounded-md border border-border/60 bg-muted text-muted-foreground">
-                <LayersIcon className="size-4" />
-              </span>
-            )}
-            <div className="min-w-0 space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="relative size-10 shrink-0 overflow-hidden rounded-md border border-border/50 bg-muted">
+              {item.imageUrl ? (
+                <Image
+                  src={item.imageUrl}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <LayersIcon className="size-5 text-muted-foreground/50" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
               <p className="truncate text-sm font-medium">{item.name}</p>
               <p className="text-xs text-muted-foreground">
                 {categoryLabelMap[item.category]}
@@ -319,9 +320,9 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
           </Button>
         }
         toolbar={
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="h-9 w-full text-xs sm:w-[140px]">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -334,8 +335,8 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
             </Select>
 
             <Select value={stockFilter} onValueChange={setStockFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Estado" />
+              <SelectTrigger className="h-9 w-full text-xs sm:w-[130px]">
+                <SelectValue placeholder="Stock" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>

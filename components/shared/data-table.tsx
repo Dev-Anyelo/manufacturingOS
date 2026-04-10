@@ -100,14 +100,14 @@ export function DataTable<TData, TValue>({
             value={searchValue}
             onChange={setSearchValue}
             placeholder={searchPlaceholder}
-            className="w-full sm:max-w-sm"
+            className="w-full sm:max-w-xs"
             isLoading={isLoading}
           />
         ) : (
           <div />
         )}
         {toolbar ? (
-          <div className="flex items-center gap-2">{toolbar}</div>
+          <div className="flex flex-wrap items-center gap-2">{toolbar}</div>
         ) : null}
       </div>
 
@@ -160,7 +160,8 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   className={cn(
-                    "cursor-pointer transition-colors hover:bg-muted/40",
+                    "transition-colors hover:bg-muted/40",
+                    "border-border/50",
                     getRowClassName?.(row.original)
                   )}
                 >
@@ -202,11 +203,11 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center justify-between border-t border-border/50 px-2 py-3">
         <p className="text-sm text-muted-foreground">
-          Mostrando {start}-{end} de {total}
+          Mostrando {start}&ndash;{end} de {total}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex gap-1">
           <Button
             size="sm"
             variant="outline"
@@ -214,7 +215,6 @@ export function DataTable<TData, TValue>({
             disabled={!table.getCanPreviousPage()}
           >
             <ChevronLeftIcon className="size-4" />
-            Anterior
           </Button>
           <Button
             size="sm"
@@ -222,7 +222,6 @@ export function DataTable<TData, TValue>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Siguiente
             <ChevronRightIcon className="size-4" />
           </Button>
         </div>
