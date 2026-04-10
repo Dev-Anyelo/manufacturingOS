@@ -41,6 +41,11 @@ export async function getWorkOrders(filters?: OrderFilters) {
     where,
     include: {
       customer: true,
+      items: {
+        select: {
+          quantity: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -58,10 +63,63 @@ export async function getWorkOrder(id: string) {
   })
 }
 
+export async function getWorkOrderDetail(id: string) {
+  const [order, statusHistory] = await Promise.all([
+    prisma.workOrder.findUnique({
+      where: { id },
+      include: {
+        customer: true,
+        items: {
+          include: {
+            catalogItem: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            inventoryItem: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.auditLog.findMany({
+      where: {
+        tableName: "work_orders",
+        recordId: id,
+      },
+      include: {
+        createdByProfile: {
+          select: {
+            fullName: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+  ])
+
+  return {
+    order,
+    statusHistory,
+  }
+}
+
 export async function getKanbanData() {
   const orders = await prisma.workOrder.findMany({
     include: {
       customer: true,
+      items: {
+        select: {
+          quantity: true,
+        },
+      },
     },
     orderBy: {
       deliveryDate: "asc",
@@ -96,6 +154,64 @@ export async function getOverdueOrders() {
     },
     include: {
       customer: true,
+      items: {
+        select: {
+          quantity: true,
+        },
+      },
     },
   })
+}
+
+export async function getOrderFormBootstrap() {
+  const [customers, catalogItems, inventoryItems] = await Promise.all([
+    prisma.customer.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        fullName: true,
+        phone: true,
+        email: true,
+      },
+      take: 120,
+    }),
+    prisma.catalogItem.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        name: true,
+        garmentType: true,
+        salePrice: true,
+      },
+      take: 200,
+    }),
+    prisma.inventoryItem.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
+        unit: true,
+        quantity: true,
+      },
+      take: 200,
+    }),
+  ])
+
+  return {
+    customers,
+    catalogItems,
+    inventoryItems,
+  }
 }
