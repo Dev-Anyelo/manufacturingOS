@@ -29,6 +29,11 @@ export async function getPayrollPayments(filters?: PayrollFilters) {
     where,
     include: {
       employee: true,
+      createdByProfile: {
+        select: {
+          fullName: true,
+        },
+      },
     },
     orderBy: {
       periodStart: "desc",
@@ -42,6 +47,11 @@ export async function getPayrollPayment(id: string) {
     include: {
       employee: true,
       expenses: true,
+      createdByProfile: {
+        select: {
+          fullName: true,
+        },
+      },
     },
   })
 }
@@ -107,4 +117,25 @@ export async function getPayrollSummaryByEmployee(
   }
 
   return [...grouped.values()]
+}
+
+export async function getPayrollFormBootstrap() {
+  const employees = await prisma.employee.findMany({
+    where: {
+      isActive: true,
+    },
+    orderBy: {
+      fullName: "asc",
+    },
+    select: {
+      id: true,
+      fullName: true,
+      contractType: true,
+      baseSalary: true,
+    },
+  })
+
+  return {
+    employees,
+  }
 }

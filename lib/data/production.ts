@@ -36,6 +36,11 @@ export async function getProductionSessions(filters?: ProductionFilters) {
     where,
     include: {
       employee: true,
+      createdByProfile: {
+        select: {
+          fullName: true,
+        },
+      },
     },
     orderBy: {
       sessionDate: "desc",
@@ -48,6 +53,11 @@ export async function getProductionSession(id: string) {
     where: { id },
     include: {
       employee: true,
+      createdByProfile: {
+        select: {
+          fullName: true,
+        },
+      },
       items: {
         include: {
           inventoryItem: true,
@@ -88,4 +98,40 @@ export async function getTodayProductionSummary() {
       total_yards: 0,
     }
   )
+}
+
+export async function getProductionFormBootstrap() {
+  const [employees, inventoryItems] = await Promise.all([
+    prisma.employee.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        fullName: "asc",
+      },
+      select: {
+        id: true,
+        fullName: true,
+      },
+    }),
+    prisma.inventoryItem.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
+        unit: true,
+        quantity: true,
+      },
+    }),
+  ])
+
+  return {
+    employees,
+    inventoryItems,
+  }
 }
