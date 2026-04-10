@@ -1,7 +1,6 @@
 import { FolderCogIcon, SparklesIcon, WalletCardsIcon } from "lucide-react"
 
 import { StatCard } from "@/components/shared/stat-card"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { EXPENSE_CATEGORIES } from "@/types"
 
 interface ExpensesSummaryProps {
@@ -15,6 +14,11 @@ export function ExpensesSummary({
   topConcepts,
   byCategory,
 }: ExpensesSummaryProps) {
+  const currencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  })
+
   const topCategoryEntry = Object.entries(byCategory).sort(
     (a, b) => b[1] - a[1]
   )[0]
@@ -29,7 +33,7 @@ export function ExpensesSummary({
     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
       <StatCard
         title="Total del mes"
-        value={<CurrencyDisplay amount={monthlyTotal} size="lg" />}
+        value={currencyFormatter.format(monthlyTotal)}
         description="Suma de gastos operativos del periodo actual."
         icon={<WalletCardsIcon className="size-4" />}
       />
@@ -38,10 +42,7 @@ export function ExpensesSummary({
         value={topCategoryLabel}
         description={
           topCategoryEntry
-            ? `Impacto: ${new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD",
-              }).format(topCategoryEntry[1])}`
+            ? `Impacto: ${currencyFormatter.format(topCategoryEntry[1])}`
             : "Aun sin gastos en el mes"
         }
         icon={<FolderCogIcon className="size-4" />}
@@ -52,10 +53,7 @@ export function ExpensesSummary({
         value={topConcepts[0]?.concept ?? "Sin datos"}
         description={
           topConcepts[0]
-            ? `Total: ${new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD",
-              }).format(topConcepts[0].total)}`
+            ? `Total: ${currencyFormatter.format(topConcepts[0].total)}`
             : "Aun sin gastos en el mes"
         }
         icon={<SparklesIcon className="size-4" />}
