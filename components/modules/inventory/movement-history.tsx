@@ -1,11 +1,6 @@
+import { Clock3Icon } from "lucide-react"
 import { EmptyState } from "@/components/shared/empty-state"
-
-import {
-  ArrowDownCircleIcon,
-  ArrowLeftRightIcon,
-  ArrowUpCircleIcon,
-  Clock3Icon,
-} from "lucide-react"
+import { formatDateTime, getMovementMeta } from "@/lib/utils"
 
 export interface InventoryMovementEntry {
   id: string
@@ -21,37 +16,6 @@ export interface InventoryMovementEntry {
 interface MovementHistoryProps {
   movements: InventoryMovementEntry[]
   unit: string
-}
-
-function getMovementMeta(type: InventoryMovementEntry["movementType"]) {
-  if (type === "in") {
-    return {
-      label: "Entrada",
-      icon: ArrowUpCircleIcon,
-      iconClassName: "text-success",
-    }
-  }
-
-  if (type === "out") {
-    return {
-      label: "Salida",
-      icon: ArrowDownCircleIcon,
-      iconClassName: "text-danger",
-    }
-  }
-
-  return {
-    label: "Ajuste",
-    icon: ArrowLeftRightIcon,
-    iconClassName: "text-brand",
-  }
-}
-
-function formatDateTime(value: Date) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(value)
 }
 
 export function MovementHistory({ movements, unit }: MovementHistoryProps) {
