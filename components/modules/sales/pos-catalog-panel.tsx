@@ -5,11 +5,11 @@ import * as React from "react"
 import { GARMENT_TYPES } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { PlusIcon, ShirtIcon } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { PlusIcon, ShirtIcon, ShoppingCartIcon } from "lucide-react"
 import { SearchInput } from "@/components/shared/search-input"
 import type { PosCatalogItem } from "@/components/modules/sales/types"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { cn } from "@/lib/utils"
 
 import {
   Select,
@@ -18,6 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface PosCatalogPanelProps {
   items: PosCatalogItem[]
@@ -50,79 +56,135 @@ export function PosCatalogPanel({ items, onAddItem }: PosCatalogPanelProps) {
   }, [items, search, garmentType])
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_180px]">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Buscar en catalogo..."
-        />
-        <Select value={garmentType} onValueChange={setGarmentType}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Tipo de prenda" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {Object.entries(GARMENT_TYPES).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="flex flex-col h-full gap-0">
+      {/* Sticky search bar */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50 px-1 py-3">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_180px]">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Buscar en catalogo..."
+          />
+          <Select value={garmentType} onValueChange={setGarmentType}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Tipo de prenda" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los tipos</SelectItem>
+              {Object.entries(GARMENT_TYPES).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
-        {filteredItems.map((item) => (
-          <Card
-            key={item.id}
-            className="group cursor-pointer border border-border/50 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-md"
-            onClick={() => onAddItem(item)}
-          >
-            <CardContent className="p-3">
-              <div className="relative mb-3 h-28 overflow-hidden rounded-lg border border-border/60 bg-muted/30">
-                {item.imageUrl ? (
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.name}
-                    fill
-                    className="object-cover transition-transform duration-200 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-muted-foreground">
-                    <ShirtIcon className="size-6" />
-                  </div>
-                )}
-              </div>
+      {/* Product grid */}
+      <div className="pt-4 pb-2">
+        {filteredItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/60 bg-muted/15 p-10 text-center">
+            <ShoppingCartIcon className="size-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">
+              {search || garmentType !== "all"
+                ? "Sin resultados para los filtros actuales."
+                : "No hay productos en el catalogo."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredItems.map((item) => (
+              <CatalogProductCard
+                key={item.id}
+                item={item}
+                onAdd={onAddItem}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
-              <div className="space-y-2">
-                <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
-                {item.garmentType ? (
-                  <Badge variant="outline" className="text-xs">
-                    {GARMENT_TYPES[
-                      item.garmentType as keyof typeof GARMENT_TYPES
-                    ] ?? item.garmentType}
-                  </Badge>
-                ) : null}
+function CatalogProductCard({
+  item,
+  onAdd,
+}: {
+  item: PosCatalogItem
+  onAdd: (item: PosCatalogItem) => void
+}) {
+  const garmentLabel =
+    GARMENT_TYPES[item.garmentType as keyof typeof GARMENT_TYPES] ??
+    item.garmentType
 
-                <div className="flex items-center justify-between">
-                  <CurrencyDisplay amount={item.salePrice} size="sm" />
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    className="bg-brand text-brand-foreground"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      onAddItem(item)
-                    }}
-                  >
-                    <PlusIcon className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+  return (
+    <div
+      className={cn(
+        "group relative rounded-xl border border-border/50 bg-card overflow-hidden",
+        "hover:border-brand/60 hover:shadow-md transition-all duration-200 active:scale-[0.97]",
+        "cursor-pointer"
+      )}
+      onClick={() => onAdd(item)}
+    >
+      {/* Image zone */}
+      <div className="relative aspect-square overflow-hidden bg-muted">
+        {item.imageUrl ? (
+          <Image
+            src={item.imageUrl}
+            alt={item.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-muted-foreground">
+            <ShirtIcon className="size-8 opacity-40" />
+          </div>
+        )}
+
+        {/* Garment type badge top-left */}
+        {item.garmentType ? (
+          <div className="absolute top-1.5 left-1.5">
+            <Badge
+              variant="secondary"
+              className="text-[9px] px-1.5 py-0 h-4 font-medium bg-background/80 backdrop-blur-sm border border-border/60"
+            >
+              {garmentLabel}
+            </Badge>
+          </div>
+        ) : null}
+
+        {/* Hover overlay with + button */}
+        <div className="absolute inset-0 flex items-center justify-center bg-brand/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                size="icon"
+                className="size-9 rounded-full bg-brand text-brand-foreground shadow-lg hover:bg-brand/90 transition-transform scale-90 group-hover:scale-100"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onAdd(item)
+                }}
+                aria-label={`Agregar ${item.name} al carrito`}
+              >
+                <PlusIcon className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Agregar al carrito</TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+
+      {/* Info section */}
+      <div className="p-2.5 space-y-1">
+        <p className="text-xs font-semibold line-clamp-2 leading-tight">
+          {item.name}
+        </p>
+        <p className="text-sm font-bold text-brand tabular-nums">
+          <CurrencyDisplay amount={item.salePrice} size="sm" />
+        </p>
       </div>
     </div>
   )

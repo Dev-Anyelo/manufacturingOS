@@ -7,10 +7,16 @@ import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { LayoutGridIcon, ListIcon, SlidersHorizontalIcon } from "lucide-react"
+import {
+  LayoutGridIcon,
+  ListIcon,
+  ShoppingBagIcon,
+  SlidersHorizontalIcon,
+} from "lucide-react"
 import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+import { EmptyState } from "@/components/shared/empty-state"
+import { cn } from "@/lib/utils"
 
 import {
   Select,
@@ -39,23 +45,16 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
 
   const filteredItems = React.useMemo(() => {
     return items.filter((item) => {
-      if (garmentFilter === "all") {
-        return true
-      }
-
+      if (garmentFilter === "all") return true
       return item.garmentType === garmentFilter
     })
   }, [garmentFilter, items])
 
   const garmentTypes = React.useMemo(() => {
     const values = new Set<string>()
-
     for (const item of items) {
-      if (item.garmentType) {
-        values.add(item.garmentType)
-      }
+      if (item.garmentType) values.add(item.garmentType)
     }
-
     return [...values].sort()
   }, [items])
 
@@ -66,7 +65,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         header: "Prenda",
         cell: ({ row }) => (
           <div className="space-y-0.5">
-            <p className="text-sm font-medium">{row.original.name}</p>
+            <p className="text-sm font-semibold">{row.original.name}</p>
             <p className="text-xs text-muted-foreground">
               {row.original.garmentType ?? "Sin tipo"}
             </p>
@@ -77,11 +76,8 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         accessorKey: "ourPriceUnit",
         header: () => <div className="text-right">Unitario</div>,
         cell: ({ row }) => (
-          <div className="text-right">
-            <CurrencyDisplay
-              amount={row.original.ourPriceUnit ?? 0}
-              size="sm"
-            />
+          <div className="text-right font-bold tabular-nums text-brand">
+            <CurrencyDisplay amount={row.original.ourPriceUnit ?? 0} size="sm" />
           </div>
         ),
       },
@@ -89,11 +85,8 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         accessorKey: "ourPriceDozen",
         header: () => <div className="text-right">Docena</div>,
         cell: ({ row }) => (
-          <div className="text-right">
-            <CurrencyDisplay
-              amount={row.original.ourPriceDozen ?? 0}
-              size="sm"
-            />
+          <div className="text-right tabular-nums text-muted-foreground">
+            <CurrencyDisplay amount={row.original.ourPriceDozen ?? 0} size="sm" />
           </div>
         ),
         meta: {
@@ -115,7 +108,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         id: "actions",
         header: "",
         cell: ({ row }) => (
-          <Button asChild variant="ghost" size="sm" className="justify-start">
+          <Button asChild variant="ghost" size="sm" className="h-8 px-3 text-xs">
             <Link href={`/catalog/${row.original.id}`}>Detalle</Link>
           </Button>
         ),
@@ -126,29 +119,41 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
 
   return (
     <div className="space-y-4">
+      {/* Toolbar */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
-          <ToggleGroup
-            type="single"
-            value={viewMode}
-            onValueChange={(value) => {
-              if (value) {
-                setViewMode(value as ViewMode)
-              }
-            }}
-            variant="outline"
-            spacing={0}
-          >
-            <ToggleGroupItem value="grid" aria-label="Vista tarjetas">
-              <LayoutGridIcon className="size-4" />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="table" aria-label="Vista tabla">
-              <ListIcon className="size-4" />
-            </ToggleGroupItem>
-          </ToggleGroup>
+          {/* View toggle */}
+          <div className="flex items-center rounded-lg border border-border/50 bg-muted/30 p-0.5 gap-0.5">
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "flex h-7 w-8 items-center justify-center rounded-md text-xs transition-all",
+                viewMode === "grid"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-label="Vista tarjetas"
+            >
+              <LayoutGridIcon className="size-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={cn(
+                "flex h-7 w-8 items-center justify-center rounded-md text-xs transition-all",
+                viewMode === "table"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-label="Vista tabla"
+            >
+              <ListIcon className="size-3.5" />
+            </button>
+          </div>
 
           <Select value={garmentFilter} onValueChange={setGarmentFilter}>
-            <SelectTrigger className="w-52">
+            <SelectTrigger className="h-8 w-52 text-xs">
               <SelectValue placeholder="Tipo de prenda" />
             </SelectTrigger>
             <SelectContent>
@@ -162,18 +167,37 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
           </Select>
         </div>
 
-        <Button variant="outline" onClick={() => setBulkDialogOpen(true)}>
-          <SlidersHorizontalIcon className="size-4" />
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 px-3 text-xs"
+          onClick={() => setBulkDialogOpen(true)}
+        >
+          <SlidersHorizontalIcon className="size-3.5" />
           Ajuste masivo
         </Button>
       </div>
 
+      {/* Content */}
       {viewMode === "grid" ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredItems.map((item) => (
-            <CatalogCard key={item.id} item={item} />
-          ))}
-        </div>
+        filteredItems.length === 0 ? (
+          <EmptyState
+            icon={ShoppingBagIcon}
+            title="Sin productos en el catalogo"
+            description="Agrega nuevos productos para iniciar ventas y pedidos."
+            action={
+              <Button asChild size="sm" className="bg-brand text-brand-foreground">
+                <Link href="/catalog/new">Nuevo producto</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+            {filteredItems.map((item) => (
+              <CatalogCard key={item.id} item={item} />
+            ))}
+          </div>
+        )
       ) : (
         <DataTable
           columns={columns}
@@ -188,9 +212,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
       <BulkPriceDialog
         open={bulkDialogOpen}
         onOpenChange={setBulkDialogOpen}
-        onSuccess={() => {
-          router.refresh()
-        }}
+        onSuccess={() => router.refresh()}
       />
     </div>
   )

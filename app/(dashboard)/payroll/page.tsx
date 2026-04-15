@@ -21,40 +21,46 @@ export default async function PayrollPage() {
   ])
 
   return (
-    <div className="mx-auto flex w-full max-w-350 flex-col gap-6">
-      <PageHeader
-        title="Planilla"
-        description="Administra empleados, contratos y pagos."
-      />
+    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8 gap-6">
+      <div className="max-w-[1400px] mx-auto w-full space-y-6">
+        <PageHeader
+          title="Planilla"
+          description="Administra empleados, contratos y pagos."
+          breadcrumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Planilla" },
+          ]}
+        />
 
-      <PayrollWorkspace
-        payments={payments.map((payment) => ({
-          id: payment.id,
-          employeeId: payment.employeeId,
-          employeeName: payment.employee.fullName,
-          periodStart: payment.periodStart.toISOString(),
-          periodEnd: payment.periodEnd.toISOString(),
-          total: decimalToNumber(payment.total),
-          status: payment.status,
-          paymentDate: payment.paymentDate?.toISOString() ?? null,
-          paymentMethod: payment.paymentMethod,
-          createdByName: payment.createdByProfile?.fullName ?? "Sistema",
-        }))}
-        employeeSummary={summary.map((row) => ({
-          employeeId: row.employeeId,
-          employeeName: row.fullName,
-          total: row.total,
-        }))}
-        employees={bootstrap.employees.map((employee) => ({
-          id: employee.id,
-          fullName: employee.fullName,
-          contractType: employee.contractType,
-          baseSalary:
-            employee.baseSalary === null
-              ? null
-              : decimalToNumber(employee.baseSalary),
-        }))}
-      />
-    </div>
+        <PayrollWorkspace
+          payments={payments.map((payment) => ({
+            id: payment.id,
+            employeeId: payment.employeeId,
+            employeeName: payment.employee.fullName,
+            periodStart: payment.periodStart.toISOString(),
+            periodEnd: payment.periodEnd.toISOString(),
+            total: decimalToNumber(payment.total),
+            status: payment.status,
+            paymentDate: payment.paymentDate?.toISOString() ?? null,
+            paymentMethod: payment.paymentMethod,
+            createdByName: payment.createdByProfile?.fullName ?? "Sistema",
+          }))}
+          employeeSummary={summary.map((row) => ({
+            employeeId: row.employeeId,
+            employeeName: row.fullName,
+            total: row.total,
+          }))}
+          employees={bootstrap.employees.map((employee) => ({
+            id: employee.id,
+            fullName: employee.fullName,
+            contractType: employee.contractType,
+            baseSalary:
+              employee.baseSalary === null
+                ? null
+                : decimalToNumber(employee.baseSalary),
+          }))}
+        />
+      </div>
+    </section>
   )
 }
