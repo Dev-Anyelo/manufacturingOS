@@ -67,16 +67,79 @@ function formatDate(value: Date) {
 }
 
 export function SaleDetail({ sale }: { sale: SaleDetailData }) {
+  const totalItems = sale.items.reduce((acc, item) => acc + item.quantity, 0)
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Total venta
+            </p>
+            <CurrencyDisplay
+              amount={sale.total}
+              size="lg"
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Pagado
+            </p>
+            <CurrencyDisplay
+              amount={sale.amountPaid}
+              size="lg"
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Descuento
+            </p>
+            <CurrencyDisplay
+              amount={sale.discount}
+              size="lg"
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Saldo pendiente
+            </p>
+            <CurrencyDisplay
+              amount={sale.balanceDue}
+              size="lg"
+              className={
+                sale.balanceDue > 0
+                  ? "text-warning font-semibold"
+                  : "font-semibold"
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              {totalItems} unidades vendidas
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="border border-border/50 shadow-sm lg:col-span-2">
           <CardHeader className="border-b border-border/50">
             <CardTitle className="flex items-center justify-between gap-2">
-              Venta #{sale.id.slice(0, 8)}
+              <span>Venta #{sale.id.slice(0, 8)}</span>
               <StatusBadge status={sale.status} type="sale" />
             </CardTitle>
-            <CardDescription>{formatDate(sale.saleDate)}</CardDescription>
+            <CardDescription>
+              Registrada el {formatDate(sale.saleDate)} •{" "}
+              {channelLabelMap[sale.channel] ?? sale.channel}
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
             <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
@@ -101,12 +164,12 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
           </CardHeader>
           <CardContent className="space-y-1 pt-4 text-sm">
             <p className="font-medium">{sale.customerName}</p>
-            {sale.customerPhone ? (
-              <p className="text-muted-foreground">{sale.customerPhone}</p>
-            ) : null}
-            {sale.customerEmail ? (
-              <p className="text-muted-foreground">{sale.customerEmail}</p>
-            ) : null}
+            <p className="text-muted-foreground">
+              {sale.customerPhone || "Sin telefono"}
+            </p>
+            <p className="text-muted-foreground">
+              {sale.customerEmail || "Sin correo"}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -114,6 +177,9 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
       <Card className="border border-border/50 shadow-sm">
         <CardHeader className="border-b border-border/50">
           <CardTitle className="text-base">Items vendidos</CardTitle>
+          <CardDescription>
+            {sale.items.length} lineas de venta • {totalItems} unidades totales
+          </CardDescription>
         </CardHeader>
         <CardContent className="pt-4">
           <Table>
@@ -152,6 +218,9 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
       <Card className="border border-border/50 shadow-sm">
         <CardHeader className="border-b border-border/50">
           <CardTitle className="text-base">Resumen financiero</CardTitle>
+          <CardDescription>
+            Consolidado de caja de la transaccion
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 pt-4 text-sm">
           <div className="flex items-center justify-between">

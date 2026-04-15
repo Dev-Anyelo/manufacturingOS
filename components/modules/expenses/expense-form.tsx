@@ -15,6 +15,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2Icon, UploadIcon } from "lucide-react"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import {
@@ -159,7 +160,14 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
   const unitPrice = form.watch("unit_price")
   const updatesInventory = form.watch("updates_inventory")
   const selectedExpenseDate = form.watch("expense_date")
+  const selectedInventoryItemId = form.watch("inventory_item_id")
   const calculatedTotal = Number(quantity ?? 0) * Number(unitPrice ?? 0)
+  const selectedInventoryItem = React.useMemo(
+    () =>
+      inventoryItems.find((item) => item.id === selectedInventoryItemId) ??
+      null,
+    [inventoryItems, selectedInventoryItemId]
+  )
   const today = React.useMemo(() => {
     const now = new Date()
     return new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -270,6 +278,50 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
       className="space-y-6"
       noValidate
     >
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Fecha
+            </p>
+            <p className="text-sm font-semibold">
+              {formatDateLabel(selectedExpenseDate)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Total estimado
+            </p>
+            <CurrencyDisplay
+              amount={Number.isFinite(calculatedTotal) ? calculatedTotal : 0}
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Inventario
+            </p>
+            <p className="text-sm font-semibold">
+              {updatesInventory ? "Ajuste activo" : "Sin ajuste"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Comprobante
+            </p>
+            <p className="truncate text-sm font-semibold">
+              {receiptFile ? "Adjuntado" : "No adjuntado"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card className="border border-border/60">
         <CardHeader>
           <CardTitle className="text-base">Datos del gasto</CardTitle>
@@ -383,6 +435,9 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
               step="0.01"
               {...form.register("quantity", { valueAsNumber: true })}
             />
+            <p className="text-xs text-muted-foreground">
+              Soporta decimales para telas, metros o unidades parciales.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -396,6 +451,9 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
               step="0.01"
               {...form.register("unit_price", { valueAsNumber: true })}
             />
+            <p className="text-xs text-muted-foreground">
+              Usa el costo por unidad de compra antes de impuestos.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -414,6 +472,10 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
                 {form.formState.errors.total.message}
               </p>
             ) : null}
+            <p className="text-xs text-muted-foreground">
+              Se autocalcula como cantidad x precio unitario y puede ajustarse
+              manualmente.
+            </p>
           </div>
 
           <div className="bg-brand-muted rounded-lg border border-brand/20 p-4 text-center md:col-span-2">
@@ -554,25 +616,55 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
         </CardContent>
       </Card>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push("/expenses")}
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          className="bg-brand text-brand-foreground"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : null}
-          Guardar gasto
-        </Button>
-      </div>
+      <Card className="border border-border/60 bg-muted/20">
+        <CardContent className="flex flex-col gap-4 pt-4">
+          <div className="grid grid-cols-1 gap-2 text-sm md:grid-cols-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Total a registrar</p>
+              <CurrencyDisplay
+                amount={Number(form.watch("total") ?? 0)}
+                className="font-semibold"
+              />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">
+                Impacto en inventario
+              </p>
+              <p className="font-medium">
+                {updatesInventory
+                  ? `Suma stock en ${selectedInventoryItem?.name ?? "material seleccionado"}`
+                  : "No aplica"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Comprobante</p>
+              <p className="font-medium">
+                {receiptFile ? receiptFile.name : "Sin archivo"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/expenses")}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              className="bg-brand text-brand-foreground"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <Loader2Icon className="size-4 animate-spin" />
+              ) : null}
+              Guardar gasto
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </form>
   )
 }

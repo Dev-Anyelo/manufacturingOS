@@ -98,38 +98,118 @@ export function OrderDetail({ order }: OrderDetailProps) {
 
   const availableTransitions = transitionMap[currentStatus]
   const statusForDialog = targetStatus ?? currentStatus
+  const paidAmount = Math.max(order.total - order.balanceDue, 0)
+  const totalUnits = order.items.reduce((acc, item) => acc + item.quantity, 0)
 
   return (
     <div className="space-y-6">
       <OrderStatusStepper status={currentStatus} />
 
-      <div className="flex flex-wrap gap-2">
-        {availableTransitions.map((status) => (
-          <Button
-            key={status}
-            type="button"
-            size="sm"
-            variant={
-              status === WorkOrderStatus.cancelled ? "destructive" : "default"
-            }
-            className={
-              status === WorkOrderStatus.cancelled
-                ? ""
-                : "bg-brand text-brand-foreground"
-            }
-            onClick={() => setTargetStatus(status)}
-          >
-            {actionLabelMap[status] ?? "Cambiar estado"}
-          </Button>
-        ))}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Total pedido
+            </p>
+            <CurrencyDisplay
+              amount={order.total}
+              size="lg"
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Anticipo aplicado
+            </p>
+            <CurrencyDisplay
+              amount={order.advancePaid}
+              size="lg"
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Saldo pendiente
+            </p>
+            <CurrencyDisplay
+              amount={order.balanceDue}
+              size="lg"
+              colored={order.balanceDue > 0}
+              className={
+                order.balanceDue > 0
+                  ? "font-semibold"
+                  : "font-semibold text-foreground"
+              }
+            />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Entrega
+            </p>
+            <p className="text-base font-semibold">
+              {formatDate(order.deliveryDate)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {totalUnits} prendas en total
+            </p>
+          </CardContent>
+        </Card>
       </div>
+
+      <Card className="border border-border/60 shadow-sm">
+        <CardContent className="space-y-3 p-4">
+          <div className="space-y-1">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Acciones del flujo
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Ejecuta transiciones segun el estado actual y mantiene
+              trazabilidad operativa.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {availableTransitions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No hay cambios de estado disponibles.
+              </p>
+            ) : (
+              availableTransitions.map((status) => (
+                <Button
+                  key={status}
+                  type="button"
+                  size="sm"
+                  variant={
+                    status === WorkOrderStatus.cancelled
+                      ? "destructive"
+                      : "default"
+                  }
+                  className={
+                    status === WorkOrderStatus.cancelled
+                      ? ""
+                      : "bg-brand text-brand-foreground"
+                  }
+                  onClick={() => setTargetStatus(status)}
+                >
+                  {actionLabelMap[status] ?? "Cambiar estado"}
+                </Button>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="border border-border/60 xl:col-span-2">
-          <CardHeader>
+          <CardHeader className="border-b border-border/50 pb-3">
             <CardTitle className="text-base">Detalle del pedido</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <CardContent className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2">
             <div className="space-y-1 text-sm">
               <p className="inline-flex items-center gap-1 text-muted-foreground">
                 <ClipboardListIcon className="size-4" />
@@ -144,6 +224,11 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 Entrega
               </p>
               <p className="font-medium">{formatDate(order.deliveryDate)}</p>
+            </div>
+
+            <div className="space-y-1 text-sm">
+              <p className="text-muted-foreground">Recepcion</p>
+              <p className="font-medium">{formatDate(order.receivedDate)}</p>
             </div>
 
             <div className="space-y-1 text-sm">
@@ -162,6 +247,19 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 Total
               </p>
               <CurrencyDisplay amount={order.total} className="font-semibold" />
+            </div>
+
+            <div className="space-y-1 text-sm">
+              <p className="text-muted-foreground">Anticipo</p>
+              <CurrencyDisplay
+                amount={order.advancePaid}
+                className="font-semibold"
+              />
+            </div>
+
+            <div className="space-y-1 text-sm">
+              <p className="text-muted-foreground">Pagado acumulado</p>
+              <CurrencyDisplay amount={paidAmount} className="font-semibold" />
             </div>
 
             <div className="space-y-1 text-sm">
@@ -191,10 +289,10 @@ export function OrderDetail({ order }: OrderDetailProps) {
         </Card>
 
         <Card className="border border-border/60">
-          <CardHeader>
+          <CardHeader className="border-b border-border/50 pb-3">
             <CardTitle className="text-base">Cliente</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+          <CardContent className="space-y-3 pt-4 text-sm">
             <p className="inline-flex items-center gap-2 font-medium">
               <UserIcon className="size-4 text-muted-foreground" />
               {order.customerName}
@@ -210,10 +308,14 @@ export function OrderDetail({ order }: OrderDetailProps) {
       </div>
 
       <Card className="border border-border/60">
-        <CardHeader>
+        <CardHeader className="border-b border-border/50 pb-3">
           <CardTitle className="text-base">Items del pedido</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {order.items.length} lineas registradas • {totalUnits} unidades
+            totales
+          </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -284,10 +386,10 @@ export function OrderDetail({ order }: OrderDetailProps) {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="border border-border/60 xl:col-span-2">
-          <CardHeader>
+          <CardHeader className="border-b border-border/50 pb-3">
             <CardTitle className="text-base">Imagenes de referencia</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             {order.referenceImages.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border/60 p-6 text-sm text-muted-foreground">
                 Este pedido no tiene imagenes de referencia cargadas.
@@ -314,10 +416,10 @@ export function OrderDetail({ order }: OrderDetailProps) {
         </Card>
 
         <Card className="border border-border/60">
-          <CardHeader>
+          <CardHeader className="border-b border-border/50 pb-3">
             <CardTitle className="text-base">Historial</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2 pt-4">
             {order.statusHistory.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Sin eventos de auditoria.
@@ -326,9 +428,9 @@ export function OrderDetail({ order }: OrderDetailProps) {
               order.statusHistory.map((event) => (
                 <div
                   key={event.id}
-                  className="rounded-lg border border-border/60 bg-muted/20 p-2 text-xs"
+                  className="rounded-lg border border-border/60 bg-muted/20 p-3 text-xs"
                 >
-                  <p className="font-medium">{event.action}</p>
+                  <p className="text-sm font-medium">{event.action}</p>
                   <p className="text-muted-foreground">
                     {formatDateTime(event.createdAt)}
                   </p>

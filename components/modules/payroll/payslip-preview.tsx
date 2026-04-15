@@ -3,7 +3,13 @@ import { DownloadIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 export interface PayslipPreviewData {
   id: string
@@ -41,6 +47,8 @@ function formatDate(value: string | null) {
 }
 
 export function PayslipPreview({ payment }: PayslipPreviewProps) {
+  const grossAmount = payment.baseAmount + payment.bonuses
+
   return (
     <Card className="border border-border/50 shadow-sm">
       <CardHeader className="border-b border-border/50">
@@ -54,8 +62,31 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
             {payment.status === "paid" ? "Pagado" : "Pendiente"}
           </Badge>
         </CardTitle>
+        <CardDescription>
+          {payment.employeeName} • {formatDate(payment.periodStart)} al{" "}
+          {formatDate(payment.periodEnd)}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-6">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+            <p className="text-xs text-muted-foreground">Devengado</p>
+            <CurrencyDisplay amount={grossAmount} className="font-semibold" />
+          </div>
+          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+            <p className="text-xs text-muted-foreground">Deducciones</p>
+            <CurrencyDisplay
+              amount={-payment.deductions}
+              className="font-semibold"
+              colored
+            />
+          </div>
+          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+            <p className="text-xs text-muted-foreground">Neto a pagar</p>
+            <CurrencyDisplay amount={payment.total} className="font-semibold" />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Empleado</p>
@@ -100,12 +131,20 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
               <span className="text-sm font-medium">Total neto</span>
               <CurrencyDisplay amount={payment.total} size="lg" />
             </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Estado de pago:{" "}
+              {payment.status === "paid"
+                ? "liquidado"
+                : "pendiente por registrar"}
+            </p>
           </div>
         </div>
 
         <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
           <p className="text-xs text-muted-foreground">Notas</p>
-          <p>{payment.notes ?? "Sin notas registradas."}</p>
+          <p className={payment.notes ? "" : "text-muted-foreground"}>
+            {payment.notes ?? "Sin notas registradas."}
+          </p>
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">

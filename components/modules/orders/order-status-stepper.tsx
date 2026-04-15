@@ -62,6 +62,12 @@ export function OrderStatusStepper({
   status,
   className,
 }: OrderStatusStepperProps) {
+  const currentIndex = flow.findIndex((item) => item.status === status)
+  const progressPercent =
+    status === WorkOrderStatus.cancelled
+      ? 100
+      : Math.max(0, Math.round(((currentIndex + 1) / flow.length) * 100))
+
   return (
     <div
       className={cn(
@@ -69,6 +75,17 @@ export function OrderStatusStepper({
         className
       )}
     >
+      <div className="mb-3 flex items-center justify-between border-b border-border/50 pb-3">
+        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          Flujo del pedido
+        </p>
+        <p className="text-xs font-semibold text-muted-foreground">
+          {status === WorkOrderStatus.cancelled
+            ? "Cancelado"
+            : `${progressPercent}% completado`}
+        </p>
+      </div>
+
       <ol
         className="flex min-w-max items-start gap-3"
         aria-label="Progreso del pedido"
@@ -103,7 +120,7 @@ export function OrderStatusStepper({
                 </span>
                 <span
                   className={cn(
-                    "text-[11px] whitespace-nowrap text-muted-foreground",
+                    "text-[11px] whitespace-nowrap text-muted-foreground sm:text-xs",
                     stepState === "current" && "font-semibold text-brand",
                     stepState === "completed" && "text-foreground"
                   )}

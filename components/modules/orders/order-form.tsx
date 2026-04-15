@@ -227,6 +227,15 @@ export function OrderForm({
       return acc + Number(item.quantity || 0) * Number(item.unit_price || 0)
     }, 0)
   }, [watchedItems])
+  const totalUnits = React.useMemo(() => {
+    return watchedItems.reduce((acc, item) => {
+      return acc + Number(item.quantity || 0)
+    }, 0)
+  }, [watchedItems])
+  const pendingBalance = Math.max(
+    Number(watchedTotal || 0) - Number(watchedAdvance || 0),
+    0
+  )
 
   function handleCatalogChange(index: number, catalogItemId: string) {
     form.setValue(`items.${index}.catalog_item_id`, catalogItemId, {
@@ -329,6 +338,53 @@ export function OrderForm({
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Lineas
+            </p>
+            <p className="text-lg font-semibold">{fields.length}</p>
+            <p className="text-xs text-muted-foreground">
+              {totalUnits} unidades acumuladas
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Total sugerido
+            </p>
+            <CurrencyDisplay
+              amount={estimatedTotal}
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Anticipo
+            </p>
+            <CurrencyDisplay
+              amount={Number(watchedAdvance || 0)}
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Saldo estimado
+            </p>
+            <CurrencyDisplay
+              amount={pendingBalance}
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+      </div>
+
       <Card className="border border-border/60">
         <CardHeader>
           <CardTitle className="text-base">Datos generales</CardTitle>
@@ -485,7 +541,19 @@ export function OrderForm({
                 className="space-y-4 rounded-xl border border-border/60 bg-muted/20 p-4"
               >
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold">Linea #{index + 1}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">Linea #{index + 1}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Subtotal estimado:{" "}
+                      <CurrencyDisplay
+                        amount={
+                          Number(form.watch(`items.${index}.quantity`) || 0) *
+                          Number(form.watch(`items.${index}.unit_price`) || 0)
+                        }
+                        size="sm"
+                      />
+                    </p>
+                  </div>
                   <Button
                     type="button"
                     variant="ghost"
@@ -745,32 +813,40 @@ export function OrderForm({
       <Card className="border border-border/60 bg-muted/20">
         <CardContent className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Resumen de cierre</p>
             <p>
               Saldo pendiente estimado:{" "}
-              <CurrencyDisplay
-                amount={Math.max(
-                  Number(watchedTotal || 0) - Number(watchedAdvance || 0),
-                  0
-                )}
-                size="sm"
-              />
+              <CurrencyDisplay amount={pendingBalance} size="sm" />
+            </p>
+            <p>
+              Total de prendas:{" "}
+              <span className="font-medium">{totalUnits}</span>
             </p>
           </div>
 
-          <Button
-            type="submit"
-            className="bg-brand text-brand-foreground"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2Icon className="size-4 animate-spin" />
-                Creando pedido...
-              </>
-            ) : (
-              "Crear pedido"
-            )}
-          </Button>
+          <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/orders")}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              className="bg-brand text-brand-foreground"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2Icon className="size-4 animate-spin" />
+                  Creando pedido...
+                </>
+              ) : (
+                "Crear pedido"
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </form>
