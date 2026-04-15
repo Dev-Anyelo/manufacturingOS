@@ -36,7 +36,6 @@ export default async function ExpensesPage() {
             <Button
               asChild
               size="sm"
-              className="h-9 bg-brand px-4 font-medium text-brand-foreground hover:bg-brand/90"
             >
               <Link href="/expenses/new">
                 <PlusIcon className="size-4" />

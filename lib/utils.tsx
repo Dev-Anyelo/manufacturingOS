@@ -142,7 +142,7 @@ export const statusConfig: Record<
   },
 }
 
-export function formatDate(value: string) {
+export function formatDate(value: string | Date) {
   return new Intl.DateTimeFormat("es-PA", { dateStyle: "short" }).format(
     new Date(value)
   )
@@ -154,6 +154,13 @@ export function formatCurrency(amount: number) {
     currency: "USD",
     minimumFractionDigits: 2,
   }).format(amount)
+}
+
+export function getSpanishGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return "Buenos dias"
+  if (hour < 19) return "Buenas tardes"
+  return "Buenas noches"
 }
 
 export const statuses: WorkOrderStatus[] = [
@@ -262,7 +269,7 @@ export const actionConfig: Partial<
   },
 }
 
-export function formatDateRelative(value: string) {
+export function formatDateRelative(value: string | Date) {
   const date = new Date(value)
   const now = new Date()
   const diff = Math.ceil(

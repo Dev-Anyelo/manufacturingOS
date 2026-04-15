@@ -102,18 +102,13 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   })
 
   return (
-    <Sidebar
-      collapsible="offcanvas"
-      variant="floating"
-      className="border-r border-sidebar-border/70"
-      {...props}
-    >
-      <SidebarHeader className="space-y-3 border-b border-sidebar-border/70 px-2 pb-3">
+    <Sidebar collapsible="offcanvas" variant="floating" {...props}>
+      <SidebarHeader className="border-b border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:rounded-lg data-[slot=sidebar-menu-button]:border data-[slot=sidebar-menu-button]:border-sidebar-border/70 data-[slot=sidebar-menu-button]:bg-sidebar-accent/40 data-[slot=sidebar-menu-button]:p-2! w-fit mx-auto"
+              className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <Link href="/">
                 <CommandIcon className="size-4!" />
@@ -130,7 +125,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       <SidebarContent className="px-1.5 py-2">
         <NavMain items={navItems} />
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border/70 p-2">
+      <SidebarFooter className="border-t border-sidebar-border">
         <NavUser
           user={{
             name: user.fullName,

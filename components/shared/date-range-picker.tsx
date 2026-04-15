@@ -1,9 +1,7 @@
-"use client"
-
 import * as React from "react"
 import { CalendarDaysIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { DateRange } from "react-day-picker"
+import { useMediaQuery } from "@/hooks/use-mobile"
 import { Calendar } from "@/components/ui/calendar"
 
 import {
@@ -25,21 +23,14 @@ function toDateOnly(value: Date) {
 }
 
 function formatLabel(from?: Date, to?: Date) {
-  if (!from) {
-    return "Seleccionar rango"
-  }
-
+  if (!from) return "Seleccionar rango"
   const fmt = new Intl.DateTimeFormat("es-PA", {
     day: "2-digit",
     month: "short",
-    year: "numeric",
   })
-
-  if (from && to) {
-    return `${fmt.format(from)} - ${fmt.format(to)}`
-  }
-
-  return fmt.format(from)
+  return from && to
+    ? `${fmt.format(from)} - ${fmt.format(to)}`
+    : fmt.format(from)
 }
 
 export function DateRangePicker({
@@ -50,9 +41,11 @@ export function DateRangePicker({
   presets = true,
 }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false)
+  const isDesktop = useMediaQuery("(min-width: 1024px)")
 
   const today = React.useMemo(() => toDateOnly(new Date()), [])
-  const selectedRange = React.useMemo<DateRange>(
+
+  const selectedRange = React.useMemo(
     () => ({
       from: from ? toDateOnly(from) : undefined,
       to: to ? toDateOnly(to) : undefined,
@@ -64,101 +57,103 @@ export function DateRangePicker({
     onChange({ from: nextFrom, to: nextTo })
   }
 
+  const quickRanges = [
+    {
+      label: "Hoy",
+      action: () => setRange(today, today),
+    },
+    {
+      label: "Semana",
+      action: () => {
+        const start = new Date(today)
+        const day = today.getDay() || 7
+        start.setDate(today.getDate() - day + 1)
+        setRange(start, today)
+      },
+    },
+    {
+      label: "Mes",
+      action: () => {
+        const start = new Date(today.getFullYear(), today.getMonth(), 1)
+        setRange(start, today)
+      },
+    },
+    {
+      label: "30d",
+      action: () => {
+        const start = new Date(today)
+        start.setDate(today.getDate() - 29)
+        setRange(start, today)
+      },
+    },
+  ]
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-9 w-full justify-start gap-2 text-left font-normal sm:w-auto"
-          aria-label="Seleccionar rango de fechas"
-        >
+        <Button variant="outline">
           <CalendarDaysIcon className="size-4 text-muted-foreground" />
-          <span>{from ? formatLabel(from, to) : placeholder}</span>
+          <span className="truncate">
+            {from ? formatLabel(from, to) : placeholder}
+          </span>
         </Button>
       </PopoverTrigger>
+
       <PopoverContent
-        className="w-auto space-y-3 rounded-xl border-border/60 p-3"
         align="start"
+        sideOffset={6}
+        className="w-[95vw] max-w-105 rounded-2xl p-0 shadow-xl sm:w-auto lg:max-w-162.5 sm:mr-6"
       >
-        {presets ? (
-          <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2 p-3">
+          {/* Quick ranges compactos */}
+          {presets && (
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {quickRanges.map((r) => (
+                <Button
+                  key={r.label}
+                  variant="secondary"
+                  size="sm"
+                  className="h-7 px-2 text-xs whitespace-nowrap"
+                  onClick={r.action}
+                >
+                  {r.label}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {/* Calendar */}
+          <div className="flex justify-center">
+            <Calendar
+              mode="range"
+              selected={selectedRange}
+              onSelect={(range) => {
+                setRange(range?.from, range?.to)
+                if (range?.from && range?.to) setOpen(false)
+              }}
+              numberOfMonths={isDesktop ? 2 : 1}
+              className="scale-[0.95] sm:scale-100"
+            />
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-xs text-muted-foreground">
+              {from ? formatLabel(from, to) : "Sin selección"}
+            </span>
+
             <Button
-              type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setRange(today, today)}
-            >
-              Hoy
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
+              className="h-7 text-xs"
               onClick={() => {
-                const start = new Date(today)
-                const day = today.getDay() || 7
-                start.setDate(today.getDate() - day + 1)
-                start.setHours(0, 0, 0, 0)
-                setRange(start, today)
+                setRange(undefined, undefined)
+                setOpen(false)
               }}
             >
-              Esta semana
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const start = new Date(today.getFullYear(), today.getMonth(), 1)
-                setRange(start, today)
-              }}
-            >
-              Este mes
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const start = new Date(today)
-                start.setDate(today.getDate() - 29)
-                start.setHours(0, 0, 0, 0)
-                setRange(start, today)
-              }}
-            >
-              Ultimos 30 dias
+              Limpiar
             </Button>
           </div>
-        ) : null}
-
-        <div className="rounded-lg border border-border/50 bg-card p-1">
-          <Calendar
-            mode="range"
-            selected={selectedRange}
-            onSelect={(range) => {
-              setRange(range?.from, range?.to)
-              if (range?.from && range?.to) {
-                setOpen(false)
-              }
-            }}
-            numberOfMonths={1}
-            initialFocus
-          />
-        </div>
-
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setRange(undefined, undefined)
-              setOpen(false)
-            }}
-          >
-            Limpiar
-          </Button>
         </div>
       </PopoverContent>
     </Popover>

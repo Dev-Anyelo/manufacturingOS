@@ -77,12 +77,12 @@ export function StatCard({
         href && "cursor-pointer"
       )}
     >
-      <CardContent className="p-3 sm:p-4">
+      <CardContent className="px-4 py-3">
         <div className="flex items-start justify-between gap-2">
           {/* LEFT */}
           <div className="min-w-0 flex-1 space-y-1.5">
             {/* Title */}
-            <p className="truncate text-[10px] font-medium tracking-wide text-muted-foreground uppercase sm:text-xs">
+            <p className="truncate text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {title}
             </p>
 
@@ -90,7 +90,7 @@ export function StatCard({
             {isLoading ? (
               <Skeleton className="h-6 w-20 rounded-md" />
             ) : (
-              <p className="truncate text-xl leading-tight font-semibold tabular-nums sm:text-2xl">
+              <p className="truncate text-sm leading-tight font-semibold tabular-nums md:text-base">
                 {value}
               </p>
             )}
@@ -104,7 +104,7 @@ export function StatCard({
                   </p>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
-                  <p className="text-xs">{description}</p>
+                  <p className="text-xs text-pretty">{description}</p>
                 </TooltipContent>
               </Tooltip>
             )}
@@ -132,22 +132,7 @@ export function StatCard({
           </div>
 
           {/* RIGHT ICON */}
-          <div
-            className={cn(
-              "flex shrink-0 items-center justify-center",
-              "h-8 w-8 rounded-lg sm:h-9 sm:w-9",
-              config.iconWrap
-            )}
-          >
-            <span
-              className={cn(
-                "size-4 sm:size-5 [&>svg]:size-full",
-                config.accent
-              )}
-            >
-              {icon}
-            </span>
-          </div>
+          <span className={cn("size-3.5 text-muted-foreground", config.accent)}>{icon}</span>
         </div>
       </CardContent>
     </Card>

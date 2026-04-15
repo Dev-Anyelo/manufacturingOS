@@ -63,14 +63,12 @@ export default async function InventoryPage() {
                 asChild
                 variant="outline"
                 size="sm"
-                className="hidden h-9 px-4 font-medium sm:flex"
               >
                 <Link href="/inventory">Exportar</Link>
               </Button>
               <Button
                 asChild
                 size="sm"
-                className="h-9 bg-brand px-4 font-medium text-brand-foreground hover:bg-brand/90"
               >
                 <Link href="/inventory/new">
                   <PlusIcon className="size-4" />

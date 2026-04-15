@@ -1,16 +1,16 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AuditAction } from "@prisma/client"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
-import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { StatCard } from "@/components/shared/stat-card"
 import { getDashboardStats } from "@/lib/data/dashboard"
 import { EmptyState } from "@/components/shared/empty-state"
+import { PageHeader } from "@/components/shared/page-header"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { StatusBadge } from "@/components/shared/status-badge"
+import { formatCurrency, formatDateRelative, getInitials } from "@/lib/utils"
 
 import {
   AlertTriangleIcon,
@@ -30,14 +30,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { PageHeader } from "@/components/shared/page-header"
-
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
 
 type StockStatus = "normal" | "low" | "critical" | "out"
 
@@ -73,27 +65,6 @@ function getAuditTableLabel(tableName: string) {
     catalog_items: "Catalogo",
   }
   return labels[tableName] ?? tableName
-}
-
-function formatDateTime(value: Date) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(value)
-}
-
-function formatTimeAgo(value: Date) {
-  const diff = Date.now() - value.getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return "Hace un momento"
-  if (mins < 60) return `Hace ${mins} min`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `Hace ${hours}h`
-  return formatDateTime(value)
-}
-
-function getFirstName(fullName: string) {
-  return fullName.split(" ")[0] ?? fullName
 }
 
 function getSpanishGreeting() {
@@ -165,7 +136,7 @@ export default async function DashboardPage() {
     stats.pendingOrdersCount > 0 ||
     recentActivity.length > 0
 
-  const firstName = getFirstName(user.fullName)
+  const firstName = getInitials(user.fullName)
   const greeting = getSpanishGreeting()
   const formattedDate = getFormattedDate()
 
@@ -216,7 +187,7 @@ export default async function DashboardPage() {
               />
               <StatCard
                 title="Ventas del dia"
-                value={currencyFormatter.format(stats.todaySales)}
+                value={formatCurrency(stats.todaySales)}
                 description={`${stats.todaySalesCount} transacciones hoy`}
                 icon={<ShoppingCartIcon className="size-5" />}
                 variant={stats.todaySales > 0 ? "success" : "default"}
@@ -288,7 +259,7 @@ export default async function DashboardPage() {
                                 </span>
                               </p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
-                                {formatTimeAgo(activity.createdAt)}
+                                {formatDateRelative(activity.createdAt)}
                               </p>
                             </div>
                           </div>

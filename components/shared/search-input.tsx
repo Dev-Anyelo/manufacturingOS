@@ -42,12 +42,12 @@ export function SearchInput({
         className
       )}
     >
-      <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+      <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
       <Input
         value={localValue}
         onChange={(event) => setLocalValue(event.target.value)}
         placeholder={placeholder}
-        className="h-9 border-0 bg-transparent pr-16 pl-8 shadow-none"
+        className="border-0 bg-transparent pr-8 pl-8 shadow-none text-sm focus:ring-0"
       />
       <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
         {isLoading ? (

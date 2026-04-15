@@ -39,7 +39,7 @@ export default async function SalesPage() {
         title="Ventas"
         description="Punto de venta y seguimiento de cobros."
         actions={
-          <Button asChild className="bg-brand text-brand-foreground">
+          <Button asChild>
             <Link href="/sales/new">
               <PlusIcon className="size-4" />
               Nueva venta

@@ -159,7 +159,6 @@ export function PayrollWorkspace({
           <Button
             type="button"
             size="sm"
-            className="bg-brand text-brand-foreground hover:bg-brand/90 h-9 px-4 font-medium"
             onClick={() => setCreateOpen(true)}
           >
             <PlusIcon className="size-4" />

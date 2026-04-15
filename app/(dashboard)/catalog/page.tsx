@@ -25,14 +25,12 @@ export default async function CatalogPage() {
                 asChild
                 variant="outline"
                 size="sm"
-                className="h-9 px-4 font-medium hidden sm:flex"
               >
                 <Link href="/catalog">Exportar</Link>
               </Button>
               <Button
                 asChild
                 size="sm"
-                className="bg-brand text-brand-foreground hover:bg-brand/90 h-9 px-4 font-medium"
               >
                 <Link href="/catalog/new">
                   <PlusIcon className="size-4" />

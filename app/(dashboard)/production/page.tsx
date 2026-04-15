@@ -56,7 +56,6 @@ export default async function ProductionPage() {
             <Button
               asChild
               size="sm"
-              className="h-9 bg-brand px-4 font-medium text-brand-foreground hover:bg-brand/90"
             >
               <Link href="/production/new">
                 <PlusIcon className="size-4" />
