@@ -1,10 +1,9 @@
 import type { CSSProperties } from "react"
-
 import { AppSidebar } from "@/components/app-sidebar"
-import { RealtimeBootstrap } from "@/components/providers/realtime-bootstrap"
 import { SiteHeader } from "@/components/site-header"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { requireCurrentUser } from "@/lib/auth/current-user"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { RealtimeBootstrap } from "@/components/providers/realtime-bootstrap"
 
 const layoutStyle = {
   "--sidebar-width": "calc(var(--spacing) * 72)",
@@ -24,8 +23,8 @@ export default async function DashboardLayout({
       <AppSidebar variant="inset" user={user} />
       <SidebarInset>
         <SiteHeader user={user} />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-4 p-4 md:p-6">
+        <div className="flex flex-1 flex-col w-full">
+          <div className="flex flex-1 flex-col gap-4 px-4 w-full md:px-6 py-6">
             {children}
           </div>
         </div>

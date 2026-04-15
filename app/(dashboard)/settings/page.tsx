@@ -1,10 +1,9 @@
+import { UserRole } from "@/types"
 import { redirect } from "next/navigation"
 import { Settings2Icon } from "lucide-react"
-
 import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { requireCurrentUser } from "@/lib/auth/current-user"
-import { UserRole } from "@/types"
 
 export default async function SettingsPage() {
   const user = await requireCurrentUser()
@@ -14,7 +13,7 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeader
         title="Configuracion"
         description="Gestiona parametros globales del sistema y del taller."

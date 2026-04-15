@@ -1,11 +1,17 @@
 import Link from "next/link"
-import { PlusIcon, ScissorsIcon, LayersIcon, CalendarCheckIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { decimalToNumber } from "@/lib/api/utils"
 import { StatCard } from "@/components/shared/stat-card"
 import { PageHeader } from "@/components/shared/page-header"
-import { decimalToNumber } from "@/lib/api/utils"
 import { getProductionSessions } from "@/lib/data/production"
 import { ProductionTable } from "@/components/modules/production/production-table"
+
+import {
+  PlusIcon,
+  ScissorsIcon,
+  LayersIcon,
+  CalendarCheckIcon,
+} from "lucide-react"
 
 export default async function ProductionPage() {
   const sessions = await getProductionSessions()
@@ -37,8 +43,8 @@ export default async function ProductionPage() {
   }
 
   return (
-    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8 gap-6">
-      <div className="max-w-[1400px] mx-auto w-full space-y-6">
+    <section className="flex min-h-full flex-col gap-4">
+      <div className="mx-auto w-full space-y-4">
         <PageHeader
           title="Produccion"
           description="Registra sesiones de confeccion y consumo de materiales."
@@ -50,7 +56,7 @@ export default async function ProductionPage() {
             <Button
               asChild
               size="sm"
-              className="bg-brand text-brand-foreground hover:bg-brand/90 h-9 px-4 font-medium"
+              className="h-9 bg-brand px-4 font-medium text-brand-foreground hover:bg-brand/90"
             >
               <Link href="/production/new">
                 <PlusIcon className="size-4" />

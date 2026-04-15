@@ -6,7 +6,7 @@ import { StatCard } from "@/components/shared/stat-card"
 import { getInventoryItems } from "@/lib/data/inventory"
 import { PageHeader } from "@/components/shared/page-header"
 import { requireCurrentUser } from "@/lib/auth/current-user"
-import { AlertTriangleIcon, BoxesIcon, PackageIcon, PackageXIcon } from "lucide-react"
+import { AlertTriangleIcon, BoxesIcon, PackageXIcon } from "lucide-react"
 import { InventoryTable } from "@/components/modules/inventory/inventory-table"
 
 function getStockStatus(quantity: number, minimumStock: number) {
@@ -48,8 +48,8 @@ export default async function InventoryPage() {
   const canDeactivate = user.role === UserRole.Admin
 
   return (
-    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8 gap-6">
-      <div className="max-w-[1400px] mx-auto w-full space-y-6">
+    <section className="flex flex-col min-h-full">
+      <div className="mx-auto w-full space-y-4">
         <PageHeader
           title="Inventario"
           description="Control de telas, insumos, herramientas y maquinaria."

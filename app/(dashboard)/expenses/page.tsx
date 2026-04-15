@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { PageHeader } from "@/components/shared/page-header"
 import { decimalToNumber } from "@/lib/api/utils"
+import { PageHeader } from "@/components/shared/page-header"
 import { getExpenses, getMonthlyExpenseOverview } from "@/lib/data/expenses"
 import { ExpensesTable } from "@/components/modules/expenses/expenses-table"
 import { ExpensesSummary } from "@/components/modules/expenses/expenses-summary"
@@ -26,20 +26,17 @@ export default async function ExpensesPage() {
   }))
 
   return (
-    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8 gap-6">
-      <div className="max-w-[1400px] mx-auto w-full space-y-6">
+    <section className="flex min-h-full flex-col gap-4">
+      <div className="mx-auto w-full space-y-4">
         <PageHeader
           title="Gastos"
           description="Controla egresos operativos y compras de insumos."
-          breadcrumbs={[
-            { label: "Dashboard", href: "/" },
-            { label: "Gastos" },
-          ]}
+          breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Gastos" }]}
           actions={
             <Button
               asChild
               size="sm"
-              className="bg-brand text-brand-foreground hover:bg-brand/90 h-9 px-4 font-medium"
+              className="h-9 bg-brand px-4 font-medium text-brand-foreground hover:bg-brand/90"
             >
               <Link href="/expenses/new">
                 <PlusIcon className="size-4" />

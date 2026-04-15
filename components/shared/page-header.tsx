@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { ChevronRightIcon } from "lucide-react"
 import { type ReactNode } from "react"
+import { ChevronRightIcon } from "lucide-react"
 
 import {
   Breadcrumb,
@@ -10,7 +10,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
 
 interface PageHeaderProps {
   title: string
@@ -65,23 +64,21 @@ export function PageHeader({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight leading-none sm:text-3xl">
+          <h1 className="text-2xl leading-none font-bold tracking-tight sm:text-3xl">
             {title}
           </h1>
           {description ? (
-            <p className="text-sm text-muted-foreground leading-relaxed mt-1.5">
+            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
               {description}
             </p>
           ) : null}
         </div>
         {actions ? (
-          <div className="flex flex-wrap items-center gap-2 sm:flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
             {actions}
           </div>
         ) : null}
       </div>
-
-      <Separator className="opacity-60" />
     </header>
   )
 }

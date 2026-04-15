@@ -34,7 +34,7 @@ export default async function SalesPage() {
   const pendingSalesCount = tableRows.filter((row) => row.balanceDue > 0).length
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-4">
       <PageHeader
         title="Ventas"
         description="Punto de venta y seguimiento de cobros."

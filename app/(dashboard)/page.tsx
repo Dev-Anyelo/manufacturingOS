@@ -1,4 +1,17 @@
 import Link from "next/link"
+import { prisma } from "@/lib/prisma"
+import { AuditAction } from "@prisma/client"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { decimalToNumber } from "@/lib/api/utils"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { StatCard } from "@/components/shared/stat-card"
+import { getDashboardStats } from "@/lib/data/dashboard"
+import { EmptyState } from "@/components/shared/empty-state"
+import { requireCurrentUser } from "@/lib/auth/current-user"
+import { StatusBadge } from "@/components/shared/status-badge"
+
 import {
   AlertTriangleIcon,
   BoxesIcon,
@@ -9,9 +22,7 @@ import {
   ScissorsIcon,
   ShoppingCartIcon,
 } from "lucide-react"
-import { AuditAction } from "@prisma/client"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+
 import {
   Card,
   CardContent,
@@ -19,15 +30,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { EmptyState } from "@/components/shared/empty-state"
-import { StatCard } from "@/components/shared/stat-card"
-import { StatusBadge } from "@/components/shared/status-badge"
-import { decimalToNumber } from "@/lib/api/utils"
-import { getDashboardStats } from "@/lib/data/dashboard"
-import { requireCurrentUser } from "@/lib/auth/current-user"
-import { prisma } from "@/lib/prisma"
+import { PageHeader } from "@/components/shared/page-header"
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -167,28 +170,15 @@ export default async function DashboardPage() {
   const formattedDate = getFormattedDate()
 
   return (
-    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8 gap-6">
-      <div className="max-w-[1400px] mx-auto w-full space-y-6">
+    <section className="flex min-h-full flex-col gap-4">
+      <div className="mx-auto w-full space-y-4">
         {/* Zone 1: Personalized greeting */}
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight leading-none sm:text-3xl">
-              {greeting}, {firstName}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1.5 capitalize">
-              {formattedDate}
-            </p>
-          </div>
-          <Badge
-            variant="outline"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Sistema operativo
-          </Badge>
+          <PageHeader
+            title={`${greeting}, ${firstName}`}
+            description={formattedDate}
+          />
         </div>
-
-        <Separator className="opacity-60" />
 
         {!hasDashboardData ? (
           <EmptyState
@@ -196,7 +186,11 @@ export default async function DashboardPage() {
             title="Sin datos operativos aun"
             description="Agrega materiales, ventas o pedidos para ver indicadores del tablero."
             action={
-              <Button asChild size="sm" className="bg-brand text-brand-foreground">
+              <Button
+                asChild
+                size="sm"
+                className="bg-brand text-brand-foreground"
+              >
                 <Link href="/inventory">Ir a inventario</Link>
               </Button>
             }
@@ -240,7 +234,7 @@ export default async function DashboardPage() {
             {/* Zone 3: Activity Feed (2/3) + Alerts sidebar (1/3) */}
             <div className="grid grid-cols-1 gap-4 sm:gap-5 xl:grid-cols-3">
               {/* Activity feed */}
-              <Card className="border border-border/50 shadow-sm rounded-xl xl:col-span-2">
+              <Card className="rounded-xl border border-border/50 shadow-sm xl:col-span-2">
                 <CardHeader className="border-b border-border/50 pb-3">
                   <div className="flex items-center gap-2">
                     <HistoryIcon className="size-4 text-muted-foreground" />
@@ -263,37 +257,37 @@ export default async function DashboardPage() {
                       />
                     </div>
                   ) : (
-                    <ScrollArea className="h-[280px]">
+                    <ScrollArea className="h-70">
                       <div className="divide-y divide-border/50">
                         {recentActivity.map((activity, index) => (
                           <div
                             key={activity.id}
-                            className="flex items-start gap-3 px-4 py-3 hover:bg-muted/30 transition-colors"
+                            className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
                           >
                             {/* Timeline dot */}
-                            <div className="flex flex-col items-center gap-1 pt-0.5 flex-shrink-0">
+                            <div className="flex shrink-0 flex-col items-center gap-1 pt-0.5">
                               <div
-                                className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                                className={`h-2 w-2 shrink-0 rounded-full ${
                                   activity.action === AuditAction.insert
                                     ? "bg-brand"
                                     : activity.action === AuditAction.update
-                                    ? "bg-blue-500"
-                                    : "bg-red-500"
+                                      ? "bg-blue-500"
+                                      : "bg-red-500"
                                 }`}
                               />
                               {index < recentActivity.length - 1 ? (
-                                <div className="w-px flex-1 min-h-[16px] bg-border/50" />
+                                <div className="min-h-4 w-px flex-1 bg-border/50" />
                               ) : null}
                             </div>
 
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium leading-tight">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm leading-tight font-medium">
                                 {getAuditActionLabel(activity.action)}{" "}
-                                <span className="text-muted-foreground font-normal">
+                                <span className="font-normal text-muted-foreground">
                                   en {getAuditTableLabel(activity.tableName)}
                                 </span>
                               </p>
-                              <p className="text-xs text-muted-foreground mt-0.5">
+                              <p className="mt-0.5 text-xs text-muted-foreground">
                                 {formatTimeAgo(activity.createdAt)}
                               </p>
                             </div>
@@ -306,10 +300,10 @@ export default async function DashboardPage() {
               </Card>
 
               {/* Alerts sidebar */}
-              <Card className="border border-border/50 shadow-sm rounded-xl">
+              <Card className="rounded-xl border border-border/50 shadow-sm">
                 <CardHeader className="border-b border-border/50 pb-3">
                   <div className="flex items-center gap-2">
-                    <AlertTriangleIcon className="size-4 text-warning" />
+                    <AlertTriangleIcon className="text-warning size-4" />
                     <CardTitle className="text-base font-semibold">
                       Alertas activas
                     </CardTitle>
@@ -329,24 +323,24 @@ export default async function DashboardPage() {
                       />
                     </div>
                   ) : (
-                    <ScrollArea className="h-[280px]">
+                    <ScrollArea className="h-70">
                       <div className="divide-y divide-border/50">
                         {criticalAlerts.map((item) => (
                           <Link
                             key={item.id}
                             href={`/inventory/${item.id}`}
-                            className="group flex items-center justify-between gap-2 px-4 py-2.5 hover:bg-muted/40 transition-colors"
+                            className="group flex items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-muted/40"
                           >
-                            <div className="flex items-center gap-2 min-w-0">
+                            <div className="flex min-w-0 items-center gap-2">
                               <span
-                                className={`h-2 w-2 flex-shrink-0 rounded-full ${
+                                className={`h-2 w-2 shrink-0 rounded-full ${
                                   item.status === "out"
                                     ? "bg-muted-foreground"
                                     : "bg-red-500"
                                 }`}
                               />
                               <div className="min-w-0">
-                                <p className="text-xs font-medium truncate group-hover:text-brand transition-colors">
+                                <p className="truncate text-xs font-medium transition-colors group-hover:text-brand">
                                   {item.name}
                                 </p>
                                 <p className="text-[10px] text-muted-foreground">
@@ -355,9 +349,9 @@ export default async function DashboardPage() {
                                 </p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <div className="flex shrink-0 items-center gap-1.5">
                               <StatusBadge status={item.status} type="stock" />
-                              <ChevronRightIcon className="size-3 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+                              <ChevronRightIcon className="size-3 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground" />
                             </div>
                           </Link>
                         ))}
@@ -367,7 +361,7 @@ export default async function DashboardPage() {
                   <div className="border-t border-border/50 px-4 py-2.5">
                     <Link
                       href="/inventory"
-                      className="flex items-center justify-center gap-1 text-xs text-brand hover:text-brand/80 font-medium transition-colors"
+                      className="flex items-center justify-center gap-1 text-xs font-medium text-brand transition-colors hover:text-brand/80"
                     >
                       Ver todo el inventario
                       <ChevronRightIcon className="size-3" />
@@ -380,7 +374,7 @@ export default async function DashboardPage() {
             {/* Zone 4: Quick stats row */}
             <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
               {/* Production today */}
-              <Card className="border border-border/50 shadow-sm rounded-xl">
+              <Card className="rounded-xl border border-border/50 shadow-sm">
                 <CardHeader className="border-b border-border/50 pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -394,12 +388,39 @@ export default async function DashboardPage() {
                 <CardContent className="pt-4">
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { label: "Nueva venta", href: "/sales/new", color: "bg-brand-muted text-brand" },
-                      { label: "Nuevo pedido", href: "/orders/new", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400" },
-                      { label: "Nueva sesion", href: "/production/new", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400" },
-                      { label: "Nuevo gasto", href: "/expenses/new", color: "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-500" },
-                      { label: "Nuevo material", href: "/inventory/new", color: "bg-muted text-muted-foreground" },
-                      { label: "Nuevo producto", href: "/catalog/new", color: "bg-muted text-muted-foreground" },
+                      {
+                        label: "Nueva venta",
+                        href: "/sales/new",
+                        color: "bg-brand-muted text-brand",
+                      },
+                      {
+                        label: "Nuevo pedido",
+                        href: "/orders/new",
+                        color:
+                          "bg-blue-50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400",
+                      },
+                      {
+                        label: "Nueva sesion",
+                        href: "/production/new",
+                        color:
+                          "bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400",
+                      },
+                      {
+                        label: "Nuevo gasto",
+                        href: "/expenses/new",
+                        color:
+                          "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-500",
+                      },
+                      {
+                        label: "Nuevo material",
+                        href: "/inventory/new",
+                        color: "bg-muted text-muted-foreground",
+                      },
+                      {
+                        label: "Nuevo producto",
+                        href: "/catalog/new",
+                        color: "bg-muted text-muted-foreground",
+                      },
                     ].map((item) => (
                       <Link
                         key={item.href}
@@ -414,7 +435,7 @@ export default async function DashboardPage() {
               </Card>
 
               {/* System summary */}
-              <Card className="border border-border/50 shadow-sm rounded-xl">
+              <Card className="rounded-xl border border-border/50 shadow-sm">
                 <CardHeader className="border-b border-border/50 pb-3">
                   <CardTitle className="text-base font-semibold">
                     Resumen del sistema
@@ -423,7 +444,7 @@ export default async function DashboardPage() {
                     Metricas de operacion generales.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-4 space-y-3">
+                <CardContent className="space-y-3 pt-4">
                   {[
                     {
                       label: "Materiales en inventario",
@@ -449,16 +470,16 @@ export default async function DashboardPage() {
                     <Link
                       key={row.label}
                       href={row.href}
-                      className="group flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-muted/40 transition-colors -mx-2"
+                      className="group -mx-2 flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/40"
                     >
-                      <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                      <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground">
                         {row.label}
                       </span>
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm font-bold tabular-nums">
                           {row.value}
                         </span>
-                        <ChevronRightIcon className="size-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+                        <ChevronRightIcon className="size-3.5 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground" />
                       </div>
                     </Link>
                   ))}

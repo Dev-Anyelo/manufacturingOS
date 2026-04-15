@@ -1,17 +1,17 @@
 import Link from "next/link"
 import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { PageHeader } from "@/components/shared/page-header"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCatalogItems } from "@/lib/data/catalog"
+import { PageHeader } from "@/components/shared/page-header"
 import { CatalogWorkspace } from "@/components/modules/catalog/catalog-workspace"
 
 export default async function CatalogPage() {
   const items = await getCatalogItems()
 
   return (
-    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8 gap-6">
-      <div className="max-w-[1400px] mx-auto w-full space-y-6">
+    <section className="flex flex-col min-h-full gap-4">
+      <div className="mx-auto w-full space-y-4">
         <PageHeader
           title="Catalogo"
           description="Define prendas, precios y estructura de costos."

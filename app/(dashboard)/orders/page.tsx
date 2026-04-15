@@ -1,12 +1,13 @@
 import Link from "next/link"
 import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { StatCard } from "@/components/shared/stat-card"
-import { PageHeader } from "@/components/shared/page-header"
+import { WorkOrderStatus } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getWorkOrders } from "@/lib/data/orders"
+import { StatCard } from "@/components/shared/stat-card"
+import { PageHeader } from "@/components/shared/page-header"
 import { OrdersWorkspace } from "@/components/modules/orders/orders-workspace"
-import { WorkOrderStatus } from "@prisma/client"
+
 import {
   ClipboardListIcon,
   PackageCheckIcon,
@@ -50,8 +51,8 @@ export default async function OrdersPage() {
   }
 
   return (
-    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8 gap-6">
-      <div className="max-w-[1400px] mx-auto w-full space-y-6">
+    <section className="flex min-h-full flex-col gap-4">
+      <div className="mx-auto w-full space-y-4">
         <PageHeader
           title="Pedidos"
           description="Gestiona pedidos a medida con estado de produccion y entrega."
@@ -63,7 +64,7 @@ export default async function OrdersPage() {
             <Button
               asChild
               size="sm"
-              className="bg-brand text-brand-foreground hover:bg-brand/90 h-9 px-4 font-medium"
+              className="h-9 bg-brand px-4 font-medium text-brand-foreground hover:bg-brand/90"
             >
               <Link href="/orders/new">
                 <PlusIcon className="size-4" />
