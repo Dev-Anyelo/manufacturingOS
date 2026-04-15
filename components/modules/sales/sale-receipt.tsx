@@ -126,11 +126,7 @@ export function SaleReceipt({
             <PrinterIcon className="size-4" />
             Imprimir
           </Button>
-          <Button
-            type="button"
-            className="bg-brand text-brand-foreground"
-            onClick={onNewSale}
-          >
+          <Button type="button" onClick={onNewSale}>
             <RotateCcwIcon className="size-4" />
             Nueva venta
           </Button>

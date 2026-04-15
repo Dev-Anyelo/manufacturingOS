@@ -112,7 +112,7 @@ const columns: ColumnDef<ProductionTableRow>[] = [
     header: "Empleado",
     cell: ({ row }) => (
       <div className="flex items-center gap-2.5">
-        <Avatar className="size-7 flex-shrink-0">
+        <Avatar className="size-7 shrink-0">
           <AvatarFallback className="bg-brand-muted text-[10px] font-semibold text-brand">
             {initials(row.original.employeeName)}
           </AvatarFallback>

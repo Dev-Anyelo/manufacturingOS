@@ -111,7 +111,7 @@ function createInventoryColumns(
         return (
           <div className="flex min-w-0 items-center gap-3">
             {item.imageUrl ? (
-              <div className="relative size-9 flex-shrink-0 overflow-hidden rounded-lg border border-border/60">
+              <div className="relative size-9 shrink-0 overflow-hidden rounded-lg border border-border/60">
                 <Image
                   src={item.imageUrl}
                   alt={item.name}
@@ -120,7 +120,7 @@ function createInventoryColumns(
                 />
               </div>
             ) : (
-              <span className="flex size-9 flex-shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted text-muted-foreground">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted text-muted-foreground">
                 <LayersIcon className="size-4" />
               </span>
             )}

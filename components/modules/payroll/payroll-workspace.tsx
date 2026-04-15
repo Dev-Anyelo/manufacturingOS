@@ -200,7 +200,7 @@ export function PayrollWorkspace({
                     className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 px-3 py-2.5 hover:bg-muted/40 transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Avatar className="size-7 flex-shrink-0">
+                      <Avatar className="size-7 shrink-0">
                         <AvatarFallback className="bg-brand-muted text-brand text-[10px] font-semibold">
                           {getInitials(row.employeeName)}
                         </AvatarFallback>

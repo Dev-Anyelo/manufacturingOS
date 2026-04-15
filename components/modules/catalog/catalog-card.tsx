@@ -33,7 +33,7 @@ export function CatalogCard({ item }: CatalogCardProps) {
       )}
     >
       {/* Image zone */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-muted flex-shrink-0">
+      <div className="relative aspect-3/4 overflow-hidden bg-muted fshrink-0">
         {item.imageUrl ? (
           <Image
             src={item.imageUrl}

@@ -446,7 +446,7 @@ function CartItemRow({
     <div className="rounded-lg border border-border/50 bg-card p-2.5 space-y-2 group">
       <div className="flex items-start gap-2">
         {/* Thumbnail */}
-        <div className="relative size-10 flex-shrink-0 rounded-md overflow-hidden border border-border/60 bg-muted">
+        <div className="relative size-10 shrink-0 rounded-md overflow-hidden border border-border/60 bg-muted">
           {item.imageUrl ? (
             <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
           ) : (
@@ -472,7 +472,7 @@ function CartItemRow({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-6 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+          className="size-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
           onClick={onRemove}
           aria-label={`Eliminar ${item.name}`}
         >

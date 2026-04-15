@@ -3,7 +3,6 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingCartIcon } from "lucide-react"
 import { PosCart } from "@/components/modules/sales/pos-cart"
 import { SaleReceipt } from "@/components/modules/sales/sale-receipt"
 import { PosCatalogPanel } from "@/components/modules/sales/pos-catalog-panel"
@@ -38,7 +37,8 @@ function createCartItem(catalogItem: PosCatalogItem): PosCartItem {
 export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [activeTab, setActiveTab] = React.useState("catalog")
   const [customerOptions, setCustomerOptions] = React.useState(customers)
-  const [selectedCustomer, setSelectedCustomer] = React.useState<PosCustomer | null>(null)
+  const [selectedCustomer, setSelectedCustomer] =
+    React.useState<PosCustomer | null>(null)
   const [cartItems, setCartItems] = React.useState<PosCartItem[]>([])
   const [channel, setChannel] = React.useState("in_person")
   const [paymentMethod, setPaymentMethod] = React.useState("cash")
@@ -49,7 +49,9 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [notes, setNotes] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [receiptOpen, setReceiptOpen] = React.useState(false)
-  const [receiptData, setReceiptData] = React.useState<SaleReceiptData | null>(null)
+  const [receiptData, setReceiptData] = React.useState<SaleReceiptData | null>(
+    null
+  )
 
   const subtotal = React.useMemo(() => {
     return cartItems.reduce(
@@ -245,14 +247,14 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   return (
     <>
       {/* Desktop layout */}
-      <div className="hidden md:flex h-[calc(100vh-11rem)] gap-0 overflow-hidden rounded-xl border border-border/50">
+      <div className="hidden h-[calc(100vh-11rem)] gap-0 overflow-hidden rounded-xl border border-border/50 md:flex">
         {/* Catalog panel */}
         <div className="flex-1 overflow-y-auto border-r border-border/50 bg-background px-4">
           <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
         </div>
 
         {/* Cart panel */}
-        <div className="w-[340px] lg:w-[380px] flex-shrink-0 bg-card flex flex-col overflow-hidden">
+        <div className="flex w-85 shrink-0 flex-col overflow-hidden bg-card lg:w-95">
           <PosCart {...cartProps} />
         </div>
       </div>
@@ -261,13 +263,13 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       <div className="md:hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="h-11 w-full rounded-none border-b border-border/50 bg-background">
-            <TabsTrigger value="catalog" className="flex-1 text-sm gap-2">
+            <TabsTrigger value="catalog" className="flex-1 gap-2 text-sm">
               Catalogo
             </TabsTrigger>
-            <TabsTrigger value="cart" className="flex-1 text-sm gap-1.5">
+            <TabsTrigger value="cart" className="flex-1 gap-1.5 text-sm">
               Carrito
               {cartItems.length > 0 ? (
-                <Badge className="min-w-5 h-5 justify-center rounded-full bg-brand px-1.5 text-[10px] text-brand-foreground">
+                <Badge className="text-brand-foreground h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-[10px]">
                   {cartItems.length}
                 </Badge>
               ) : null}
@@ -275,7 +277,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
           </TabsList>
           <TabsContent
             value="catalog"
-            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto pt-3 px-1"
+            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto px-1 pt-3"
           >
             <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
           </TabsContent>

@@ -1,52 +1,42 @@
-"use client"
+import type { Control, FieldPath } from "react-hook-form"
+import { InventoryFormValues } from "../modules/inventory/inventory-form"
 
-import * as React from "react"
 import {
-  Controller,
-  type Control,
-  type ControllerRenderProps,
-  type FieldValues,
-} from "react-hook-form"
-
-import { Label } from "@/components/ui/label"
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form"
 
 interface FormFieldWrapperProps {
-  control: Control<FieldValues>
-  name: string
+  control: Control<InventoryFormValues>
+  name: FieldPath<InventoryFormValues>
   label: string
   required?: boolean
-  description?: string
-  children: (
-    field: ControllerRenderProps<FieldValues, string>
-  ) => React.ReactNode
+  children: (field: any) => React.ReactNode
 }
 
 export function FormFieldWrapper({
   control,
   name,
   label,
-  required = false,
-  description,
+  required,
   children,
 }: FormFieldWrapperProps) {
   return (
-    <Controller
+    <FormField
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
-        <div className="space-y-2">
-          <Label htmlFor={field.name} className="text-sm font-medium">
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-sm font-medium text-foreground">
             {label}
-            {required ? <span className="text-danger ml-1">*</span> : null}
-          </Label>
-          {children(field)}
-          {description ? (
-            <p className="text-xs text-muted-foreground">{description}</p>
-          ) : null}
-          {fieldState.error?.message ? (
-            <p className="text-danger text-xs">{fieldState.error.message}</p>
-          ) : null}
-        </div>
+            {required && <span className="ml-0.5 text-destructive">*</span>}
+          </FormLabel>
+          <FormControl>{children(field)}</FormControl>
+          <FormMessage className="text-xs" />
+        </FormItem>
       )}
     />
   )

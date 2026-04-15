@@ -1,11 +1,4 @@
-import { cn } from "@/lib/utils"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-
-type StockStatus = "normal" | "low" | "critical" | "out"
+import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react"
 
 interface StockIndicatorProps {
   quantity: number
@@ -13,108 +6,67 @@ interface StockIndicatorProps {
   unit: string
 }
 
-const statusConfig: Record<
-  StockStatus,
-  {
-    label: string
-    badgeClasses: string
-    barColor: string
-    dot: string
-  }
-> = {
-  normal: {
-    label: "Normal",
-    badgeClasses:
-      "bg-success-soft border-success-soft text-success",
-    barColor: "bg-brand",
-    dot: "bg-brand",
-  },
-  low: {
-    label: "Bajo",
-    badgeClasses:
-      "bg-warning-soft border-warning-soft text-warning",
-    barColor: "bg-warning",
-    dot: "bg-warning",
-  },
-  critical: {
-    label: "Critico",
-    badgeClasses:
-      "bg-danger-soft border-danger-soft text-danger",
-    barColor: "bg-danger",
-    dot: "bg-danger",
-  },
-  out: {
-    label: "Agotado",
-    badgeClasses:
-      "bg-muted border-border text-muted-foreground",
-    barColor: "bg-muted-foreground",
-    dot: "bg-muted-foreground",
-  },
-}
-
-function getStockStatus(quantity: number, minimumStock: number): StockStatus {
-  if (quantity <= 0) return "out"
-  if (quantity <= minimumStock) return "critical"
-  if (quantity <= minimumStock * 2) return "low"
-  return "normal"
-}
-
-function getProgressValue(quantity: number, minimumStock: number): number {
-  if (quantity <= 0) return 0
-  if (minimumStock <= 0) return 100
-  const pct = (quantity / (minimumStock * 3)) * 100
-  return Math.min(Math.max(pct, 4), 100)
-}
-
 export function StockIndicator({
   quantity,
   minimumStock,
   unit,
 }: StockIndicatorProps) {
-  const status = getStockStatus(quantity, minimumStock)
-  const progress = getProgressValue(quantity, minimumStock)
-  const config = statusConfig[status]
+  const ratio =
+    minimumStock > 0 ? quantity / minimumStock : quantity > 0 ? 1 : 0
+  const percentage = Math.min(ratio * 100, 100)
+
+  let status: "critical" | "warning" | "good"
+  if (quantity <= 0) status = "critical"
+  else if (quantity < minimumStock) status = "warning"
+  else status = "good"
+
+  const config = {
+    critical: {
+      icon: XCircle,
+      label: "Sin stock",
+      barColor: "bg-destructive",
+      textColor: "text-destructive",
+      bgColor: "bg-destructive/10",
+    },
+    warning: {
+      icon: AlertTriangle,
+      label: "Stock bajo",
+      barColor: "bg-warning",
+      textColor: "text-warning",
+      bgColor: "bg-warning/10",
+    },
+    good: {
+      icon: CheckCircle2,
+      label: "Stock óptimo",
+      barColor: "bg-success",
+      textColor: "text-success",
+      bgColor: "bg-success/10",
+    },
+  }[status]
+
+  const Icon = config.icon
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className="min-w-[150px] max-w-[200px] space-y-1.5 cursor-default">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-medium tabular-nums text-foreground">
-              {quantity.toFixed(2)}{" "}
-              <span className="text-muted-foreground font-normal">{unit}</span>
-            </p>
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold leading-none",
-                config.badgeClasses
-              )}
-            >
-              <span
-                className={cn(
-                  "h-1.5 w-1.5 rounded-full flex-shrink-0",
-                  config.dot
-                )}
-              />
-              {config.label}
-            </span>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className={`rounded-full p-1 ${config.bgColor}`}>
+            <Icon className={`size-3.5 ${config.textColor}`} />
           </div>
-          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-            <div
-              className={cn(
-                "h-full rounded-full transition-all duration-300",
-                config.barColor
-              )}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <span className={`text-sm font-medium ${config.textColor}`}>
+            {config.label}
+          </span>
         </div>
-      </TooltipTrigger>
-      <TooltipContent side="top">
-        <p className="text-xs">
-          Minimo: {minimumStock} {unit}
-        </p>
-      </TooltipContent>
-    </Tooltip>
+        <span className="text-sm font-semibold text-foreground text-pretty">
+          {quantity} / {minimumStock} {unit}
+        </span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ease-out ${config.barColor}`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    </div>
   )
 }

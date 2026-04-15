@@ -50,7 +50,6 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
             <Button
               asChild
               size="sm"
-              className="bg-brand text-brand-foreground hover:bg-brand-dark"
             >
               <Link href="/sales/new">
                 <Plus className="mr-1.5 h-4 w-4" />
