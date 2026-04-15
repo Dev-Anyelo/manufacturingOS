@@ -195,7 +195,7 @@ export function ChangeStatusDialog({
                   Notificación automática
                 </AlertTitle>
               </div>
-              <AlertDescription className="text-[12px] text-blue-700/80 dark:text-blue-300/80">
+              <AlertDescription className="text-xs text-blue-700/80 dark:text-blue-300/80">
                 Se enviará un correo al cliente cuando el pedido se marque como
                 listo para retirar.
               </AlertDescription>
@@ -210,7 +210,7 @@ export function ChangeStatusDialog({
                   Venta automática
                 </AlertTitle>
               </div>
-              <AlertDescription className="text-[12px] text-violet-700/80 dark:text-violet-300/80">
+              <AlertDescription className="text-xs text-violet-700/80 dark:text-violet-300/80">
                 Al confirmar la entrega el sistema registrará la venta
                 automáticamente.
               </AlertDescription>

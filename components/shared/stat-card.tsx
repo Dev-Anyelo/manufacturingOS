@@ -1,15 +1,6 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent } from "@/components/ui/card"
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 interface StatCardProps {
   title: string
@@ -23,37 +14,6 @@ interface StatCardProps {
   accent?: string
 }
 
-const statVariantConfig = {
-  default: {
-    wrap: "bg-card border-border/50",
-    iconWrap: "bg-muted/60 text-muted-foreground",
-    accent: "from-slate-200/60 to-transparent",
-  },
-  success: {
-    wrap: "bg-emerald-50/60 border-emerald-200/60 dark:bg-emerald-950/20 dark:border-emerald-800/40",
-    iconWrap:
-      "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/60 dark:text-emerald-400",
-    accent: "from-emerald-300/40 to-transparent",
-  },
-  warning: {
-    wrap: "bg-amber-50/60 border-amber-200/60 dark:bg-amber-950/20 dark:border-amber-800/40",
-    iconWrap:
-      "bg-amber-100 text-amber-600 dark:bg-amber-900/60 dark:text-amber-400",
-    accent: "from-amber-300/40 to-transparent",
-  },
-  danger: {
-    wrap: "bg-red-50/60 border-red-200/60 dark:bg-red-950/20 dark:border-red-800/40",
-    iconWrap: "bg-red-100 text-red-600 dark:bg-red-900/60 dark:text-red-400",
-    accent: "from-red-300/40 to-transparent",
-  },
-  info: {
-    wrap: "bg-blue-50/60 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-800/40",
-    iconWrap:
-      "bg-blue-100 text-blue-600 dark:bg-blue-900/60 dark:text-blue-400",
-    accent: "from-blue-300/40 to-transparent",
-  },
-}
-
 export function StatCard({
   title,
   value,
@@ -65,77 +25,75 @@ export function StatCard({
   href,
 }: StatCardProps) {
   const isPositiveTrend = trend?.isPositive ?? true
-  const config = statVariantConfig[variant]
+
+  const variantStyles = {
+    default: "border-border bg-card hover:border-border/80 before:bg-brand/45",
+    success:
+      "border-success-soft bg-card hover:border-success-soft before:bg-success",
+    warning:
+      "border-warning-soft bg-card hover:border-warning-soft before:bg-warning",
+    danger:
+      "border-danger-soft bg-card hover:border-danger-soft before:bg-danger",
+    info: "border-info-soft bg-card hover:border-info-soft before:bg-info",
+  } satisfies Record<NonNullable<StatCardProps["variant"]>, string>
+
+  const iconStyles = {
+    default: "text-muted-foreground/75",
+    success: "text-success",
+    warning: "text-warning",
+    danger: "text-danger",
+    info: "text-info",
+  } satisfies Record<NonNullable<StatCardProps["variant"]>, string>
 
   const Content = (
-    <Card
+    <div
       className={cn(
-        "group rounded-lg border shadow-sm transition-all duration-200",
-        "hover:-translate-y-px hover:shadow-md",
-        "p-0",
-        config.wrap,
+        "group relative overflow-hidden rounded-xl border px-5 py-4 shadow-card transition-colors duration-150 ease-in-out before:absolute before:inset-x-0 before:top-0 before:h-0.5",
+        variantStyles[variant],
         href && "cursor-pointer"
       )}
     >
-      <CardContent className="px-4 py-3">
-        <div className="flex items-start justify-between gap-2">
-          {/* LEFT */}
-          <div className="min-w-0 flex-1 space-y-1.5">
-            {/* Title */}
-            <p className="truncate text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {title}
-            </p>
-
-            {/* Value */}
-            {isLoading ? (
-              <Skeleton className="h-6 w-20 rounded-md" />
-            ) : (
-              <p className="truncate text-sm leading-tight font-semibold tabular-nums md:text-base">
-                {value}
-              </p>
-            )}
-
-            {/* Description */}
-            {!isLoading && description && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <p className="cursor-default truncate text-[11px] text-muted-foreground sm:text-xs">
-                    {description}
-                  </p>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p className="text-xs text-pretty">{description}</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* Trend */}
-            {!isLoading && trend && (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "w-fit gap-1 px-1.5 py-0.5 text-[10px] font-medium sm:text-xs",
-                  "rounded-md border",
-                  isPositiveTrend
-                    ? "border-success-soft text-success"
-                    : "border-danger-soft text-danger"
-                )}
-              >
-                {isPositiveTrend ? (
-                  <TrendingUpIcon className="size-3" />
-                ) : (
-                  <TrendingDownIcon className="size-3" />
-                )}
-                {Math.abs(trend.value)}%
-              </Badge>
-            )}
-          </div>
-
-          {/* RIGHT ICON */}
-          <span className={cn("size-3.5 text-muted-foreground", config.accent)}>{icon}</span>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="label-overline">{title}</h3>
+        <div
+          className={cn(
+            "transition-colors group-hover:text-foreground/90",
+            iconStyles[variant]
+          )}
+        >
+          {icon}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="flex items-baseline gap-3">
+        <div className="text-[28px] leading-none font-bold text-foreground">
+          {isLoading ? (
+            <div className="h-8 w-24 animate-pulse rounded bg-muted/40" />
+          ) : (
+            value
+          )}
+        </div>
+      </div>
+      <div className="mt-3 flex items-center gap-2">
+        {trend && (
+          <div
+            className={cn(
+              "inline-flex items-center rounded-md border px-2.5 py-1 text-xs leading-none font-medium",
+              isPositiveTrend ? "status-success" : "status-danger"
+            )}
+          >
+            {isPositiveTrend ? (
+              <TrendingUpIcon className="mr-1 h-3 w-3" />
+            ) : (
+              <TrendingDownIcon className="mr-1 h-3 w-3" />
+            )}
+            {Math.abs(trend.value)}%
+          </div>
+        )}
+        {description && (
+          <p className="text-xs text-muted-foreground/70">{description}</p>
+        )}
+      </div>
+    </div>
   )
 
   if (!href) return Content

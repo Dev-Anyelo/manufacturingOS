@@ -14,7 +14,7 @@ export default async function NewProductionSessionPage() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <PageHeader
         title="Nueva sesion de produccion"
         description="Registra prendas confeccionadas y consumo de tela por material."
@@ -24,10 +24,12 @@ export default async function NewProductionSessionPage() {
         ]}
       />
 
-      <ProductionForm
-        employees={bootstrap.employees}
-        inventoryItems={inventoryOptions}
-      />
+      <div className="page-content">
+        <ProductionForm
+          employees={bootstrap.employees}
+          inventoryItems={inventoryOptions}
+        />
+      </div>
     </div>
   )
 }

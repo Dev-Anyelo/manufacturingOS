@@ -58,7 +58,7 @@ export function PosCatalogPanel({ items, onAddItem }: PosCatalogPanelProps) {
   return (
     <div className="flex flex-col h-full gap-0">
       {/* Sticky search bar */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50 px-1 py-3">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-1 py-3">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_180px]">
           <SearchInput
             value={search}
@@ -84,7 +84,7 @@ export function PosCatalogPanel({ items, onAddItem }: PosCatalogPanelProps) {
       {/* Product grid */}
       <div className="pt-4 pb-2">
         {filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/60 bg-muted/15 p-10 text-center">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 p-10 text-center">
             <ShoppingCartIcon className="size-8 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">
               {search || garmentType !== "all"
@@ -122,8 +122,8 @@ function CatalogProductCard({
   return (
     <div
       className={cn(
-        "group relative rounded-xl border border-border/50 bg-card overflow-hidden",
-        "hover:border-brand/60 hover:shadow-md transition-all duration-200 active:scale-[0.97]",
+        "group relative rounded-xl border border-border bg-muted/20 overflow-hidden",
+        "hover:border-border/80 hover:shadow-md transition-all duration-200 active:scale-[0.97]",
         "cursor-pointer"
       )}
       onClick={() => onAdd(item)}
@@ -148,7 +148,7 @@ function CatalogProductCard({
           <div className="absolute top-1.5 left-1.5">
             <Badge
               variant="secondary"
-              className="text-[9px] px-1.5 py-0 h-4 font-medium bg-background/80 backdrop-blur-sm border border-border/60"
+              className="text-[0.625rem] px-1.5 py-0 h-4 font-medium bg-background/80 backdrop-blur-sm border border-border"
             >
               {garmentLabel}
             </Badge>

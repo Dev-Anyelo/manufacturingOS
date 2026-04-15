@@ -23,7 +23,7 @@ export default async function ProductionDetailPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <PageHeader
         title={`Sesion ${session.id.slice(0, 8)}`}
         description="Detalle de prendas confeccionadas y consumo por material."
@@ -41,27 +41,29 @@ export default async function ProductionDetailPage({
         }
       />
 
-      <ProductionSessionDetail
-        session={{
-          id: session.id,
-          sessionDate: session.sessionDate.toISOString(),
-          employeeName: session.employee.fullName,
-          notes: session.notes,
-          totalGarments: session.totalGarments,
-          totalYardsUsed: decimalToNumber(session.totalYardsUsed),
-          createdAt: session.createdAt.toISOString(),
-          createdByName: session.createdByProfile?.fullName ?? "Sistema",
-          items: session.items.map((item) => ({
-            id: item.id,
-            inventoryItemName: item.inventoryItem.name,
-            garmentType: item.garmentType,
-            size: item.size,
-            quantity: item.quantity,
-            yardsUsed: decimalToNumber(item.yardsUsed),
-            notes: item.notes,
-          })),
-        }}
-      />
+      <div className="page-content">
+        <ProductionSessionDetail
+          session={{
+            id: session.id,
+            sessionDate: session.sessionDate.toISOString(),
+            employeeName: session.employee.fullName,
+            notes: session.notes,
+            totalGarments: session.totalGarments,
+            totalYardsUsed: decimalToNumber(session.totalYardsUsed),
+            createdAt: session.createdAt.toISOString(),
+            createdByName: session.createdByProfile?.fullName ?? "Sistema",
+            items: session.items.map((item) => ({
+              id: item.id,
+              inventoryItemName: item.inventoryItem.name,
+              garmentType: item.garmentType,
+              size: item.size,
+              quantity: item.quantity,
+              yardsUsed: decimalToNumber(item.yardsUsed),
+              notes: item.notes,
+            })),
+          }}
+        />
+      </div>
     </div>
   )
 }

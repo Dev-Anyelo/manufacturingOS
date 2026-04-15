@@ -173,13 +173,13 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
   }
 
   return (
-    <Card className="border border-border/50 shadow-sm">
-      <CardHeader className="border-b border-border/50">
+    <Card className="m-0 rounded-none border-none bg-transparent p-0 shadow-none">
+      <CardHeader className="hidden border-none bg-none">
         <CardTitle>
           {mode === "create" ? "Nuevo item de catalogo" : "Editar item"}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6 pt-6">
+      <CardContent className="m-0 space-y-4 border-none bg-transparent p-0 shadow-none">
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-6"
@@ -188,7 +188,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
           <div className="space-y-2">
             <p className="text-sm font-medium">Imagen del producto</p>
             <label
-              className="hover:bg-brand-muted flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 bg-muted/20 p-6 text-center transition-colors hover:border-brand/60"
+              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 p-6 text-center transition-colors hover:border-brand/60 hover:bg-muted/40"
               onDrop={(event) => {
                 event.preventDefault()
                 handleFileSelection(event.dataTransfer.files?.[0] ?? null)
@@ -196,7 +196,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
               onDragOver={(event) => event.preventDefault()}
             >
               {previewUrl ? (
-                <div className="relative h-40 w-full overflow-hidden rounded-lg border border-border/50 bg-background sm:w-64">
+                <div className="relative h-40 w-full overflow-hidden rounded-lg border border-border bg-background sm:w-64">
                   <Image
                     src={previewUrl}
                     alt="Preview de producto"

@@ -21,11 +21,9 @@ export function MetricCard({
   }
 
   return (
-    <div className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
+    <div className="rounded-xl border border-border/60 bg-card p-4">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
-          {label}
-        </p>
+        <p className="label-overline">{label}</p>
         <span className={cn("mt-0.5", accentStyles[accent])}>{icon}</span>
       </div>
       <div className="mt-2">{value}</div>

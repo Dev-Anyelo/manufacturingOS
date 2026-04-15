@@ -22,7 +22,6 @@ function Command({ className, ...props }: React.ComponentProps<"div">) {
 function CommandInput({ className, ...props }: React.ComponentProps<"input">) {
   return (
     <div className="flex items-center border-b border-border/50 px-2">
-      <SearchIcon className="size-4 text-muted-foreground" />
       <Input
         data-slot="command-input"
         className={cn(

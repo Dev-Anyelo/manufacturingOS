@@ -34,19 +34,19 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
   return (
     <div
       className={cn(
-        "group relative rounded-xl border bg-card shadow-sm",
+        "group relative rounded-xl border border-border bg-muted/20",
         "transition-all duration-150",
         isDragging
-          ? "scale-105 rotate-2 border-brand/50 opacity-95 shadow-2xl ring-2 ring-brand/20"
-          : "hover:-translate-y-px hover:shadow-md",
+          ? "scale-105 rotate-2 border-brand opacity-95 shadow-xl ring-1 ring-brand"
+          : "hover:-translate-y-px hover:shadow-md hover:border-border/80",
         overdue &&
-          "border-amber-300/60 bg-amber-50/30 dark:border-amber-700/40 dark:bg-amber-950/10",
+          "border-warning bg-warning-soft",
         className
       )}
     >
       {/* Overdue ribbon */}
       {overdue && (
-        <div className="absolute -top-px -right-px flex items-center gap-1 rounded-tr-xl rounded-bl-lg bg-amber-500 px-2 py-0.5 text-xs font-bold tracking-wider text-white uppercase shadow-sm">
+        <div className="absolute -top-px -right-px flex items-center gap-1 rounded-tr-xl rounded-bl-lg bg-warning px-2 py-0.5 text-xs font-bold tracking-wider text-black uppercase shadow-sm">
           <AlertTriangleIcon className="size-2.5" />
           Atrasado
         </div>
@@ -56,7 +56,7 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
         {/* Header: customer + ID */}
         <div className="mb-2.5 flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] leading-tight font-semibold">
+            <p className="truncate text-sm leading-tight font-semibold">
               {order.customerName}
             </p>
             <p className="mt-0.5 font-mono text-xs text-muted-foreground/60">
@@ -68,18 +68,18 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
 
         {/* Meta row */}
         <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
             <CalendarIcon className="size-3" />
             {formatDate(order.deliveryDate)}
           </span>
-          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
             <ScissorsIcon className="size-3" />
             {order.garmentCount} prenda{order.garmentCount !== 1 ? "s" : ""}
           </span>
           <span
             className={cn(
               "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium",
-              "border-border/40 bg-muted/40 text-muted-foreground"
+              "border-border bg-muted/20 text-muted-foreground"
             )}
           >
             {channelIconMap[order.channel]}
@@ -88,7 +88,7 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-dashed border-border/50" />
+        <div className="border-t border-dashed border-border" />
 
         {/* Footer: balance + action */}
         <div className="mt-2.5 flex items-center justify-between">
@@ -100,8 +100,8 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
               className={cn(
                 "text-sm font-bold tabular-nums",
                 balance > 0
-                  ? "text-red-600 dark:text-red-400"
-                  : "text-emerald-600 dark:text-emerald-400"
+                  ? "text-danger"
+                  : "text-success"
               )}
             >
               {formatCurrency(balance)}
@@ -111,7 +111,7 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
             asChild
             variant="ghost"
             size="sm"
-            className="h-7 gap-1 rounded-lg px-2 text-[11px] font-medium"
+            className="h-7 gap-1 rounded-lg px-2 text-xs font-medium"
           >
             <Link href={`/orders/${order.id}`}>
               Ver detalle

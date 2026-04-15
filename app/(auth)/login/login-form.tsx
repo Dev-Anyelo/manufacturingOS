@@ -59,9 +59,9 @@ export function LoginForm() {
   })
 
   return (
-    <Card className="overflow-hidden border border-border/60 bg-card/90 shadow-sm backdrop-blur-sm">
-      <CardHeader className="space-y-3 border-b border-border/60">
-        <div className="bg-brand-muted inline-flex w-fit items-center gap-2 rounded-lg border border-brand/30 px-2.5 py-1 text-xs font-medium text-brand">
+    <Card className="overflow-hidden border border-border bg-muted/20 shadow-sm backdrop-blur-sm">
+      <CardHeader className="space-y-3 border-b border-border">
+        <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-brand/30 bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">
           <ShieldCheckIcon className="size-3.5" />
           Acceso seguro
         </div>
@@ -74,7 +74,7 @@ export function LoginForm() {
       </CardHeader>
       <form onSubmit={onSubmit} noValidate>
         <CardContent className="space-y-4 pt-6">
-          <div className="space-y-2 rounded-lg border border-border/60 bg-muted/15 p-3">
+          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
             <Label htmlFor="email">Correo electronico</Label>
             <Input
               id="email"
@@ -89,7 +89,7 @@ export function LoginForm() {
             ) : null}
           </div>
 
-          <div className="space-y-2 rounded-lg border border-border/60 bg-muted/15 p-3">
+          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
             <Label htmlFor="password">Contrasena</Label>
             <Input
               id="password"
@@ -122,7 +122,7 @@ export function LoginForm() {
           </div>
         </CardContent>
 
-        <CardFooter className="border-t border-border/60 bg-muted/10">
+        <CardFooter className="border-t border-border bg-muted/20">
           <Button
             type="submit"
             className="w-full bg-brand text-brand-foreground hover:bg-brand-dark"

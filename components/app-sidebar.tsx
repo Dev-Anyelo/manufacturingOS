@@ -3,7 +3,6 @@
 import Link from "next/link"
 import * as React from "react"
 import { UserRole } from "@/types"
-import { Badge } from "@/components/ui/badge"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import type { CurrentUser } from "@/lib/auth/current-user"
@@ -108,12 +107,14 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
+              className="data-[slot=sidebar-menu-button]:h-10! data-[slot=sidebar-menu-button]:px-3! data-[slot=sidebar-menu-button]:py-0!"
             >
-              <Link href="/">
-                <CommandIcon className="size-4!" />
+              <Link href="/" className="flex items-center gap-2.5">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-brand text-white">
+                  <CommandIcon className="size-4" />
+                </div>
                 <div>
-                  <span className="truncate text-base font-semibold">
+                  <span className="truncate text-sm font-semibold text-foreground">
                     Taller GG
                   </span>
                 </div>
@@ -122,7 +123,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="px-1.5 py-2">
+      <SidebarContent className="px-2 py-2">
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">

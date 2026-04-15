@@ -54,8 +54,8 @@ export default async function OrdersPage() {
   }
 
   return (
-    <section className="flex min-h-full flex-col">
-      <div className="mx-auto w-full space-y-4">
+    <section className="page-shell">
+      <div className="page-content">
         {/* ── Page header ── */}
         <PageHeader
           title="Órdenes"

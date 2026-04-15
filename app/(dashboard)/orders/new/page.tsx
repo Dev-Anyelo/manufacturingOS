@@ -12,7 +12,7 @@ export default async function NewOrderPage() {
     await getOrderFormBootstrap()
 
   return (
-    <section className="space-y-6">
+    <section className="page-shell">
       <PageHeader
         title="Nuevo pedido"
         description="Registra prendas, cliente y detalles de entrega para iniciar produccion."
@@ -26,26 +26,28 @@ export default async function NewOrderPage() {
         }
       />
 
-      <OrderForm
-        customers={customers.map((customer) => ({
-          id: customer.id,
-          fullName: customer.fullName,
-          phone: customer.phone,
-          email: customer.email,
-        }))}
-        catalogItems={catalogItems.map((item) => ({
-          id: item.id,
-          name: item.name,
-          garmentType: item.garmentType,
-          salePrice: decimalToNumber(item.salePrice),
-        }))}
-        inventoryItems={inventoryItems.map((item) => ({
-          id: item.id,
-          name: item.name,
-          unit: item.unit,
-          quantity: decimalToNumber(item.quantity),
-        }))}
-      />
+      <div className="page-content">
+        <OrderForm
+          customers={customers.map((customer) => ({
+            id: customer.id,
+            fullName: customer.fullName,
+            phone: customer.phone,
+            email: customer.email,
+          }))}
+          catalogItems={catalogItems.map((item) => ({
+            id: item.id,
+            name: item.name,
+            garmentType: item.garmentType,
+            salePrice: decimalToNumber(item.salePrice),
+          }))}
+          inventoryItems={inventoryItems.map((item) => ({
+            id: item.id,
+            name: item.name,
+            unit: item.unit,
+            quantity: decimalToNumber(item.quantity),
+          }))}
+        />
+      </div>
     </section>
   )
 }

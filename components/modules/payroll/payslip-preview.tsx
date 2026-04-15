@@ -50,8 +50,8 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
   const grossAmount = payment.baseAmount + payment.bonuses
 
   return (
-    <Card className="border border-border/50 shadow-sm">
-      <CardHeader className="border-b border-border/50">
+    <Card className="border border-border shadow-sm">
+      <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center justify-between gap-2">
           <span>Resumen de comprobante</span>
           <Badge
@@ -69,11 +69,11 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
       </CardHeader>
       <CardContent className="space-y-4 pt-6">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+          <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Devengado</p>
             <CurrencyDisplay amount={grossAmount} className="font-semibold" />
           </div>
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+          <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Deducciones</p>
             <CurrencyDisplay
               amount={-payment.deductions}
@@ -81,29 +81,29 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
               colored
             />
           </div>
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+          <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Neto a pagar</p>
             <CurrencyDisplay amount={payment.total} className="font-semibold" />
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+          <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Empleado</p>
             <p className="font-medium">{payment.employeeName}</p>
           </div>
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+          <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Periodo</p>
             <p className="font-medium">
               {formatDate(payment.periodStart)} -{" "}
               {formatDate(payment.periodEnd)}
             </p>
           </div>
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+          <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Fecha de pago</p>
             <p className="font-medium">{formatDate(payment.paymentDate)}</p>
           </div>
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+          <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Metodo</p>
             <p className="font-medium">
               {payment.paymentMethod
@@ -113,7 +113,7 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
           </div>
         </div>
 
-        <div className="space-y-2 rounded-xl border border-border/60 p-4">
+        <div className="space-y-2 rounded-xl border border-border p-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Monto base</span>
             <CurrencyDisplay amount={payment.baseAmount} size="sm" />
@@ -126,7 +126,7 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
             <span className="text-muted-foreground">Deducciones</span>
             <CurrencyDisplay amount={-payment.deductions} size="sm" colored />
           </div>
-          <div className="border-t border-border/50 pt-2">
+          <div className="border-t border-border pt-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Total neto</span>
               <CurrencyDisplay amount={payment.total} size="lg" />
@@ -140,7 +140,7 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+        <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
           <p className="text-xs text-muted-foreground">Notas</p>
           <p className={payment.notes ? "" : "text-muted-foreground"}>
             {payment.notes ?? "Sin notas registradas."}

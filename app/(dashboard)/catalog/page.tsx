@@ -10,30 +10,28 @@ export default async function CatalogPage() {
   const items = await getCatalogItems()
 
   return (
-    <section className="flex flex-col min-h-full gap-4">
-      <div className="mx-auto w-full space-y-4">
+    <section className="page-shell">
+      <div className="page-content">
         <PageHeader
           title="Catalogo"
-          description="Define prendas, precios y estructura de costos."
+          description="Define prendas, precios base y estructura de costos para ventas y producción."
           breadcrumbs={[
             { label: "Dashboard", href: "/" },
             { label: "Catalogo" },
           ]}
           actions={
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button
                 asChild
                 variant="outline"
                 size="sm"
+                className="hidden h-9 px-4 sm:flex"
               >
-                <Link href="/catalog">Exportar</Link>
+                <Link href="/catalog">Exportar CVS</Link>
               </Button>
-              <Button
-                asChild
-                size="sm"
-              >
+              <Button asChild size="sm" className="h-9 px-4">
                 <Link href="/catalog/new">
-                  <PlusIcon className="size-4" />
+                  <PlusIcon className="mr-2 size-4" />
                   Nuevo producto
                 </Link>
               </Button>
@@ -41,31 +39,33 @@ export default async function CatalogPage() {
           }
         />
 
-        <CatalogWorkspace
-          items={items.map((item) => ({
-            id: item.id,
-            name: item.name,
-            garmentType: item.garmentType,
-            ourPriceUnit:
-              item.ourPriceUnit === null
-                ? null
-                : decimalToNumber(item.ourPriceUnit),
-            ourPriceDozen:
-              item.ourPriceDozen === null
-                ? null
-                : decimalToNumber(item.ourPriceDozen),
-            marketPriceUnit:
-              item.marketPriceUnit === null
-                ? null
-                : decimalToNumber(item.marketPriceUnit),
-            estimatedCost:
-              item.estimatedCost === null
-                ? null
-                : decimalToNumber(item.estimatedCost),
-            imageUrl: item.imageUrl,
-            notes: item.notes,
-          }))}
-        />
+        <div className="rounded-xl border border-border bg-card p-1 shadow-sm">
+          <CatalogWorkspace
+            items={items.map((item) => ({
+              id: item.id,
+              name: item.name,
+              garmentType: item.garmentType,
+              ourPriceUnit:
+                item.ourPriceUnit === null
+                  ? null
+                  : decimalToNumber(item.ourPriceUnit),
+              ourPriceDozen:
+                item.ourPriceDozen === null
+                  ? null
+                  : decimalToNumber(item.ourPriceDozen),
+              marketPriceUnit:
+                item.marketPriceUnit === null
+                  ? null
+                  : decimalToNumber(item.marketPriceUnit),
+              estimatedCost:
+                item.estimatedCost === null
+                  ? null
+                  : decimalToNumber(item.estimatedCost),
+              imageUrl: item.imageUrl,
+              notes: item.notes,
+            }))}
+          />
+        </div>
       </div>
     </section>
   )

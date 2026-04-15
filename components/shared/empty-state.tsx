@@ -34,7 +34,7 @@ export function EmptyState({
 
     if (typeof icon === "function") {
       const Icon = icon
-      return <Icon className={compact ? "size-4" : "size-5"} />
+      return <Icon className={compact ? "size-5" : "size-6"} />
     }
 
     return null
@@ -43,22 +43,28 @@ export function EmptyState({
   return (
     <Empty
       className={cn(
-        "rounded-xl border border-dashed border-border/60 bg-muted/10 p-4",
-        compact ? "min-h-38" : "min-h-48",
+        "rounded-xl border border-dashed border-border bg-muted/20 p-6",
+        compact ? "min-h-38" : "min-h-52",
         className
       )}
     >
-      <EmptyHeader className={compact ? "max-w-md gap-1" : "max-w-xl gap-2"}>
-        <EmptyMedia variant="icon">{iconNode}</EmptyMedia>
-        <EmptyTitle className={compact ? "text-xs" : "text-sm"}>
+      <EmptyHeader className={compact ? "max-w-md gap-1.5" : "max-w-xl gap-2"}>
+        <EmptyMedia variant="icon">
+          <span className="text-muted-foreground opacity-60">
+            {iconNode}
+          </span>
+        </EmptyMedia>
+        <EmptyTitle
+          className={cn("text-sm font-medium text-foreground")}
+        >
           {title}
         </EmptyTitle>
-        <EmptyDescription className="text-xs text-pretty">
+        <EmptyDescription className="text-xs text-pretty text-muted-foreground">
           {description}
         </EmptyDescription>
       </EmptyHeader>
       {action ? (
-        <EmptyContent className="flex-row justify-center gap-2">
+        <EmptyContent className="flex-row justify-center gap-2 pt-2">
           {action}
         </EmptyContent>
       ) : null}

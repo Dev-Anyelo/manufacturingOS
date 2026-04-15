@@ -177,11 +177,11 @@ export function InventoryForm({
           {/* Left column - Main info */}
           <div className="space-y-6 lg:col-span-2">
             {/* Card 1: Identificación */}
-            <Card className="animate-slide-up overflow-hidden border-border/60 p-0 shadow-sm">
-              <CardHeader className="border-b border-border/40 bg-muted/30 px-4 py-2">
+            <Card className="animate-slide-up overflow-hidden border border-border p-0">
+              <CardHeader className="border-b border-border bg-muted/20 px-4 py-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-brand/10">
-                    <Tag className="size-4 text-brand" />
+                  <div className="bg-info-soft flex size-8 items-center justify-center rounded-lg">
+                    <Tag className="text-info size-4" />
                   </div>
                   <div>
                     <CardTitle className="text-base font-semibold text-pretty">
@@ -205,7 +205,7 @@ export function InventoryForm({
                       <Input
                         {...field}
                         placeholder="Ej: Denim azul premium"
-                        className="text-sm transition-shadow focus:shadow-sm"
+                        className="text-sm transition-colors"
                       />
                     )}
                   </FormFieldWrapper>
@@ -223,7 +223,7 @@ export function InventoryForm({
                           field.onChange(v as MaterialCategory)
                         }
                       >
-                        <SelectTrigger className="w-full text-sm transition-shadow focus:shadow-sm">
+                        <SelectTrigger className="w-full text-sm transition-colors">
                           <SelectValue placeholder="Selecciona categoría" />
                         </SelectTrigger>
                         <SelectContent>
@@ -266,7 +266,7 @@ export function InventoryForm({
                               value={field.value ?? ""}
                               onChange={field.onChange}
                               placeholder="Ej: Algodón pima"
-                              className="pl-9 text-sm transition-shadow focus:shadow-sm"
+                              className="pl-9 text-sm transition-colors"
                             />
                           </div>
                         )}
@@ -284,7 +284,7 @@ export function InventoryForm({
                               value={field.value ?? ""}
                               onChange={field.onChange}
                               placeholder="Ej: Azul marino"
-                              className="pl-9 text-sm transition-shadow focus:shadow-sm"
+                              className="pl-9 text-sm transition-colors"
                             />
                           </div>
                         )}
@@ -306,7 +306,7 @@ export function InventoryForm({
                           value={field.value ?? ""}
                           onChange={field.onChange}
                           placeholder="Ej: Azul marino"
-                          className="pl-9 text-sm transition-shadow focus:shadow-sm"
+                          className="pl-9 text-sm transition-colors"
                         />
                       </div>
                     )}
@@ -327,7 +327,7 @@ export function InventoryForm({
                         value={field.value ?? ""}
                         onChange={field.onChange}
                         placeholder="Ej: Textiles Panamá"
-                        className="pl-9 text-sm transition-shadow focus:shadow-sm"
+                        className="pl-9 text-sm transition-colors"
                       />
                     </div>
                   )}
@@ -337,10 +337,10 @@ export function InventoryForm({
 
             {/* Card 2: Stock y precios */}
             <Card
-              className="animate-slide-up overflow-hidden border-border/60 p-0 shadow-sm"
+              className="animate-slide-up overflow-hidden border border-border p-0"
               style={{ animationDelay: "0.1s" }}
             >
-              <CardHeader className="border-b border-border/40 bg-muted/30 px-4 py-2">
+              <CardHeader className="border-b border-border bg-muted/20 px-4 py-2">
                 <div className="flex items-center gap-2.5">
                   <div className="flex size-8 items-center justify-center rounded-lg bg-brand/10">
                     <DollarSign className="text-success size-4" />
@@ -355,7 +355,7 @@ export function InventoryForm({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-5 px-4 pt-0 pb-5">
+              <CardContent className="space-y-3 px-4 pt-0 pb-3">
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <FormFieldWrapper
                     control={form.control}
@@ -370,7 +370,7 @@ export function InventoryForm({
                         step="0.01"
                         value={field.value}
                         onChange={(e) => field.onChange(Number(e.target.value))}
-                        className="text-sm transition-shadow focus:shadow-sm"
+                        className="text-sm transition-colors"
                       />
                     )}
                   </FormFieldWrapper>
@@ -386,7 +386,7 @@ export function InventoryForm({
                         value={field.value}
                         onValueChange={field.onChange}
                       >
-                        <SelectTrigger className="w-full text-sm transition-shadow focus:shadow-sm">
+                        <SelectTrigger className="w-full text-sm transition-colors">
                           <SelectValue placeholder="Unidad" />
                         </SelectTrigger>
                         <SelectContent>
@@ -413,7 +413,7 @@ export function InventoryForm({
                         step="0.01"
                         value={field.value}
                         onChange={(e) => field.onChange(Number(e.target.value))}
-                        className="text-sm transition-shadow focus:shadow-sm"
+                        className="text-sm transition-colors"
                       />
                     )}
                   </FormFieldWrapper>
@@ -433,7 +433,7 @@ export function InventoryForm({
                           type="number"
                           min={0}
                           step="0.01"
-                          className="pl-7 text-sm transition-shadow focus:shadow-sm"
+                          className="pl-7 text-sm transition-colors"
                           value={field.value}
                           onChange={(e) =>
                             field.onChange(Number(e.target.value))
@@ -445,7 +445,7 @@ export function InventoryForm({
                 </div>
 
                 {/* Stock indicator */}
-                <div className="rounded-xl border border-border/40 bg-muted/30 p-4">
+                <div className="rounded-xl border border-border bg-muted/20 p-4">
                   <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                     <Box className="size-3" />
                     Vista previa del stock
@@ -461,10 +461,10 @@ export function InventoryForm({
 
             {/* Card 3: Notas */}
             <Card
-              className="animate-slide-up overflow-hidden border-border/60 p-0 shadow-sm"
+              className="animate-slide-up overflow-hidden border border-border p-0"
               style={{ animationDelay: "0.15s" }}
             >
-              <CardHeader className="border-b border-border/40 bg-muted/30 px-4 py-2">
+              <CardHeader className="border-b border-border bg-muted/20 px-4 py-2">
                 <div className="flex items-center gap-2.5">
                   <div className="flex size-8 items-center justify-center rounded-lg bg-yellow-400/10">
                     <FileText className="text-warning size-4" />
@@ -490,7 +490,7 @@ export function InventoryForm({
                       value={field.value ?? ""}
                       onChange={field.onChange}
                       placeholder="Detalles adicionales, instrucciones de uso, observaciones..."
-                      className="min-h-28 resize-none text-sm transition-shadow focus:shadow-sm"
+                      className="min-h-28 resize-none text-sm transition-colors"
                     />
                   )}
                 </FormFieldWrapper>
@@ -502,13 +502,13 @@ export function InventoryForm({
           <div className="space-y-6">
             {/* Image upload card */}
             <Card
-              className="animate-slide-up overflow-hidden border-border/60 p-0 shadow-sm"
+              className="animate-slide-up overflow-hidden border border-border p-0"
               style={{ animationDelay: "0.05s" }}
             >
-              <CardHeader className="border-b border-border/40 bg-muted/30 px-4 py-2">
+              <CardHeader className="border-b border-border bg-muted/20 px-4 py-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-brand/10">
-                    <ImageIcon className="size-4 text-brand" />
+                  <div className="bg-info-soft flex size-8 items-center justify-center rounded-lg">
+                    <ImageIcon className="text-info size-4" />
                   </div>
                   <div>
                     <CardTitle className="text-base font-semibold">
@@ -534,13 +534,13 @@ export function InventoryForm({
                   onDragLeave={() => setIsDragging(false)}
                   className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200 ${
                     isDragging
-                      ? "bg-brand-muted border-brand"
-                      : "hover:bg-brand-muted/50 border-border/60 bg-muted/20 hover:border-brand/40"
+                      ? "border-brand bg-brand/10"
+                      : "border-border bg-muted/20 hover:border-brand/40 hover:bg-muted/20"
                   }`}
                 >
                   {previewUrl ? (
                     <div className="relative w-full">
-                      <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border/40 bg-background">
+                      <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-background">
                         <img
                           src={previewUrl}
                           alt="Preview del material"
@@ -591,20 +591,25 @@ export function InventoryForm({
 
             {/* Actions card */}
             <Card
-              className="animate-slide-up overflow-hidden border-border/60 p-0 shadow-sm"
+              className="animate-slide-up overflow-hidden border border-border p-0"
               style={{ animationDelay: "0.2s" }}
             >
               <CardContent className="grid grid-cols-2 gap-3 px-4 pt-3 pb-3">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-brand text-brand-foreground shadow-sm transition-all hover:bg-brand/90 hover:shadow-md"
+                  className="w-full transition-all"
                   size="lg"
                 >
-                  {isSubmitting && (
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                  )}
-                  {mode === "create" ? "Crear material" : "Guardar cambios"}
+                  {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+
+                  {isSubmitting
+                    ? mode === "create"
+                      ? "Creando"
+                      : "Guardando"
+                    : mode === "create"
+                      ? "Crear material"
+                      : "Guardar"}
                 </Button>
                 <Button
                   type="button"

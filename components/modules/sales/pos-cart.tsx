@@ -9,17 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { CustomerSelector } from "./customer-selector"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card"
 import type { PosCartItem, PosCustomer } from "@/components/modules/sales/types"
 
 import {
@@ -139,14 +132,13 @@ export function PosCart({
   const changeGiven = Math.max(receivedAmount - total, 0)
 
   return (
-    <div className="flex flex-col h-full gap-0">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2 px-1 py-3 border-b border-border/50">
-        <div className="flex items-center gap-2">
+    <div className="flex h-full flex-col gap-0">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-1 py-3">
+        <div className="flex items-center gap-2 text-sm font-semibold px-4">
           <ShoppingCartIcon className="size-4 text-muted-foreground" />
           <span className="text-sm font-semibold">Carrito</span>
           {items.length > 0 ? (
-            <Badge className="min-w-5 h-5 justify-center rounded-full bg-brand px-1.5 text-[10px] text-brand-foreground">
+            <Badge className="h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-xs text-brand-foreground">
               {items.length}
             </Badge>
           ) : null}
@@ -161,19 +153,19 @@ export function PosCart({
               items.forEach((item) => onRemoveItem(item.rowId))
             }}
           >
-            <XIcon className="size-3 mr-1" />
+            <XIcon className="mr-1 size-3" />
             Limpiar
           </Button>
         ) : null}
       </div>
 
       {/* Cart items */}
-      <ScrollArea className="flex-1 min-h-0">
-        <div className="px-1 py-3 space-y-2">
+      <ScrollArea className="min-h-0 flex-1 px-4">
+        <div className="space-y-2 px-1 py-3">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-muted/15 p-8 text-center">
+            <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">
               <ShoppingCartIcon className="size-7 text-muted-foreground/40" />
-              <p className="text-xs text-muted-foreground leading-relaxed">
+              <p className="text-xs leading-relaxed text-muted-foreground text-balance">
                 Agrega prendas desde el catalogo para iniciar una venta.
               </p>
             </div>
@@ -192,7 +184,7 @@ export function PosCart({
         </div>
 
         {/* Order details section */}
-        <div className="px-1 pb-3 space-y-3">
+        <div className="space-y-3 px-1 pb-3">
           <Separator className="opacity-50" />
 
           {/* Customer + Channel row */}
@@ -208,7 +200,7 @@ export function PosCart({
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Canal</Label>
                 <Select value={channel} onValueChange={onChannelChange}>
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="text-xs w-full">
                     <SelectValue placeholder="Canal" />
                   </SelectTrigger>
                   <SelectContent>
@@ -244,7 +236,7 @@ export function PosCart({
             <RadioGroup
               value={paymentMethod}
               onValueChange={onPaymentMethodChange}
-              className="grid grid-cols-2 gap-1.5"
+        className="grid grid-cols-2 gap-1.5"
             >
               {paymentMethods.map((method) => (
                 <label
@@ -252,8 +244,8 @@ export function PosCart({
                   className={cn(
                     "flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-all",
                     paymentMethod === method.value
-                      ? "bg-brand-muted border-brand text-foreground font-medium"
-                      : "border-border/60 bg-background hover:bg-muted/40 text-muted-foreground"
+                      ? "border-brand bg-brand/10 font-medium text-brand"
+                      : "border-border bg-muted/20 text-muted-foreground hover:bg-muted/20"
                   )}
                 >
                   <RadioGroupItem value={method.value} className="size-3" />
@@ -276,7 +268,7 @@ export function PosCart({
                     type="number"
                     min={0}
                     step={0.01}
-                    className="pl-6 h-8 text-xs"
+                    className="h-8 pl-6 text-xs"
                     value={receivedAmount}
                     onChange={(event) =>
                       onReceivedAmountChange(Number(event.target.value || 0))
@@ -284,12 +276,12 @@ export function PosCart({
                   />
                 </div>
               </div>
-              {changeGiven > 0 ? (
-                <div className="flex items-center justify-between rounded-lg bg-success-soft border border-success-soft px-3 py-2">
-                  <span className="text-xs text-success font-medium">
+        {changeGiven > 0 ? (
+                <div className="bg-success-soft border-success-soft flex items-center justify-between rounded-lg border px-3 py-2">
+                  <span className="text-success text-xs font-medium">
                     Cambio
                   </span>
-                  <span className="text-sm font-bold text-success tabular-nums">
+                  <span className="text-success text-sm font-bold tabular-nums">
                     <CurrencyDisplay amount={changeGiven} size="sm" />
                   </span>
                 </div>
@@ -310,7 +302,7 @@ export function PosCart({
                     type="number"
                     min={0}
                     step={0.01}
-                    className="pl-6 h-8 text-xs"
+                    className="h-8 pl-6 text-xs"
                     value={amountPaid}
                     onChange={(event) =>
                       onAmountPaidChange(Number(event.target.value || 0))
@@ -325,10 +317,12 @@ export function PosCart({
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full h-8 justify-start text-left text-xs font-normal"
+                      className="h-8 w-full justify-start text-left text-xs font-normal"
                     >
-                      <CalendarIcon className="size-3.5 mr-1.5 shrink-0" />
-                      <span className="truncate">{formatDateLabel(dueDate)}</span>
+                      <CalendarIcon className="mr-1.5 size-3.5 shrink-0" />
+                      <span className="truncate">
+                        {formatDateLabel(dueDate)}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-2" align="start">
@@ -358,7 +352,7 @@ export function PosCart({
                   type="number"
                   min={0}
                   step={0.01}
-                  className="pl-6 h-8 text-xs"
+                  className="h-8 pl-6 text-xs"
                   value={amountPaid}
                   onChange={(event) =>
                     onAmountPaidChange(Number(event.target.value || 0))
@@ -374,17 +368,16 @@ export function PosCart({
             <Textarea
               rows={2}
               placeholder="Notas internas de la venta"
-              className="text-xs resize-none"
+              className="resize-none text-xs"
               value={notes}
               onChange={(event) => onNotesChange(event.target.value)}
             />
           </div>
 
-          {/* Totals */}
-          <div className="rounded-xl border border-border/50 bg-muted/20 p-3 space-y-1.5">
+          <div className="space-y-1.5 rounded-xl border border-border bg-muted/20 p-3">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Subtotal</span>
-              <span className="tabular-nums font-medium">
+              <span className="font-medium tabular-nums">
                 <CurrencyDisplay amount={subtotal} size="sm" />
               </span>
             </div>
@@ -393,12 +386,12 @@ export function PosCart({
                 <span className="text-muted-foreground">
                   Descuento ({discountPercent}%)
                 </span>
-                <span className="tabular-nums text-danger font-medium">
+                <span className="text-danger font-medium tabular-nums">
                   -<CurrencyDisplay amount={discountAmount} size="sm" />
                 </span>
               </div>
             ) : null}
-            <Separator className="opacity-40 my-1" />
+            <Separator className="my-1 opacity-40" />
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold">Total</span>
               <span className="text-lg font-bold text-brand tabular-nums">
@@ -409,13 +402,12 @@ export function PosCart({
         </div>
       </ScrollArea>
 
-      {/* Submit footer */}
-      <div className="border-t border-border/50 p-3">
+      <div className="border-t border-border p-3">
         <Button
           type="button"
-          className="w-full h-11 bg-brand text-brand-foreground hover:bg-brand/90 font-semibold text-sm gap-2"
           onClick={onSubmit}
           disabled={items.length === 0 || isSubmitting}
+          className="w-full"
         >
           {isSubmitting ? (
             <Loader2Icon className="size-4 animate-spin" />
@@ -443,12 +435,16 @@ function CartItemRow({
   onSizeChange: (size: string) => void
 }) {
   return (
-    <div className="rounded-lg border border-border/50 bg-card p-2.5 space-y-2 group">
+    <div className="group space-y-2 rounded-lg border border-border bg-muted/20 p-2.5">
       <div className="flex items-start gap-2">
-        {/* Thumbnail */}
-        <div className="relative size-10 shrink-0 rounded-md overflow-hidden border border-border/60 bg-muted">
+        <div className="relative size-10 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
           {item.imageUrl ? (
-            <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+            <Image
+              src={item.imageUrl}
+              alt={item.name}
+              fill
+              className="object-cover"
+            />
           ) : (
             <div className="flex h-full items-center justify-center">
               <ShirtIcon className="size-4 text-muted-foreground/40" />
@@ -457,13 +453,13 @@ function CartItemRow({
         </div>
 
         {/* Name + price */}
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold leading-tight line-clamp-1">
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-1 text-xs leading-tight font-semibold">
             {item.name}
           </p>
           <p className="text-xs text-muted-foreground tabular-nums">
-            <CurrencyDisplay amount={item.unitPrice} size="sm" />
-            {" "}&times;{" "}{item.quantity}
+            <CurrencyDisplay amount={item.unitPrice} size="sm" /> &times;{" "}
+            {item.quantity}
           </p>
         </div>
 
@@ -472,7 +468,7 @@ function CartItemRow({
           type="button"
           variant="ghost"
           size="icon"
-          className="size-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+          className="size-6 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
           onClick={onRemove}
           aria-label={`Eliminar ${item.name}`}
         >
@@ -485,12 +481,11 @@ function CartItemRow({
         <Input
           placeholder="Talla"
           value={item.size}
-          className="h-7 text-xs flex-1"
+          className="h-7 flex-1 text-xs"
           onChange={(event) => onSizeChange(event.target.value)}
         />
 
-        {/* Quantity stepper */}
-        <div className="flex items-center rounded-lg border border-border/60 bg-background">
+        <div className="flex items-center rounded-lg border border-border bg-muted/20">
           <Button
             type="button"
             size="icon"
@@ -517,7 +512,7 @@ function CartItemRow({
         </div>
 
         {/* Row total */}
-        <span className="text-xs font-bold tabular-nums text-brand w-14 text-right shrink-0">
+        <span className="w-14 shrink-0 text-right text-xs font-bold text-brand tabular-nums">
           <CurrencyDisplay amount={item.unitPrice * item.quantity} size="sm" />
         </span>
       </div>

@@ -21,8 +21,8 @@ export default async function PayrollPage() {
   ])
 
   return (
-    <section className="flex flex-col min-h-full gap-4">
-      <div className="mx-auto w-full space-y-4">
+    <section className="page-shell">
+      <div className="page-content">
         <PageHeader
           title="Planilla"
           description="Administra empleados, contratos y pagos."

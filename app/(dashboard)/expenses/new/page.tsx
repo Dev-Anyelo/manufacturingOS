@@ -7,7 +7,7 @@ export default async function NewExpensePage() {
   const bootstrap = await getExpensesFormBootstrap()
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <PageHeader
         title="Nuevo gasto"
         description="Registra compras, servicios y egresos operativos del taller."
@@ -17,14 +17,16 @@ export default async function NewExpensePage() {
         ]}
       />
 
-      <ExpenseForm
-        inventoryItems={bootstrap.inventoryItems.map((item) => ({
-          id: item.id,
-          name: item.name,
-          unit: item.unit,
-          quantity: decimalToNumber(item.quantity),
-        }))}
-      />
+      <div className="page-content">
+        <ExpenseForm
+          inventoryItems={bootstrap.inventoryItems.map((item) => ({
+            id: item.id,
+            name: item.name,
+            unit: item.unit,
+            quantity: decimalToNumber(item.quantity),
+          }))}
+        />
+      </div>
     </div>
   )
 }

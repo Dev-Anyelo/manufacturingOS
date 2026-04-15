@@ -4,6 +4,7 @@ import { AuditAction } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { StatCard } from "@/components/shared/stat-card"
 import { getDashboardStats } from "@/lib/data/dashboard"
 import { EmptyState } from "@/components/shared/empty-state"
@@ -141,8 +142,8 @@ export default async function DashboardPage() {
   const formattedDate = getFormattedDate()
 
   return (
-    <section className="flex min-h-full flex-col gap-4">
-      <div className="mx-auto w-full space-y-4">
+    <section className="page-shell">
+      <div className="page-content">
         {/* Zone 1: Personalized greeting */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <PageHeader
@@ -202,11 +203,16 @@ export default async function DashboardPage() {
               />
             </div>
 
+            {/* Zone Chart */}
+            <div className="w-full xl:col-span-3">
+              <ChartAreaInteractive />
+            </div>
+
             {/* Zone 3: Activity Feed (2/3) + Alerts sidebar (1/3) */}
             <div className="grid grid-cols-1 gap-4 sm:gap-5 xl:grid-cols-3">
               {/* Activity feed */}
-              <Card className="rounded-xl border border-border/50 shadow-sm xl:col-span-2">
-                <CardHeader className="border-b border-border/50 pb-3">
+              <Card className="rounded-xl border border-border xl:col-span-2">
+                <CardHeader className="border-b border-border pb-3">
                   <div className="flex items-center gap-2">
                     <HistoryIcon className="size-4 text-muted-foreground" />
                     <CardTitle className="text-base font-semibold">
@@ -240,14 +246,14 @@ export default async function DashboardPage() {
                               <div
                                 className={`h-2 w-2 shrink-0 rounded-full ${
                                   activity.action === AuditAction.insert
-                                    ? "bg-brand"
+                                    ? "bg-success"
                                     : activity.action === AuditAction.update
-                                      ? "bg-blue-500"
-                                      : "bg-red-500"
+                                      ? "bg-info"
+                                      : "bg-danger"
                                 }`}
                               />
                               {index < recentActivity.length - 1 ? (
-                                <div className="min-h-4 w-px flex-1 bg-border/50" />
+                                <div className="min-h-4 w-px flex-1 bg-border" />
                               ) : null}
                             </div>
 
@@ -271,8 +277,8 @@ export default async function DashboardPage() {
               </Card>
 
               {/* Alerts sidebar */}
-              <Card className="rounded-xl border border-border/50 shadow-sm">
-                <CardHeader className="border-b border-border/50 pb-3">
+              <Card className="rounded-xl border border-border">
+                <CardHeader className="border-b border-border pb-3">
                   <div className="flex items-center gap-2">
                     <AlertTriangleIcon className="text-warning size-4" />
                     <CardTitle className="text-base font-semibold">
@@ -300,14 +306,14 @@ export default async function DashboardPage() {
                           <Link
                             key={item.id}
                             href={`/inventory/${item.id}`}
-                            className="group flex items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-muted/40"
+                            className="group flex items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
                           >
                             <div className="flex min-w-0 items-center gap-2">
                               <span
                                 className={`h-2 w-2 shrink-0 rounded-full ${
                                   item.status === "out"
                                     ? "bg-muted-foreground"
-                                    : "bg-red-500"
+                                    : "bg-danger"
                                 }`}
                               />
                               <div className="min-w-0">
@@ -329,7 +335,7 @@ export default async function DashboardPage() {
                       </div>
                     </ScrollArea>
                   )}
-                  <div className="border-t border-border/50 px-4 py-2.5">
+                  <div className="border-t border-border px-4 py-2.5">
                     <Link
                       href="/inventory"
                       className="flex items-center justify-center gap-1 text-xs font-medium text-brand transition-colors hover:text-brand/80"
@@ -345,8 +351,8 @@ export default async function DashboardPage() {
             {/* Zone 4: Quick stats row */}
             <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
               {/* Production today */}
-              <Card className="rounded-xl border border-border/50 shadow-sm">
-                <CardHeader className="border-b border-border/50 pb-3">
+              <Card className="rounded-xl border border-border">
+                <CardHeader className="border-b border-border pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <ScissorsIcon className="size-4 text-muted-foreground" />
@@ -362,41 +368,40 @@ export default async function DashboardPage() {
                       {
                         label: "Nueva venta",
                         href: "/sales/new",
-                        color: "bg-brand-muted text-brand",
+                        color: "bg-success-soft text-success",
                       },
                       {
                         label: "Nuevo pedido",
                         href: "/orders/new",
-                        color:
-                          "bg-blue-50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400",
+                        color: "bg-info-soft text-info",
                       },
                       {
                         label: "Nueva sesion",
                         href: "/production/new",
-                        color:
-                          "bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400",
+                        color: "bg-warning-soft text-warning",
                       },
                       {
                         label: "Nuevo gasto",
                         href: "/expenses/new",
-                        color:
-                          "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-500",
+                        color: "bg-danger-soft text-danger",
                       },
                       {
                         label: "Nuevo material",
                         href: "/inventory/new",
-                        color: "bg-muted text-muted-foreground",
+                        color:
+                          "bg-muted/20 text-foreground",
                       },
                       {
                         label: "Nuevo producto",
                         href: "/catalog/new",
-                        color: "bg-muted text-muted-foreground",
+                        color:
+                          "bg-muted/20 text-foreground",
                       },
                     ].map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center justify-center rounded-lg px-3 py-2.5 text-xs font-medium transition-all hover:scale-[1.01] hover:shadow-sm ${item.color}`}
+                        className={`flex items-center justify-center rounded-lg px-3 py-2.5 text-xs font-medium transition-all hover:scale-[1.01] ${item.color}`}
                       >
                         {item.label}
                       </Link>
@@ -406,8 +411,8 @@ export default async function DashboardPage() {
               </Card>
 
               {/* System summary */}
-              <Card className="rounded-xl border border-border/50 shadow-sm">
-                <CardHeader className="border-b border-border/50 pb-3">
+              <Card className="rounded-xl border border-border">
+                <CardHeader className="border-b border-border pb-3">
                   <CardTitle className="text-base font-semibold">
                     Resumen del sistema
                   </CardTitle>
@@ -441,7 +446,7 @@ export default async function DashboardPage() {
                     <Link
                       key={row.label}
                       href={row.href}
-                      className="group -mx-2 flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/40"
+                      className="group -mx-2 flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/30"
                     >
                       <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground">
                         {row.label}

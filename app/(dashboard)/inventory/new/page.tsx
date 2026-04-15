@@ -3,8 +3,8 @@ import { InventoryForm } from "@/components/modules/inventory/inventory-form"
 
 export default function NewInventoryItemPage() {
   return (
-    <section className="flex flex-col min-h-full">
-      <div className="mx-auto w-full space-y-4">
+    <section className="page-shell">
+      <div className="page-content">
         <PageHeader
           title="Nuevo material"
           description="Crea un registro para controlar stock, costo y proveedor."

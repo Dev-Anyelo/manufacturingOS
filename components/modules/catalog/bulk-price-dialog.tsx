@@ -96,7 +96,7 @@ export function BulkPriceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="px-4 py-6 sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Ajuste masivo de precios</DialogTitle>
           <DialogDescription>
@@ -127,7 +127,7 @@ export function BulkPriceDialog({
               value={target}
               onValueChange={(value) => setTarget(value as typeof target)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecciona objetivo" />
               </SelectTrigger>
               <SelectContent>
@@ -141,7 +141,7 @@ export function BulkPriceDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="pt-6 space-x-2 grid grid-cols-2 items-center">
           <Button
             type="button"
             variant="outline"
@@ -151,7 +151,6 @@ export function BulkPriceDialog({
           </Button>
           <Button
             type="button"
-            className="bg-brand text-brand-foreground"
             disabled={isSubmitting}
             onClick={() => void handleSubmit()}
           >

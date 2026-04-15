@@ -1,15 +1,26 @@
-import { Geist, Geist_Mono } from "next/font/google"
-
-import { AppProviders } from "@/components/providers/app-providers"
-import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils"
 import "./globals.css"
+import { cn } from "@/lib/utils"
+import {
+  JetBrains_Mono,
+  Plus_Jakarta_Sans,
+  Space_Grotesk,
+} from "next/font/google"
+import { ThemeProvider } from "@/components/theme-provider"
+import { AppProviders } from "@/components/providers/app-providers"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
-
-const fontMono = Geist_Mono({
+const appSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--font-app-sans",
+})
+
+const appDisplay = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-app-display",
+})
+
+const fontMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-app-mono",
 })
 
 export default function RootLayout({
@@ -23,9 +34,10 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn(
         "antialiased",
+        appSans.variable,
+        appDisplay.variable,
         fontMono.variable,
-        "font-sans",
-        geist.variable
+        "font-sans"
       )}
     >
       <body>

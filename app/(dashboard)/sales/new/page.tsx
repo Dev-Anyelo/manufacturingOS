@@ -10,7 +10,7 @@ export default async function NewSalePage() {
   const { catalogItems, customers } = await getSalesPosBootstrap()
 
   return (
-    <section className="mx-auto flex w-full max-w-350 flex-col gap-6">
+    <section className="page-shell">
       <PageHeader
         title="Nueva venta"
         description="Registra ventas en punto de venta con calculo de pago y recibo."
@@ -24,21 +24,23 @@ export default async function NewSalePage() {
         }
       />
 
-      <PosInterface
-        catalogItems={catalogItems.map((item) => ({
-          id: item.id,
-          name: item.name,
-          garmentType: item.garmentType,
-          salePrice: decimalToNumber(item.salePrice),
-          imageUrl: item.imageUrl,
-        }))}
-        customers={customers.map((customer) => ({
-          id: customer.id,
-          fullName: customer.fullName,
-          phone: customer.phone,
-          email: customer.email,
-        }))}
-      />
+      <div className="page-content mx-auto w-full max-w-350">
+        <PosInterface
+          catalogItems={catalogItems.map((item) => ({
+            id: item.id,
+            name: item.name,
+            garmentType: item.garmentType,
+            salePrice: decimalToNumber(item.salePrice),
+            imageUrl: item.imageUrl,
+          }))}
+          customers={customers.map((customer) => ({
+            id: customer.id,
+            fullName: customer.fullName,
+            phone: customer.phone,
+            email: customer.email,
+          }))}
+        />
+      </div>
     </section>
   )
 }

@@ -65,8 +65,10 @@ export function NavUser({
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs text-muted-foreground">
+                <span className="truncate text-[13px] font-medium">
+                  {user.name}
+                </span>
+                <span className="truncate text-[11px] text-muted-foreground">
                   {roleLabel}
                 </span>
               </div>
@@ -89,7 +91,7 @@ export function NavUser({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="truncate text-[11px] text-muted-foreground">
                     {user.email}
                   </span>
                 </div>

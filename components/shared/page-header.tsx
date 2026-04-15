@@ -16,6 +16,7 @@ interface PageHeaderProps {
   description?: string
   actions?: ReactNode
   breadcrumbs?: { label: string; href?: string }[]
+  eyebrow?: string
 }
 
 export function PageHeader({
@@ -23,9 +24,10 @@ export function PageHeader({
   description,
   actions,
   breadcrumbs,
+  eyebrow,
 }: PageHeaderProps) {
   return (
-    <header className="animate-fade-in space-y-4">
+    <header className="mb-1 flex animate-fade-in flex-col gap-3 pb-4">
       {breadcrumbs?.length ? (
         <Breadcrumb>
           <BreadcrumbList>
@@ -36,14 +38,14 @@ export function PageHeader({
                 <div key={`${item.label}-${index}`} className="contents">
                   <BreadcrumbItem>
                     {isLast || !item.href ? (
-                      <BreadcrumbPage className="text-xs font-medium text-foreground">
+                      <BreadcrumbPage className="text-xs font-medium text-foreground/90">
                         {item.label}
                       </BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink asChild>
                         <Link
                           href={item.href}
-                          className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                          className="text-xs text-muted-foreground transition-colors hover:text-foreground/90"
                         >
                           {item.label}
                         </Link>
@@ -51,7 +53,7 @@ export function PageHeader({
                     )}
                   </BreadcrumbItem>
                   {!isLast ? (
-                    <BreadcrumbSeparator>
+                    <BreadcrumbSeparator className="text-muted-foreground/60">
                       <ChevronRightIcon className="size-3" />
                     </BreadcrumbSeparator>
                   ) : null}
@@ -62,19 +64,16 @@ export function PageHeader({
         </Breadcrumb>
       ) : null}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="mt-1 flex w-full flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-3xl space-y-1.5">
-          <h1 className="text-lg md:text-xl leading-none font-bold tracking-tight sm:text-3xl">
+          <p className="eyebrow">{eyebrow ?? null}</p>
+          <h1 className="text-[clamp(1.35rem,2.2vw,1.9rem)] leading-tight font-semibold text-foreground">
             {title}
           </h1>
-          {description ? (
-            <p className="text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]">
-              {description}
-            </p>
-          ) : null}
+          {description ? <p className="body-muted">{description}</p> : null}
         </div>
         {actions ? (
-          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+          <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 sm:justify-end sm:pb-0.5">
             {actions}
           </div>
         ) : null}

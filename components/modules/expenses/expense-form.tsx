@@ -279,7 +279,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
       noValidate
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border border-border/60 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Fecha
@@ -289,7 +289,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
             </p>
           </CardContent>
         </Card>
-        <Card className="border border-border/60 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Total estimado
@@ -300,7 +300,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
             />
           </CardContent>
         </Card>
-        <Card className="border border-border/60 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Inventario
@@ -310,7 +310,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
             </p>
           </CardContent>
         </Card>
-        <Card className="border border-border/60 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Comprobante
@@ -322,7 +322,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
         </Card>
       </div>
 
-      <Card className="border border-border/60">
+      <Card className="border border-border">
         <CardHeader>
           <CardTitle className="text-base">Datos del gasto</CardTitle>
         </CardHeader>
@@ -478,7 +478,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
             </p>
           </div>
 
-          <div className="bg-brand-muted rounded-lg border border-brand/20 p-4 text-center md:col-span-2">
+          <div className="rounded-lg border border-brand/20 bg-brand/10 p-4 text-center md:col-span-2">
             <p className="mb-1 text-xs font-medium tracking-wide text-brand/80 uppercase">
               Total calculado
             </p>
@@ -496,7 +496,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <div className="flex items-center justify-between rounded-lg border border-border/50 p-3 sm:p-4">
+            <div className="flex items-center justify-between rounded-lg border border-border p-3 sm:p-4">
               <div className="space-y-0.5">
                 <Label className="text-sm font-medium">
                   Actualiza inventario
@@ -524,7 +524,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
               updatesInventory ? "max-h-120 opacity-100" : "max-h-0 opacity-0"
             )}
           >
-            <div className="grid grid-cols-1 gap-3 rounded-lg border border-border/50 bg-muted/30 p-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 rounded-lg border border-border bg-muted/20 p-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Material</Label>
                 <Select
@@ -597,7 +597,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
             <Label htmlFor="receipt_file" className="text-sm font-medium">
               Recibo (opcional)
             </Label>
-            <label className="hover:bg-brand-muted flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border/70 px-3 py-2 text-sm transition-colors hover:border-brand/60">
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm transition-colors hover:border-brand/60 hover:bg-muted/40">
               <UploadIcon className="size-4 text-muted-foreground" />
               <span className="truncate text-muted-foreground">
                 {receiptFile ? receiptFile.name : "Seleccionar archivo"}
@@ -616,7 +616,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
         </CardContent>
       </Card>
 
-      <Card className="border border-border/60 bg-muted/20">
+      <Card className="border border-border bg-muted/20">
         <CardContent className="flex flex-col gap-4 pt-4">
           <div className="grid grid-cols-1 gap-2 text-sm md:grid-cols-3">
             <div>

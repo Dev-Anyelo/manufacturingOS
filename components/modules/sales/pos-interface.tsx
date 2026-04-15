@@ -246,10 +246,8 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
 
   return (
     <>
-      {/* Desktop layout */}
-      <div className="hidden h-[calc(100vh-11rem)] gap-0 overflow-hidden rounded-xl border border-border/50 md:flex">
-        {/* Catalog panel */}
-        <div className="flex-1 overflow-y-auto border-r border-border/50 bg-background px-4">
+      <div className="hidden h-[calc(100vh-11rem)] gap-0 overflow-hidden rounded-xl border border-border md:flex">
+        <div className="flex-1 overflow-y-auto border-r border-border bg-background px-4">
           <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
         </div>
 
@@ -262,14 +260,14 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       {/* Mobile layout with tabs */}
       <div className="md:hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="h-11 w-full rounded-none border-b border-border/50 bg-background">
+          <TabsList className="h-11 w-full rounded-none border-b border-border bg-background">
             <TabsTrigger value="catalog" className="flex-1 gap-2 text-sm">
               Catalogo
             </TabsTrigger>
             <TabsTrigger value="cart" className="flex-1 gap-1.5 text-sm">
               Carrito
               {cartItems.length > 0 ? (
-                <Badge className="text-brand-foreground h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-[10px]">
+                <Badge className="text-brand-foreground h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-xs">
                   {cartItems.length}
                 </Badge>
               ) : null}

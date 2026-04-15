@@ -25,11 +25,11 @@ export function LoadingSkeleton({
         {Array.from({ length: rows }).map((_, index) => (
           <div
             key={index}
-            className="rounded-xl border border-border/50 bg-card p-4 shadow-sm"
+            className="rounded-xl border border-border bg-card p-5"
           >
-            <Skeleton className="mb-3 h-4 w-28 rounded-md" />
-            <Skeleton className="mb-2 h-7 w-20 rounded-md" />
-            <Skeleton className="h-3 w-32 rounded-md" />
+            <Skeleton className="skeleton-shimmer mb-3 h-3 w-24 rounded" />
+            <Skeleton className="skeleton-shimmer mb-2 h-8 w-20 rounded" />
+            <Skeleton className="skeleton-shimmer h-3 w-32 rounded" />
           </div>
         ))}
       </div>
@@ -40,7 +40,7 @@ export function LoadingSkeleton({
     return (
       <div className={cn("space-y-2", className)}>
         {Array.from({ length: rows }).map((_, index) => (
-          <Skeleton key={index} className="h-11 rounded-lg" />
+          <Skeleton key={index} className="skeleton-shimmer h-11 rounded-lg" />
         ))}
       </div>
     )
@@ -51,8 +51,8 @@ export function LoadingSkeleton({
       <div className={cn("grid grid-cols-1 gap-4 md:grid-cols-2", className)}>
         {Array.from({ length: rows }).map((_, index) => (
           <div key={index} className="space-y-2">
-            <Skeleton className="h-4 w-32 rounded-md" />
-            <Skeleton className="h-9 w-full rounded-md" />
+            <Skeleton className="skeleton-shimmer h-3 w-32 rounded" />
+            <Skeleton className="skeleton-shimmer h-10 w-full rounded-md" />
           </div>
         ))}
       </div>
@@ -62,10 +62,13 @@ export function LoadingSkeleton({
   if (type === "detail") {
     return (
       <div className={cn("space-y-4", className)}>
-        <Skeleton className="h-44 w-full rounded-xl" />
+        <Skeleton className="skeleton-shimmer h-44 w-full rounded-xl" />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-16 w-full rounded-lg" />
+            <Skeleton
+              key={index}
+              className="skeleton-shimmer h-16 w-full rounded-lg"
+            />
           ))}
         </div>
       </div>
@@ -83,13 +86,13 @@ export function LoadingSkeleton({
         {Array.from({ length: 5 }).map((_, columnIndex) => (
           <div
             key={columnIndex}
-            className="space-y-3 rounded-xl border border-border/50 bg-card p-3 shadow-sm"
+            className="space-y-3 rounded-xl border border-border bg-card p-3"
           >
-            <Skeleton className="h-5 w-24 rounded-md" />
+            <Skeleton className="skeleton-shimmer h-5 w-24 rounded" />
             {Array.from({ length: 3 }).map((_, cardIndex) => (
               <Skeleton
                 key={`${columnIndex}-${cardIndex}`}
-                className="h-24 w-full rounded-lg"
+                className="skeleton-shimmer h-24 w-full rounded-lg"
               />
             ))}
           </div>
@@ -98,17 +101,28 @@ export function LoadingSkeleton({
     )
   }
 
+  /* Default: table skeleton */
   return (
-    <div className={cn("space-y-2", className)}>
-      <div className="rounded-xl border border-border/50 bg-card p-3 shadow-sm">
-        <Skeleton className="h-6 w-full rounded-md" />
+    <div
+      className={cn(
+        "space-y-0 overflow-hidden rounded-xl border border-border bg-card",
+        className
+      )}
+    >
+      {/* Header */}
+      <div className="bg-muted/40 px-4 py-3">
+        <Skeleton className="skeleton-shimmer h-4 w-full rounded" />
       </div>
+      {/* Rows */}
       {Array.from({ length: rows }).map((_, index) => (
         <div
           key={index}
-          className="rounded-xl border border-border/50 bg-card p-3 shadow-sm"
+          className="flex items-center gap-4 border-t border-border px-4 py-3"
         >
-          <Skeleton className="h-6 w-full rounded-md" />
+          <Skeleton className="skeleton-shimmer h-4 w-1/4 rounded" />
+          <Skeleton className="skeleton-shimmer h-4 w-1/3 rounded" />
+          <Skeleton className="skeleton-shimmer h-4 w-1/5 rounded" />
+          <Skeleton className="skeleton-shimmer h-4 w-1/6 rounded" />
         </div>
       ))}
     </div>

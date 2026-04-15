@@ -111,7 +111,7 @@ function createInventoryColumns(
         return (
           <div className="flex min-w-0 items-center gap-3">
             {item.imageUrl ? (
-              <div className="relative size-9 shrink-0 overflow-hidden rounded-lg border border-border/60">
+              <div className="relative size-9 shrink-0 overflow-hidden rounded-md border border-border/60">
                 <Image
                   src={item.imageUrl}
                   alt={item.name}
@@ -120,19 +120,16 @@ function createInventoryColumns(
                 />
               </div>
             ) : (
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted text-muted-foreground">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted text-muted-foreground">
                 <LayersIcon className="size-4" />
               </span>
             )}
             <div className="min-w-0 space-y-0.5">
-              <p className="truncate text-sm font-semibold leading-tight">
+              <p className="truncate text-sm leading-tight font-semibold">
                 {item.name}
               </p>
               <div className="flex items-center gap-1.5">
-                <Badge
-                  variant="outline"
-                  className={`text-[10px] px-1.5 py-0 h-4 font-medium border ${catConfig.classes}`}
-                >
+                <Badge variant="outline" className={catConfig.classes}>
                   {catConfig.label}
                 </Badge>
               </div>
@@ -187,9 +184,7 @@ function createInventoryColumns(
         const text = truncated ? `${supplier.slice(0, 22)}...` : supplier
 
         if (!truncated) {
-          return (
-            <span className="text-sm text-muted-foreground">{text}</span>
-          )
+          return <span className="text-sm text-muted-foreground">{text}</span>
         }
 
         return (
@@ -220,7 +215,7 @@ function createInventoryColumns(
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-8 opacity-60 hover:opacity-100 transition-opacity"
+                className="size-8 opacity-60 transition-opacity hover:opacity-100"
               >
                 <EllipsisVerticalIcon className="size-4" />
                 <span className="sr-only">Abrir acciones</span>
@@ -337,7 +332,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         emptyMessage="Sin materiales disponibles"
         emptyDescription="Ajusta tus filtros o crea un nuevo material para empezar."
         emptyAction={
-          <Button asChild size="sm" className="bg-brand text-brand-foreground">
+          <Button asChild size="sm">
             <Link href="/inventory/new">Nuevo material</Link>
           </Button>
         }

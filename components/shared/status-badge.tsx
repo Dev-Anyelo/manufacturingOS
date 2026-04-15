@@ -25,7 +25,7 @@ const workOrderMap: Record<string, BadgeConfig> = {
   received: {
     label: "Recibido",
     icon: PackageSearchIcon,
-    className: "status-subtle",
+    className: "status-warning",
   },
   confirmed: {
     label: "Confirmado",
@@ -40,12 +40,12 @@ const workOrderMap: Record<string, BadgeConfig> = {
   ready: {
     label: "Listo",
     icon: CheckCircle2Icon,
-    className: "status-brand",
+    className: "status-success",
   },
   delivered: {
     label: "Entregado",
     icon: BadgeDollarSignIcon,
-    className: "status-success",
+    className: "status-paid",
   },
   cancelled: {
     label: "Cancelado",
@@ -58,7 +58,7 @@ const saleMap: Record<string, BadgeConfig> = {
   paid: {
     label: "Pagada",
     icon: CheckCircle2Icon,
-    className: "status-brand",
+    className: "status-paid",
   },
   partial: {
     label: "Parcial",
@@ -68,7 +68,7 @@ const saleMap: Record<string, BadgeConfig> = {
   pending: {
     label: "Pendiente",
     icon: PackageSearchIcon,
-    className: "status-subtle",
+    className: "status-warning",
   },
   cancelled: {
     label: "Cancelada",
@@ -86,7 +86,7 @@ const payrollMap: Record<string, BadgeConfig> = {
   paid: {
     label: "Pagada",
     icon: CheckCircle2Icon,
-    className: "status-brand",
+    className: "status-paid",
   },
 }
 
@@ -104,7 +104,7 @@ const stockMap: Record<string, BadgeConfig> = {
   critical: {
     label: "Critico",
     icon: AlertTriangleIcon,
-    className: "status-danger",
+    className: "status-critical",
   },
   out: {
     label: "Agotado",
@@ -139,8 +139,14 @@ export function StatusBadge({ status, type }: StatusBadgeProps) {
   const Icon = config.icon
 
   return (
-    <Badge variant="outline" className={cn("gap-1.5", config.className)}>
-      <Icon className="size-3.5" />
+    <Badge
+      variant="outline"
+      className={cn(
+        "gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium",
+        config.className
+      )}
+    >
+      <Icon className="size-3" />
       {config.label}
     </Badge>
   )

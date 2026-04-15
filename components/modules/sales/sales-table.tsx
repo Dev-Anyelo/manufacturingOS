@@ -151,7 +151,7 @@ export function SalesTable({ sales }: SalesTableProps) {
       searchPlaceholder="Buscar por cliente..."
       emptyMessage="Sin ventas registradas"
       emptyDescription="Las transacciones apareceran cuando registres ventas desde POS."
-      getRowClassName={(row) => (row.balanceDue > 0 ? "row-warning-soft" : "")}
+      getRowClassName={(row) => (row.balanceDue > 0 ? "bg-warning-soft" : "")}
       toolbar={
         <div className="flex flex-wrap items-center gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>

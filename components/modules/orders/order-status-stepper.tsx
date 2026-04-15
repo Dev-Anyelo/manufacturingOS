@@ -68,21 +68,21 @@ export function OrderStatusStepper({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm",
+        "overflow-hidden rounded-xl border border-border bg-muted/20",
         className
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border/50 px-5 py-3">
+      <div className="flex items-center justify-between border-b border-border bg-muted/20 px-5 py-3">
         <div className="flex items-center gap-2">
           <ShieldCheckIcon className="size-4 text-muted-foreground" />
-          <p className="text-[13px] font-semibold text-foreground">
+          <p className="text-sm font-semibold text-foreground">
             Flujo del pedido
           </p>
         </div>
         <div className="flex items-center gap-3">
           {isCancelled ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-1 text-[11px] font-semibold text-destructive">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-danger/30 bg-danger-soft px-2.5 py-1 text-xs font-semibold text-danger">
               <XCircleIcon className="size-3" />
               Cancelado
             </span>
@@ -95,7 +95,7 @@ export function OrderStatusStepper({
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
-                <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
+                <span className="text-xs font-semibold text-muted-foreground tabular-nums">
                   {progressPercent}%
                 </span>
               </div>
@@ -124,9 +124,9 @@ export function OrderStatusStepper({
                       stepState === "completed" &&
                         "border-brand bg-brand text-white shadow-sm shadow-brand/30",
                       stepState === "current" &&
-                        "border-brand bg-brand/10 text-brand ring-4 ring-brand/15",
+                        "border-brand bg-brand/10 text-brand ring-4 ring-brand/15 animate-pulse",
                       stepState === "future" &&
-                        "border-border/60 bg-background text-muted-foreground/50"
+                        "border-border bg-background text-muted-foreground/50"
                     )}
                     aria-label={step.label}
                   >
@@ -138,7 +138,7 @@ export function OrderStatusStepper({
                   </div>
                   <span
                     className={cn(
-                      "text-[11px] font-medium whitespace-nowrap",
+                      "text-xs font-medium whitespace-nowrap",
                       stepState === "current" && "font-bold text-brand",
                       stepState === "completed" && "text-foreground/70",
                       stepState === "future" && "text-muted-foreground/50"
@@ -158,7 +158,7 @@ export function OrderStatusStepper({
                           "h-0.5 w-3 rounded-full transition-colors duration-300",
                           stepState === "completed"
                             ? "bg-brand"
-                            : "bg-border/50"
+                            : "bg-border"
                         )}
                       />
                     ))}
@@ -175,15 +175,15 @@ export function OrderStatusStepper({
                 {[0, 1, 2].map((dot) => (
                   <div
                     key={dot}
-                    className="h-0.5 w-3 rounded-full bg-border/50"
+                    className="h-0.5 w-3 rounded-full bg-border"
                   />
                 ))}
               </div>
               <div className="flex flex-col items-center gap-2">
-                <div className="flex size-8 items-center justify-center rounded-full border-2 border-destructive/50 bg-destructive/10 text-destructive">
+                <div className="flex size-8 items-center justify-center rounded-full border-2 border-danger/50 bg-danger-soft text-danger">
                   <XCircleIcon className="size-3.5" />
                 </div>
-                <span className="text-[11px] font-bold text-destructive">
+                <span className="text-xs font-bold text-danger">
                   Cancelado
                 </span>
               </div>

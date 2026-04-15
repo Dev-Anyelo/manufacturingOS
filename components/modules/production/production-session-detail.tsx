@@ -57,7 +57,7 @@ export function ProductionSessionDetail({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Prendas
@@ -65,7 +65,7 @@ export function ProductionSessionDetail({
             <p className="text-lg font-semibold">{session.totalGarments}</p>
           </CardContent>
         </Card>
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Yardas usadas
@@ -75,7 +75,7 @@ export function ProductionSessionDetail({
             </p>
           </CardContent>
         </Card>
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Materiales
@@ -83,7 +83,7 @@ export function ProductionSessionDetail({
             <p className="text-lg font-semibold">{session.items.length}</p>
           </CardContent>
         </Card>
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Jornada
@@ -96,7 +96,7 @@ export function ProductionSessionDetail({
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
               Empleado
@@ -113,7 +113,7 @@ export function ProductionSessionDetail({
           </CardContent>
         </Card>
 
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
               Produccion total
@@ -131,7 +131,7 @@ export function ProductionSessionDetail({
           </CardContent>
         </Card>
 
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
               Fechas
@@ -152,14 +152,14 @@ export function ProductionSessionDetail({
       </div>
 
       <Card className="border border-border/50 shadow-sm">
-        <CardHeader className="border-b border-border/50">
+        <CardHeader className="border-b border-border">
           <CardTitle>Items de produccion</CardTitle>
           <p className="text-sm text-muted-foreground">
             Detalle de insumos y prendas procesadas en la sesion.
           </p>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
-          <div className="rounded-xl border border-border/50">
+          <div className="rounded-xl border border-border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -205,7 +205,7 @@ export function ProductionSessionDetail({
             </Table>
           </div>
 
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+          <div className="rounded-lg border border-border bg-muted/20 p-3">
             <p className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
               <ClipboardListIcon className="size-4" />
               Notas de jornada

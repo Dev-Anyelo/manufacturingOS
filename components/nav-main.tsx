@@ -43,6 +43,7 @@ export function NavMain({
                   asChild
                   tooltip={item.title}
                   isActive={isItemActive(item.url)}
+                  className="h-10 rounded-lg px-3 text-sm font-normal text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground data-[active=true]:bg-brand/10 data-[active=true]:font-medium data-[active=true]:text-brand [&>svg]:mr-2.5 [&>svg]:size-5 [&>svg]:text-current"
                 >
                   <Link href={item.url}>
                     {Icon ? <Icon /> : null}

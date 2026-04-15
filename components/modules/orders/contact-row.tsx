@@ -12,7 +12,7 @@ export function ContactRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 text-[13px]",
+        "flex items-center gap-2 text-sm",
         empty ? "text-muted-foreground/60" : "text-foreground/80"
       )}
     >

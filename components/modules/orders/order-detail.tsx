@@ -130,7 +130,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 <div
                   className={cn(
                     "absolute inset-y-0 left-0 rounded-full transition-all duration-700",
-                    paymentProgress >= 100 ? "bg-brand" : "bg-amber-500"
+                    paymentProgress >= 100 ? "bg-primary" : "bg-warning"
                   )}
                   style={{ width: `${paymentProgress}%` }}
                 />
@@ -157,9 +157,9 @@ export function OrderDetail({ order }: OrderDetailProps) {
 
       {/* ── Acciones de flujo ── */}
       {availableTransitions.length > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3">
-          <div className="flex size-5 shrink-0 items-center justify-center rounded-lg bg-brand/10">
-            <ZapIcon className="size-4 text-brand" />
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+          <div className="bg-info-soft flex size-5 shrink-0 items-center justify-center rounded-lg">
+            <ZapIcon className="text-info size-4" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -180,11 +180,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                   variant={
                     cfg?.variant === "destructive" ? "destructive" : "default"
                   }
-                  className={cn(
-                    "h-8 gap-1.5 text-xs",
-                    cfg?.variant !== "destructive" &&
-                      "bg-brand text-white hover:bg-brand/90"
-                  )}
+                  className={cn("h-8 gap-1.5 text-xs transition-colors")}
                   onClick={() => setTargetStatus(status)}
                 >
                   {cfg?.icon}
@@ -274,7 +270,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
               </div>
 
               {order.notes && (
-                <div className="mt-4 rounded-lg border border-border/50 bg-muted/30 p-3">
+                <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3">
                   <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                     <StickyNoteIcon className="size-3" />
                     Notas
@@ -313,7 +309,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 </div>
 
                 {/* Resumen financiero del cliente */}
-                <div className="rounded-lg border border-border/50 bg-muted/25 p-3 text-sm">
+                <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">
                       Pagado
@@ -387,7 +383,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                       <TableCell className="py-3 pl-5">
                         <div className="space-y-1.5">
                           <div className="flex items-start gap-2">
-                            <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-brand/10 text-xs font-bold text-brand">
+                            <div className="bg-info-soft text-info mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md text-xs font-bold">
                               {idx + 1}
                             </div>
                             <div>
@@ -413,7 +409,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                                 <RulerIcon className="size-3" />
                                 Ver {measurementEntries.length} medidas
                               </summary>
-                              <div className="mt-1.5 ml-0.5 grid grid-cols-3 gap-1.5 rounded-lg border border-border/50 bg-muted/30 p-2.5">
+                              <div className="mt-1.5 ml-0.5 grid grid-cols-3 gap-1.5 rounded-lg border border-border bg-muted/20 p-2.5">
                                 {measurementEntries.map(([key, value]) => (
                                   <div key={key} className="text-center">
                                     <p className="text-xs text-muted-foreground">
@@ -467,7 +463,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
             </Table>
 
             {/* Total footer */}
-            <div className="flex items-center justify-between border-t border-border/60 bg-muted/20 px-5 py-3">
+            <div className="flex items-center justify-between border-t border-border bg-muted/20 px-5 py-3">
               <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                 Total del pedido
               </span>
@@ -492,7 +488,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
             }
           >
             {order.referenceImages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 py-8 text-center">
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-8 text-center">
                 <ImageIcon className="mb-2 size-5 text-muted-foreground/40" />
                 <p className="text-xs text-pretty text-muted-foreground">
                   Sin imágenes de referencia
@@ -506,7 +502,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                     href={src}
                     target="_blank"
                     rel="noreferrer"
-                    className="group relative overflow-hidden rounded-xl border border-border/60 bg-muted/30"
+                    className="group relative overflow-hidden rounded-xl border border-border bg-muted/20"
                   >
                     <div
                       className="aspect-square bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
@@ -547,8 +543,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
               </p>
             ) : (
               <div className="relative space-y-0">
-                {/* Línea vertical del timeline */}
-                <div className="absolute top-2 bottom-2 left-3.75 w-px bg-border/60" />
+                <div className="absolute top-2 bottom-2 left-3.75 w-px bg-border" />
                 {order.statusHistory.map((event, idx) => (
                   <div
                     key={event.id}
@@ -611,7 +606,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 value={paidAmount}
                 accent="brand"
               />
-              <div className="border-t border-border/60 pt-2.5">
+              <div className="border-t border-border pt-2.5">
                 <FinanceRow
                   label="Saldo pendiente"
                   value={order.balanceDue}
@@ -632,7 +627,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 <div
                   className={cn(
                     "absolute inset-y-0 left-0 rounded-full transition-all duration-700",
-                    paymentProgress >= 100 ? "bg-brand" : "bg-amber-500"
+                    paymentProgress >= 100 ? "bg-primary" : "bg-warning"
                   )}
                   style={{ width: `${paymentProgress}%` }}
                 />

@@ -9,6 +9,7 @@ import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DateRangePicker } from "@/components/shared/date-range-picker"
+
 import {
   Tooltip,
   TooltipContent,
@@ -83,7 +84,7 @@ const columns: ColumnDef<ProductionTableRow>[] = [
                 <div className="space-y-0.5">
                   <Badge
                     variant="secondary"
-                    className="h-4 px-1.5 text-[10px] font-medium"
+                    className="h-4 px-1.5 text-xs font-medium"
                   >
                     {relLabel}
                   </Badge>
@@ -113,7 +114,7 @@ const columns: ColumnDef<ProductionTableRow>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2.5">
         <Avatar className="size-7 shrink-0">
-          <AvatarFallback className="bg-brand-muted text-[10px] font-semibold text-brand">
+          <AvatarFallback className="bg-brand/10 text-xs font-semibold text-brand">
             {initials(row.original.employeeName)}
           </AvatarFallback>
         </Avatar>

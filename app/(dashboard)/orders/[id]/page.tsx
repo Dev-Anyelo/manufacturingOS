@@ -24,7 +24,7 @@ export default async function OrderDetailPage({
   const order = data.order
 
   return (
-    <section className="space-y-6">
+    <section className="page-shell">
       <PageHeader
         title={`Pedido #${order.id.slice(0, 8).toUpperCase()}`}
         description="Detalle completo del pedido, flujo de producción y trazabilidad."
@@ -41,47 +41,49 @@ export default async function OrderDetailPage({
           </Button>
         }
       />
-      <OrderDetail
-        order={{
-          id: order.id,
-          customerId: order.customerId,
-          customerName: order.customer.fullName,
-          customerPhone: order.customer.phone,
-          customerEmail: order.customer.email,
-          receivedDate: order.receivedDate.toISOString(),
-          deliveryDate: order.deliveryDate.toISOString(),
-          status: order.status,
-          channel: order.channel,
-          advancePaid: decimalToNumber(order.advancePaid),
-          total: decimalToNumber(order.total),
-          balanceDue: decimalToNumber(order.balanceDue),
-          notes: order.notes,
-          cancelledReason: order.cancelledReason,
-          referenceImages: order.referenceImages,
-          items: order.items.map((item) => ({
-            id: item.id,
-            description: item.description,
-            size: item.size,
-            color: item.color,
-            designNotes: item.designNotes,
-            quantity: item.quantity,
-            unitPrice: decimalToNumber(item.unitPrice),
-            subtotal: decimalToNumber(item.subtotal),
-            measurements:
-              item.measurements && typeof item.measurements === "object"
-                ? (item.measurements as Record<string, unknown>)
-                : null,
-            catalogItemName: item.catalogItem?.name ?? null,
-            inventoryItemName: item.inventoryItem?.name ?? null,
-          })),
-          statusHistory: data.statusHistory.map((entry) => ({
-            id: entry.id,
-            action: entry.action,
-            createdAt: entry.createdAt.toISOString(),
-            actorName: entry.createdByProfile?.fullName ?? null,
-          })),
-        }}
-      />
+      <div className="page-content">
+        <OrderDetail
+          order={{
+            id: order.id,
+            customerId: order.customerId,
+            customerName: order.customer.fullName,
+            customerPhone: order.customer.phone,
+            customerEmail: order.customer.email,
+            receivedDate: order.receivedDate.toISOString(),
+            deliveryDate: order.deliveryDate.toISOString(),
+            status: order.status,
+            channel: order.channel,
+            advancePaid: decimalToNumber(order.advancePaid),
+            total: decimalToNumber(order.total),
+            balanceDue: decimalToNumber(order.balanceDue),
+            notes: order.notes,
+            cancelledReason: order.cancelledReason,
+            referenceImages: order.referenceImages,
+            items: order.items.map((item) => ({
+              id: item.id,
+              description: item.description,
+              size: item.size,
+              color: item.color,
+              designNotes: item.designNotes,
+              quantity: item.quantity,
+              unitPrice: decimalToNumber(item.unitPrice),
+              subtotal: decimalToNumber(item.subtotal),
+              measurements:
+                item.measurements && typeof item.measurements === "object"
+                  ? (item.measurements as Record<string, unknown>)
+                  : null,
+              catalogItemName: item.catalogItem?.name ?? null,
+              inventoryItemName: item.inventoryItem?.name ?? null,
+            })),
+            statusHistory: data.statusHistory.map((entry) => ({
+              id: entry.id,
+              action: entry.action,
+              createdAt: entry.createdAt.toISOString(),
+              actorName: entry.createdByProfile?.fullName ?? null,
+            })),
+          }}
+        />
+      </div>
     </section>
   )
 }

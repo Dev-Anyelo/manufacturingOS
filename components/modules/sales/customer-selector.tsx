@@ -161,7 +161,7 @@ export function CustomerSelector({
               <ChevronsUpDownIcon className="size-4 opacity-60" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[min(90vw,26rem)] p-0" align="start">
+          <PopoverContent className="w-screen p-0 sm:w-104" align="start">
             <Command>
               <CommandInput
                 placeholder="Buscar por nombre o telefono..."

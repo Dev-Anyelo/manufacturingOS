@@ -24,7 +24,7 @@ export default async function PayrollDetailPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <PageHeader
         title={`Pago ${payment.id.slice(0, 8)}`}
         description="Detalle de planilla y comprobante asociado."
@@ -42,52 +42,56 @@ export default async function PayrollDetailPage({
         }
       />
 
-      <PayslipPreview
-        payment={{
-          id: payment.id,
-          employeeName: payment.employee.fullName,
-          periodStart: payment.periodStart.toISOString(),
-          periodEnd: payment.periodEnd.toISOString(),
-          status: payment.status,
-          paymentDate: payment.paymentDate?.toISOString() ?? null,
-          paymentMethod: payment.paymentMethod,
-          baseAmount: decimalToNumber(payment.baseAmount),
-          bonuses: decimalToNumber(payment.bonuses),
-          deductions: decimalToNumber(payment.deductions),
-          total: decimalToNumber(payment.total),
-          notes: payment.notes,
-        }}
-      />
+      <div className="page-content">
+        <PayslipPreview
+          payment={{
+            id: payment.id,
+            employeeName: payment.employee.fullName,
+            periodStart: payment.periodStart.toISOString(),
+            periodEnd: payment.periodEnd.toISOString(),
+            status: payment.status,
+            paymentDate: payment.paymentDate?.toISOString() ?? null,
+            paymentMethod: payment.paymentMethod,
+            baseAmount: decimalToNumber(payment.baseAmount),
+            bonuses: decimalToNumber(payment.bonuses),
+            deductions: decimalToNumber(payment.deductions),
+            total: decimalToNumber(payment.total),
+            notes: payment.notes,
+          }}
+        />
 
-      <Card className="border border-border/50 shadow-sm">
-        <CardHeader className="border-b border-border/50">
-          <CardTitle>Gastos asociados</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 pt-6">
-          {payment.expenses.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No hay gastos vinculados a este pago.
-            </p>
-          ) : (
-            payment.expenses.map((expense) => (
-              <div
-                key={expense.id}
-                className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2"
-              >
-                <div>
-                  <p className="text-sm font-medium">{expense.concept}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(expense.expenseDate).toLocaleDateString("es-PA")}
+        <Card className="border border-border shadow-sm">
+          <CardHeader className="border-b border-border">
+            <CardTitle>Gastos asociados</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-6">
+            {payment.expenses.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No hay gastos vinculados a este pago.
+              </p>
+            ) : (
+              payment.expenses.map((expense) => (
+                <div
+                  key={expense.id}
+                  className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{expense.concept}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(expense.expenseDate).toLocaleDateString(
+                        "es-PA"
+                      )}
+                    </p>
+                  </div>
+                  <p className="text-sm font-semibold">
+                    ${decimalToNumber(expense.total).toFixed(2)}
                   </p>
                 </div>
-                <p className="text-sm font-semibold">
-                  ${decimalToNumber(expense.total).toFixed(2)}
-                </p>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -280,7 +280,7 @@ export function ProductionForm({
       className="space-y-6"
       noValidate
     >
-      <Card className="border border-border/60">
+      <Card className="border border-border">
         <CardHeader>
           <CardTitle className="text-base">Datos de sesion</CardTitle>
         </CardHeader>
@@ -302,7 +302,7 @@ export function ProductionForm({
                   <ChevronsUpDownIcon className="size-4 text-muted-foreground" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[min(92vw,26rem)] p-0" align="start">
+              <PopoverContent className="w-screen p-0 sm:w-104" align="start">
                 <Command>
                   <CommandInput placeholder="Buscar empleado..." />
                   <CommandList>
@@ -396,7 +396,7 @@ export function ProductionForm({
             />
           </div>
 
-          <div className="rounded-xl border border-border/50 bg-muted/20 p-3 md:col-span-2">
+          <div className="rounded-xl border border-border bg-surface-1 p-3 md:col-span-2">
             <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
               <div>
                 <p className="text-xs text-muted-foreground">Lineas</p>
@@ -415,7 +415,7 @@ export function ProductionForm({
         </CardContent>
       </Card>
 
-      <Card className="border border-border/60">
+      <Card className="border border-border">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Detalle de confeccion</CardTitle>
           <Button
@@ -440,7 +440,7 @@ export function ProductionForm({
             return (
               <div
                 key={field.id}
-                className="space-y-4 rounded-xl border border-border/60 bg-card p-4"
+                className="space-y-4 rounded-xl border border-border bg-card p-4"
               >
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                   <div className="space-y-2">

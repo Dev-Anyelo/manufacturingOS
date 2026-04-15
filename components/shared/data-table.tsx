@@ -120,11 +120,14 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border/50 bg-card shadow-sm">
+      <div className="table-enterprise overflow-x-auto">
         <Table className="min-w-180">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+              <TableRow
+                key={headerGroup.id}
+                className="border-b border-border hover:bg-transparent"
+              >
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as
                     | ColumnMeta
@@ -136,6 +139,7 @@ export function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(
+                        "label-overline",
                         meta?.headerClassName,
                         meta?.className,
                         alignActions
@@ -169,7 +173,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   className={cn(
-                    "cursor-pointer transition-colors hover:bg-muted/40",
+                    "h-13 cursor-pointer border-b border-border/60 transition-colors duration-100 hover:bg-muted/20",
                     getRowClassName?.(row.original)
                   )}
                 >
@@ -179,11 +183,21 @@ export function DataTable<TData, TValue>({
                       | undefined
                     const alignActions =
                       cell.column.id === "actions" ? "text-right" : ""
+                    const isCodeLikeColumn = /id|code|codigo/i.test(
+                      cell.column.id
+                    )
+                    const firstColumnAccent =
+                      cell.column.getIndex() === 0 && isCodeLikeColumn
 
                     return (
                       <TableCell
                         key={cell.id}
-                        className={cn(meta?.className, alignActions)}
+                        className={cn(
+                          "px-4 text-sm",
+                          firstColumnAccent && "mono-code text-brand",
+                          meta?.className,
+                          alignActions
+                        )}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -212,8 +226,8 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">
-          Mostrando {start}-{end} de {total}
+        <p className="body-muted">
+          Mostrando {start}–{end} de {total} resultados
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">

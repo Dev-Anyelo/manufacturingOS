@@ -27,7 +27,7 @@ export default async function CatalogDetailPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <PageHeader
         title={item.name}
         description="Detalle del producto y configuracion de precios."
@@ -45,130 +45,148 @@ export default async function CatalogDetailPage({
         }
       />
 
-      <Card className="border border-border/50 shadow-sm">
-        <CardHeader className="border-b border-border/50">
-          <CardTitle>Resumen del producto</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[240px_1fr]">
-            <div className="overflow-hidden rounded-xl border border-border/50 bg-muted/20">
-              {item.imageUrl ? (
-                <Image
-                  src={item.imageUrl}
-                  alt={item.name}
-                  width={240}
-                  height={240}
-                  className="h-60 w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-60 items-center justify-center">
-                  <LayersIcon className="size-8 text-muted-foreground" />
+      <div className="page-content">
+        <Card className="border border-border shadow-sm">
+          <CardHeader className="border-b border-border">
+            <CardTitle>Resumen del producto</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
+              <div className="overflow-hidden rounded-xl border border-border bg-muted/30">
+                {item.imageUrl ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.name}
+                    width={240}
+                    height={240}
+                    className="h-60 w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-60 items-center justify-center">
+                    <LayersIcon className="size-8 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/40">
+                  <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                    Tipo de Prenda
+                  </p>
+                  <p className="mt-1 flex items-baseline gap-1 text-sm font-medium">
+                    {item.garmentType ?? "Sin tipo"}
+                  </p>
                 </div>
-              )}
+                <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/40">
+                  <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                    Costo Estimado
+                  </p>
+                  <div className="mt-1 flex items-baseline gap-1">
+                    <CurrencyDisplay
+                      amount={
+                        item.estimatedCost
+                          ? decimalToNumber(item.estimatedCost)
+                          : 0
+                      }
+                      size="lg"
+                    />
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/40">
+                  <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                    Precio Mercado
+                  </p>
+                  <div className="mt-1 flex items-baseline gap-1">
+                    <CurrencyDisplay
+                      amount={
+                        item.marketPriceUnit
+                          ? decimalToNumber(item.marketPriceUnit)
+                          : 0
+                      }
+                      size="lg"
+                    />
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/40">
+                  <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                    Precio Propio
+                  </p>
+                  <div className="mt-1 flex items-baseline gap-1">
+                    <CurrencyDisplay
+                      amount={
+                        item.ourPriceUnit
+                          ? decimalToNumber(item.ourPriceUnit)
+                          : 0
+                      }
+                      size="lg"
+                    />
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/40 sm:col-span-2">
+                  <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                    Margen Estimado
+                  </p>
+                  <div className="pt-1">
+                    <ProfitMarginIndicator
+                      ourPriceUnit={
+                        item.ourPriceUnit
+                          ? decimalToNumber(item.ourPriceUnit)
+                          : null
+                      }
+                      estimatedCost={
+                        item.estimatedCost
+                          ? decimalToNumber(item.estimatedCost)
+                          : null
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-border/50 bg-card p-3">
-                <p className="text-xs text-muted-foreground">Tipo de prenda</p>
-                <p className="text-sm font-medium">
-                  {item.garmentType ?? "Sin tipo"}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border/50 bg-card p-3">
-                <p className="text-xs text-muted-foreground">Costo estimado</p>
-                <p className="text-sm font-medium">
-                  <CurrencyDisplay
-                    amount={
-                      item.estimatedCost
-                        ? decimalToNumber(item.estimatedCost)
-                        : 0
-                    }
-                    size="sm"
-                  />
-                </p>
-              </div>
-              <div className="rounded-lg border border-border/50 bg-card p-3">
-                <p className="text-xs text-muted-foreground">Precio mercado</p>
-                <p className="text-sm font-medium">
-                  <CurrencyDisplay
-                    amount={
-                      item.marketPriceUnit
-                        ? decimalToNumber(item.marketPriceUnit)
-                        : 0
-                    }
-                    size="sm"
-                  />
-                </p>
-              </div>
-              <div className="rounded-lg border border-border/50 bg-card p-3">
-                <p className="text-xs text-muted-foreground">Precio propio</p>
-                <p className="text-sm font-medium">
-                  <CurrencyDisplay
-                    amount={
-                      item.ourPriceUnit ? decimalToNumber(item.ourPriceUnit) : 0
-                    }
-                    size="sm"
-                  />
-                </p>
-              </div>
-              <div className="rounded-lg border border-border/50 bg-card p-3 sm:col-span-2">
-                <p className="text-xs text-muted-foreground">Margen estimado</p>
-                <div className="pt-1">
-                  <ProfitMarginIndicator
-                    ourPriceUnit={
-                      item.ourPriceUnit
-                        ? decimalToNumber(item.ourPriceUnit)
-                        : null
-                    }
-                    estimatedCost={
-                      item.estimatedCost
-                        ? decimalToNumber(item.estimatedCost)
-                        : null
-                    }
-                  />
-                </div>
-              </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-4">
+              <p className="text-xs text-muted-foreground">Descripcion</p>
+              <p className="mt-1 text-sm text-foreground">
+                {item.description ?? "Sin descripcion."}
+              </p>
             </div>
-          </div>
 
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
-            <p className="text-xs text-muted-foreground">Descripcion</p>
-            <p className="text-sm">{item.description ?? "Sin descripcion."}</p>
-          </div>
+            <div className="rounded-lg border border-border bg-muted/20 p-4">
+              <p className="text-xs text-muted-foreground">Notas internas</p>
+              <p className="mt-1 text-sm text-foreground">
+                {item.notes ?? "Sin notas."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-          <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
-            <p className="text-xs text-muted-foreground">Notas internas</p>
-            <p className="text-sm">{item.notes ?? "Sin notas."}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <CatalogForm
-        mode="edit"
-        itemId={item.id}
-        defaultValues={{
-          name: item.name,
-          description: item.description,
-          garment_type: item.garmentType ?? "",
-          market_price_unit: item.marketPriceUnit
-            ? decimalToNumber(item.marketPriceUnit)
-            : 0,
-          market_price_dozen: item.marketPriceDozen
-            ? decimalToNumber(item.marketPriceDozen)
-            : null,
-          our_price_unit: item.ourPriceUnit
-            ? decimalToNumber(item.ourPriceUnit)
-            : 0,
-          our_price_dozen: item.ourPriceDozen
-            ? decimalToNumber(item.ourPriceDozen)
-            : null,
-          estimated_cost: item.estimatedCost
-            ? decimalToNumber(item.estimatedCost)
-            : null,
-          notes: item.notes,
-          image_url: item.imageUrl,
-        }}
-      />
+        <CatalogForm
+          mode="edit"
+          itemId={item.id}
+          defaultValues={{
+            name: item.name,
+            description: item.description,
+            garment_type: item.garmentType ?? "",
+            market_price_unit: item.marketPriceUnit
+              ? decimalToNumber(item.marketPriceUnit)
+              : 0,
+            market_price_dozen: item.marketPriceDozen
+              ? decimalToNumber(item.marketPriceDozen)
+              : null,
+            our_price_unit: item.ourPriceUnit
+              ? decimalToNumber(item.ourPriceUnit)
+              : 0,
+            our_price_dozen: item.ourPriceDozen
+              ? decimalToNumber(item.ourPriceDozen)
+              : null,
+            estimated_cost: item.estimatedCost
+              ? decimalToNumber(item.estimatedCost)
+              : null,
+            notes: item.notes,
+            image_url: item.imageUrl,
+          }}
+        />
+      </div>
     </div>
   )
 }

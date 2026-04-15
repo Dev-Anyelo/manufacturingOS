@@ -119,7 +119,7 @@ export function PayrollWorkspace({
   return (
     <div className="space-y-5">
       {/* StatCards row */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         <StatCard
           title="Pagos pendientes"
           value={pendingCount}
@@ -145,7 +145,7 @@ export function PayrollWorkspace({
       {/* Tabs */}
       <Tabs defaultValue="payments" className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <TabsList className="h-9 bg-muted/50">
+          <TabsList className="h-9 rounded-xl border border-border/60 bg-muted/20 p-1">
             <TabsTrigger value="payments" className="gap-1.5 text-xs">
               <ReceiptIcon className="size-3.5" />
               Pagos
@@ -156,11 +156,7 @@ export function PayrollWorkspace({
             </TabsTrigger>
           </TabsList>
 
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setCreateOpen(true)}
-          >
+          <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
             <PlusIcon className="size-4" />
             Nuevo pago
           </Button>
@@ -179,8 +175,8 @@ export function PayrollWorkspace({
         </TabsContent>
 
         <TabsContent value="employees">
-          <Card className="border border-border/50 shadow-sm rounded-xl">
-            <CardHeader className="border-b border-border/50 pb-3">
+          <Card className="rounded-xl border border-border shadow-sm">
+            <CardHeader className="border-b border-border pb-3">
               <CardTitle className="text-base font-semibold">
                 Acumulado por empleado
               </CardTitle>
@@ -188,26 +184,27 @@ export function PayrollWorkspace({
                 Totales de planilla segun filtros y pagos registrados.
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-4 space-y-2">
+            <CardContent className="space-y-2 pt-4">
               {employeeSummary.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">
-                  Aun no hay pagos registrados para mostrar resumen por empleado.
+                <p className="py-4 text-center text-sm text-muted-foreground">
+                  Aun no hay pagos registrados para mostrar resumen por
+                  empleado.
                 </p>
               ) : (
                 employeeSummary.map((row) => (
                   <div
                     key={row.employeeId}
-                    className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 px-3 py-2.5 hover:bg-muted/40 transition-colors"
+                    className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-3 py-2.5 transition-colors hover:bg-muted/20"
                   >
                     <div className="flex items-center gap-2.5">
                       <Avatar className="size-7 shrink-0">
-                        <AvatarFallback className="bg-brand-muted text-brand text-[10px] font-semibold">
+                        <AvatarFallback className="bg-brand/10 text-xs font-semibold text-brand">
                           {getInitials(row.employeeName)}
                         </AvatarFallback>
                       </Avatar>
                       <p className="text-sm font-medium">{row.employeeName}</p>
                     </div>
-                    <div className="font-bold tabular-nums text-sm">
+                    <div className="text-sm font-bold tabular-nums">
                       <CurrencyDisplay amount={row.total} />
                     </div>
                   </div>

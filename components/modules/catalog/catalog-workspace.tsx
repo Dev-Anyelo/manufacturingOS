@@ -76,8 +76,11 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         accessorKey: "ourPriceUnit",
         header: () => <div className="text-right">Unitario</div>,
         cell: ({ row }) => (
-          <div className="text-right font-bold tabular-nums text-brand">
-            <CurrencyDisplay amount={row.original.ourPriceUnit ?? 0} size="sm" />
+          <div className="text-right font-bold text-brand tabular-nums">
+            <CurrencyDisplay
+              amount={row.original.ourPriceUnit ?? 0}
+              size="sm"
+            />
           </div>
         ),
       },
@@ -85,8 +88,11 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         accessorKey: "ourPriceDozen",
         header: () => <div className="text-right">Docena</div>,
         cell: ({ row }) => (
-          <div className="text-right tabular-nums text-muted-foreground">
-            <CurrencyDisplay amount={row.original.ourPriceDozen ?? 0} size="sm" />
+          <div className="text-right text-muted-foreground tabular-nums">
+            <CurrencyDisplay
+              amount={row.original.ourPriceDozen ?? 0}
+              size="sm"
+            />
           </div>
         ),
         meta: {
@@ -108,7 +114,12 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         id: "actions",
         header: "",
         cell: ({ row }) => (
-          <Button asChild variant="ghost" size="sm" className="h-8 px-3 text-xs">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="h-8 px-3 text-xs"
+          >
             <Link href={`/catalog/${row.original.id}`}>Detalle</Link>
           </Button>
         ),
@@ -120,62 +131,64 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* View toggle */}
-          <div className="flex items-center rounded-lg border border-border/50 bg-muted/30 p-0.5 gap-0.5">
-            <button
-              type="button"
-              onClick={() => setViewMode("grid")}
-              className={cn(
-                "flex h-7 w-8 items-center justify-center rounded-md text-xs transition-all",
-                viewMode === "grid"
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-label="Vista tarjetas"
-            >
-              <LayoutGridIcon className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("table")}
-              className={cn(
-                "flex h-7 w-8 items-center justify-center rounded-md text-xs transition-all",
-                viewMode === "table"
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-              aria-label="Vista tabla"
-            >
-              <ListIcon className="size-3.5" />
-            </button>
+      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card sm:px-5 sm:py-3.5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* View toggle */}
+            <div className="flex items-center gap-0.5 rounded-lg border border-border bg-muted/20 p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={cn(
+                  "flex h-7 w-8 items-center justify-center rounded-md text-xs transition-all",
+                  viewMode === "grid"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label="Vista tarjetas"
+              >
+                <LayoutGridIcon className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={cn(
+                  "flex h-7 w-8 items-center justify-center rounded-md text-xs transition-all",
+                  viewMode === "table"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label="Vista tabla"
+              >
+                <ListIcon className="size-3.5" />
+              </button>
+            </div>
+
+            <Select value={garmentFilter} onValueChange={setGarmentFilter}>
+              <SelectTrigger className="h-8 w-full text-xs sm:w-52">
+                <SelectValue placeholder="Tipo de prenda" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los tipos</SelectItem>
+                {garmentTypes.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <Select value={garmentFilter} onValueChange={setGarmentFilter}>
-            <SelectTrigger className="h-8 w-52 text-xs">
-              <SelectValue placeholder="Tipo de prenda" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tipos</SelectItem>
-              {garmentTypes.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 w-full px-3 text-xs sm:w-auto"
+            onClick={() => setBulkDialogOpen(true)}
+          >
+            <SlidersHorizontalIcon className="size-3.5" />
+            Ajuste masivo
+          </Button>
         </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 px-3 text-xs"
-          onClick={() => setBulkDialogOpen(true)}
-        >
-          <SlidersHorizontalIcon className="size-3.5" />
-          Ajuste masivo
-        </Button>
       </div>
 
       {/* Content */}
@@ -186,7 +199,11 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             title="Sin productos en el catalogo"
             description="Agrega nuevos productos para iniciar ventas y pedidos."
             action={
-              <Button asChild size="sm" className="bg-brand text-brand-foreground">
+              <Button
+                asChild
+                size="sm"
+                className="bg-brand text-brand-foreground"
+              >
                 <Link href="/catalog/new">Nuevo producto</Link>
               </Button>
             }

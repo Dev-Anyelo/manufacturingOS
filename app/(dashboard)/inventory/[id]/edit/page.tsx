@@ -19,8 +19,8 @@ export default async function EditInventoryItemPage({
   }
 
   return (
-    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8">
-      <div className="max-w-2xl mx-auto w-full space-y-6">
+    <section className="page-shell">
+      <div className="page-content">
         <PageHeader
           title={`Editar: ${item.name}`}
           description="Actualiza datos generales, stock base y proveedor."
@@ -33,23 +33,23 @@ export default async function EditInventoryItemPage({
         />
 
         <InventoryForm
-        mode="edit"
-        itemId={item.id}
-        defaultValues={{
-          name: item.name,
-          category: item.category as MaterialCategory,
-          fabric_type: item.fabricType,
-          color: item.color,
-          quantity: Number(item.quantity),
-          unit: item.unit,
-          unit_price: Number(item.unitPrice),
-          minimum_stock: Number(item.minimumStock),
-          supplier: item.supplier,
-          notes: item.notes,
-          image_url: item.imageUrl,
-          is_active: item.isActive,
-        }}
-      />
+          mode="edit"
+          itemId={item.id}
+          defaultValues={{
+            name: item.name,
+            category: item.category as MaterialCategory,
+            fabric_type: item.fabricType,
+            color: item.color,
+            quantity: Number(item.quantity),
+            unit: item.unit,
+            unit_price: Number(item.unitPrice),
+            minimum_stock: Number(item.minimumStock),
+            supplier: item.supplier,
+            notes: item.notes,
+            image_url: item.imageUrl,
+            is_active: item.isActive,
+          }}
+        />
       </div>
     </section>
   )

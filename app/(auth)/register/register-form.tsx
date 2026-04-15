@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2Icon } from "lucide-react"
+import { Loader2Icon, ShieldCheckIcon } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 
@@ -67,13 +67,22 @@ export function RegisterForm() {
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Crear cuenta</CardTitle>
+    <Card className="overflow-hidden border border-border bg-muted/20 shadow-sm backdrop-blur-sm">
+      <CardHeader className="space-y-3 border-b border-border">
+        <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-brand/30 bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">
+          <ShieldCheckIcon className="size-3.5" />
+          Alta segura
+        </div>
+        <div className="space-y-1">
+          <CardTitle className="text-xl">Crear cuenta</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Registra un nuevo usuario para gestionar operaciones del sistema.
+          </p>
+        </div>
       </CardHeader>
       <form onSubmit={onSubmit} noValidate>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
+        <CardContent className="space-y-4 pt-6">
+          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
             <Label htmlFor="full_name">Nombre completo</Label>
             <Input
               id="full_name"
@@ -87,7 +96,7 @@ export function RegisterForm() {
             ) : null}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
             <Label htmlFor="email">Correo electronico</Label>
             <Input
               id="email"
@@ -102,7 +111,7 @@ export function RegisterForm() {
             ) : null}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
             <Label htmlFor="password">Contrasena</Label>
             <Input
               id="password"
@@ -129,10 +138,10 @@ export function RegisterForm() {
           </Link>
         </CardContent>
 
-        <CardFooter>
+        <CardFooter className="border-t border-border bg-muted/20">
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-brand text-brand-foreground hover:bg-brand-dark"
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? (

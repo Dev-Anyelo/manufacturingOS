@@ -413,7 +413,7 @@ export function PayrollForm({
         <Textarea id="notes" className="min-h-20" {...form.register("notes")} />
       </div>
 
-      <Card className="bg-brand-muted sticky bottom-0 border-brand/30 sm:static">
+      <Card className="bg-success-soft border-success-soft sticky bottom-0 sm:static">
         <CardContent className="space-y-2 p-4 text-sm">
           <h3 className="font-semibold">Resumen del pago</h3>
           <div className="flex justify-between text-muted-foreground">

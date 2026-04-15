@@ -124,7 +124,7 @@ function KanbanColumn({
         </div>
         <span
           className={cn(
-            "inline-flex h-5 min-w-5 items-center justify-center rounded-full border px-1.5 text-[10px] font-bold",
+            "inline-flex h-5 min-w-5 items-center justify-center rounded-full border px-1.5 text-xs font-bold",
             cfg.badge
           )}
         >
@@ -140,7 +140,7 @@ function KanbanColumn({
           "transition-all duration-100",
           cfg.bodyBg,
           cfg.border,
-          isOver && "bg-brand/5 ring-2 ring-brand/40 ring-inset"
+          isOver && "bg-brand/5 ring-1 ring-brand ring-inset"
         )}
       >
         <SortableContext
@@ -226,7 +226,7 @@ export function OrderKanban({
                       className={cn("size-2 rounded-full", statusConfig[s].dot)}
                     />
                     {statusConfig[s].label}
-                    <Badge variant="secondary" className="ml-1 text-[10px]">
+                    <Badge variant="secondary" className="ml-1 text-xs">
                       {ordersByStatus[s].length}
                     </Badge>
                   </div>
@@ -237,7 +237,7 @@ export function OrderKanban({
         </div>
         <div className="space-y-2">
           {mobileList.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border/50 p-8 text-center text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
               Sin pedidos para este filtro
             </div>
           ) : (

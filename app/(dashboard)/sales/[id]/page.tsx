@@ -28,7 +28,7 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <PageHeader
         title={`Venta #${sale.id.slice(0, 8)}`}
         description="Consulta items, pagos y estado para esta venta."
@@ -47,10 +47,7 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
             {sale.status !== "paid" ? (
               <UpdateSalePaymentButton saleId={sale.id} />
             ) : null}
-            <Button
-              asChild
-              size="sm"
-            >
+            <Button asChild size="sm">
               <Link href="/sales/new">
                 <Plus className="mr-1.5 h-4 w-4" />
                 Nueva venta
@@ -60,44 +57,47 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
         }
       />
 
-      <SaleDetail
-        sale={{
-          id: sale.id,
-          saleDate: sale.saleDate,
-          channel: sale.channel,
-          paymentMethod: sale.paymentMethod,
-          total: decimalToNumber(sale.total),
-          discount: decimalToNumber(sale.discount),
-          amountPaid: decimalToNumber(sale.amountPaid),
-          changeGiven: decimalToNumber(sale.changeGiven),
-          balanceDue: decimalToNumber(sale.balanceDue),
-          status: sale.status,
-          customerName: sale.customer?.fullName ?? "Cliente ocasional",
-          customerPhone: sale.customer?.phone,
-          customerEmail: sale.customer?.email,
-          items: sale.items.map((item) => ({
-            id: item.id,
-            description: item.description,
-            size: item.size,
-            quantity: item.quantity,
-            unitPrice: decimalToNumber(item.unitPrice),
-            discount: decimalToNumber(item.discount),
-            subtotal: decimalToNumber(item.subtotal),
-          })),
-        }}
-      />
+      <div className="page-content">
+        <SaleDetail
+          sale={{
+            id: sale.id,
+            saleDate: sale.saleDate,
+            channel: sale.channel,
+            paymentMethod: sale.paymentMethod,
+            total: decimalToNumber(sale.total),
+            discount: decimalToNumber(sale.discount),
+            amountPaid: decimalToNumber(sale.amountPaid),
+            changeGiven: decimalToNumber(sale.changeGiven),
+            balanceDue: decimalToNumber(sale.balanceDue),
+            status: sale.status,
+            customerName: sale.customer?.fullName ?? "Cliente ocasional",
+            customerPhone: sale.customer?.phone,
+            customerEmail: sale.customer?.email,
+            items: sale.items.map((item) => ({
+              id: item.id,
+              description: item.description,
+              size: item.size,
+              quantity: item.quantity,
+              unitPrice: decimalToNumber(item.unitPrice),
+              discount: decimalToNumber(item.discount),
+              subtotal: decimalToNumber(item.subtotal),
+            })),
+          }}
+        />
 
-      <Card className="border border-dashed border-border/60 bg-muted/20">
-        <CardHeader>
-          <CardTitle className="text-base">
-            Siguiente paso recomendado
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          Si el cliente tiene saldo pendiente, registra el abono desde la ficha
-          de cobros cuando el prompt de Cuentas por cobrar este habilitado.
-        </CardContent>
-      </Card>
+        <Card className="border border-dashed border-border bg-muted/20">
+          <CardHeader>
+            <CardTitle className="text-base">
+              Siguiente paso recomendado
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            Si el cliente tiene saldo pendiente, registra el abono desde la
+            ficha de cobros cuando el prompt de Cuentas por cobrar este
+            habilitado.
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -12,12 +12,12 @@ interface ExpensesSummaryProps {
 }
 const categoryColors = [
   "bg-brand",
-  "bg-blue-500",
-  "bg-amber-500",
-  "bg-purple-500",
-  "bg-red-500",
+  "bg-info",
+  "bg-warning",
+  "bg-danger",
   "bg-cyan-500",
-  "bg-rose-500",
+  "bg-emerald-500",
+  "bg-blue-500",
 ]
 
 export function ExpensesSummary({
@@ -39,8 +39,8 @@ export function ExpensesSummary({
   return (
     <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3">
       {/* Left: Monthly total + top concepts */}
-      <Card className="m-0 rounded-xl border border-border/50 p-0 shadow-sm lg:col-span-1">
-        <CardHeader className="border-b border-border/50 px-4 pt-3 pb-2">
+      <Card className="m-0 rounded-xl border border-border p-0 shadow-card lg:col-span-1">
+        <CardHeader className="border-b border-border px-4 pt-3 pb-2">
           <div className="flex items-center gap-2">
             <div className="bg-danger-soft flex h-9 w-9 items-center justify-center rounded-lg">
               <TrendingDownIcon className="text-danger size-4" />
@@ -104,8 +104,8 @@ export function ExpensesSummary({
       </Card>
 
       {/* Right: Category breakdown bars */}
-      <Card className="rounded-xl border border-border/50 shadow-sm lg:col-span-2">
-        <CardHeader className="border-b border-border/50 pb-3">
+      <Card className="rounded-xl border border-border shadow-card lg:col-span-2">
+        <CardHeader className="border-b border-border pb-3">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold">
             <WalletCardsIcon className="size-4 text-muted-foreground" />
             Distribucion por categoria

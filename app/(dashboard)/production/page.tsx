@@ -43,8 +43,8 @@ export default async function ProductionPage() {
   }
 
   return (
-    <section className="flex min-h-full flex-col gap-4">
-      <div className="mx-auto w-full space-y-4">
+    <section className="page-shell">
+      <div className="page-content">
         <PageHeader
           title="Produccion"
           description="Registra sesiones de confeccion y consumo de materiales."
@@ -53,10 +53,7 @@ export default async function ProductionPage() {
             { label: "Produccion" },
           ]}
           actions={
-            <Button
-              asChild
-              size="sm"
-            >
+            <Button asChild size="sm">
               <Link href="/production/new">
                 <PlusIcon className="size-4" />
                 Nueva sesion
@@ -65,7 +62,7 @@ export default async function ProductionPage() {
           }
         />
 
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
           <StatCard
             title="Sesiones hoy"
             value={stats.sessionCount}

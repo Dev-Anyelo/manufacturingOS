@@ -38,7 +38,7 @@ export function SearchInput({
   return (
     <div
       className={cn(
-        "relative w-full rounded-lg border border-border/60 bg-card shadow-sm",
+        "relative w-full rounded-md border border-border bg-surface-1",
         className
       )}
     >
@@ -47,7 +47,7 @@ export function SearchInput({
         value={localValue}
         onChange={(event) => setLocalValue(event.target.value)}
         placeholder={placeholder}
-        className="border-0 bg-transparent pr-8 pl-8 shadow-none text-sm focus:ring-0"
+        className="h-8 border-0 bg-transparent pr-8 pl-8 text-sm shadow-none focus:ring-0"
       />
       <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
         {isLoading ? (

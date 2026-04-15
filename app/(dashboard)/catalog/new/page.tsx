@@ -3,7 +3,7 @@ import { CatalogForm } from "@/components/modules/catalog/catalog-form"
 
 export default function NewCatalogItemPage() {
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <PageHeader
         title="Nuevo producto"
         description="Registra una prenda con precios de mercado y estructura de costos."
@@ -13,7 +13,9 @@ export default function NewCatalogItemPage() {
         ]}
       />
 
-      <CatalogForm mode="create" />
+      <div className="page-content">
+        <CatalogForm mode="create" />
+      </div>
     </div>
   )
 }

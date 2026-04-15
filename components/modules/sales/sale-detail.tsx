@@ -72,7 +72,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Total venta
@@ -84,7 +84,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
             />
           </CardContent>
         </Card>
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Pagado
@@ -96,7 +96,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
             />
           </CardContent>
         </Card>
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Descuento
@@ -108,7 +108,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
             />
           </CardContent>
         </Card>
-        <Card className="border border-border/50 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Saldo pendiente
@@ -130,8 +130,8 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="border border-border/50 shadow-sm lg:col-span-2">
-          <CardHeader className="border-b border-border/50">
+        <Card className="border border-border shadow-sm lg:col-span-2">
+        <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center justify-between gap-2">
               <span>Venta #{sale.id.slice(0, 8)}</span>
               <StatusBadge status={sale.status} type="sale" />
@@ -142,13 +142,13 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
               <p className="text-xs text-muted-foreground">Canal</p>
               <p className="text-sm font-medium">
                 {channelLabelMap[sale.channel] ?? sale.channel}
               </p>
             </div>
-            <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
               <p className="text-xs text-muted-foreground">Metodo de pago</p>
               <p className="text-sm font-medium">
                 {paymentMethodLabelMap[sale.paymentMethod] ??
@@ -158,8 +158,8 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/50 shadow-sm">
-          <CardHeader className="border-b border-border/50">
+      <Card className="border border-border shadow-sm">
+        <CardHeader className="border-b border-border">
             <CardTitle className="text-base">Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 pt-4 text-sm">
@@ -174,8 +174,8 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
         </Card>
       </div>
 
-      <Card className="border border-border/50 shadow-sm">
-        <CardHeader className="border-b border-border/50">
+      <Card className="border border-border shadow-sm">
+        <CardHeader className="border-b border-border">
           <CardTitle className="text-base">Items vendidos</CardTitle>
           <CardDescription>
             {sale.items.length} lineas de venta • {totalItems} unidades totales
@@ -215,8 +215,8 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
         </CardContent>
       </Card>
 
-      <Card className="border border-border/50 shadow-sm">
-        <CardHeader className="border-b border-border/50">
+      <Card className="border border-border shadow-sm">
+        <CardHeader className="border-b border-border">
           <CardTitle className="text-base">Resumen financiero</CardTitle>
           <CardDescription>
             Consolidado de caja de la transaccion
@@ -239,7 +239,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
             <span className="text-muted-foreground">Cambio</span>
             <CurrencyDisplay amount={sale.changeGiven} />
           </div>
-          <div className="flex items-center justify-between border-t border-border/50 pt-2">
+          <div className="flex items-center justify-between border-t border-border pt-2">
             <span className="font-medium">Saldo pendiente</span>
             <CurrencyDisplay
               amount={sale.balanceDue}

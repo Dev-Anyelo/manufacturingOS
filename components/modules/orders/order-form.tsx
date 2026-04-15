@@ -339,7 +339,7 @@ export function OrderForm({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border border-border/60 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Lineas
@@ -350,7 +350,7 @@ export function OrderForm({
             </p>
           </CardContent>
         </Card>
-        <Card className="border border-border/60 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Total sugerido
@@ -361,7 +361,7 @@ export function OrderForm({
             />
           </CardContent>
         </Card>
-        <Card className="border border-border/60 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Anticipo
@@ -372,7 +372,7 @@ export function OrderForm({
             />
           </CardContent>
         </Card>
-        <Card className="border border-border/60 shadow-sm">
+        <Card className="border border-border shadow-sm">
           <CardContent className="space-y-1 p-4">
             <p className="text-xs tracking-wide text-muted-foreground uppercase">
               Saldo estimado
@@ -385,7 +385,7 @@ export function OrderForm({
         </Card>
       </div>
 
-      <Card className="border border-border/60">
+      <Card className="border border-border">
         <CardHeader>
           <CardTitle className="text-base">Datos generales</CardTitle>
         </CardHeader>
@@ -517,7 +517,7 @@ export function OrderForm({
         </CardContent>
       </Card>
 
-      <Card className="border border-border/60">
+      <Card className="border border-border">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Prendas del pedido</CardTitle>
           <Button
@@ -538,7 +538,7 @@ export function OrderForm({
             return (
               <div
                 key={field.id}
-                className="space-y-4 rounded-xl border border-border/60 bg-muted/20 p-4"
+                className="space-y-4 rounded-xl border border-border bg-surface-1 p-4"
               >
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
@@ -688,7 +688,7 @@ export function OrderForm({
                   </div>
                 </div>
 
-                <div className="space-y-3 rounded-lg border border-border/60 bg-background p-3">
+                <div className="space-y-3 rounded-lg border border-border bg-background p-3">
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <RulerIcon className="size-4 text-muted-foreground" />
                     Medidas
@@ -709,8 +709,8 @@ export function OrderForm({
                         className={cn(
                           "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           mode === "standard"
-                            ? "bg-brand-muted border-brand font-medium text-brand"
-                            : "border-border text-muted-foreground hover:bg-muted/40"
+                            ? "status-brand font-medium"
+                            : "border-border text-muted-foreground hover:bg-surface-2"
                         )}
                       >
                         <RadioGroupItem value="standard" className="sr-only" />
@@ -720,8 +720,8 @@ export function OrderForm({
                         className={cn(
                           "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors",
                           mode === "exact"
-                            ? "bg-brand-muted border-brand font-medium text-brand"
-                            : "border-border text-muted-foreground hover:bg-muted/40"
+                            ? "status-brand font-medium"
+                            : "border-border text-muted-foreground hover:bg-surface-2"
                         )}
                       >
                         <RadioGroupItem value="exact" className="sr-only" />
@@ -776,12 +776,12 @@ export function OrderForm({
         </CardContent>
       </Card>
 
-      <Card className="border border-border/60">
+      <Card className="border border-border">
         <CardHeader>
           <CardTitle className="text-base">Imagenes de referencia</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <label className="block cursor-pointer rounded-xl border border-dashed border-border/70 bg-muted/20 p-6 text-center">
+          <label className="block cursor-pointer rounded-xl border border-dashed border-border bg-surface-1 p-6 text-center">
             <UploadIcon className="mx-auto mb-2 size-5 text-muted-foreground" />
             <p className="text-sm font-medium">Sube hasta 3 imagenes</p>
             <p className="text-xs text-muted-foreground">PNG o JPG</p>

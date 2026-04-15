@@ -46,7 +46,7 @@ export function MovementHistory({ movements, unit }: MovementHistoryProps) {
               <Icon className={`size-4 ${meta.iconClassName}`} />
             </span>
 
-            <div className="rounded-lg border border-border/50 bg-card p-3 shadow-sm">
+            <div className="rounded-md border border-border/50 bg-card p-3 shadow-sm">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm font-medium">{meta.label}</p>
                 <p className="text-xs text-muted-foreground">
