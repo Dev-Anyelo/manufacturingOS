@@ -48,7 +48,7 @@ export default async function InventoryPage() {
   const canDeactivate = user.role === UserRole.Admin
 
   return (
-    <section className="flex flex-col min-h-full">
+    <section className="flex min-h-full flex-col">
       <div className="mx-auto w-full space-y-4">
         <PageHeader
           title="Inventario"
@@ -63,14 +63,14 @@ export default async function InventoryPage() {
                 asChild
                 variant="outline"
                 size="sm"
-                className="h-9 px-4 font-medium hidden sm:flex"
+                className="hidden h-9 px-4 font-medium sm:flex"
               >
                 <Link href="/inventory">Exportar</Link>
               </Button>
               <Button
                 asChild
                 size="sm"
-                className="bg-brand text-brand-foreground hover:bg-brand/90 h-9 px-4 font-medium"
+                className="h-9 bg-brand px-4 font-medium text-brand-foreground hover:bg-brand/90"
               >
                 <Link href="/inventory/new">
                   <PlusIcon className="size-4" />

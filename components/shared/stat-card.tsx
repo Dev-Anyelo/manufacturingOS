@@ -1,15 +1,15 @@
 import Link from "next/link"
+import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Card, CardContent } from "@/components/ui/card"
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
 
 interface StatCardProps {
   title: string
@@ -17,38 +17,40 @@ interface StatCardProps {
   description?: string
   icon: React.ReactNode
   trend?: { value: number; isPositive?: boolean; label: string }
-  variant?: "default" | "warning" | "danger" | "success"
+  variant?: "default" | "warning" | "danger" | "success" | "info"
   isLoading?: boolean
   href?: string
+  accent?: string
 }
 
-const variantConfig: Record<
-  NonNullable<StatCardProps["variant"]>,
-  {
-    card: string
-    iconBg: string
-    iconColor: string
-  }
-> = {
+const statVariantConfig = {
   default: {
-    card: "border-border/50 bg-card",
-    iconBg: "bg-muted",
-    iconColor: "text-muted-foreground",
+    wrap: "bg-card border-border/50",
+    iconWrap: "bg-muted/60 text-muted-foreground",
+    accent: "from-slate-200/60 to-transparent",
   },
   success: {
-    card: "tone-success",
-    iconBg: "bg-success-soft",
-    iconColor: "text-success",
+    wrap: "bg-emerald-50/60 border-emerald-200/60 dark:bg-emerald-950/20 dark:border-emerald-800/40",
+    iconWrap:
+      "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/60 dark:text-emerald-400",
+    accent: "from-emerald-300/40 to-transparent",
   },
   warning: {
-    card: "tone-warning",
-    iconBg: "bg-warning-soft",
-    iconColor: "text-warning",
+    wrap: "bg-amber-50/60 border-amber-200/60 dark:bg-amber-950/20 dark:border-amber-800/40",
+    iconWrap:
+      "bg-amber-100 text-amber-600 dark:bg-amber-900/60 dark:text-amber-400",
+    accent: "from-amber-300/40 to-transparent",
   },
   danger: {
-    card: "tone-danger",
-    iconBg: "bg-danger-soft",
-    iconColor: "text-danger",
+    wrap: "bg-red-50/60 border-red-200/60 dark:bg-red-950/20 dark:border-red-800/40",
+    iconWrap: "bg-red-100 text-red-600 dark:bg-red-900/60 dark:text-red-400",
+    accent: "from-red-300/40 to-transparent",
+  },
+  info: {
+    wrap: "bg-blue-50/60 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-800/40",
+    iconWrap:
+      "bg-blue-100 text-blue-600 dark:bg-blue-900/60 dark:text-blue-400",
+    accent: "from-blue-300/40 to-transparent",
   },
 }
 
@@ -63,35 +65,41 @@ export function StatCard({
   href,
 }: StatCardProps) {
   const isPositiveTrend = trend?.isPositive ?? true
-  const config = variantConfig[variant]
+  const config = statVariantConfig[variant]
 
-  const cardContent = (
+  const Content = (
     <Card
       className={cn(
-        "rounded-xl border shadow-sm transition-all duration-200",
-        href ? "hover:-translate-y-0.5 hover:shadow-md cursor-pointer" : "",
-        config.card
+        "group rounded-lg border shadow-sm transition-all duration-200",
+        "hover:-translate-y-px hover:shadow-md",
+        "p-0",
+        config.wrap,
+        href && "cursor-pointer"
       )}
     >
-      <CardContent className="p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1 space-y-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-start justify-between gap-2">
+          {/* LEFT */}
+          <div className="min-w-0 flex-1 space-y-1.5">
+            {/* Title */}
+            <p className="truncate text-[10px] font-medium tracking-wide text-muted-foreground uppercase sm:text-xs">
               {title}
             </p>
+
+            {/* Value */}
             {isLoading ? (
-              <Skeleton className="h-8 w-28 rounded-md" />
+              <Skeleton className="h-6 w-20 rounded-md" />
             ) : (
-              <p className="text-2xl font-bold tabular-nums tracking-tight leading-none">
+              <p className="truncate text-xl leading-tight font-semibold tabular-nums sm:text-2xl">
                 {value}
               </p>
             )}
-            {isLoading ? (
-              <Skeleton className="h-3.5 w-full rounded-md" />
-            ) : description ? (
+
+            {/* Description */}
+            {!isLoading && description && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <p className="line-clamp-1 text-xs text-muted-foreground cursor-default">
+                  <p className="cursor-default truncate text-[11px] text-muted-foreground sm:text-xs">
                     {description}
                   </p>
                 </TooltipTrigger>
@@ -99,14 +107,15 @@ export function StatCard({
                   <p className="text-xs">{description}</p>
                 </TooltipContent>
               </Tooltip>
-            ) : null}
-            {isLoading ? (
-              <Skeleton className="h-5 w-24 rounded-md" />
-            ) : trend ? (
+            )}
+
+            {/* Trend */}
+            {!isLoading && trend && (
               <Badge
                 variant="outline"
                 className={cn(
-                  "gap-1 text-xs font-medium",
+                  "w-fit gap-1 px-1.5 py-0.5 text-[10px] font-medium sm:text-xs",
+                  "rounded-md border",
                   isPositiveTrend
                     ? "border-success-soft text-success"
                     : "border-danger-soft text-danger"
@@ -117,18 +126,25 @@ export function StatCard({
                 ) : (
                   <TrendingDownIcon className="size-3" />
                 )}
-                {Math.abs(trend.value)}% {trend.label}
+                {Math.abs(trend.value)}%
               </Badge>
-            ) : null}
+            )}
           </div>
 
+          {/* RIGHT ICON */}
           <div
             className={cn(
-              "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl",
-              config.iconBg
+              "flex shrink-0 items-center justify-center",
+              "h-8 w-8 rounded-lg sm:h-9 sm:w-9",
+              config.iconWrap
             )}
           >
-            <span className={cn("size-5 [&>svg]:size-5", config.iconColor)}>
+            <span
+              className={cn(
+                "size-4 sm:size-5 [&>svg]:size-full",
+                config.accent
+              )}
+            >
               {icon}
             </span>
           </div>
@@ -137,9 +153,11 @@ export function StatCard({
     </Card>
   )
 
-  if (!href) {
-    return cardContent
-  }
+  if (!href) return Content
 
-  return <Link href={href}>{cardContent}</Link>
+  return (
+    <Link href={href} className="block">
+      {Content}
+    </Link>
+  )
 }

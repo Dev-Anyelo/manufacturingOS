@@ -1,21 +1,39 @@
 "use client"
 
 import * as React from "react"
+import { FinanceRow } from "./finance-row"
+import { ContactRow } from "./contact-row"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { WorkOrderStatus } from "@prisma/client"
+import { InfoRow } from "@/components/shared/info-row"
+import { WorkOrderStatus as WOS } from "@prisma/client"
+import { SectionCard } from "@/components/section-cards"
+import { MetricCard } from "@/components/shared/metric-card"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { OrderDetailData } from "@/components/modules/orders/types"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
 import { OrderStatusStepper } from "@/components/modules/orders/order-status-stepper"
 
 import {
-  CalendarClockIcon,
-  CircleDollarSignIcon,
-  ClipboardListIcon,
+  AlertTriangleIcon,
+  BanknoteIcon,
+  CalendarIcon,
+  CheckIcon,
+  CircleDotIcon,
+  ClockIcon,
+  ExternalLinkIcon,
+  HashIcon,
+  ImageIcon,
+  MailIcon,
+  PackageIcon,
+  PaletteIcon,
+  PhoneIcon,
+  ReceiptIcon,
+  RulerIcon,
+  StickyNoteIcon,
   UserIcon,
+  ZapIcon,
 } from "lucide-react"
 
 import {
@@ -27,64 +45,17 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-const transitionMap: Record<WorkOrderStatus, WorkOrderStatus[]> = {
-  [WorkOrderStatus.received]: [
-    WorkOrderStatus.confirmed,
-    WorkOrderStatus.cancelled,
-  ],
-  [WorkOrderStatus.confirmed]: [
-    WorkOrderStatus.in_production,
-    WorkOrderStatus.cancelled,
-  ],
-  [WorkOrderStatus.in_production]: [
-    WorkOrderStatus.ready,
-    WorkOrderStatus.cancelled,
-  ],
-  [WorkOrderStatus.ready]: [WorkOrderStatus.delivered],
-  [WorkOrderStatus.delivered]: [],
-  [WorkOrderStatus.cancelled]: [],
-}
-
-const actionLabelMap: Partial<Record<WorkOrderStatus, string>> = {
-  [WorkOrderStatus.confirmed]: "Confirmar pedido",
-  [WorkOrderStatus.in_production]: "Iniciar produccion",
-  [WorkOrderStatus.ready]: "Marcar como listo",
-  [WorkOrderStatus.delivered]: "Marcar como entregado",
-  [WorkOrderStatus.cancelled]: "Cancelar pedido",
-}
-
-const channelLabelMap: Record<OrderDetailData["channel"], string> = {
-  in_person: "En tienda",
-  referral: "Referido",
-  social_media: "Redes",
-  returning_customer: "Recurrente",
-  other: "Otro",
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "medium",
-  }).format(new Date(value))
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
-
-function renderMeasurementLabel(key: string) {
-  const map: Record<string, string> = {
-    bust: "Busto",
-    waist: "Cintura",
-    hips: "Cadera",
-    length: "Largo",
-    sleeve: "Manga",
-  }
-
-  return map[key] ?? key
-}
+import {
+  actionConfig,
+  channelConfig,
+  cn,
+  formatDate,
+  formatDateRelative,
+  formatDateTime,
+  measurementLabels,
+  transitionMap,
+} from "@/lib/utils"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface OrderDetailProps {
   order: OrderDetailData
@@ -93,372 +64,600 @@ interface OrderDetailProps {
 export function OrderDetail({ order }: OrderDetailProps) {
   const router = useRouter()
   const [currentStatus, setCurrentStatus] = React.useState(order.status)
-  const [targetStatus, setTargetStatus] =
-    React.useState<WorkOrderStatus | null>(null)
+  const [targetStatus, setTargetStatus] = React.useState<WOS | null>(null)
 
   const availableTransitions = transitionMap[currentStatus]
   const statusForDialog = targetStatus ?? currentStatus
   const paidAmount = Math.max(order.total - order.balanceDue, 0)
   const totalUnits = order.items.reduce((acc, item) => acc + item.quantity, 0)
+  const paymentProgress =
+    order.total > 0 ? Math.min((paidAmount / order.total) * 100, 100) : 100
+  const channel = channelConfig[order.channel] ?? channelConfig.other
+  const isCancelled = currentStatus === WOS.cancelled
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* ── Stepper ── */}
       <OrderStatusStepper status={currentStatus} />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border border-border/60 shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Total pedido
-            </p>
+      {/* ── Hero strip — métricas principales ── */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <MetricCard
+          label="Total pedido"
+          value={
             <CurrencyDisplay
               amount={order.total}
               size="lg"
-              className="font-semibold"
+              className="font-bold"
             />
-          </CardContent>
-        </Card>
-        <Card className="border border-border/60 shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Anticipo aplicado
-            </p>
+          }
+          icon={<ReceiptIcon className="size-4" />}
+          accent="default"
+        />
+        <MetricCard
+          label="Anticipo"
+          value={
             <CurrencyDisplay
               amount={order.advancePaid}
               size="lg"
-              className="font-semibold"
+              className="font-bold"
             />
-          </CardContent>
-        </Card>
-        <Card className="border border-border/60 shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Saldo pendiente
-            </p>
+          }
+          icon={<BanknoteIcon className="size-4" />}
+          accent="brand"
+        />
+        <MetricCard
+          label="Saldo pendiente"
+          value={
             <CurrencyDisplay
               amount={order.balanceDue}
               size="lg"
               colored={order.balanceDue > 0}
-              className={
-                order.balanceDue > 0
-                  ? "font-semibold"
-                  : "font-semibold text-foreground"
-              }
+              className="font-bold"
             />
-          </CardContent>
-        </Card>
-        <Card className="border border-border/60 shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Entrega
-            </p>
-            <p className="text-base font-semibold">
+          }
+          icon={<CircleDotIcon className="size-4" />}
+          accent={order.balanceDue > 0 ? "warning" : "success"}
+          sub={
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Cobrado</span>
+                <span className="font-semibold tabular-nums">
+                  {paymentProgress.toFixed(0)}%
+                </span>
+              </div>
+              <div className="relative h-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn(
+                    "absolute inset-y-0 left-0 rounded-full transition-all duration-700",
+                    paymentProgress >= 100 ? "bg-brand" : "bg-amber-500"
+                  )}
+                  style={{ width: `${paymentProgress}%` }}
+                />
+              </div>
+            </div>
+          }
+        />
+        <MetricCard
+          label="Entrega"
+          value={
+            <span className="text-base leading-tight font-bold">
               {formatDate(order.deliveryDate)}
+            </span>
+          }
+          icon={<CalendarIcon className="size-4" />}
+          accent="default"
+          sub={
+            <p className="mt-1 text-xs font-medium text-muted-foreground">
+              {formatDateRelative(order.deliveryDate)} · {totalUnits} prendas
             </p>
-            <p className="text-xs text-muted-foreground">
-              {totalUnits} prendas en total
-            </p>
-          </CardContent>
-        </Card>
+          }
+        />
       </div>
 
-      <Card className="border border-border/60 shadow-sm">
-        <CardContent className="space-y-3 p-4">
-          <div className="space-y-1">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Acciones del flujo
+      {/* ── Acciones de flujo ── */}
+      {availableTransitions.length > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3">
+          <div className="flex size-5 shrink-0 items-center justify-center rounded-lg bg-brand/10">
+            <ZapIcon className="size-4 text-brand" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              Siguiente acción
             </p>
-            <p className="text-sm text-muted-foreground">
-              Ejecuta transiciones segun el estado actual y mantiene
-              trazabilidad operativa.
+            <p className="truncate text-xs text-foreground/70">
+              Ejecuta la transición de estado para continuar el flujo.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {availableTransitions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No hay cambios de estado disponibles.
-              </p>
-            ) : (
-              availableTransitions.map((status) => (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {availableTransitions.map((status) => {
+              const cfg = actionConfig[status]
+              return (
                 <Button
                   key={status}
                   type="button"
                   size="sm"
                   variant={
-                    status === WorkOrderStatus.cancelled
-                      ? "destructive"
-                      : "default"
+                    cfg?.variant === "destructive" ? "destructive" : "default"
                   }
-                  className={
-                    status === WorkOrderStatus.cancelled
-                      ? ""
-                      : "bg-brand text-brand-foreground"
-                  }
+                  className={cn(
+                    "h-8 gap-1.5 text-xs",
+                    cfg?.variant !== "destructive" &&
+                      "bg-brand text-white hover:bg-brand/90"
+                  )}
                   onClick={() => setTargetStatus(status)}
                 >
-                  {actionLabelMap[status] ?? "Cambiar estado"}
+                  {cfg?.icon}
+                  {cfg?.label ?? "Cambiar estado"}
                 </Button>
-              ))
-            )}
+              )
+            })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="border border-border/60 xl:col-span-2">
-          <CardHeader className="border-b border-border/50 pb-3">
-            <CardTitle className="text-base">Detalle del pedido</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2">
-            <div className="space-y-1 text-sm">
-              <p className="inline-flex items-center gap-1 text-muted-foreground">
-                <ClipboardListIcon className="size-4" />
-                ID de pedido
-              </p>
-              <p className="font-medium">#{order.id}</p>
-            </div>
+      {/* ── Cancelación ── */}
+      {isCancelled && order.cancelledReason && (
+        <Alert
+          variant="destructive"
+          className="flex items-center justify-start gap-x-1.5"
+        >
+          <AlertTriangleIcon className="size-4" />
+          <AlertTitle className="m-0 p-0 text-sm text-pretty">
+            Pedido cancelado
+          </AlertTitle>
+          <AlertDescription className="text-xs text-pretty">
+            {order.cancelledReason}
+          </AlertDescription>
+        </Alert>
+      )}
 
-            <div className="space-y-1 text-sm">
-              <p className="inline-flex items-center gap-1 text-muted-foreground">
-                <CalendarClockIcon className="size-4" />
-                Entrega
-              </p>
-              <p className="font-medium">{formatDate(order.deliveryDate)}</p>
-            </div>
-
-            <div className="space-y-1 text-sm">
-              <p className="text-muted-foreground">Recepcion</p>
-              <p className="font-medium">{formatDate(order.receivedDate)}</p>
-            </div>
-
-            <div className="space-y-1 text-sm">
-              <p className="text-muted-foreground">Canal</p>
-              <p className="font-medium">{channelLabelMap[order.channel]}</p>
-            </div>
-
-            <div className="space-y-1 text-sm">
-              <p className="text-muted-foreground">Estado</p>
-              <StatusBadge status={currentStatus} type="work-order" />
-            </div>
-
-            <div className="space-y-1 text-sm">
-              <p className="inline-flex items-center gap-1 text-muted-foreground">
-                <CircleDollarSignIcon className="size-4" />
-                Total
-              </p>
-              <CurrencyDisplay amount={order.total} className="font-semibold" />
-            </div>
-
-            <div className="space-y-1 text-sm">
-              <p className="text-muted-foreground">Anticipo</p>
-              <CurrencyDisplay
-                amount={order.advancePaid}
-                className="font-semibold"
-              />
-            </div>
-
-            <div className="space-y-1 text-sm">
-              <p className="text-muted-foreground">Pagado acumulado</p>
-              <CurrencyDisplay amount={paidAmount} className="font-semibold" />
-            </div>
-
-            <div className="space-y-1 text-sm">
-              <p className="text-muted-foreground">Saldo pendiente</p>
-              <CurrencyDisplay
-                amount={order.balanceDue}
-                colored={order.balanceDue > 0}
-                className={order.balanceDue > 0 ? "font-semibold" : ""}
-              />
-            </div>
-
-            {order.notes ? (
-              <div className="space-y-1 text-sm md:col-span-2">
-                <p className="text-muted-foreground">Notas</p>
-                <p>{order.notes}</p>
+      {/* ── Layout principal: columna izquierda (2/3) + derecha (1/3) ── */}
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+        {/* Columna izquierda */}
+        <div className="space-y-5 xl:col-span-2">
+          {/* Detalle del pedido + cliente en fila */}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-5">
+            {/* Info del pedido */}
+            <SectionCard
+              title="Detalle del pedido"
+              icon={<HashIcon className="size-4" />}
+              className="md:col-span-3"
+            >
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                <InfoRow
+                  label="ID"
+                  value={
+                    <span className="font-mono text-xs font-medium">
+                      #{order.id.slice(0, 8).toUpperCase()}
+                    </span>
+                  }
+                />
+                <InfoRow
+                  label="Estado"
+                  value={
+                    <StatusBadge status={currentStatus} type="work-order" />
+                  }
+                />
+                <InfoRow
+                  label="Recepción"
+                  value={formatDate(order.receivedDate)}
+                />
+                <InfoRow
+                  label="Entrega"
+                  value={
+                    <span className="font-medium">
+                      {formatDate(order.deliveryDate)}
+                    </span>
+                  }
+                />
+                <InfoRow
+                  label="Canal"
+                  value={
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium",
+                        channel.color
+                      )}
+                    >
+                      <span
+                        className={cn("size-1.5 rounded-full", channel.dot)}
+                      />
+                      {channel.label}
+                    </span>
+                  }
+                />
+                <InfoRow
+                  label="Prendas"
+                  value={`${totalUnits} unidades · ${order.items.length} líneas`}
+                />
               </div>
-            ) : null}
 
-            {currentStatus === WorkOrderStatus.cancelled &&
-            order.cancelledReason ? (
-              <div className="border-danger/30 bg-danger/10 text-danger space-y-1 rounded-lg border p-3 text-sm md:col-span-2">
-                <p className="font-semibold">Motivo de cancelacion</p>
-                <p>{order.cancelledReason}</p>
+              {order.notes && (
+                <div className="mt-4 rounded-lg border border-border/50 bg-muted/30 p-3">
+                  <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    <StickyNoteIcon className="size-3" />
+                    Notas
+                  </p>
+                  <p className="text-sm text-foreground/80">{order.notes}</p>
+                </div>
+              )}
+            </SectionCard>
+
+            {/* Cliente */}
+            <SectionCard
+              title="Cliente"
+              icon={<UserIcon className="size-4" />}
+              className="md:col-span-2"
+            >
+              <div className="space-y-3">
+                <div>
+                  <p className="text-base leading-tight font-semibold text-foreground">
+                    {order.customerName}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    ID: {order.customerId.slice(0, 8)}
+                  </p>
+                </div>
+                <div className="space-y-2 border-t border-border/50 pt-3">
+                  <ContactRow
+                    icon={<PhoneIcon className="size-3.5" />}
+                    value={order.customerPhone || "Sin teléfono"}
+                    empty={!order.customerPhone}
+                  />
+                  <ContactRow
+                    icon={<MailIcon className="size-3.5" />}
+                    value={order.customerEmail || "Sin correo"}
+                    empty={!order.customerEmail}
+                  />
+                </div>
+
+                {/* Resumen financiero del cliente */}
+                <div className="rounded-lg border border-border/50 bg-muted/25 p-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      Pagado
+                    </span>
+                    <CurrencyDisplay
+                      amount={paidAmount}
+                      size="sm"
+                      className="font-semibold"
+                    />
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      Pendiente
+                    </span>
+                    <CurrencyDisplay
+                      amount={order.balanceDue}
+                      size="sm"
+                      colored={order.balanceDue > 0}
+                      className="font-semibold"
+                    />
+                  </div>
+                </div>
               </div>
-            ) : null}
-          </CardContent>
-        </Card>
+            </SectionCard>
+          </div>
 
-        <Card className="border border-border/60">
-          <CardHeader className="border-b border-border/50 pb-3">
-            <CardTitle className="text-base">Cliente</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-4 text-sm">
-            <p className="inline-flex items-center gap-2 font-medium">
-              <UserIcon className="size-4 text-muted-foreground" />
-              {order.customerName}
-            </p>
-            <p className="text-muted-foreground">
-              {order.customerPhone || "Sin telefono"}
-            </p>
-            <p className="text-muted-foreground">
-              {order.customerEmail || "Sin correo"}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border border-border/60">
-        <CardHeader className="border-b border-border/50 pb-3">
-          <CardTitle className="text-base">Items del pedido</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {order.items.length} lineas registradas • {totalUnits} unidades
-            totales
-          </p>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Descripcion</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Color / Talla
-                </TableHead>
-                <TableHead className="text-right">Cantidad</TableHead>
-                <TableHead className="text-right">Subtotal</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {order.items.map((item) => {
-                const measurementEntries = Object.entries(
-                  item.measurements ?? {}
-                )
-
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <p className="font-medium">{item.description}</p>
-                        {item.designNotes ? (
-                          <p className="text-xs text-muted-foreground">
-                            {item.designNotes}
-                          </p>
-                        ) : null}
-                        {measurementEntries.length > 0 ? (
-                          <details className="rounded-md border border-border/60 bg-muted/20 p-2 text-xs">
-                            <summary className="cursor-pointer font-medium select-none">
-                              Ver medidas
-                            </summary>
-                            <div className="mt-2 grid grid-cols-2 gap-2">
-                              {measurementEntries.map(([key, value]) => (
-                                <p key={key}>
-                                  <span className="text-muted-foreground">
-                                    {renderMeasurementLabel(key)}:
-                                  </span>{" "}
-                                  {String(value)}
-                                </p>
-                              ))}
+          {/* Items del pedido */}
+          <SectionCard
+            title="Items del pedido"
+            icon={<PackageIcon className="size-4" />}
+            headerRight={
+              <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                {order.items.length} líneas · {totalUnits} uds.
+              </span>
+            }
+            noPadding
+          >
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-5 text-xs font-semibold tracking-wide uppercase">
+                    Descripción
+                  </TableHead>
+                  <TableHead className="hidden text-xs font-semibold tracking-wide uppercase md:table-cell">
+                    <span className="flex items-center gap-1">
+                      <PaletteIcon className="size-3" />
+                      Color / Talla
+                    </span>
+                  </TableHead>
+                  <TableHead className="text-right text-xs font-semibold tracking-wide uppercase">
+                    Cant.
+                  </TableHead>
+                  <TableHead className="pr-5 text-right text-xs font-semibold tracking-wide uppercase">
+                    Subtotal
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {order.items.map((item, idx) => {
+                  const measurementEntries = Object.entries(
+                    item.measurements ?? {}
+                  )
+                  return (
+                    <TableRow
+                      key={item.id}
+                      className={cn(
+                        "group transition-colors",
+                        idx % 2 === 0 ? "" : "bg-muted/20"
+                      )}
+                    >
+                      <TableCell className="py-3 pl-5">
+                        <div className="space-y-1.5">
+                          <div className="flex items-start gap-2">
+                            <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-brand/10 text-xs font-bold text-brand">
+                              {idx + 1}
                             </div>
-                          </details>
-                        ) : null}
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <div className="space-y-1 text-sm">
-                        <p>{item.color || "-"}</p>
-                        <p className="text-muted-foreground">
-                          {item.size || "-"}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {item.quantity}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <CurrencyDisplay amount={item.subtotal} size="sm" />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                            <div>
+                              <p className="text-xs leading-tight font-semibold text-foreground">
+                                {item.description}
+                              </p>
+                              {item.catalogItemName && (
+                                <p className="text-xs text-muted-foreground">
+                                  {item.catalogItemName}
+                                </p>
+                              )}
+                              {item.designNotes && (
+                                <p className="mt-1 text-xs text-muted-foreground italic">
+                                  "{item.designNotes}"
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {/* Medidas colapsables */}
+                          {measurementEntries.length > 0 && (
+                            <details className="ml-8">
+                              <summary className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-brand select-none hover:text-brand/80">
+                                <RulerIcon className="size-3" />
+                                Ver {measurementEntries.length} medidas
+                              </summary>
+                              <div className="mt-1.5 ml-0.5 grid grid-cols-3 gap-1.5 rounded-lg border border-border/50 bg-muted/30 p-2.5">
+                                {measurementEntries.map(([key, value]) => (
+                                  <div key={key} className="text-center">
+                                    <p className="text-xs text-muted-foreground">
+                                      {measurementLabels[key] ?? key}
+                                    </p>
+                                    <p className="font-mono text-xs font-semibold">
+                                      {String(value)}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            </details>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden py-3 md:table-cell">
+                        <div className="flex items-center gap-1.5 space-y-1">
+                          {item.color && item.size && (
+                            <span className="inline-flex text-xs font-medium uppercase">
+                              {item.color} - {item.size}
+                            </span>
+                          )}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="border border-border/60 xl:col-span-2">
-          <CardHeader className="border-b border-border/50 pb-3">
-            <CardTitle className="text-base">Imagenes de referencia</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
+                          {!item.color && !item.size && (
+                            <span className="text-xs text-muted-foreground">
+                              —
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3 text-right">
+                        <span className="text-xs font-semibold">
+                          ×{item.quantity}
+                        </span>
+                      </TableCell>
+                      <TableCell className="py-3 pr-5 text-right">
+                        <CurrencyDisplay
+                          amount={item.subtotal}
+                          size="sm"
+                          className="font-bold"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          <CurrencyDisplay amount={item.unitPrice} size="sm" />
+                          /u
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+
+            {/* Total footer */}
+            <div className="flex items-center justify-between border-t border-border/60 bg-muted/20 px-5 py-3">
+              <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                Total del pedido
+              </span>
+              <CurrencyDisplay
+                amount={order.total}
+                size="sm"
+                className="font-bold"
+              />
+            </div>
+          </SectionCard>
+
+          {/* Imágenes de referencia */}
+          <SectionCard
+            title="Imágenes de referencia"
+            icon={<ImageIcon className="size-4" />}
+            headerRight={
+              order.referenceImages.length > 0 ? (
+                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                  {order.referenceImages.length} imágenes
+                </span>
+              ) : undefined
+            }
+          >
             {order.referenceImages.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border/60 p-6 text-sm text-muted-foreground">
-                Este pedido no tiene imagenes de referencia cargadas.
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 py-8 text-center">
+                <ImageIcon className="mb-2 size-5 text-muted-foreground/40" />
+                <p className="text-xs text-pretty text-muted-foreground">
+                  Sin imágenes de referencia
+                </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 {order.referenceImages.map((src, index) => (
                   <a
                     key={`${src}-${index}`}
                     href={src}
                     target="_blank"
                     rel="noreferrer"
-                    className="group block overflow-hidden rounded-lg border border-border/60"
+                    className="group relative overflow-hidden rounded-xl border border-border/60 bg-muted/30"
                   >
                     <div
-                      className="aspect-square bg-cover bg-center transition-transform duration-200 group-hover:scale-[1.02]"
+                      className="aspect-square bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
                       style={{ backgroundImage: `url(${src})` }}
                     />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/30">
+                      <ExternalLinkIcon className="size-5 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                    </div>
+                    <div className="absolute bottom-1.5 left-1.5">
+                      <span className="rounded-md bg-black/50 px-1.5 py-0.5 text-xs text-white backdrop-blur-sm">
+                        {index + 1}
+                      </span>
+                    </div>
                   </a>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </SectionCard>
+        </div>
 
-        <Card className="border border-border/60">
-          <CardHeader className="border-b border-border/50 pb-3">
-            <CardTitle className="text-base">Historial</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-4">
+        {/* ── Columna derecha ── */}
+        <div className="space-y-5">
+          {/* Historial de estados */}
+          <SectionCard
+            title="Historial de auditoría"
+            icon={<ClockIcon className="size-4" />}
+            headerRight={
+              order.statusHistory.length > 0 ? (
+                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                  {order.statusHistory.length} eventos
+                </span>
+              ) : undefined
+            }
+          >
             {order.statusHistory.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Sin eventos de auditoria.
+                Sin eventos de auditoría.
               </p>
             ) : (
-              order.statusHistory.map((event) => (
-                <div
-                  key={event.id}
-                  className="rounded-lg border border-border/60 bg-muted/20 p-3 text-xs"
-                >
-                  <p className="text-sm font-medium">{event.action}</p>
-                  <p className="text-muted-foreground">
-                    {formatDateTime(event.createdAt)}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {event.actorName || "Sistema"}
-                  </p>
-                </div>
-              ))
+              <div className="relative space-y-0">
+                {/* Línea vertical del timeline */}
+                <div className="absolute top-2 bottom-2 left-3.75 w-px bg-border/60" />
+                {order.statusHistory.map((event, idx) => (
+                  <div
+                    key={event.id}
+                    className="relative flex gap-3 pb-4 last:pb-0"
+                  >
+                    {/* Dot */}
+                    <div
+                      className={cn(
+                        "relative z-10 flex size-7.5 shrink-0 items-center justify-center rounded-full border-2 bg-background",
+                        idx === 0
+                          ? "border-brand text-brand"
+                          : "border-border text-muted-foreground"
+                      )}
+                    >
+                      {idx === 0 ? (
+                        <CircleDotIcon className="size-3.5" />
+                      ) : (
+                        <CheckIcon className="size-3" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 pt-1">
+                      <p
+                        className={cn(
+                          "text-xs leading-tight font-semibold",
+                          idx === 0 ? "text-foreground" : "text-foreground/80"
+                        )}
+                      >
+                        {event.action}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {formatDateTime(event.createdAt)}
+                      </p>
+                      {event.actorName && (
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                          <UserIcon className="size-3" />
+                          {event.actorName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </SectionCard>
+
+          {/* Resumen financiero detallado */}
+          <SectionCard
+            title="Resumen financiero"
+            icon={<ReceiptIcon className="size-4" />}
+          >
+            <div className="space-y-2.5">
+              <FinanceRow label="Total del pedido" value={order.total} bold />
+              <FinanceRow
+                label="Anticipo aplicado"
+                value={order.advancePaid}
+                accent="brand"
+              />
+              <FinanceRow
+                label="Pagado acumulado"
+                value={paidAmount}
+                accent="brand"
+              />
+              <div className="border-t border-border/60 pt-2.5">
+                <FinanceRow
+                  label="Saldo pendiente"
+                  value={order.balanceDue}
+                  accent={order.balanceDue > 0 ? "warning" : "success"}
+                  bold
+                />
+              </div>
+            </div>
+            {/* Barra de progreso de pago */}
+            <div className="mt-4 space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Progreso de cobro</span>
+                <span className="font-semibold tabular-nums">
+                  {paymentProgress.toFixed(0)}%
+                </span>
+              </div>
+              <div className="relative h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn(
+                    "absolute inset-y-0 left-0 rounded-full transition-all duration-700",
+                    paymentProgress >= 100 ? "bg-brand" : "bg-amber-500"
+                  )}
+                  style={{ width: `${paymentProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {paymentProgress >= 100
+                  ? "Pago completado ✓"
+                  : `Faltan ${(100 - paymentProgress).toFixed(0)}% por cobrar`}
+              </p>
+            </div>
+          </SectionCard>
+        </div>
       </div>
 
+      {/* Dialog de cambio de estado */}
       <ChangeStatusDialog
         orderId={order.id}
         currentStatus={currentStatus}
         targetStatus={statusForDialog}
         open={Boolean(targetStatus)}
         onOpenChange={(open) => {
-          if (!open) {
-            setTargetStatus(null)
-          }
+          if (!open) setTargetStatus(null)
         }}
         onSuccess={() => {
-          if (targetStatus) {
-            setCurrentStatus(targetStatus)
-          }
-
+          if (targetStatus) setCurrentStatus(targetStatus)
           setTargetStatus(null)
           router.refresh()
         }}

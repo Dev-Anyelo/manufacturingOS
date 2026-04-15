@@ -102,7 +102,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border/60 bg-card p-3 shadow-sm sm:p-4">
+      <div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
             {searchKey ? (
@@ -114,12 +114,6 @@ export function DataTable<TData, TValue>({
                 isLoading={isLoading}
               />
             ) : null}
-            <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
-              <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
-                Registros
-              </p>
-              <p className="text-sm font-semibold">{total}</p>
-            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">{toolbar}</div>

@@ -4,11 +4,19 @@ import Link from "next/link"
 import * as React from "react"
 import { EyeIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { WorkOrderStatus } from "@prisma/client"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { OrderSummaryItem } from "@/components/modules/orders/types"
+
+import {
+  channelLabelMap,
+  formatDate,
+  isOverdue,
+  statusConfig,
+} from "@/lib/utils"
 
 import {
   Select,
@@ -18,19 +26,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-const channelLabelMap: Record<OrderSummaryItem["channel"], string> = {
-  in_person: "En tienda",
-  referral: "Referido",
-  social_media: "Redes",
-  returning_customer: "Recurrente",
-  other: "Otro",
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "short",
-  }).format(new Date(value))
-}
+const statusOptions: WorkOrderStatus[] = [
+  WorkOrderStatus.received,
+  WorkOrderStatus.confirmed,
+  WorkOrderStatus.in_production,
+  WorkOrderStatus.ready,
+  WorkOrderStatus.delivered,
+  WorkOrderStatus.cancelled,
+]
 
 const columns: ColumnDef<OrderSummaryItem>[] = [
   {
@@ -113,70 +116,79 @@ interface OrdersTableProps {
 }
 
 export function OrdersTable({ orders }: OrdersTableProps) {
-  const [statusFilter, setStatusFilter] = React.useState("all")
-  const [channelFilter, setChannelFilter] = React.useState("all")
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | WorkOrderStatus
+  >("all")
+  const [channelFilter, setChannelFilter] = React.useState<
+    "all" | OrderSummaryItem["channel"]
+  >("all")
 
-  const filteredOrders = React.useMemo(() => {
-    return orders.filter((order) => {
-      if (statusFilter !== "all" && order.status !== statusFilter) {
-        return false
-      }
-
-      if (channelFilter !== "all" && order.channel !== channelFilter) {
-        return false
-      }
-
+  const filtered = React.useMemo(() => {
+    return orders.filter((o) => {
+      if (statusFilter !== "all" && o.status !== statusFilter) return false
+      if (channelFilter !== "all" && o.channel !== channelFilter) return false
       return true
     })
-  }, [channelFilter, orders, statusFilter])
+  }, [orders, statusFilter, channelFilter])
+
+  const toolbar = (
+    <>
+      <Select
+        value={statusFilter}
+        onValueChange={(value) =>
+          setStatusFilter(value as "all" | WorkOrderStatus)
+        }
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Estado" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos los estados</SelectItem>
+          {statusOptions.map((status) => (
+            <SelectItem key={status} value={status}>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`size-2 rounded-full ${statusConfig[status].dot}`}
+                />
+                {statusConfig[status].label}
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={channelFilter}
+        onValueChange={(value) =>
+          setChannelFilter(value as "all" | OrderSummaryItem["channel"])
+        }
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Canal" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos los canales</SelectItem>
+          <SelectItem value="in_person">En tienda</SelectItem>
+          <SelectItem value="referral">Referido</SelectItem>
+          <SelectItem value="social_media">Redes sociales</SelectItem>
+          <SelectItem value="returning_customer">Recurrente</SelectItem>
+          <SelectItem value="other">Otro</SelectItem>
+        </SelectContent>
+      </Select>
+    </>
+  )
 
   return (
     <DataTable
       columns={columns}
-      data={filteredOrders}
+      data={filtered}
       searchKey="customerName"
       searchPlaceholder="Buscar por cliente..."
-      emptyMessage="Sin pedidos registrados"
-      emptyDescription="Crea tu primer pedido para iniciar el flujo del taller."
-      getRowClassName={(row) => {
-        const overdue =
-          new Date(row.deliveryDate).getTime() < Date.now() &&
-          row.status !== "delivered" &&
-          row.status !== "cancelled"
-
-        return overdue ? "row-warning-soft" : ""
-      }}
-      toolbar={
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-38">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="received">Recibido</SelectItem>
-              <SelectItem value="confirmed">Confirmado</SelectItem>
-              <SelectItem value="in_production">En produccion</SelectItem>
-              <SelectItem value="ready">Listo</SelectItem>
-              <SelectItem value="delivered">Entregado</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={channelFilter} onValueChange={setChannelFilter}>
-            <SelectTrigger className="w-38">
-              <SelectValue placeholder="Canal" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="in_person">En tienda</SelectItem>
-              <SelectItem value="referral">Referido</SelectItem>
-              <SelectItem value="social_media">Redes</SelectItem>
-              <SelectItem value="returning_customer">Recurrente</SelectItem>
-              <SelectItem value="other">Otro</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      emptyMessage="Sin pedidos"
+      emptyDescription="Ajusta los filtros para ver resultados"
+      toolbar={toolbar}
+      getRowClassName={(order) =>
+        isOverdue(order) ? "bg-amber-50/30 dark:bg-amber-950/10" : ""
       }
     />
   )

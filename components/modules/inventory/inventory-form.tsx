@@ -8,14 +8,13 @@ import * as React from "react"
 import { MaterialCategory } from "@/types"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FormFieldWrapper } from "@/components/shared/form-field-wrapper"
-import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { useForm, type Control, type FieldValues } from "react-hook-form"
+import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 
 import {
   Card,
@@ -34,7 +33,6 @@ import {
   UploadIcon,
   WrenchIcon,
   XIcon,
-  ImageIcon,
 } from "lucide-react"
 
 import {
@@ -72,7 +70,11 @@ const categoryOptions = [
   { value: MaterialCategory.Fabric, label: "Telas", icon: LayersIcon },
   { value: MaterialCategory.Supplies, label: "Insumos", icon: PackageIcon },
   { value: MaterialCategory.Tools, label: "Herramientas", icon: WrenchIcon },
-  { value: MaterialCategory.Machinery, label: "Maquinaria", icon: SettingsIcon },
+  {
+    value: MaterialCategory.Machinery,
+    label: "Maquinaria",
+    icon: SettingsIcon,
+  },
 ] as const
 
 const unitOptions = ["yd", "metros", "unidades", "rollos"] as const
@@ -82,7 +84,11 @@ function normalizeOptionalValue(value?: string | null) {
   return normalized ? normalized : null
 }
 
-export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProps) {
+export function InventoryForm({
+  mode,
+  itemId,
+  defaultValues,
+}: InventoryFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [imageFile, setImageFile] = React.useState<File | null>(null)
@@ -194,7 +200,9 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
       router.refresh()
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "No se pudo guardar el material."
+        error instanceof Error
+          ? error.message
+          : "No se pudo guardar el material."
       toast.error(message)
     } finally {
       setIsSubmitting(false)
@@ -204,7 +212,7 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
   return (
     <form className="space-y-5" onSubmit={onSubmit} noValidate>
       {/* Card 1: Informacion del material */}
-      <Card className="border border-border/50 shadow-sm rounded-xl">
+      <Card className="rounded-xl border border-border/50 shadow-sm">
         <CardHeader className="border-b border-border/50 pb-4">
           <CardTitle className="text-base font-semibold">
             Informacion del material
@@ -213,7 +221,7 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
             Datos de identificacion, categoria y proveedor.
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-5 space-y-5">
+        <CardContent className="space-y-5 pt-5">
           {/* Image upload */}
           <div className="space-y-2">
             <p className="text-sm font-medium">Imagen del material</p>
@@ -256,7 +264,7 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
                     <p className="text-sm font-medium text-foreground">
                       Arrastra o haz click para seleccionar
                     </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       PNG, JPG, WEBP hasta 5MB
                     </p>
                   </div>
@@ -277,11 +285,21 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
           <Separator className="opacity-50" />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormFieldWrapper control={formControl} name="name" label="Nombre" required>
+            <FormFieldWrapper
+              control={formControl}
+              name="name"
+              label="Nombre"
+              required
+            >
               {(field) => <Input {...field} placeholder="Ej: Denim azul" />}
             </FormFieldWrapper>
 
-            <FormFieldWrapper control={formControl} name="category" label="Categoria" required>
+            <FormFieldWrapper
+              control={formControl}
+              name="category"
+              label="Categoria"
+              required
+            >
               {(field) => (
                 <Select
                   value={field.value}
@@ -316,7 +334,11 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
                   : "max-h-0 opacity-0"
               }`}
             >
-              <FormFieldWrapper control={formControl} name="fabric_type" label="Tipo de tela">
+              <FormFieldWrapper
+                control={formControl}
+                name="fabric_type"
+                label="Tipo de tela"
+              >
                 {(field) => (
                   <Input
                     value={field.value ?? ""}
@@ -337,7 +359,11 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
               )}
             </FormFieldWrapper>
 
-            <FormFieldWrapper control={formControl} name="supplier" label="Proveedor">
+            <FormFieldWrapper
+              control={formControl}
+              name="supplier"
+              label="Proveedor"
+            >
               {(field) => (
                 <Input
                   value={field.value ?? ""}
@@ -362,7 +388,7 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
       </Card>
 
       {/* Card 2: Stock y precios */}
-      <Card className="border border-border/50 shadow-sm rounded-xl">
+      <Card className="rounded-xl border border-border/50 shadow-sm">
         <CardHeader className="border-b border-border/50 pb-4">
           <CardTitle className="text-base font-semibold">
             Stock y precios
@@ -371,7 +397,7 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
             Cantidades, unidades y costos de adquisicion.
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-5 space-y-5">
+        <CardContent className="space-y-5 pt-5">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <FormFieldWrapper
               control={formControl}
@@ -392,7 +418,12 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
               )}
             </FormFieldWrapper>
 
-            <FormFieldWrapper control={formControl} name="unit" label="Unidad" required>
+            <FormFieldWrapper
+              control={formControl}
+              name="unit"
+              label="Unidad"
+              required
+            >
               {(field) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger>
@@ -456,7 +487,7 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
 
           {/* Live stock preview */}
           <div className="rounded-lg border border-border/50 bg-muted/50 p-3">
-            <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+            <p className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
               Vista previa del stock
             </p>
             <StockIndicator
@@ -467,15 +498,22 @@ export function InventoryForm({ mode, itemId, defaultValues }: InventoryFormProp
           </div>
         </CardContent>
         <CardFooter className="flex flex-col-reverse gap-2 border-t border-border/50 pt-4 sm:flex-row sm:justify-end">
-          <Button asChild variant="outline" type="button" className="w-full sm:w-auto">
-            <Link href={mode === "create" ? "/inventory" : `/inventory/${itemId}`}>
+          <Button
+            asChild
+            variant="outline"
+            type="button"
+            className="w-full sm:w-auto"
+          >
+            <Link
+              href={mode === "create" ? "/inventory" : `/inventory/${itemId}`}
+            >
               Cancelar
             </Link>
           </Button>
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-brand text-brand-foreground hover:bg-brand/90 w-full sm:w-auto"
+            className="w-full bg-brand text-brand-foreground hover:bg-brand/90 sm:w-auto"
           >
             {isSubmitting ? (
               <Loader2Icon className="size-4 animate-spin" />

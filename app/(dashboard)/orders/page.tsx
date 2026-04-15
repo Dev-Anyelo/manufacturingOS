@@ -1,10 +1,10 @@
 import Link from "next/link"
-import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { WorkOrderStatus } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getWorkOrders } from "@/lib/data/orders"
 import { StatCard } from "@/components/shared/stat-card"
+import { ChevronRightIcon, PlusIcon } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { OrdersWorkspace } from "@/components/modules/orders/orders-workspace"
 
@@ -35,74 +35,77 @@ export default async function OrdersPage() {
   }))
 
   const stats = {
-    received: orderRows.filter((o) => o.status === WorkOrderStatus.received).length,
-    inProduction: orderRows.filter((o) => o.status === WorkOrderStatus.in_production).length,
+    received: orderRows.filter((o) => o.status === WorkOrderStatus.received)
+      .length,
+    inProduction: orderRows.filter(
+      (o) => o.status === WorkOrderStatus.in_production
+    ).length,
     ready: orderRows.filter((o) => o.status === WorkOrderStatus.ready).length,
     deliveredToday: orderRows.filter((o) => {
       if (o.status !== WorkOrderStatus.delivered) return false
       const today = new Date()
-      const delivery = new Date(o.deliveryDate)
+      const d = new Date(o.deliveryDate)
       return (
-        delivery.getFullYear() === today.getFullYear() &&
-        delivery.getMonth() === today.getMonth() &&
-        delivery.getDate() === today.getDate()
+        d.getFullYear() === today.getFullYear() &&
+        d.getMonth() === today.getMonth() &&
+        d.getDate() === today.getDate()
       )
     }).length,
   }
 
   return (
-    <section className="flex min-h-full flex-col gap-4">
+    <section className="flex min-h-full flex-col">
       <div className="mx-auto w-full space-y-4">
+        {/* ── Page header ── */}
         <PageHeader
-          title="Pedidos"
-          description="Gestiona pedidos a medida con estado de produccion y entrega."
+          title="Órdenes"
+          description="Gestiona las órdenes de tus clientes y el proceso de producción."
           breadcrumbs={[
             { label: "Dashboard", href: "/" },
-            { label: "Pedidos" },
+            { label: "Órdenes" },
           ]}
           actions={
-            <Button
-              asChild
-              size="sm"
-              className="h-9 bg-brand px-4 font-medium text-brand-foreground hover:bg-brand/90"
-            >
+            <Button asChild size="sm">
               <Link href="/orders/new">
                 <PlusIcon className="size-4" />
-                Nuevo pedido
+                Nueva orden
               </Link>
             </Button>
           }
         />
 
+        {/* ── Stat cards ── */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <StatCard
             title="Recibidos"
             value={stats.received}
-            description="Pedidos recibidos pendientes de confirmar"
+            description="Pendientes de confirmar"
             icon={<ClipboardListIcon className="size-5" />}
           />
           <StatCard
-            title="En produccion"
+            title="En producción"
             value={stats.inProduction}
-            description="Pedidos actualmente en confeccion"
+            description="Actualmente en confección"
             icon={<ScissorsIcon className="size-5" />}
             variant={stats.inProduction > 0 ? "warning" : "default"}
           />
           <StatCard
             title="Listos"
             value={stats.ready}
-            description="Pedidos listos para entrega"
+            description="Listos para entrega"
             icon={<PackageCheckIcon className="size-5" />}
             variant={stats.ready > 0 ? "success" : "default"}
           />
           <StatCard
             title="Entregados hoy"
             value={stats.deliveredToday}
-            description="Pedidos entregados en el dia de hoy"
+            description="Entregas del día de hoy"
             icon={<TruckIcon className="size-5" />}
+            variant={stats.deliveredToday > 0 ? "info" : "default"}
           />
         </div>
 
+        {/* ── Workspace ── */}
         <OrdersWorkspace initialOrders={orderRows} />
       </div>
     </section>

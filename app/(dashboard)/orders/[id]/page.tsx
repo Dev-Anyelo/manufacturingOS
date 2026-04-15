@@ -1,11 +1,10 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeftIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
-import { PageHeader } from "@/components/shared/page-header"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getWorkOrderDetail } from "@/lib/data/orders"
+import { PageHeader } from "@/components/shared/page-header"
 import { OrderDetail } from "@/components/modules/orders/order-detail"
 
 interface OrderDetailPageProps {
@@ -27,22 +26,21 @@ export default async function OrderDetailPage({
   return (
     <section className="space-y-6">
       <PageHeader
-        title={`Pedido #${order.id.slice(0, 8)}`}
-        description="Consulta el flujo, detalle de prendas y estado de entrega."
+        title={`Pedido #${order.id.slice(0, 8).toUpperCase()}`}
+        description="Detalle completo del pedido, flujo de producción y trazabilidad."
         breadcrumbs={[
           { label: "Pedidos", href: "/orders" },
-          { label: `#${order.id.slice(0, 8)}` },
+          { label: `#${order.id.slice(0, 8).toUpperCase()}` },
         ]}
         actions={
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" size="sm" className="gap-2">
             <Link href="/orders">
-              <ArrowLeftIcon className="size-4" />
+              <ArrowLeftIcon className="size-3.5" />
               Volver
             </Link>
           </Button>
         }
       />
-
       <OrderDetail
         order={{
           id: order.id,

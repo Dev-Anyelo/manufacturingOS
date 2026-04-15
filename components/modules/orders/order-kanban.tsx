@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { cn } from "@/lib/utils"
+import { cn, statusConfig } from "@/lib/utils"
 import { CSS } from "@dnd-kit/utilities"
 import { Badge } from "@/components/ui/badge"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -40,6 +40,8 @@ import type {
   OrderStatusColumns,
   OrderSummaryItem,
 } from "@/components/modules/orders/types"
+import { FilterIcon, InboxIcon } from "lucide-react"
+import { EmptyState } from "@/components/shared/empty-state"
 
 const statuses: WorkOrderStatus[] = [
   WorkOrderStatus.received,
@@ -49,69 +51,6 @@ const statuses: WorkOrderStatus[] = [
   WorkOrderStatus.delivered,
   WorkOrderStatus.cancelled,
 ]
-
-const statusLabelMap: Record<WorkOrderStatus, string> = {
-  [WorkOrderStatus.received]: "Recibido",
-  [WorkOrderStatus.confirmed]: "Confirmado",
-  [WorkOrderStatus.in_production]: "En produccion",
-  [WorkOrderStatus.ready]: "Listo",
-  [WorkOrderStatus.delivered]: "Entregado",
-  [WorkOrderStatus.cancelled]: "Cancelado",
-}
-
-const columnConfig: Record<
-  WorkOrderStatus,
-  {
-    headerBg: string
-    bodyBg: string
-    borderColor: string
-    badgeClasses: string
-    dotColor: string
-  }
-> = {
-  [WorkOrderStatus.received]: {
-    headerBg: "bg-muted/60 border-slate-300/40 dark:border-slate-600/40",
-    bodyBg: "bg-muted/20",
-    borderColor: "border-slate-300/50 dark:border-slate-600/50",
-    badgeClasses: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
-    dotColor: "bg-slate-400",
-  },
-  [WorkOrderStatus.confirmed]: {
-    headerBg: "bg-blue-50/60 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-800/40",
-    bodyBg: "bg-blue-50/20 dark:bg-blue-950/10",
-    borderColor: "border-blue-200/50 dark:border-blue-800/50",
-    badgeClasses: "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400",
-    dotColor: "bg-blue-500",
-  },
-  [WorkOrderStatus.in_production]: {
-    headerBg: "bg-amber-50/60 border-amber-200/60 dark:bg-amber-950/20 dark:border-amber-800/40",
-    bodyBg: "bg-amber-50/20 dark:bg-amber-950/10",
-    borderColor: "border-amber-200/50 dark:border-amber-800/50",
-    badgeClasses: "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400",
-    dotColor: "bg-amber-500",
-  },
-  [WorkOrderStatus.ready]: {
-    headerBg: "bg-emerald-50/60 border-emerald-200/60 dark:bg-emerald-950/20 dark:border-emerald-800/40",
-    bodyBg: "bg-emerald-50/20 dark:bg-emerald-950/10",
-    borderColor: "border-emerald-200/50 dark:border-emerald-800/50",
-    badgeClasses: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400",
-    dotColor: "bg-emerald-500",
-  },
-  [WorkOrderStatus.delivered]: {
-    headerBg: "bg-brand-muted border-brand/20",
-    bodyBg: "bg-brand-muted/40",
-    borderColor: "border-brand/20",
-    badgeClasses: "bg-success-soft text-success border-success-soft",
-    dotColor: "bg-brand",
-  },
-  [WorkOrderStatus.cancelled]: {
-    headerBg: "bg-red-50/60 border-red-200/60 dark:bg-red-950/20 dark:border-red-800/40",
-    bodyBg: "bg-red-50/20 dark:bg-red-950/10",
-    borderColor: "border-red-200/50 dark:border-red-800/50",
-    badgeClasses: "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400",
-    dotColor: "bg-red-500",
-  },
-}
 
 interface OrderKanbanProps {
   ordersByStatus: OrderStatusColumns
@@ -140,6 +79,7 @@ function SortableOrderCard({ order }: { order: OrderSummaryItem }) {
       style={{ transform: CSS.Transform.toString(transform), transition }}
       {...attributes}
       {...listeners}
+      className="touch-none"
     >
       <OrderCard order={order} isDragging={isDragging} />
     </div>
@@ -153,62 +93,66 @@ function KanbanColumn({
   status: WorkOrderStatus
   orders: OrderSummaryItem[]
 }) {
-  const config = columnConfig[status]
+  const cfg = statusConfig[status]
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
     data: { type: "column", status },
   })
 
   return (
-    <div className="w-[270px] sm:w-[290px] shrink-0 flex flex-col">
-      {/* Column header */}
+    <div className="flex min-w-0 flex-col">
+      {/* Header */}
       <div
         className={cn(
-          "rounded-t-xl border px-3 py-2.5 flex items-center justify-between gap-2",
-          config.headerBg,
-          config.borderColor,
-          "border-b-0"
+          "flex items-center justify-between gap-2 rounded-t-2xl border border-b-0 px-3.5 py-3",
+          cfg.headerBg,
+          cfg.border
         )}
       >
         <div className="flex items-center gap-2">
           <span
-            className={cn("h-2 w-2 rounded-full flex-shrink-0", config.dotColor)}
-          />
-          <h3 className="text-xs font-semibold text-foreground">
-            {statusLabelMap[status]}
+            className={cn(
+              "flex h-5 w-5 items-center justify-center rounded-md text-inherit",
+              cfg.badge ?? ""
+            )}
+          >
+            {cfg.icon}
+          </span>
+          <h3 className="text-xs font-bold tracking-wide text-foreground/80">
+            {cfg.label}
           </h3>
         </div>
         <span
           className={cn(
-            "inline-flex items-center justify-center h-5 min-w-[20px] rounded-full px-1.5 text-[10px] font-bold",
-            config.badgeClasses
+            "inline-flex h-5 min-w-5 items-center justify-center rounded-full border px-1.5 text-[10px] font-bold",
+            cfg.badge
           )}
         >
           {orders.length}
         </span>
       </div>
 
-      {/* Column body */}
+      {/* Body */}
       <div
         ref={setNodeRef}
         className={cn(
-          "rounded-b-xl border min-h-[400px] p-2 space-y-2 transition-colors duration-150 flex-1",
-          config.bodyBg,
-          config.borderColor,
-          "border-t-0",
-          isOver && "ring-2 ring-brand/40 ring-inset"
+          "min-h-80 flex-1 space-y-2 rounded-b-2xl border border-t-0 p-2.5",
+          "transition-all duration-100",
+          cfg.bodyBg,
+          cfg.border,
+          isOver && "bg-brand/5 ring-2 ring-brand/40 ring-inset"
         )}
       >
         <SortableContext
-          items={orders.map((order) => order.id)}
+          items={orders.map((o) => o.id)}
           strategy={verticalListSortingStrategy}
         >
           {orders.length === 0 ? (
-            <div className="flex items-center justify-center h-20 rounded-lg border border-dashed border-border/40">
-              <p className="text-xs text-muted-foreground/60">
-                Sin pedidos
-              </p>
-            </div>
+            <EmptyState
+              icon={InboxIcon}
+              title="Sin pedidos"
+              description="No hay pedidos en esta etapa. Arrastra un pedido aquí o espera a que lleguen nuevos pedidos."
+            />
           ) : (
             orders.map((order) => (
               <SortableOrderCard key={order.id} order={order} />
@@ -220,97 +164,84 @@ function KanbanColumn({
   )
 }
 
-export function OrderKanban({ ordersByStatus, onStatusIntent }: OrderKanbanProps) {
+export function OrderKanban({
+  ordersByStatus,
+  onStatusIntent,
+}: OrderKanbanProps) {
   const isMobile = useIsMobile()
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
-
-  const [activeOrder, setActiveOrder] = React.useState<OrderSummaryItem | null>(null)
-  const [mobileStatusFilter, setMobileStatusFilter] = React.useState<
+  const [activeOrder, setActiveOrder] = React.useState<OrderSummaryItem | null>(
+    null
+  )
+  const [mobileFilter, setMobileFilter] = React.useState<
     WorkOrderStatus | "all"
   >("all")
 
-  const mobileCounts = React.useMemo(() => {
-    return statuses.reduce(
-      (acc, status) => {
-        acc[status] = ordersByStatus[status].length
-        return acc
-      },
-      {} as Record<WorkOrderStatus, number>
-    )
-  }, [ordersByStatus])
-
   const mobileList = React.useMemo(() => {
-    if (mobileStatusFilter === "all") {
-      return statuses.flatMap((status) => ordersByStatus[status])
-    }
-    return ordersByStatus[mobileStatusFilter]
-  }, [mobileStatusFilter, ordersByStatus])
+    if (mobileFilter === "all")
+      return statuses.flatMap((s) => ordersByStatus[s])
+    return ordersByStatus[mobileFilter]
+  }, [mobileFilter, ordersByStatus])
 
-  function handleDragStart(event: DragStartEvent) {
-    const candidate = event.active.data.current?.order
+  function handleDragStart(e: DragStartEvent) {
+    const candidate = e.active.data.current?.order
     if (candidate) setActiveOrder(candidate as OrderSummaryItem)
   }
 
-  function handleDragEnd(event: DragEndEvent) {
+  function handleDragEnd(e: DragEndEvent) {
     setActiveOrder(null)
-    if (!event.over) return
-    const draggedOrder = event.active.data.current?.order as OrderSummaryItem | undefined
-    if (!draggedOrder) return
-    const overData = event.over.data.current as
-      | { type?: string; status?: WorkOrderStatus }
+    if (!e.over) return
+    const dragged = e.active.data.current?.order as OrderSummaryItem | undefined
+    if (!dragged) return
+    const targetStatus = (e.over.data.current as any)?.status as
+      | WorkOrderStatus
       | undefined
-    const targetStatus = overData?.status
-    if (!targetStatus || targetStatus === draggedOrder.status) return
-    onStatusIntent(draggedOrder, targetStatus)
+    if (!targetStatus || targetStatus === dragged.status) return
+    onStatusIntent(dragged, targetStatus)
   }
 
   if (isMobile) {
     return (
       <div className="space-y-3">
-        <Select
-          value={mobileStatusFilter}
-          onValueChange={(value) =>
-            setMobileStatusFilter(value as WorkOrderStatus | "all")
-          }
-        >
-          <SelectTrigger className="w-full sm:w-56">
-            <SelectValue placeholder="Filtrar etapa" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas las etapas</SelectItem>
-            {statuses.map((status) => (
-              <SelectItem key={status} value={status}>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "h-2 w-2 rounded-full",
-                      columnConfig[status].dotColor
-                    )}
-                  />
-                  <span>{statusLabelMap[status]}</span>
-                  <Badge variant="secondary" className="text-xs ml-1">
-                    {mobileCounts[status]}
-                  </Badge>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="space-y-2" aria-live="polite">
+        <div className="flex items-center gap-2">
+          <FilterIcon className="size-4 text-muted-foreground" />
+          <Select
+            value={mobileFilter}
+            onValueChange={(value) =>
+              setMobileFilter(value as WorkOrderStatus | "all")
+            }
+          >
+            <SelectTrigger className="w-full rounded-xl">
+              <SelectValue placeholder="Filtrar etapa" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las etapas</SelectItem>
+              {statuses.map((s) => (
+                <SelectItem key={s} value={s}>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn("size-2 rounded-full", statusConfig[s].dot)}
+                    />
+                    {statusConfig[s].label}
+                    <Badge variant="secondary" className="ml-1 text-[10px]">
+                      {ordersByStatus[s].length}
+                    </Badge>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
           {mobileList.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border/60 p-6 text-center text-sm text-muted-foreground">
-              Sin pedidos para el filtro actual.
+            <div className="rounded-2xl border border-dashed border-border/50 p-8 text-center text-sm text-muted-foreground">
+              Sin pedidos para este filtro
             </div>
           ) : (
-            mobileList.map((order) => (
-              <OrderCard key={order.id} order={order} />
-            ))
+            mobileList.map((o) => <OrderCard key={o.id} order={o} />)
           )}
         </div>
       </div>
@@ -325,23 +256,20 @@ export function OrderKanban({ ordersByStatus, onStatusIntent }: OrderKanbanProps
       onDragEnd={handleDragEnd}
     >
       <div
-        className="flex gap-3 overflow-x-auto pb-4 kanban-scroll -mx-1 px-1"
+        className="grid grid-cols-1 gap-3 pb-4 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4"
         role="list"
-        aria-label="Tablero de pedidos por estado"
       >
-        {statuses.map((status) => (
-          <KanbanColumn
-            key={status}
-            status={status}
-            orders={ordersByStatus[status]}
-          />
+        {statuses.map((s) => (
+          <KanbanColumn key={s} status={s} orders={ordersByStatus[s]} />
         ))}
       </div>
-
       <DragOverlay>
-        {activeOrder ? (
-          <OrderCard order={activeOrder} className="w-[290px] rotate-1 shadow-xl" />
-        ) : null}
+        {activeOrder && (
+          <OrderCard
+            order={activeOrder}
+            className="w-72.5 rotate-1 shadow-2xl"
+          />
+        )}
       </DragOverlay>
     </DndContext>
   )

@@ -50,10 +50,10 @@ export function EmptyState({
     >
       <EmptyHeader className={compact ? "max-w-md gap-1" : "max-w-xl gap-2"}>
         <EmptyMedia variant="icon">{iconNode}</EmptyMedia>
-        <EmptyTitle className={compact ? "text-xs" : "text-base"}>
+        <EmptyTitle className={compact ? "text-xs" : "text-sm"}>
           {title}
         </EmptyTitle>
-        <EmptyDescription className={compact ? "text-xs" : "text-sm"}>
+        <EmptyDescription className="text-xs text-pretty">
           {description}
         </EmptyDescription>
       </EmptyHeader>

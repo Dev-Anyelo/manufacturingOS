@@ -1,10 +1,10 @@
-import { InventoryForm } from "@/components/modules/inventory/inventory-form"
 import { PageHeader } from "@/components/shared/page-header"
+import { InventoryForm } from "@/components/modules/inventory/inventory-form"
 
 export default function NewInventoryItemPage() {
   return (
-    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8">
-      <div className="max-w-2xl mx-auto w-full space-y-6">
+    <section className="flex flex-col min-h-full">
+      <div className="mx-auto w-full space-y-4">
         <PageHeader
           title="Nuevo material"
           description="Crea un registro para controlar stock, costo y proveedor."

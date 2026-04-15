@@ -83,7 +83,7 @@ const columns: ColumnDef<ProductionTableRow>[] = [
                 <div className="space-y-0.5">
                   <Badge
                     variant="secondary"
-                    className="text-[10px] h-4 px-1.5 font-medium"
+                    className="h-4 px-1.5 text-[10px] font-medium"
                   >
                     {relLabel}
                   </Badge>
@@ -99,7 +99,9 @@ const columns: ColumnDef<ProductionTableRow>[] = [
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <p className="text-xs">{formatDateFull(row.original.sessionDate)}</p>
+            <p className="text-xs">
+              {formatDateFull(row.original.sessionDate)}
+            </p>
           </TooltipContent>
         </Tooltip>
       )
@@ -111,7 +113,7 @@ const columns: ColumnDef<ProductionTableRow>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2.5">
         <Avatar className="size-7 flex-shrink-0">
-          <AvatarFallback className="bg-brand-muted text-brand text-[10px] font-semibold">
+          <AvatarFallback className="bg-brand-muted text-[10px] font-semibold text-brand">
             {initials(row.original.employeeName)}
           </AvatarFallback>
         </Avatar>
@@ -140,10 +142,10 @@ const columns: ColumnDef<ProductionTableRow>[] = [
     header: () => <div className="text-right">Yardas usadas</div>,
     cell: ({ row }) => (
       <div className="text-right">
-        <span className="text-sm tabular-nums font-medium">
+        <span className="text-sm font-medium tabular-nums">
           {row.original.totalYardsUsed.toFixed(2)}
         </span>
-        <span className="text-xs text-muted-foreground ml-1">yd</span>
+        <span className="ml-1 text-xs text-muted-foreground">yd</span>
       </div>
     ),
     meta: {
@@ -168,7 +170,12 @@ const columns: ColumnDef<ProductionTableRow>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-xs gap-1.5">
+      <Button
+        asChild
+        variant="ghost"
+        size="sm"
+        className="h-8 gap-1.5 px-2 text-xs"
+      >
         <Link href={`/production/${row.original.id}`}>
           <EyeIcon className="size-3.5" />
           Ver
@@ -180,7 +187,9 @@ const columns: ColumnDef<ProductionTableRow>[] = [
 
 export function ProductionTable({ sessions }: ProductionTableProps) {
   const [employeeFilter, setEmployeeFilter] = React.useState("all")
-  const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>({})
+  const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>(
+    {}
+  )
 
   const employeeOptions = React.useMemo(() => {
     const map = new Map<string, string>()
