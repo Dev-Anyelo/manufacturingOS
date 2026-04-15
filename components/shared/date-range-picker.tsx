@@ -105,7 +105,7 @@ export function DateRangePicker({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-auto rounded-xl border-border/40 bg-popover/95 p-0 shadow-xl backdrop-blur-sm"
+        className="w-auto rounded-xl border-border/40 bg-popover/95 p-0 shadow-xl backdrop-blur-sm mr-8"
       >
         <div className="flex flex-col">
           {/* Quick presets */}
