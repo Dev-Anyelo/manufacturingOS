@@ -2,10 +2,10 @@ import { cn } from "@/lib/utils"
 import { WorkOrderStatus as WOS } from "@prisma/client"
 
 import {
-  BoxIcon,
   CheckIcon,
   InboxIcon,
-  PackageIcon,
+  PackageCheckIcon,
+  Scissors,
   ShieldCheckIcon,
   TruckIcon,
   XCircleIcon,
@@ -29,12 +29,12 @@ const flow: Array<{
   {
     status: WOS.in_production,
     label: "En producción",
-    icon: <BoxIcon className="size-3.5" />,
+    icon: <Scissors className="size-3.5" />,
   },
   {
     status: WOS.ready,
     label: "Listo",
-    icon: <PackageIcon className="size-3.5" />,
+    icon: <PackageCheckIcon className="size-3.5" />,
   },
   {
     status: WOS.delivered,
