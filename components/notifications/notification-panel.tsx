@@ -77,15 +77,40 @@ export function NotificationPanel({
   items = defaultItems,
   onMarkAllAsRead,
 }: NotificationPanelProps) {
+  const unreadCount = items.filter((item) => !item.read).length
+
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between px-4 py-3">
-        <h3 className="text-sm font-semibold">Notificaciones</h3>
-        <Button variant="ghost" size="sm" onClick={onMarkAllAsRead}>
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card">
+      <div className="space-y-3 border-b border-border/60 px-4 py-4">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold">Notificaciones</h3>
+          <Badge variant="outline" className="text-xs">
+            {unreadCount} pendientes
+          </Badge>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
+            <p className="text-[11px] text-muted-foreground">Total</p>
+            <p className="text-sm font-semibold">{items.length}</p>
+          </div>
+          <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
+            <p className="text-[11px] text-muted-foreground">Sin leer</p>
+            <p className="text-sm font-semibold">{unreadCount}</p>
+          </div>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onMarkAllAsRead}
+          disabled={unreadCount === 0}
+          className="w-full"
+        >
           Marcar todo como leido
         </Button>
       </div>
-      <Separator />
+
+      <Separator className="opacity-60" />
 
       {items.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
@@ -100,14 +125,24 @@ export function NotificationPanel({
           {items.map((item) => (
             <article
               key={item.id}
-              className="rounded-md border bg-card p-3 transition-colors hover:bg-accent/30"
+              className="rounded-lg border border-border/60 bg-card p-3 transition-colors hover:bg-accent/30"
             >
               <div className="mb-1 flex items-center gap-2">
                 {getIconByType(item.type)}
                 <p className="text-sm font-medium">{item.title}</p>
-                {!item.read ? <Badge variant="secondary">Nueva</Badge> : null}
+                {!item.read ? (
+                  <Badge variant="secondary" className="ml-auto text-[11px]">
+                    Nueva
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="ml-auto text-[11px]">
+                    Leida
+                  </Badge>
+                )}
               </div>
-              <p className="mb-2 text-xs text-muted-foreground">{item.body}</p>
+              <p className="mb-2 text-xs leading-relaxed text-muted-foreground">
+                {item.body}
+              </p>
               <div className="flex items-center justify-between">
                 <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <Clock3Icon className="size-3" />

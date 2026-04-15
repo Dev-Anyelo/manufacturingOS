@@ -23,8 +23,8 @@ export default async function DashboardLayout({
       <AppSidebar variant="inset" user={user} />
       <SidebarInset>
         <SiteHeader user={user} />
-        <div className="flex flex-1 flex-col w-full">
-          <div className="flex flex-1 flex-col gap-4 px-4 w-full md:px-6 py-6">
+        <div className="flex w-full flex-1 flex-col">
+          <div className="flex w-full flex-1 flex-col gap-5 px-4 py-6 md:px-6 lg:px-8">
             {children}
           </div>
         </div>

@@ -25,7 +25,7 @@ export function PageHeader({
   breadcrumbs,
 }: PageHeaderProps) {
   return (
-    <header className="space-y-3">
+    <header className="animate-fade-in space-y-4">
       {breadcrumbs?.length ? (
         <Breadcrumb>
           <BreadcrumbList>
@@ -62,13 +62,13 @@ export function PageHeader({
         </Breadcrumb>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-3xl space-y-1.5">
           <h1 className="text-2xl leading-none font-bold tracking-tight sm:text-3xl">
             {title}
           </h1>
           {description ? (
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem]">
               {description}
             </p>
           ) : null}

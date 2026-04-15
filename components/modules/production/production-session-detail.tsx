@@ -55,7 +55,46 @@ export function ProductionSessionDetail({
   session,
 }: ProductionSessionDetailProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Prendas
+            </p>
+            <p className="text-lg font-semibold">{session.totalGarments}</p>
+          </CardContent>
+        </Card>
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Yardas usadas
+            </p>
+            <p className="text-lg font-semibold">
+              {session.totalYardsUsed.toFixed(2)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Materiales
+            </p>
+            <p className="text-lg font-semibold">{session.items.length}</p>
+          </CardContent>
+        </Card>
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Jornada
+            </p>
+            <p className="text-sm font-semibold">
+              {formatDateTime(session.sessionDate)}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="border border-border/50 shadow-sm">
           <CardHeader className="pb-2">
@@ -115,6 +154,9 @@ export function ProductionSessionDetail({
       <Card className="border border-border/50 shadow-sm">
         <CardHeader className="border-b border-border/50">
           <CardTitle>Items de produccion</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Detalle de insumos y prendas procesadas en la sesion.
+          </p>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="rounded-xl border border-border/50">

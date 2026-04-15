@@ -36,13 +36,18 @@ export function SearchInput({
   }, [debounceMs, localValue, onChange])
 
   return (
-    <div className={cn("relative w-full", className)}>
+    <div
+      className={cn(
+        "relative w-full rounded-lg border border-border/60 bg-card shadow-sm",
+        className
+      )}
+    >
       <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         value={localValue}
         onChange={(event) => setLocalValue(event.target.value)}
         placeholder={placeholder}
-        className="h-9 pr-16 pl-8"
+        className="h-9 border-0 bg-transparent pr-16 pl-8 shadow-none"
       />
       <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
         {isLoading ? (

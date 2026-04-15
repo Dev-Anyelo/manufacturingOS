@@ -18,6 +18,14 @@ import {
 } from "@/components/ui/table"
 
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -94,25 +102,32 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {searchKey ? (
-          <SearchInput
-            value={searchValue}
-            onChange={setSearchValue}
-            placeholder={searchPlaceholder}
-            className="w-full sm:max-w-sm"
-            isLoading={isLoading}
-          />
-        ) : (
-          <div />
-        )}
-        {toolbar ? (
-          <div className="flex items-center gap-2">{toolbar}</div>
-        ) : null}
+      <div className="rounded-xl border border-border/60 bg-card p-3 shadow-sm sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+            {searchKey ? (
+              <SearchInput
+                value={searchValue}
+                onChange={setSearchValue}
+                placeholder={searchPlaceholder}
+                className="w-full sm:max-w-sm"
+                isLoading={isLoading}
+              />
+            ) : null}
+            <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
+              <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+                Registros
+              </p>
+              <p className="text-sm font-semibold">{total}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">{toolbar}</div>
+        </div>
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-card shadow-sm">
-        <Table>
+      <div className="overflow-x-auto rounded-xl border border-border/50 bg-card shadow-sm">
+        <Table className="min-w-180">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
@@ -206,7 +221,31 @@ export function DataTable<TData, TValue>({
         <p className="text-sm text-muted-foreground">
           Mostrando {start}-{end} de {total}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Filas por pagina</span>
+            <Select
+              value={String(pagination.pageSize)}
+              onValueChange={(value) =>
+                setPagination((prev) => ({
+                  pageIndex: 0,
+                  pageSize: Number(value),
+                }))
+              }
+            >
+              <SelectTrigger className="h-8 w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 20, 30, 50].map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <Button
             size="sm"
             variant="outline"

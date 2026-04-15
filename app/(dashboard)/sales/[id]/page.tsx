@@ -4,8 +4,9 @@ import { getSaleById } from "@/lib/data/sales"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCurrentUser } from "@/lib/auth/current-user"
-import { ArrowLeft, ClipboardList, Plus } from "lucide-react"
+import { ArrowLeft, Plus } from "lucide-react"
 import { SaleDetail } from "@/components/modules/sales/sale-detail"
+import { PageHeader } from "@/components/shared/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { UpdateSalePaymentButton } from "@/components/modules/sales/update-sale-payment-button"
 
@@ -28,38 +29,37 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
-            <ClipboardList className="h-3.5 w-3.5" />
-            <span>Ventas / Detalle</span>
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Detalle de venta
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Consulta items, pagos y estado para esta venta.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/sales">
-              <ArrowLeft className="mr-1.5 h-4 w-4" />
-              Volver
-            </Link>
-          </Button>
-          {sale.status !== "paid" ? (
-            <UpdateSalePaymentButton saleId={sale.id} />
-          ) : null}
-          <Button asChild size="sm">
-            <Link href="/sales/new">
-              <Plus className="mr-1.5 h-4 w-4" />
-              Nueva venta
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title={`Venta #${sale.id.slice(0, 8)}`}
+        description="Consulta items, pagos y estado para esta venta."
+        breadcrumbs={[
+          { label: "Ventas", href: "/sales" },
+          { label: `#${sale.id.slice(0, 8)}` },
+        ]}
+        actions={
+          <>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/sales">
+                <ArrowLeft className="mr-1.5 h-4 w-4" />
+                Volver
+              </Link>
+            </Button>
+            {sale.status !== "paid" ? (
+              <UpdateSalePaymentButton saleId={sale.id} />
+            ) : null}
+            <Button
+              asChild
+              size="sm"
+              className="bg-brand text-brand-foreground hover:bg-brand-dark"
+            >
+              <Link href="/sales/new">
+                <Plus className="mr-1.5 h-4 w-4" />
+                Nueva venta
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       <SaleDetail
         sale={{

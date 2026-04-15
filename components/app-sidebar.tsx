@@ -3,6 +3,7 @@
 import Link from "next/link"
 import * as React from "react"
 import { UserRole } from "@/types"
+import { Badge } from "@/components/ui/badge"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import type { CurrentUser } from "@/lib/auth/current-user"
@@ -101,26 +102,35 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   })
 
   return (
-    <Sidebar collapsible="offcanvas" variant="floating" {...props}>
-      <SidebarHeader>
+    <Sidebar
+      collapsible="offcanvas"
+      variant="floating"
+      className="border-r border-sidebar-border/70"
+      {...props}
+    >
+      <SidebarHeader className="space-y-3 border-b border-sidebar-border/70 px-2 pb-3">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
+              className="data-[slot=sidebar-menu-button]:rounded-lg data-[slot=sidebar-menu-button]:border data-[slot=sidebar-menu-button]:border-sidebar-border/70 data-[slot=sidebar-menu-button]:bg-sidebar-accent/40 data-[slot=sidebar-menu-button]:p-2! w-fit mx-auto"
             >
               <Link href="/">
-                <CommandIcon className="size-5!" />
-                <span className="text-base font-semibold">manufacturingOS</span>
+                <CommandIcon className="size-4!" />
+                <div>
+                  <span className="truncate text-base font-semibold">
+                    Taller GG
+                  </span>
+                </div>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-1.5 py-2">
         <NavMain items={navItems} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-sidebar-border/70 p-2">
         <NavUser
           user={{
             name: user.fullName,

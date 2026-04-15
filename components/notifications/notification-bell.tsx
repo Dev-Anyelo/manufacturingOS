@@ -46,18 +46,18 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="relative"
+          className="relative rounded-lg border border-transparent bg-muted/30 transition-colors hover:border-border/60 hover:bg-muted/60"
           aria-label="Abrir notificaciones"
         >
           <BellIcon className={cn("size-4", pulse && "animate-pulse")} />
           {unread > 0 ? (
-            <Badge className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full px-1 text-[10px]">
+            <Badge className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full border border-card px-1 text-[10px] shadow-sm">
               {unread > 9 ? "9+" : unread}
             </Badge>
           ) : null}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent className="w-full bg-background/95 backdrop-blur-sm sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Centro de notificaciones</SheetTitle>
         </SheetHeader>

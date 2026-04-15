@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { getInventoryItem } from "@/lib/data/inventory"
 import { PageHeader } from "@/components/shared/page-header"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -43,6 +44,8 @@ export default async function InventoryDetailPage({
 
   const quantity = Number(item.quantity)
   const minimumStock = Number(item.minimumStock)
+  const unitPrice = Number(item.unitPrice)
+  const estimatedValue = quantity * unitPrice
 
   return (
     <div className="space-y-6">
@@ -67,6 +70,48 @@ export default async function InventoryDetailPage({
           </>
         }
       />
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Stock actual
+            </p>
+            <p className="text-lg font-semibold">
+              {quantity.toFixed(2)} {item.unit}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Minimo requerido
+            </p>
+            <p className="text-lg font-semibold">
+              {minimumStock.toFixed(2)} {item.unit}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Costo unitario
+            </p>
+            <CurrencyDisplay amount={unitPrice} className="font-semibold" />
+          </CardContent>
+        </Card>
+        <Card className="border border-border/50 shadow-sm">
+          <CardContent className="space-y-1 p-4">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              Valor estimado
+            </p>
+            <CurrencyDisplay
+              amount={estimatedValue}
+              className="font-semibold"
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       <Tabs defaultValue="info" className="space-y-4">
         <TabsList>

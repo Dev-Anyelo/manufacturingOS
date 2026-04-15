@@ -1,4 +1,5 @@
 import * as React from "react"
+import { cn } from "@/lib/utils"
 
 import {
   Empty,
@@ -40,13 +41,19 @@ export function EmptyState({
   }, [compact, icon])
 
   return (
-    <Empty className={className}>
-      <EmptyHeader className={compact ? "max-w-md gap-1" : undefined}>
+    <Empty
+      className={cn(
+        "rounded-xl border border-dashed border-border/60 bg-muted/10 p-4",
+        compact ? "min-h-38" : "min-h-48",
+        className
+      )}
+    >
+      <EmptyHeader className={compact ? "max-w-md gap-1" : "max-w-xl gap-2"}>
         <EmptyMedia variant="icon">{iconNode}</EmptyMedia>
-        <EmptyTitle className={compact ? "text-xs" : undefined}>
+        <EmptyTitle className={compact ? "text-xs" : "text-base"}>
           {title}
         </EmptyTitle>
-        <EmptyDescription className={compact ? "text-xs" : undefined}>
+        <EmptyDescription className={compact ? "text-xs" : "text-sm"}>
           {description}
         </EmptyDescription>
       </EmptyHeader>
