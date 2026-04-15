@@ -2,12 +2,18 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { EyeIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { EyeIcon, ScissorsIcon } from "lucide-react"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DateRangePicker } from "@/components/shared/date-range-picker"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 import {
   Select,
@@ -37,6 +43,23 @@ function formatDate(value: string) {
   }).format(new Date(value))
 }
 
+function formatDateFull(value: string) {
+  return new Intl.DateTimeFormat("es-PA", {
+    dateStyle: "full",
+  }).format(new Date(value))
+}
+
+function getRelativeLabel(value: string) {
+  const sessionDate = new Date(value)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+
+  if (sessionDate.toDateString() === today.toDateString()) return "Hoy"
+  if (sessionDate.toDateString() === yesterday.toDateString()) return "Ayer"
+  return null
+}
+
 function initials(value: string) {
   return value
     .split(" ")
@@ -50,17 +73,47 @@ const columns: ColumnDef<ProductionTableRow>[] = [
   {
     accessorKey: "sessionDate",
     header: "Fecha",
-    cell: ({ row }) => (
-      <span className="text-sm">{formatDate(row.original.sessionDate)}</span>
-    ),
+    cell: ({ row }) => {
+      const relLabel = getRelativeLabel(row.original.sessionDate)
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="cursor-default">
+              {relLabel ? (
+                <div className="space-y-0.5">
+                  <Badge
+                    variant="secondary"
+                    className="text-[10px] h-4 px-1.5 font-medium"
+                  >
+                    {relLabel}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(row.original.sessionDate)}
+                  </p>
+                </div>
+              ) : (
+                <span className="text-sm">
+                  {formatDate(row.original.sessionDate)}
+                </span>
+              )}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">{formatDateFull(row.original.sessionDate)}</p>
+          </TooltipContent>
+        </Tooltip>
+      )
+    },
   },
   {
     accessorKey: "employeeName",
     header: "Empleado",
     cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <Avatar size="sm">
-          <AvatarFallback>{initials(row.original.employeeName)}</AvatarFallback>
+      <div className="flex items-center gap-2.5">
+        <Avatar className="size-7 flex-shrink-0">
+          <AvatarFallback className="bg-brand-muted text-brand text-[10px] font-semibold">
+            {initials(row.original.employeeName)}
+          </AvatarFallback>
         </Avatar>
         <span className="text-sm font-medium">{row.original.employeeName}</span>
       </div>
@@ -68,17 +121,29 @@ const columns: ColumnDef<ProductionTableRow>[] = [
   },
   {
     accessorKey: "totalGarments",
-    header: () => <div className="text-right">Prendas</div>,
+    header: () => (
+      <div className="flex items-center justify-end gap-1 text-right">
+        <ScissorsIcon className="size-3 text-muted-foreground" />
+        Prendas
+      </div>
+    ),
     cell: ({ row }) => (
-      <div className="text-right text-sm">{row.original.totalGarments}</div>
+      <div className="text-right">
+        <span className="text-sm font-semibold tabular-nums">
+          {row.original.totalGarments}
+        </span>
+      </div>
     ),
   },
   {
     accessorKey: "totalYardsUsed",
-    header: () => <div className="text-right">Yardas</div>,
+    header: () => <div className="text-right">Yardas usadas</div>,
     cell: ({ row }) => (
-      <div className="text-right text-sm">
-        {row.original.totalYardsUsed.toFixed(2)}
+      <div className="text-right">
+        <span className="text-sm tabular-nums font-medium">
+          {row.original.totalYardsUsed.toFixed(2)}
+        </span>
+        <span className="text-xs text-muted-foreground ml-1">yd</span>
       </div>
     ),
     meta: {
@@ -90,7 +155,7 @@ const columns: ColumnDef<ProductionTableRow>[] = [
     accessorKey: "createdByName",
     header: "Registrado por",
     cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">
+      <span className="text-xs text-muted-foreground">
         {row.original.createdByName}
       </span>
     ),
@@ -103,9 +168,9 @@ const columns: ColumnDef<ProductionTableRow>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <Button asChild variant="ghost" size="sm" className="justify-start">
+      <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-xs gap-1.5">
         <Link href={`/production/${row.original.id}`}>
-          <EyeIcon className="size-4" />
+          <EyeIcon className="size-3.5" />
           Ver
         </Link>
       </Button>
@@ -115,19 +180,15 @@ const columns: ColumnDef<ProductionTableRow>[] = [
 
 export function ProductionTable({ sessions }: ProductionTableProps) {
   const [employeeFilter, setEmployeeFilter] = React.useState("all")
-  const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>(
-    {}
-  )
+  const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>({})
 
   const employeeOptions = React.useMemo(() => {
     const map = new Map<string, string>()
-
     for (const session of sessions) {
       if (!map.has(session.employeeId)) {
         map.set(session.employeeId, session.employeeName)
       }
     }
-
     return [...map.entries()].map(([id, fullName]) => ({ id, fullName }))
   }, [sessions])
 
@@ -136,22 +197,13 @@ export function ProductionTable({ sessions }: ProductionTableProps) {
       if (employeeFilter !== "all" && session.employeeId !== employeeFilter) {
         return false
       }
-
       const currentDate = new Date(session.sessionDate)
-
-      if (dateRange.from && currentDate < dateRange.from) {
-        return false
-      }
-
+      if (dateRange.from && currentDate < dateRange.from) return false
       if (dateRange.to) {
         const inclusiveTo = new Date(dateRange.to)
         inclusiveTo.setHours(23, 59, 59, 999)
-
-        if (currentDate > inclusiveTo) {
-          return false
-        }
+        if (currentDate > inclusiveTo) return false
       }
-
       return true
     })
   }, [dateRange.from, dateRange.to, employeeFilter, sessions])
@@ -167,11 +219,11 @@ export function ProductionTable({ sessions }: ProductionTableProps) {
       toolbar={
         <div className="flex flex-wrap items-center gap-2">
           <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="h-8 w-44 text-xs">
               <SelectValue placeholder="Empleado" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="all">Todos los empleados</SelectItem>
               {employeeOptions.map((employee) => (
                 <SelectItem key={employee.id} value={employee.id}>
                   {employee.fullName}

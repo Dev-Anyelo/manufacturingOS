@@ -6,6 +6,7 @@ import Image from "next/image"
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
@@ -61,26 +62,32 @@ interface InventoryTableProps {
   canDeactivate: boolean
 }
 
-const categoryLabelMap: Record<InventoryTableRow["category"], string> = {
-  fabric: "Telas",
-  supplies: "Insumos",
-  tools: "Herramientas",
-  machinery: "Maquinaria",
+const categoryConfig: Record<
+  InventoryTableRow["category"],
+  { label: string; classes: string }
+> = {
+  fabric: {
+    label: "Telas",
+    classes: "status-brand",
+  },
+  supplies: {
+    label: "Insumos",
+    classes: "status-info",
+  },
+  tools: {
+    label: "Herramientas",
+    classes: "status-warning",
+  },
+  machinery: {
+    label: "Maquinaria",
+    classes: "status-subtle",
+  },
 }
 
 function getStockStatus(row: InventoryTableRow) {
-  if (row.quantity <= 0) {
-    return "out"
-  }
-
-  if (row.quantity <= row.minimumStock) {
-    return "critical"
-  }
-
-  if (row.quantity <= row.minimumStock * 2) {
-    return "low"
-  }
-
+  if (row.quantity <= 0) return "out"
+  if (row.quantity <= row.minimumStock) return "critical"
+  if (row.quantity <= row.minimumStock * 2) return "low"
   return "normal"
 }
 
@@ -99,27 +106,36 @@ function createInventoryColumns(
       header: "Material",
       cell: ({ row }) => {
         const item = row.original
+        const catConfig = categoryConfig[item.category]
 
         return (
           <div className="flex min-w-0 items-center gap-3">
             {item.imageUrl ? (
-              <Image
-                src={item.imageUrl}
-                alt={item.name}
-                width={32}
-                height={32}
-                className="size-8 rounded-md border border-border/60 object-cover"
-              />
+              <div className="relative size-9 flex-shrink-0 overflow-hidden rounded-lg border border-border/60">
+                <Image
+                  src={item.imageUrl}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
             ) : (
-              <span className="flex size-8 items-center justify-center rounded-md border border-border/60 bg-muted text-muted-foreground">
+              <span className="flex size-9 flex-shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted text-muted-foreground">
                 <LayersIcon className="size-4" />
               </span>
             )}
-            <div className="min-w-0 space-y-1">
-              <p className="truncate text-sm font-medium">{item.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {categoryLabelMap[item.category]}
+            <div className="min-w-0 space-y-0.5">
+              <p className="truncate text-sm font-semibold leading-tight">
+                {item.name}
               </p>
+              <div className="flex items-center gap-1.5">
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] px-1.5 py-0 h-4 font-medium border ${catConfig.classes}`}
+                >
+                  {catConfig.label}
+                </Badge>
+              </div>
             </div>
           </div>
         )
@@ -144,7 +160,7 @@ function createInventoryColumns(
       id: "unitPrice",
       header: () => <div className="text-right">Precio unitario</div>,
       cell: ({ row }) => (
-        <div className="text-right">
+        <div className="text-right font-medium tabular-nums">
           <CurrencyDisplay amount={row.original.unitPrice} />
         </div>
       ),
@@ -160,20 +176,28 @@ function createInventoryColumns(
         const supplier = row.original.supplier
 
         if (!supplier) {
-          return <span className="text-muted-foreground">-</span>
+          return (
+            <span className="text-xs text-muted-foreground italic">
+              Sin proveedor
+            </span>
+          )
         }
 
         const truncated = supplier.length > 22
         const text = truncated ? `${supplier.slice(0, 22)}...` : supplier
 
         if (!truncated) {
-          return <span className="text-sm">{text}</span>
+          return (
+            <span className="text-sm text-muted-foreground">{text}</span>
+          )
         }
 
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="cursor-help text-sm">{text}</span>
+              <span className="cursor-help text-sm text-muted-foreground">
+                {text}
+              </span>
             </TooltipTrigger>
             <TooltipContent>{supplier}</TooltipContent>
           </Tooltip>
@@ -193,7 +217,11 @@ function createInventoryColumns(
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-8">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 opacity-60 hover:opacity-100 transition-opacity"
+              >
                 <EllipsisVerticalIcon className="size-4" />
                 <span className="sr-only">Abrir acciones</span>
               </Button>
@@ -202,7 +230,7 @@ function createInventoryColumns(
               <DropdownMenuItem asChild>
                 <Link href={`/inventory/${item.id}`}>
                   <EyeIcon className="size-4" />
-                  Ver
+                  Ver detalle
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -250,11 +278,9 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
       if (categoryFilter !== "all" && item.category !== categoryFilter) {
         return false
       }
-
       if (stockFilter !== "all" && getStockStatus(item) !== stockFilter) {
         return false
       }
-
       return true
     })
   }, [items, categoryFilter, stockFilter])
@@ -270,10 +296,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
   )
 
   async function handleDeactivate() {
-    if (!deletingItem) {
-      return
-    }
-
+    if (!deletingItem) return
     setIsDeleting(true)
 
     try {
@@ -321,7 +344,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -334,7 +357,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
             </Select>
 
             <Select value={stockFilter} onValueChange={setStockFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
@@ -352,9 +375,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
       <AdjustStockDialog
         open={Boolean(adjustingItem)}
         onOpenChange={(open) => {
-          if (!open) {
-            setAdjustingItem(null)
-          }
+          if (!open) setAdjustingItem(null)
         }}
         item={adjustingItem}
         onAdjusted={() => {
@@ -366,9 +387,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
       <ConfirmDialog
         open={Boolean(deletingItem)}
         onOpenChange={(open) => {
-          if (!open) {
-            setDeletingItem(null)
-          }
+          if (!open) setDeletingItem(null)
         }}
         title={
           deletingItem

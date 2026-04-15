@@ -10,7 +10,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { TypographyH1, TypographyP } from "./typography"
+import { Separator } from "@/components/ui/separator"
 
 interface PageHeaderProps {
   title: string
@@ -26,9 +26,9 @@ export function PageHeader({
   breadcrumbs,
 }: PageHeaderProps) {
   return (
-    <header className="p-0 m-0">
+    <header className="space-y-3">
       {breadcrumbs?.length ? (
-        <Breadcrumb className="mb-2">
+        <Breadcrumb>
           <BreadcrumbList>
             {breadcrumbs.map((item, index) => {
               const isLast = index === breadcrumbs.length - 1
@@ -37,16 +37,23 @@ export function PageHeader({
                 <div key={`${item.label}-${index}`} className="contents">
                   <BreadcrumbItem>
                     {isLast || !item.href ? (
-                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                      <BreadcrumbPage className="text-xs font-medium text-foreground">
+                        {item.label}
+                      </BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink asChild>
-                        <Link href={item.href}>{item.label}</Link>
+                        <Link
+                          href={item.href}
+                          className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {item.label}
+                        </Link>
                       </BreadcrumbLink>
                     )}
                   </BreadcrumbItem>
                   {!isLast ? (
                     <BreadcrumbSeparator>
-                      <ChevronRightIcon />
+                      <ChevronRightIcon className="size-3" />
                     </BreadcrumbSeparator>
                   ) : null}
                 </div>
@@ -56,17 +63,25 @@ export function PageHeader({
         </Breadcrumb>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <TypographyH1 text={title} />
-          {description ? <TypographyP text={description} /> : null}
+          <h1 className="text-2xl font-bold tracking-tight leading-none sm:text-3xl">
+            {title}
+          </h1>
+          {description ? (
+            <p className="text-sm text-muted-foreground leading-relaxed mt-1.5">
+              {description}
+            </p>
+          ) : null}
         </div>
         {actions ? (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          <div className="flex flex-wrap items-center gap-2 sm:flex-shrink-0">
             {actions}
           </div>
         ) : null}
       </div>
+
+      <Separator className="opacity-60" />
     </header>
   )
 }

@@ -38,8 +38,7 @@ function createCartItem(catalogItem: PosCatalogItem): PosCartItem {
 export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [activeTab, setActiveTab] = React.useState("catalog")
   const [customerOptions, setCustomerOptions] = React.useState(customers)
-  const [selectedCustomer, setSelectedCustomer] =
-    React.useState<PosCustomer | null>(null)
+  const [selectedCustomer, setSelectedCustomer] = React.useState<PosCustomer | null>(null)
   const [cartItems, setCartItems] = React.useState<PosCartItem[]>([])
   const [channel, setChannel] = React.useState("in_person")
   const [paymentMethod, setPaymentMethod] = React.useState("cash")
@@ -50,9 +49,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [notes, setNotes] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [receiptOpen, setReceiptOpen] = React.useState(false)
-  const [receiptData, setReceiptData] = React.useState<SaleReceiptData | null>(
-    null
-  )
+  const [receiptData, setReceiptData] = React.useState<SaleReceiptData | null>(null)
 
   const subtotal = React.useMemo(() => {
     return cartItems.reduce(
@@ -65,10 +62,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const total = Math.max(subtotal - discountAmount, 0)
 
   const computedAmountPaid = React.useMemo(() => {
-    if (paymentMethod === "cash") {
-      return receivedAmount
-    }
-
+    if (paymentMethod === "cash") return receivedAmount
     return amountPaid
   }, [amountPaid, paymentMethod, receivedAmount])
 
@@ -77,23 +71,12 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       const existing = previous.find(
         (item) => item.catalogItemId === catalogItem.id
       )
-
-      if (!existing) {
-        return [...previous, createCartItem(catalogItem)]
-      }
-
+      if (!existing) return [...previous, createCartItem(catalogItem)]
       return previous.map((item) => {
-        if (item.rowId !== existing.rowId) {
-          return item
-        }
-
-        return {
-          ...item,
-          quantity: item.quantity + 1,
-        }
+        if (item.rowId !== existing.rowId) return item
+        return { ...item, quantity: item.quantity + 1 }
       })
     })
-
     toast.success("Item agregado al carrito.")
   }
 
@@ -110,10 +93,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       previous
         .map((item) =>
           item.rowId === rowId
-            ? {
-                ...item,
-                quantity: Math.max(item.quantity - 1, 0),
-              }
+            ? { ...item, quantity: Math.max(item.quantity - 1, 0) }
             : item
         )
         .filter((item) => item.quantity > 0)
@@ -150,14 +130,11 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       toast.error("Agrega al menos un item para registrar la venta.")
       return
     }
-
     if (paymentMethod === "cash" && receivedAmount <= 0) {
       toast.error("Ingresa el monto recibido en efectivo.")
       return
     }
-
     setIsSubmitting(true)
-
     try {
       const saleNotes = [
         notes.trim(),
@@ -170,9 +147,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
 
       const response = await fetch("/api/sales", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customer_id: selectedCustomer?.id ?? null,
           sale_date: new Date().toISOString(),
@@ -236,101 +211,79 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     }
   }
 
+  const cartProps = {
+    items: cartItems,
+    customers: customerOptions,
+    selectedCustomer,
+    onCustomerChange: setSelectedCustomer,
+    onCustomerCreated: (customer: PosCustomer) =>
+      setCustomerOptions((previous) => [customer, ...previous]),
+    onIncreaseQuantity: handleIncreaseQuantity,
+    onDecreaseQuantity: handleDecreaseQuantity,
+    onRemoveItem: handleRemoveItem,
+    onSizeChange: handleSizeChange,
+    channel,
+    onChannelChange: setChannel,
+    paymentMethod,
+    onPaymentMethodChange: setPaymentMethod,
+    subtotal,
+    discountPercent,
+    onDiscountPercentChange: setDiscountPercent,
+    total,
+    receivedAmount,
+    onReceivedAmountChange: setReceivedAmount,
+    amountPaid,
+    onAmountPaidChange: setAmountPaid,
+    dueDate,
+    onDueDateChange: setDueDate,
+    notes,
+    onNotesChange: setNotes,
+    onSubmit: handleSubmitSale,
+    isSubmitting,
+  }
+
   return (
     <>
-      <div className="hidden h-[calc(100vh-11rem)] gap-0 overflow-hidden rounded-xl border border-border/50 md:grid md:grid-cols-[1fr_380px] lg:grid-cols-[1fr_420px]">
-        <div className="overflow-y-auto border-r border-border/50 bg-background p-4">
+      {/* Desktop layout */}
+      <div className="hidden md:flex h-[calc(100vh-11rem)] gap-0 overflow-hidden rounded-xl border border-border/50">
+        {/* Catalog panel */}
+        <div className="flex-1 overflow-y-auto border-r border-border/50 bg-background px-4">
           <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
         </div>
-        <div className="overflow-y-auto bg-card p-4">
-          <PosCart
-            items={cartItems}
-            customers={customerOptions}
-            selectedCustomer={selectedCustomer}
-            onCustomerChange={setSelectedCustomer}
-            onCustomerCreated={(customer) =>
-              setCustomerOptions((previous) => [customer, ...previous])
-            }
-            onIncreaseQuantity={handleIncreaseQuantity}
-            onDecreaseQuantity={handleDecreaseQuantity}
-            onRemoveItem={handleRemoveItem}
-            onSizeChange={handleSizeChange}
-            channel={channel}
-            onChannelChange={setChannel}
-            paymentMethod={paymentMethod}
-            onPaymentMethodChange={setPaymentMethod}
-            subtotal={subtotal}
-            discountPercent={discountPercent}
-            onDiscountPercentChange={setDiscountPercent}
-            total={total}
-            receivedAmount={receivedAmount}
-            onReceivedAmountChange={setReceivedAmount}
-            amountPaid={amountPaid}
-            onAmountPaidChange={setAmountPaid}
-            dueDate={dueDate}
-            onDueDateChange={setDueDate}
-            notes={notes}
-            onNotesChange={setNotes}
-            onSubmit={handleSubmitSale}
-            isSubmitting={isSubmitting}
-          />
+
+        {/* Cart panel */}
+        <div className="w-[340px] lg:w-[380px] flex-shrink-0 bg-card flex flex-col overflow-hidden">
+          <PosCart {...cartProps} />
         </div>
       </div>
 
+      {/* Mobile layout with tabs */}
       <div className="md:hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="h-12 w-full rounded-none border-b border-border/50 bg-background">
-            <TabsTrigger value="catalog" className="flex-1 text-sm">
+          <TabsList className="h-11 w-full rounded-none border-b border-border/50 bg-background">
+            <TabsTrigger value="catalog" className="flex-1 text-sm gap-2">
               Catalogo
             </TabsTrigger>
-            <TabsTrigger value="cart" className="flex-1 gap-1.5 text-sm">
+            <TabsTrigger value="cart" className="flex-1 text-sm gap-1.5">
               Carrito
-              <Badge className="min-w-5 justify-center rounded-full bg-brand px-1.5 text-[10px] text-brand-foreground">
-                {cartItems.length}
-              </Badge>
+              {cartItems.length > 0 ? (
+                <Badge className="min-w-5 h-5 justify-center rounded-full bg-brand px-1.5 text-[10px] text-brand-foreground">
+                  {cartItems.length}
+                </Badge>
+              ) : null}
             </TabsTrigger>
           </TabsList>
           <TabsContent
             value="catalog"
-            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto pt-3"
+            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto pt-3 px-1"
           >
             <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
           </TabsContent>
           <TabsContent
             value="cart"
-            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto pt-3"
+            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto"
           >
-            <PosCart
-              items={cartItems}
-              customers={customerOptions}
-              selectedCustomer={selectedCustomer}
-              onCustomerChange={setSelectedCustomer}
-              onCustomerCreated={(customer) =>
-                setCustomerOptions((previous) => [customer, ...previous])
-              }
-              onIncreaseQuantity={handleIncreaseQuantity}
-              onDecreaseQuantity={handleDecreaseQuantity}
-              onRemoveItem={handleRemoveItem}
-              onSizeChange={handleSizeChange}
-              channel={channel}
-              onChannelChange={setChannel}
-              paymentMethod={paymentMethod}
-              onPaymentMethodChange={setPaymentMethod}
-              subtotal={subtotal}
-              discountPercent={discountPercent}
-              onDiscountPercentChange={setDiscountPercent}
-              total={total}
-              receivedAmount={receivedAmount}
-              onReceivedAmountChange={setReceivedAmount}
-              amountPaid={amountPaid}
-              onAmountPaidChange={setAmountPaid}
-              dueDate={dueDate}
-              onDueDateChange={setDueDate}
-              notes={notes}
-              onNotesChange={setNotes}
-              onSubmit={handleSubmitSale}
-              isSubmitting={isSubmitting}
-            />
+            <PosCart {...cartProps} />
           </TabsContent>
         </Tabs>
       </div>
@@ -341,13 +294,6 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
         receipt={receiptData}
         onNewSale={resetPos}
       />
-
-      {catalogItems.length === 0 ? (
-        <div className="mt-4 rounded-xl border border-dashed border-border/60 bg-muted/15 p-6 text-center text-sm text-muted-foreground">
-          <ShoppingCartIcon className="mx-auto mb-2 size-5" />
-          No hay items activos en catalogo para vender.
-        </div>
-      ) : null}
     </>
   )
 }

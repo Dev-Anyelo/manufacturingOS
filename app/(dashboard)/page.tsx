@@ -2,14 +2,15 @@ import Link from "next/link"
 import {
   AlertTriangleIcon,
   BoxesIcon,
+  ChevronRightIcon,
   ClipboardListIcon,
   HistoryIcon,
   PackageSearchIcon,
+  ScissorsIcon,
   ShoppingCartIcon,
 } from "lucide-react"
-
 import { AuditAction } from "@prisma/client"
-
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -18,12 +19,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { EmptyState } from "@/components/shared/empty-state"
-import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getDashboardStats } from "@/lib/data/dashboard"
+import { requireCurrentUser } from "@/lib/auth/current-user"
 import { prisma } from "@/lib/prisma"
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -36,32 +39,37 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 type StockStatus = "normal" | "low" | "critical" | "out"
 
 function getStockStatus(quantity: number, minimumStock: number): StockStatus {
-  if (quantity <= 0) {
-    return "out"
-  }
-
-  if (quantity <= minimumStock) {
-    return "critical"
-  }
-
-  if (quantity <= minimumStock * 2) {
-    return "low"
-  }
-
+  if (quantity <= 0) return "out"
+  if (quantity <= minimumStock) return "critical"
+  if (quantity <= minimumStock * 2) return "low"
   return "normal"
 }
 
 function getAuditActionLabel(action: AuditAction) {
   switch (action) {
     case AuditAction.insert:
-      return "Creacion"
+      return "Registro creado"
     case AuditAction.update:
-      return "Actualizacion"
+      return "Registro actualizado"
     case AuditAction.delete:
-      return "Eliminacion"
+      return "Registro eliminado"
     default:
       return action
   }
+}
+
+function getAuditTableLabel(tableName: string) {
+  const labels: Record<string, string> = {
+    inventory_items: "Inventario",
+    work_orders: "Pedidos",
+    sales: "Ventas",
+    production_sessions: "Produccion",
+    employees: "Empleados",
+    payroll_payments: "Planilla",
+    expenses: "Gastos",
+    catalog_items: "Catalogo",
+  }
+  return labels[tableName] ?? tableName
 }
 
 function formatDateTime(value: Date) {
@@ -71,13 +79,41 @@ function formatDateTime(value: Date) {
   }).format(value)
 }
 
+function formatTimeAgo(value: Date) {
+  const diff = Date.now() - value.getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return "Hace un momento"
+  if (mins < 60) return `Hace ${mins} min`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `Hace ${hours}h`
+  return formatDateTime(value)
+}
+
+function getFirstName(fullName: string) {
+  return fullName.split(" ")[0] ?? fullName
+}
+
+function getSpanishGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return "Buenos dias"
+  if (hour < 19) return "Buenas tardes"
+  return "Buenas noches"
+}
+
+function getFormattedDate() {
+  return new Intl.DateTimeFormat("es-PA", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date())
+}
+
 export default async function DashboardPage() {
-  const [stats, inventorySnapshot, recentActivity] = await Promise.all([
+  const [stats, inventorySnapshot, recentActivity, user] = await Promise.all([
     getDashboardStats(),
     prisma.inventoryItem.findMany({
-      where: {
-        isActive: true,
-      },
+      where: { isActive: true },
       select: {
         id: true,
         name: true,
@@ -85,15 +121,11 @@ export default async function DashboardPage() {
         minimumStock: true,
         unit: true,
       },
-      orderBy: {
-        updatedAt: "desc",
-      },
+      orderBy: { updatedAt: "desc" },
     }),
     prisma.auditLog.findMany({
-      take: 5,
-      orderBy: {
-        createdAt: "desc",
-      },
+      take: 8,
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         tableName: true,
@@ -101,6 +133,7 @@ export default async function DashboardPage() {
         createdAt: true,
       },
     }),
+    requireCurrentUser(),
   ])
 
   const inventoryCount = inventorySnapshot.length
@@ -108,7 +141,6 @@ export default async function DashboardPage() {
     const quantity = decimalToNumber(item.quantity)
     const minimumStock = decimalToNumber(item.minimumStock)
     const status = getStockStatus(quantity, minimumStock)
-
     return status !== "normal"
   }).length
 
@@ -117,17 +149,11 @@ export default async function DashboardPage() {
       const quantity = decimalToNumber(item.quantity)
       const minimumStock = decimalToNumber(item.minimumStock)
       const status = getStockStatus(quantity, minimumStock)
-
-      return {
-        ...item,
-        quantity,
-        minimumStock,
-        status,
-      }
+      return { ...item, quantity, minimumStock, status }
     })
     .filter((item) => item.status === "critical" || item.status === "out")
     .sort((a, b) => a.quantity - b.quantity)
-    .slice(0, 5)
+    .slice(0, 6)
 
   const hasDashboardData =
     inventoryCount > 0 ||
@@ -136,139 +162,312 @@ export default async function DashboardPage() {
     stats.pendingOrdersCount > 0 ||
     recentActivity.length > 0
 
+  const firstName = getFirstName(user.fullName)
+  const greeting = getSpanishGreeting()
+  const formattedDate = getFormattedDate()
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        description="Vista general de inventario, ventas y operaciones del taller."
-      />
+    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8 gap-6">
+      <div className="max-w-[1400px] mx-auto w-full space-y-6">
+        {/* Zone 1: Personalized greeting */}
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight leading-none sm:text-3xl">
+              {greeting}, {firstName}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1.5 capitalize">
+              {formattedDate}
+            </p>
+          </div>
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Sistema operativo
+          </Badge>
+        </div>
 
-      {!hasDashboardData ? (
-        <EmptyState
-          icon={PackageSearchIcon}
-          title="Sin datos operativos aun"
-          description="Agrega materiales, ventas o pedidos para ver indicadores del tablero."
-          action={
-            <Button
-              asChild
-              size="sm"
-              className="bg-brand text-brand-foreground"
-            >
-              <Link href="/inventory">Ir a inventario</Link>
-            </Button>
-          }
-        />
-      ) : (
-        <>
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              title="Materiales en inventario"
-              value={inventoryCount}
-              description="Registros activos disponibles"
-              icon={<BoxesIcon className="size-4" />}
-            />
-            <StatCard
-              title="Stock bajo o critico"
-              value={lowOrCriticalCount}
-              description="Requieren atencion de reposicion"
-              icon={<AlertTriangleIcon className="size-4" />}
-              variant={lowOrCriticalCount > 0 ? "warning" : "default"}
-            />
-            <StatCard
-              title="Ventas del dia"
-              value={currencyFormatter.format(stats.todaySales)}
-              description={`${stats.todaySalesCount} transacciones registradas hoy`}
-              icon={<ShoppingCartIcon className="size-4" />}
-              variant={stats.todaySales > 0 ? "success" : "default"}
-            />
-            <StatCard
-              title="Pedidos activos"
-              value={stats.pendingOrdersCount}
-              description="No entregados ni cancelados"
-              icon={<ClipboardListIcon className="size-4" />}
-            />
-          </section>
+        <Separator className="opacity-60" />
 
-          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <Card className="border border-border/50 shadow-sm">
-              <CardHeader className="border-b border-border/50">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <HistoryIcon className="size-4 text-muted-foreground" />
-                  Actividad reciente
-                </CardTitle>
-                <CardDescription>
-                  Ultimas 5 operaciones registradas en el sistema.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-4">
-                {recentActivity.length === 0 ? (
-                  <EmptyState
-                    icon={HistoryIcon}
-                    title="Sin actividad"
-                    description="Aun no hay operaciones registradas en audit_log."
-                    compact
-                  />
-                ) : (
-                  recentActivity.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="rounded-lg border border-border/50 bg-muted/20 p-3"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium">
-                          {getAuditActionLabel(activity.action)} en{" "}
-                          {activity.tableName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDateTime(activity.createdAt)}
-                        </p>
-                      </div>
+        {!hasDashboardData ? (
+          <EmptyState
+            icon={PackageSearchIcon}
+            title="Sin datos operativos aun"
+            description="Agrega materiales, ventas o pedidos para ver indicadores del tablero."
+            action={
+              <Button asChild size="sm" className="bg-brand text-brand-foreground">
+                <Link href="/inventory">Ir a inventario</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <>
+            {/* Zone 2: 4 StatCards */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+              <StatCard
+                title="Materiales activos"
+                value={inventoryCount}
+                description="Registros activos disponibles"
+                icon={<BoxesIcon className="size-5" />}
+                href="/inventory"
+              />
+              <StatCard
+                title="Stock bajo o critico"
+                value={lowOrCriticalCount}
+                description="Requieren atencion de reposicion"
+                icon={<AlertTriangleIcon className="size-5" />}
+                variant={lowOrCriticalCount > 0 ? "warning" : "default"}
+                href="/inventory"
+              />
+              <StatCard
+                title="Ventas del dia"
+                value={currencyFormatter.format(stats.todaySales)}
+                description={`${stats.todaySalesCount} transacciones hoy`}
+                icon={<ShoppingCartIcon className="size-5" />}
+                variant={stats.todaySales > 0 ? "success" : "default"}
+                href="/sales"
+              />
+              <StatCard
+                title="Pedidos activos"
+                value={stats.pendingOrdersCount}
+                description="No entregados ni cancelados"
+                icon={<ClipboardListIcon className="size-5" />}
+                href="/orders"
+              />
+            </div>
+
+            {/* Zone 3: Activity Feed (2/3) + Alerts sidebar (1/3) */}
+            <div className="grid grid-cols-1 gap-4 sm:gap-5 xl:grid-cols-3">
+              {/* Activity feed */}
+              <Card className="border border-border/50 shadow-sm rounded-xl xl:col-span-2">
+                <CardHeader className="border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-2">
+                    <HistoryIcon className="size-4 text-muted-foreground" />
+                    <CardTitle className="text-base font-semibold">
+                      Actividad reciente
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="text-sm">
+                    Ultimas operaciones registradas en el sistema.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {recentActivity.length === 0 ? (
+                    <div className="p-6">
+                      <EmptyState
+                        icon={HistoryIcon}
+                        title="Sin actividad"
+                        description="Aun no hay operaciones registradas."
+                        compact
+                      />
                     </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+                  ) : (
+                    <ScrollArea className="h-[280px]">
+                      <div className="divide-y divide-border/50">
+                        {recentActivity.map((activity, index) => (
+                          <div
+                            key={activity.id}
+                            className="flex items-start gap-3 px-4 py-3 hover:bg-muted/30 transition-colors"
+                          >
+                            {/* Timeline dot */}
+                            <div className="flex flex-col items-center gap-1 pt-0.5 flex-shrink-0">
+                              <div
+                                className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                                  activity.action === AuditAction.insert
+                                    ? "bg-brand"
+                                    : activity.action === AuditAction.update
+                                    ? "bg-blue-500"
+                                    : "bg-red-500"
+                                }`}
+                              />
+                              {index < recentActivity.length - 1 ? (
+                                <div className="w-px flex-1 min-h-[16px] bg-border/50" />
+                              ) : null}
+                            </div>
 
-            <Card className="border border-border/50 shadow-sm">
-              <CardHeader className="border-b border-border/50">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <AlertTriangleIcon className="size-4 text-muted-foreground" />
-                  Alertas activas
-                </CardTitle>
-                <CardDescription>
-                  Materiales con nivel de stock critico o agotado.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-4">
-                {criticalAlerts.length === 0 ? (
-                  <EmptyState
-                    icon={AlertTriangleIcon}
-                    title="Sin alertas criticas"
-                    description="Todos los materiales se mantienen en niveles aceptables."
-                    compact
-                  />
-                ) : (
-                  criticalAlerts.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-muted/20 p-3"
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.quantity} {item.unit} / minimo{" "}
-                          {item.minimumStock} {item.unit}
-                        </p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium leading-tight">
+                                {getAuditActionLabel(activity.action)}{" "}
+                                <span className="text-muted-foreground font-normal">
+                                  en {getAuditTableLabel(activity.tableName)}
+                                </span>
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {formatTimeAgo(activity.createdAt)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <StatusBadge status={item.status} type="stock" />
+                    </ScrollArea>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Alerts sidebar */}
+              <Card className="border border-border/50 shadow-sm rounded-xl">
+                <CardHeader className="border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangleIcon className="size-4 text-warning" />
+                    <CardTitle className="text-base font-semibold">
+                      Alertas activas
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="text-sm">
+                    Materiales con stock critico o agotado.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {criticalAlerts.length === 0 ? (
+                    <div className="p-6">
+                      <EmptyState
+                        icon={AlertTriangleIcon}
+                        title="Sin alertas criticas"
+                        description="Todos los materiales en niveles aceptables."
+                        compact
+                      />
                     </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-          </section>
-        </>
-      )}
-    </div>
+                  ) : (
+                    <ScrollArea className="h-[280px]">
+                      <div className="divide-y divide-border/50">
+                        {criticalAlerts.map((item) => (
+                          <Link
+                            key={item.id}
+                            href={`/inventory/${item.id}`}
+                            className="group flex items-center justify-between gap-2 px-4 py-2.5 hover:bg-muted/40 transition-colors"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className={`h-2 w-2 flex-shrink-0 rounded-full ${
+                                  item.status === "out"
+                                    ? "bg-muted-foreground"
+                                    : "bg-red-500"
+                                }`}
+                              />
+                              <div className="min-w-0">
+                                <p className="text-xs font-medium truncate group-hover:text-brand transition-colors">
+                                  {item.name}
+                                </p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {item.quantity} / min {item.minimumStock}{" "}
+                                  {item.unit}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              <StatusBadge status={item.status} type="stock" />
+                              <ChevronRightIcon className="size-3 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                  <div className="border-t border-border/50 px-4 py-2.5">
+                    <Link
+                      href="/inventory"
+                      className="flex items-center justify-center gap-1 text-xs text-brand hover:text-brand/80 font-medium transition-colors"
+                    >
+                      Ver todo el inventario
+                      <ChevronRightIcon className="size-3" />
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Zone 4: Quick stats row */}
+            <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
+              {/* Production today */}
+              <Card className="border border-border/50 shadow-sm rounded-xl">
+                <CardHeader className="border-b border-border/50 pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ScissorsIcon className="size-4 text-muted-foreground" />
+                      <CardTitle className="text-base font-semibold">
+                        Accesos rapidos
+                      </CardTitle>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: "Nueva venta", href: "/sales/new", color: "bg-brand-muted text-brand" },
+                      { label: "Nuevo pedido", href: "/orders/new", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400" },
+                      { label: "Nueva sesion", href: "/production/new", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400" },
+                      { label: "Nuevo gasto", href: "/expenses/new", color: "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-500" },
+                      { label: "Nuevo material", href: "/inventory/new", color: "bg-muted text-muted-foreground" },
+                      { label: "Nuevo producto", href: "/catalog/new", color: "bg-muted text-muted-foreground" },
+                    ].map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex items-center justify-center rounded-lg px-3 py-2.5 text-xs font-medium transition-all hover:scale-[1.01] hover:shadow-sm ${item.color}`}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* System summary */}
+              <Card className="border border-border/50 shadow-sm rounded-xl">
+                <CardHeader className="border-b border-border/50 pb-3">
+                  <CardTitle className="text-base font-semibold">
+                    Resumen del sistema
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    Metricas de operacion generales.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-3">
+                  {[
+                    {
+                      label: "Materiales en inventario",
+                      value: inventoryCount,
+                      href: "/inventory",
+                    },
+                    {
+                      label: "Pedidos activos",
+                      value: stats.pendingOrdersCount,
+                      href: "/orders",
+                    },
+                    {
+                      label: "Ventas registradas hoy",
+                      value: stats.todaySalesCount,
+                      href: "/sales",
+                    },
+                    {
+                      label: "Materiales con alerta",
+                      value: lowOrCriticalCount,
+                      href: "/inventory",
+                    },
+                  ].map((row) => (
+                    <Link
+                      key={row.label}
+                      href={row.href}
+                      className="group flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-muted/40 transition-colors -mx-2"
+                    >
+                      <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                        {row.label}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold tabular-nums">
+                          {row.value}
+                        </span>
+                        <ChevronRightIcon className="size-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
+                      </div>
+                    </Link>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
   )
 }

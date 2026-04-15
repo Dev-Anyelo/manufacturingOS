@@ -59,13 +59,58 @@ const statusLabelMap: Record<WorkOrderStatus, string> = {
   [WorkOrderStatus.cancelled]: "Cancelado",
 }
 
-const columnStyles: Record<WorkOrderStatus, string> = {
-  [WorkOrderStatus.received]: "border-t-slate-400",
-  [WorkOrderStatus.confirmed]: "border-t-blue-500",
-  [WorkOrderStatus.in_production]: "border-t-amber-500",
-  [WorkOrderStatus.ready]: "border-t-brand",
-  [WorkOrderStatus.delivered]: "border-t-emerald-600",
-  [WorkOrderStatus.cancelled]: "border-t-red-500",
+const columnConfig: Record<
+  WorkOrderStatus,
+  {
+    headerBg: string
+    bodyBg: string
+    borderColor: string
+    badgeClasses: string
+    dotColor: string
+  }
+> = {
+  [WorkOrderStatus.received]: {
+    headerBg: "bg-muted/60 border-slate-300/40 dark:border-slate-600/40",
+    bodyBg: "bg-muted/20",
+    borderColor: "border-slate-300/50 dark:border-slate-600/50",
+    badgeClasses: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
+    dotColor: "bg-slate-400",
+  },
+  [WorkOrderStatus.confirmed]: {
+    headerBg: "bg-blue-50/60 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-800/40",
+    bodyBg: "bg-blue-50/20 dark:bg-blue-950/10",
+    borderColor: "border-blue-200/50 dark:border-blue-800/50",
+    badgeClasses: "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-400",
+    dotColor: "bg-blue-500",
+  },
+  [WorkOrderStatus.in_production]: {
+    headerBg: "bg-amber-50/60 border-amber-200/60 dark:bg-amber-950/20 dark:border-amber-800/40",
+    bodyBg: "bg-amber-50/20 dark:bg-amber-950/10",
+    borderColor: "border-amber-200/50 dark:border-amber-800/50",
+    badgeClasses: "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400",
+    dotColor: "bg-amber-500",
+  },
+  [WorkOrderStatus.ready]: {
+    headerBg: "bg-emerald-50/60 border-emerald-200/60 dark:bg-emerald-950/20 dark:border-emerald-800/40",
+    bodyBg: "bg-emerald-50/20 dark:bg-emerald-950/10",
+    borderColor: "border-emerald-200/50 dark:border-emerald-800/50",
+    badgeClasses: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400",
+    dotColor: "bg-emerald-500",
+  },
+  [WorkOrderStatus.delivered]: {
+    headerBg: "bg-brand-muted border-brand/20",
+    bodyBg: "bg-brand-muted/40",
+    borderColor: "border-brand/20",
+    badgeClasses: "bg-success-soft text-success border-success-soft",
+    dotColor: "bg-brand",
+  },
+  [WorkOrderStatus.cancelled]: {
+    headerBg: "bg-red-50/60 border-red-200/60 dark:bg-red-950/20 dark:border-red-800/40",
+    bodyBg: "bg-red-50/20 dark:bg-red-950/10",
+    borderColor: "border-red-200/50 dark:border-red-800/50",
+    badgeClasses: "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400",
+    dotColor: "bg-red-500",
+  },
 }
 
 interface OrderKanbanProps {
@@ -86,20 +131,13 @@ function SortableOrderCard({ order }: { order: OrderSummaryItem }) {
     isDragging,
   } = useSortable({
     id: order.id,
-    data: {
-      type: "card",
-      status: order.status,
-      order,
-    },
+    data: { type: "card", status: order.status, order },
   })
 
   return (
     <div
       ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-      }}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
       {...attributes}
       {...listeners}
     >
@@ -115,33 +153,50 @@ function KanbanColumn({
   status: WorkOrderStatus
   orders: OrderSummaryItem[]
 }) {
+  const config = columnConfig[status]
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${status}`,
-    data: {
-      type: "column",
-      status,
-    },
+    data: { type: "column", status },
   })
 
   return (
-    <div
-      className={cn(
-        "w-80 shrink-0 space-y-3 rounded-xl border border-t-2 border-border/60 bg-muted/20 p-3",
-        columnStyles[status]
-      )}
-    >
-      <header className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">
-          {statusLabelMap[status]}
-        </h3>
-        <Badge variant="outline">{orders.length}</Badge>
-      </header>
+    <div className="w-[270px] sm:w-[290px] shrink-0 flex flex-col">
+      {/* Column header */}
+      <div
+        className={cn(
+          "rounded-t-xl border px-3 py-2.5 flex items-center justify-between gap-2",
+          config.headerBg,
+          config.borderColor,
+          "border-b-0"
+        )}
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className={cn("h-2 w-2 rounded-full flex-shrink-0", config.dotColor)}
+          />
+          <h3 className="text-xs font-semibold text-foreground">
+            {statusLabelMap[status]}
+          </h3>
+        </div>
+        <span
+          className={cn(
+            "inline-flex items-center justify-center h-5 min-w-[20px] rounded-full px-1.5 text-[10px] font-bold",
+            config.badgeClasses
+          )}
+        >
+          {orders.length}
+        </span>
+      </div>
 
+      {/* Column body */}
       <div
         ref={setNodeRef}
         className={cn(
-          "space-y-2 rounded-lg p-1 transition-colors",
-          isOver && "bg-brand-muted"
+          "rounded-b-xl border min-h-[400px] p-2 space-y-2 transition-colors duration-150 flex-1",
+          config.bodyBg,
+          config.borderColor,
+          "border-t-0",
+          isOver && "ring-2 ring-brand/40 ring-inset"
         )}
       >
         <SortableContext
@@ -149,8 +204,10 @@ function KanbanColumn({
           strategy={verticalListSortingStrategy}
         >
           {orders.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border/60 p-4 text-center text-xs text-muted-foreground">
-              Sin pedidos en esta etapa.
+            <div className="flex items-center justify-center h-20 rounded-lg border border-dashed border-border/40">
+              <p className="text-xs text-muted-foreground/60">
+                Sin pedidos
+              </p>
             </div>
           ) : (
             orders.map((order) => (
@@ -163,25 +220,16 @@ function KanbanColumn({
   )
 }
 
-export function OrderKanban({
-  ordersByStatus,
-  onStatusIntent,
-}: OrderKanbanProps) {
+export function OrderKanban({ ordersByStatus, onStatusIntent }: OrderKanbanProps) {
   const isMobile = useIsMobile()
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 6,
-      },
-    }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   )
 
-  const [activeOrder, setActiveOrder] = React.useState<OrderSummaryItem | null>(
-    null
-  )
+  const [activeOrder, setActiveOrder] = React.useState<OrderSummaryItem | null>(null)
   const [mobileStatusFilter, setMobileStatusFilter] = React.useState<
     WorkOrderStatus | "all"
   >("all")
@@ -200,43 +248,24 @@ export function OrderKanban({
     if (mobileStatusFilter === "all") {
       return statuses.flatMap((status) => ordersByStatus[status])
     }
-
     return ordersByStatus[mobileStatusFilter]
   }, [mobileStatusFilter, ordersByStatus])
 
   function handleDragStart(event: DragStartEvent) {
     const candidate = event.active.data.current?.order
-
-    if (candidate) {
-      setActiveOrder(candidate as OrderSummaryItem)
-    }
+    if (candidate) setActiveOrder(candidate as OrderSummaryItem)
   }
 
   function handleDragEnd(event: DragEndEvent) {
     setActiveOrder(null)
-
-    if (!event.over) {
-      return
-    }
-
-    const draggedOrder = event.active.data.current?.order as
-      | OrderSummaryItem
-      | undefined
-
-    if (!draggedOrder) {
-      return
-    }
-
+    if (!event.over) return
+    const draggedOrder = event.active.data.current?.order as OrderSummaryItem | undefined
+    if (!draggedOrder) return
     const overData = event.over.data.current as
       | { type?: string; status?: WorkOrderStatus }
       | undefined
-
     const targetStatus = overData?.status
-
-    if (!targetStatus || targetStatus === draggedOrder.status) {
-      return
-    }
-
+    if (!targetStatus || targetStatus === draggedOrder.status) return
     onStatusIntent(draggedOrder, targetStatus)
   }
 
@@ -257,8 +286,14 @@ export function OrderKanban({
             {statuses.map((status) => (
               <SelectItem key={status} value={status}>
                 <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "h-2 w-2 rounded-full",
+                      columnConfig[status].dotColor
+                    )}
+                  />
                   <span>{statusLabelMap[status]}</span>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs ml-1">
                     {mobileCounts[status]}
                   </Badge>
                 </div>
@@ -290,7 +325,7 @@ export function OrderKanban({
       onDragEnd={handleDragEnd}
     >
       <div
-        className="flex gap-4 overflow-x-auto pb-2"
+        className="flex gap-3 overflow-x-auto pb-4 kanban-scroll -mx-1 px-1"
         role="list"
         aria-label="Tablero de pedidos por estado"
       >
@@ -305,7 +340,7 @@ export function OrderKanban({
 
       <DragOverlay>
         {activeOrder ? (
-          <OrderCard order={activeOrder} className="w-80" />
+          <OrderCard order={activeOrder} className="w-[290px] rotate-1 shadow-xl" />
         ) : null}
       </DragOverlay>
     </DndContext>

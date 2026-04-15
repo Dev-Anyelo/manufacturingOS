@@ -19,18 +19,20 @@ export default async function EditInventoryItemPage({
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={`${item.name}`}
-        description="Actualiza datos generales, stock base y proveedor."
-        breadcrumbs={[
-          { label: "Inventario", href: "/inventory" },
-          { label: item.name, href: `/inventory/${item.id}` },
-          { label: "Editar" },
-        ]}
-      />
+    <section className="flex flex-col min-h-full p-4 sm:p-6 lg:p-8">
+      <div className="max-w-2xl mx-auto w-full space-y-6">
+        <PageHeader
+          title={`Editar: ${item.name}`}
+          description="Actualiza datos generales, stock base y proveedor."
+          breadcrumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Inventario", href: "/inventory" },
+            { label: item.name, href: `/inventory/${item.id}` },
+            { label: "Editar" },
+          ]}
+        />
 
-      <InventoryForm
+        <InventoryForm
         mode="edit"
         itemId={item.id}
         defaultValues={{
@@ -48,6 +50,7 @@ export default async function EditInventoryItemPage({
           is_active: item.isActive,
         }}
       />
-    </div>
+      </div>
+    </section>
   )
 }
