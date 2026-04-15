@@ -15,9 +15,9 @@ const categoryColors = [
   "bg-info",
   "bg-warning",
   "bg-danger",
-  "bg-cyan-500",
-  "bg-emerald-500",
-  "bg-blue-500",
+  "bg-success",
+  "bg-brand",
+  "bg-info",
 ]
 
 export function ExpensesSummary({

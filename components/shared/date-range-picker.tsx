@@ -93,7 +93,7 @@ export function DateRangePicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn(!hasSelection && "text-muted-foreground")}
+          className={cn("h-9", !hasSelection && "text-muted-foreground")}
         >
           <CalendarDaysIcon className="size-4 shrink-0 text-muted-foreground" />
           <span className="truncate">
@@ -105,7 +105,7 @@ export function DateRangePicker({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-auto rounded-xl border-border/40 bg-popover/95 p-0 shadow-xl backdrop-blur-sm mr-8"
+        className="w-auto rounded-xl border-border/40 bg-popover/95 p-0 shadow-xl backdrop-blur-sm"
       >
         <div className="flex flex-col">
           {/* Quick presets */}

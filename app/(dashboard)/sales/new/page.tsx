@@ -24,7 +24,7 @@ export default async function NewSalePage() {
         }
       />
 
-      <div className="page-content mx-auto w-full max-w-350">
+      <div className="page-content mx-auto w-full">
         <PosInterface
           catalogItems={catalogItems.map((item) => ({
             id: item.id,

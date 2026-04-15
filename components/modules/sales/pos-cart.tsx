@@ -132,9 +132,9 @@ export function PosCart({
   const changeGiven = Math.max(receivedAmount - total, 0)
 
   return (
-    <div className="flex h-full flex-col gap-0">
-      <div className="flex items-center justify-between gap-2 border-b border-border px-1 py-3">
-        <div className="flex items-center gap-2 text-sm font-semibold px-4">
+    <div className="flex h-full flex-col gap-0 overflow-hidden rounded-xl border border-border bg-card/80 shadow-card">
+      <div className="flex items-center justify-between gap-2 border-b border-border/70 bg-muted/10 px-1 py-3">
+        <div className="flex items-center gap-2 px-4 text-sm font-semibold">
           <ShoppingCartIcon className="size-4 text-muted-foreground" />
           <span className="text-sm font-semibold">Carrito</span>
           {items.length > 0 ? (
@@ -165,7 +165,7 @@ export function PosCart({
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">
               <ShoppingCartIcon className="size-7 text-muted-foreground/40" />
-              <p className="text-xs leading-relaxed text-muted-foreground text-balance">
+              <p className="text-xs leading-relaxed text-balance text-muted-foreground">
                 Agrega prendas desde el catalogo para iniciar una venta.
               </p>
             </div>
@@ -200,7 +200,7 @@ export function PosCart({
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Canal</Label>
                 <Select value={channel} onValueChange={onChannelChange}>
-                  <SelectTrigger className="text-xs w-full">
+                  <SelectTrigger className="w-full text-xs">
                     <SelectValue placeholder="Canal" />
                   </SelectTrigger>
                   <SelectContent>
@@ -236,7 +236,7 @@ export function PosCart({
             <RadioGroup
               value={paymentMethod}
               onValueChange={onPaymentMethodChange}
-        className="grid grid-cols-2 gap-1.5"
+              className="grid grid-cols-2 gap-1.5"
             >
               {paymentMethods.map((method) => (
                 <label
@@ -245,7 +245,7 @@ export function PosCart({
                     "flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-all",
                     paymentMethod === method.value
                       ? "border-brand bg-brand/10 font-medium text-brand"
-                      : "border-border bg-muted/20 text-muted-foreground hover:bg-muted/20"
+                      : "border-border bg-muted/20 text-muted-foreground hover:bg-muted/30"
                   )}
                 >
                   <RadioGroupItem value={method.value} className="size-3" />
@@ -276,7 +276,7 @@ export function PosCart({
                   />
                 </div>
               </div>
-        {changeGiven > 0 ? (
+              {changeGiven > 0 ? (
                 <div className="bg-success-soft border-success-soft flex items-center justify-between rounded-lg border px-3 py-2">
                   <span className="text-success text-xs font-medium">
                     Cambio
@@ -402,7 +402,7 @@ export function PosCart({
         </div>
       </ScrollArea>
 
-      <div className="border-t border-border p-3">
+      <div className="border-t border-border/70 bg-card/95 p-3">
         <Button
           type="button"
           onClick={onSubmit}

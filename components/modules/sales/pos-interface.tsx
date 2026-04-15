@@ -53,6 +53,10 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     null
   )
 
+  React.useEffect(() => {
+    setCustomerOptions(customers)
+  }, [customers])
+
   const subtotal = React.useMemo(() => {
     return cartItems.reduce(
       (acc, item) => acc + item.unitPrice * item.quantity,
@@ -60,26 +64,37 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     )
   }, [cartItems])
 
-  const discountAmount = subtotal * (discountPercent / 100)
-  const total = Math.max(subtotal - discountAmount, 0)
+  const discountAmount = React.useMemo(() => {
+    return subtotal * (discountPercent / 100)
+  }, [subtotal, discountPercent])
+
+  const total = React.useMemo(() => {
+    return Math.max(subtotal - discountAmount, 0)
+  }, [subtotal, discountAmount])
 
   const computedAmountPaid = React.useMemo(() => {
-    if (paymentMethod === "cash") return receivedAmount
+    if (paymentMethod === "cash") {
+      return receivedAmount
+    }
     return amountPaid
-  }, [amountPaid, paymentMethod, receivedAmount])
+  }, [paymentMethod, receivedAmount, amountPaid])
 
   function handleAddItem(catalogItem: PosCatalogItem) {
     setCartItems((previous) => {
-      const existing = previous.find(
-        (item) => item.catalogItemId === catalogItem.id
+      const existingIndex = previous.findIndex(
+        (item) => item.catalogItemId === catalogItem.id && item.size === ""
       )
-      if (!existing) return [...previous, createCartItem(catalogItem)]
-      return previous.map((item) => {
-        if (item.rowId !== existing.rowId) return item
-        return { ...item, quantity: item.quantity + 1 }
-      })
+
+      if (existingIndex === -1) {
+        return [createCartItem(catalogItem), ...previous]
+      }
+
+      const next = [...previous]
+      const existing = next[existingIndex]
+      next[existingIndex] = { ...existing, quantity: existing.quantity + 1 }
+      return next
     })
-    toast.success("Item agregado al carrito.")
+    setActiveTab("cart")
   }
 
   function handleIncreaseQuantity(rowId: string) {
@@ -92,13 +107,15 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
 
   function handleDecreaseQuantity(rowId: string) {
     setCartItems((previous) =>
-      previous
-        .map((item) =>
-          item.rowId === rowId
-            ? { ...item, quantity: Math.max(item.quantity - 1, 0) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
+      previous.flatMap((item) => {
+        if (item.rowId !== rowId) {
+          return [item]
+        }
+        if (item.quantity <= 1) {
+          return []
+        }
+        return [{ ...item, quantity: item.quantity - 1 }]
+      })
     )
   }
 
@@ -132,11 +149,14 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       toast.error("Agrega al menos un item para registrar la venta.")
       return
     }
+
     if (paymentMethod === "cash" && receivedAmount <= 0) {
       toast.error("Ingresa el monto recibido en efectivo.")
       return
     }
+
     setIsSubmitting(true)
+
     try {
       const saleNotes = [
         notes.trim(),
@@ -246,28 +266,40 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
 
   return (
     <>
-      <div className="hidden h-[calc(100vh-11rem)] gap-0 overflow-hidden md:flex">
-        <div className="flex-1 overflow-y-auto border-r border-border bg-background px-4">
-          <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
+      <div className="hidden md:block">
+        <div className="grid grid-cols-4 gap-3 px-4 py-3">
+          <Stat label="Items" value={cartItems.length} />
+          <Stat label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
+          <Stat label="Descuento" value={`$${discountAmount.toFixed(2)}`} />
+          <Stat label="Total" value={`$${total.toFixed(2)}`} accent />
         </div>
 
-        {/* Cart panel */}
-        <div className="flex w-85 shrink-0 flex-col overflow-hidden bg-card lg:w-95">
-          <PosCart {...cartProps} />
+        <div className="flex h-[calc(100vh-14.5rem)] gap-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-4">
+            <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
+          </div>
+
+          <div className="flex w-85 shrink-0 flex-col overflow-hidden lg:w-95">
+            <PosCart {...cartProps} />
+          </div>
         </div>
       </div>
 
-      {/* Mobile layout with tabs */}
-      <div className="md:hidden">
+      <div className="space-y-3 md:hidden">
+        <div className="grid grid-cols-2 gap-2">
+          <Stat label="Items" value={cartItems.length} compact />
+          <Stat label="Total" value={`$${total.toFixed(2)}`} accent compact />
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="h-11 w-full rounded-none border-b border-border bg-background">
+          <TabsList className="h-11 w-full rounded-xl border border-border/70 bg-background px-1">
             <TabsTrigger value="catalog" className="flex-1 gap-2 text-sm">
               Catalogo
             </TabsTrigger>
             <TabsTrigger value="cart" className="flex-1 gap-1.5 text-sm">
               Carrito
               {cartItems.length > 0 ? (
-                <Badge className="text-brand-foreground h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-xs">
+                <Badge className="h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-xs text-brand-foreground">
                   {cartItems.length}
                 </Badge>
               ) : null}
@@ -275,13 +307,13 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
           </TabsList>
           <TabsContent
             value="catalog"
-            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto px-1 pt-3"
+            className="mt-0 h-[calc(100vh-20rem)] overflow-y-auto px-1 pt-3"
           >
             <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
           </TabsContent>
           <TabsContent
             value="cart"
-            className="mt-0 h-[calc(100vh-16rem)] overflow-y-auto"
+            className="mt-0 h-[calc(100vh-20rem)] overflow-y-auto"
           >
             <PosCart {...cartProps} />
           </TabsContent>
@@ -295,5 +327,38 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
         onNewSale={resetPos}
       />
     </>
+  )
+}
+
+function Stat({
+  label,
+  value,
+  accent = false,
+  compact = false,
+}: {
+  label: string
+  value: React.ReactNode
+  accent?: boolean
+  compact?: boolean
+}) {
+  return (
+    <div
+      className={
+        compact
+          ? "rounded-lg border border-border/70 bg-card/80 px-3 py-2"
+          : "rounded-lg border border-border/70 bg-muted/15 px-3 py-2.5"
+      }
+    >
+      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+        {label}
+      </p>
+      <p
+        className={
+          accent ? "text-sm font-bold text-brand" : "text-sm font-semibold"
+        }
+      >
+        {value}
+      </p>
+    </div>
   )
 }

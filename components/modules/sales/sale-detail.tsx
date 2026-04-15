@@ -68,6 +68,8 @@ function formatDate(value: Date) {
 
 export function SaleDetail({ sale }: { sale: SaleDetailData }) {
   const totalItems = sale.items.reduce((acc, item) => acc + item.quantity, 0)
+  const paidProgress =
+    sale.total > 0 ? Math.min((sale.amountPaid / sale.total) * 100, 100) : 0
 
   return (
     <div className="space-y-6">
@@ -125,13 +127,19 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
             <p className="text-xs text-muted-foreground">
               {totalItems} unidades vendidas
             </p>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-brand transition-all duration-500"
+                style={{ width: `${paidProgress}%` }}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="border border-border shadow-sm lg:col-span-2">
-        <CardHeader className="border-b border-border">
+          <CardHeader className="border-b border-border">
             <CardTitle className="flex items-center justify-between gap-2">
               <span>Venta #{sale.id.slice(0, 8)}</span>
               <StatusBadge status={sale.status} type="sale" />
@@ -158,8 +166,8 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
           </CardContent>
         </Card>
 
-      <Card className="border border-border shadow-sm">
-        <CardHeader className="border-b border-border">
+        <Card className="border border-border shadow-sm">
+          <CardHeader className="border-b border-border">
             <CardTitle className="text-base">Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 pt-4 text-sm">

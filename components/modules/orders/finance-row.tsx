@@ -14,12 +14,12 @@ export function FinanceRow({
 }) {
   const colorMap = {
     brand: "text-brand",
-    warning: "text-amber-600 dark:text-amber-400",
+    warning: "text-warning",
     success: "text-brand",
   }
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/10 px-2.5 py-2">
       <span
         className={cn(
           "text-sm",

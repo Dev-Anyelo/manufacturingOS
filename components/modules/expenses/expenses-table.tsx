@@ -148,37 +148,79 @@ export function ExpensesTable({ expenses }: ExpensesTableProps) {
     })
   }, [categoryFilter, dateRange.from, dateRange.to, expenses])
 
-  return (
-    <DataTable
-      columns={columns}
-      data={filtered}
-      searchKey="concept"
-      searchPlaceholder="Buscar concepto..."
-      emptyMessage="Sin gastos registrados"
-      emptyDescription="Agrega gastos para monitorear egresos operativos."
-      toolbar={
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+  const filteredTotal = React.useMemo(
+    () => filtered.reduce((acc, expense) => acc + expense.total, 0),
+    [filtered]
+  )
 
-          <DateRangePicker
-            from={dateRange.from}
-            to={dateRange.to}
-            onChange={setDateRange}
-          />
-        </div>
-      }
-    />
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <SummaryTile label="Registros" value={filtered.length} />
+        <SummaryTile
+          label="Total filtrado"
+          value={<CurrencyDisplay amount={filteredTotal} size="sm" />}
+          accent
+        />
+        <SummaryTile label="Categorias" value={categories.length} />
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={filtered}
+        searchKey="concept"
+        searchPlaceholder="Buscar concepto..."
+        emptyMessage="Sin gastos registrados"
+        emptyDescription="Agrega gastos para monitorear egresos operativos."
+        toolbar={
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <DateRangePicker
+              from={dateRange.from}
+              to={dateRange.to}
+              onChange={setDateRange}
+            />
+          </div>
+        }
+      />
+    </div>
+  )
+}
+
+function SummaryTile({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string
+  value: React.ReactNode
+  accent?: boolean
+}) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-card/80 px-3 py-2">
+      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+        {label}
+      </p>
+      <p
+        className={
+          accent ? "text-sm font-semibold text-brand" : "text-sm font-semibold"
+        }
+      >
+        {value}
+      </p>
+    </div>
   )
 }

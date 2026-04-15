@@ -237,9 +237,12 @@ export function OrderKanban({
         </div>
         <div className="space-y-2">
           {mobileList.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
-              Sin pedidos para este filtro
-            </div>
+            <EmptyState
+              icon={InboxIcon}
+              title="Sin pedidos para este filtro"
+              description="No hay pedidos que coincidan con la etapa seleccionada."
+              compact
+            />
           ) : (
             mobileList.map((o) => <OrderCard key={o.id} order={o} />)
           )}

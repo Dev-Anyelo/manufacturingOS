@@ -218,37 +218,77 @@ export function ProductionTable({ sessions }: ProductionTableProps) {
     })
   }, [dateRange.from, dateRange.to, employeeFilter, sessions])
 
-  return (
-    <DataTable
-      columns={columns}
-      data={filtered}
-      searchKey="employeeName"
-      searchPlaceholder="Buscar empleado..."
-      emptyMessage="Sin sesiones de produccion"
-      emptyDescription="Registra una nueva sesion para comenzar a medir rendimiento."
-      toolbar={
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-            <SelectTrigger className="h-8 w-44 text-xs">
-              <SelectValue placeholder="Empleado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los empleados</SelectItem>
-              {employeeOptions.map((employee) => (
-                <SelectItem key={employee.id} value={employee.id}>
-                  {employee.fullName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+  const totalGarments = filtered.reduce(
+    (acc, row) => acc + row.totalGarments,
+    0
+  )
+  const totalYards = filtered.reduce((acc, row) => acc + row.totalYardsUsed, 0)
 
-          <DateRangePicker
-            from={dateRange.from}
-            to={dateRange.to}
-            onChange={setDateRange}
-          />
-        </div>
-      }
-    />
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <Mini label="Sesiones" value={filtered.length} />
+        <Mini label="Prendas" value={totalGarments} accent />
+        <Mini label="Yardas" value={totalYards.toFixed(2)} />
+        <Mini label="Empleados" value={employeeOptions.length} />
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={filtered}
+        searchKey="employeeName"
+        searchPlaceholder="Buscar empleado..."
+        emptyMessage="Sin sesiones de produccion"
+        emptyDescription="Registra una nueva sesion para comenzar a medir rendimiento."
+        toolbar={
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+              <SelectTrigger className="h-8 w-44 text-xs">
+                <SelectValue placeholder="Empleado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los empleados</SelectItem>
+                {employeeOptions.map((employee) => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    {employee.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <DateRangePicker
+              from={dateRange.from}
+              to={dateRange.to}
+              onChange={setDateRange}
+            />
+          </div>
+        }
+      />
+    </div>
+  )
+}
+
+function Mini({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string
+  value: React.ReactNode
+  accent?: boolean
+}) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-card/80 px-3 py-2">
+      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+        {label}
+      </p>
+      <p
+        className={
+          accent ? "text-sm font-semibold text-brand" : "text-sm font-semibold"
+        }
+      >
+        {value}
+      </p>
+    </div>
   )
 }

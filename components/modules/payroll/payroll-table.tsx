@@ -172,7 +172,7 @@ export function PayrollTable({
               <Button
                 variant="ghost"
                 size="sm"
-                className="justify-start"
+                className="text-warning justify-start"
                 onClick={() => onMarkPaid(row.original)}
               >
                 <CheckCircle2Icon className="size-4" />

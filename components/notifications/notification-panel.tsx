@@ -78,17 +78,18 @@ export function NotificationPanel({
   onMarkAllAsRead,
 }: NotificationPanelProps) {
   const unreadCount = items.filter((item) => !item.read).length
+  const readCount = items.length - unreadCount
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card">
-      <div className="space-y-3 border-b border-border/60 px-4 py-4">
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card/95">
+      <div className="space-y-3 border-b border-border/60 bg-muted/10 px-4 py-4">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold">Notificaciones</h3>
           <Badge variant="outline" className="text-xs">
             {unreadCount} pendientes
           </Badge>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
             <p className="text-[11px] text-muted-foreground">Total</p>
             <p className="text-sm font-semibold">{items.length}</p>
@@ -96,6 +97,10 @@ export function NotificationPanel({
           <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
             <p className="text-[11px] text-muted-foreground">Sin leer</p>
             <p className="text-sm font-semibold">{unreadCount}</p>
+          </div>
+          <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
+            <p className="text-[11px] text-muted-foreground">Leidas</p>
+            <p className="text-sm font-semibold">{readCount}</p>
           </div>
         </div>
 

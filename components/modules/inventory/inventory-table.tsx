@@ -4,6 +4,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import Image from "next/image"
 import * as React from "react"
+import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -290,6 +291,16 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
     [canDeactivate]
   )
 
+  const lowCount = filteredItems.filter(
+    (item) => getStockStatus(item) === "low"
+  ).length
+  const criticalCount = filteredItems.filter(
+    (item) => getStockStatus(item) === "critical"
+  ).length
+  const outCount = filteredItems.filter(
+    (item) => getStockStatus(item) === "out"
+  ).length
+
   async function handleDeactivate() {
     if (!deletingItem) return
     setIsDeleting(true)
@@ -324,6 +335,13 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
 
   return (
     <>
+      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <StatTile label="Total" value={filteredItems.length} />
+        <StatTile label="Bajo" value={lowCount} tone="warning" />
+        <StatTile label="Critico" value={criticalCount} tone="danger" />
+        <StatTile label="Agotado" value={outCount} tone="danger" />
+      </div>
+
       <DataTable
         columns={columns}
         data={filteredItems}
@@ -403,5 +421,30 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         onConfirm={handleDeactivate}
       />
     </>
+  )
+}
+
+function StatTile({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string
+  value: number
+  tone?: "default" | "warning" | "danger"
+}) {
+  const toneClass = {
+    default: "text-foreground",
+    warning: "text-warning",
+    danger: "text-danger",
+  }[tone]
+
+  return (
+    <div className="rounded-lg border border-border/70 bg-card/80 px-3 py-2">
+      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+        {label}
+      </p>
+      <p className={cn("text-sm font-semibold", toneClass)}>{value}</p>
+    </div>
   )
 }

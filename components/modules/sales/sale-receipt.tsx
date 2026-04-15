@@ -93,7 +93,7 @@ export function SaleReceipt({
 
           <div className="h-px bg-border" />
 
-          <div className="space-y-1 text-sm">
+          <div className="space-y-1 rounded-md border border-border/50 bg-muted/15 p-3 text-sm">
             <div className="flex items-center justify-between">
               <span>Subtotal</span>
               <CurrencyDisplay amount={receipt.subtotal} size="sm" />

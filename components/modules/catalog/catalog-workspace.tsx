@@ -130,6 +130,17 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
 
   return (
     <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <MiniStat label="Items" value={items.length} />
+        <MiniStat label="Filtrados" value={filteredItems.length} />
+        <MiniStat label="Tipos" value={garmentTypes.length} />
+        <MiniStat
+          label="Vista"
+          value={viewMode === "grid" ? "Tarjetas" : "Tabla"}
+          accent
+        />
+      </div>
+
       {/* Toolbar */}
       <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card sm:px-5 sm:py-3.5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -231,6 +242,27 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         onOpenChange={setBulkDialogOpen}
         onSuccess={() => router.refresh()}
       />
+    </div>
+  )
+}
+
+function MiniStat({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string
+  value: React.ReactNode
+  accent?: boolean
+}) {
+  return (
+    <div className="rounded-lg border border-border/70 bg-card/75 px-3 py-2">
+      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+        {label}
+      </p>
+      <p className={cn("text-sm font-semibold", accent && "text-brand")}>
+        {value}
+      </p>
     </div>
   )
 }

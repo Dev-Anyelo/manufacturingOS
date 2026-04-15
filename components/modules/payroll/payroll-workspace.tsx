@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { StatCard } from "@/components/shared/stat-card"
@@ -217,8 +218,8 @@ export function PayrollWorkspace({
 
       {/* Create payment dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="sm:max-h-[90vh]">
+          <DialogHeader className="text-pretty text-base py-4">
             <DialogTitle>Nuevo pago de planilla</DialogTitle>
             <DialogDescription>
               Registra un nuevo pago con el periodo y montos correspondientes.
@@ -244,6 +245,31 @@ export function PayrollWorkspace({
         }}
         onSuccess={handleRefresh}
       />
+    </div>
+  )
+}
+
+function StatMini({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string
+  value: React.ReactNode
+  tone?: "default" | "warning" | "success"
+}) {
+  const toneClass = {
+    default: "text-foreground",
+    warning: "text-warning",
+    success: "text-success",
+  }[tone]
+
+  return (
+    <div className="rounded-lg border border-border/70 bg-card/80 px-3 py-2">
+      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+        {label}
+      </p>
+      <p className={cn("text-sm font-semibold", toneClass)}>{value}</p>
     </div>
   )
 }

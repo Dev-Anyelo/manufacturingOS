@@ -30,6 +30,10 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
   const overdue = isOverdue(order)
   const cfg = statusConfig[order.status]
   const balance = order.balanceDue
+  const paidPercent =
+    order.total > 0
+      ? Math.min(((order.total - balance) / order.total) * 100, 100)
+      : 0
 
   return (
     <div
@@ -38,15 +42,14 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
         "transition-all duration-150",
         isDragging
           ? "scale-105 rotate-2 border-brand opacity-95 shadow-xl ring-1 ring-brand"
-          : "hover:-translate-y-px hover:shadow-md hover:border-border/80",
-        overdue &&
-          "border-warning bg-warning-soft",
+          : "hover:-translate-y-px hover:border-border/80 hover:shadow-md",
+        overdue && "border-warning bg-warning-soft",
         className
       )}
     >
       {/* Overdue ribbon */}
       {overdue && (
-        <div className="absolute -top-px -right-px flex items-center gap-1 rounded-tr-xl rounded-bl-lg bg-warning px-2 py-0.5 text-xs font-bold tracking-wider text-black uppercase shadow-sm">
+        <div className="bg-warning absolute -top-px -right-px flex items-center gap-1 rounded-tr-xl rounded-bl-lg px-2 py-0.5 text-xs font-bold tracking-wider text-black uppercase shadow-sm">
           <AlertTriangleIcon className="size-2.5" />
           Atrasado
         </div>
@@ -93,19 +96,21 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
         {/* Footer: balance + action */}
         <div className="mt-2.5 flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted-foreground/60">
-              Saldo pendiente
-            </p>
+            <p className="text-xs text-muted-foreground/60">Saldo pendiente</p>
             <p
               className={cn(
                 "text-sm font-bold tabular-nums",
-                balance > 0
-                  ? "text-danger"
-                  : "text-success"
+                balance > 0 ? "text-danger" : "text-success"
               )}
             >
               {formatCurrency(balance)}
             </p>
+            <div className="mt-1 h-1 w-22 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-brand transition-all duration-500"
+                style={{ width: `${paidPercent}%` }}
+              />
+            </div>
           </div>
           <Button
             asChild

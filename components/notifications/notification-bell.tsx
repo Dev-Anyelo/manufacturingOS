@@ -51,6 +51,9 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
         >
           <BellIcon className={cn("size-4", pulse && "animate-pulse")} />
           {unread > 0 ? (
+            <span className="absolute top-1.5 right-1.5 inline-flex size-1.5 rounded-full bg-brand" />
+          ) : null}
+          {unread > 0 ? (
             <Badge className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full border border-card px-1 text-[10px] shadow-sm">
               {unread > 9 ? "9+" : unread}
             </Badge>
@@ -60,6 +63,9 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
       <SheetContent className="w-full bg-background/95 backdrop-blur-sm sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Centro de notificaciones</SheetTitle>
+          <p className="text-xs text-muted-foreground">
+            Mantente al dia con inventario, ventas y operaciones del taller.
+          </p>
         </SheetHeader>
         <div className="mt-4 h-[calc(100%-3rem)]">
           <NotificationPanel
