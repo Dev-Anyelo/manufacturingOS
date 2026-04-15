@@ -99,12 +99,14 @@ export function DataTable<TData, TValue>({
   const total = filteredData.length
   const start = total === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1
   const end = Math.min(total, (pagination.pageIndex + 1) * pagination.pageSize)
+  const pageCount = Math.max(table.getPageCount(), 1)
+  const currentPage = Math.min(pagination.pageIndex + 1, pageCount)
 
   return (
     <div className="space-y-4">
       <div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-2.5">
             {searchKey ? (
               <SearchInput
                 value={searchValue}
@@ -114,13 +116,17 @@ export function DataTable<TData, TValue>({
                 isLoading={isLoading}
               />
             ) : null}
+
+            <span className="inline-flex w-fit items-center rounded-md border border-border/70 bg-muted/20 px-2.5 py-1 text-xs text-muted-foreground">
+              {total} registro{total === 1 ? "" : "s"}
+            </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">{toolbar}</div>
         </div>
       </div>
 
-      <div className="table-enterprise overflow-x-auto">
+      <div className="table-enterprise overflow-hidden">
         <Table className="min-w-180">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -139,7 +145,7 @@ export function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(
-                        "label-overline",
+                        "label-overline h-11 bg-(--table-header)",
                         meta?.headerClassName,
                         meta?.className,
                         alignActions
@@ -173,7 +179,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   className={cn(
-                    "h-13 cursor-pointer border-b border-border/60 transition-colors duration-100 hover:bg-muted/20",
+                    "h-13 cursor-pointer border-b border-border/55 transition-colors duration-100 hover:bg-muted/20",
                     getRowClassName?.(row.original)
                   )}
                 >
@@ -210,7 +216,7 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-52">
+                <TableCell colSpan={columns.length} className="h-56">
                   <EmptyState
                     icon={InboxIcon}
                     title={emptyMessage}
@@ -225,11 +231,14 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-card/35 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
         <p className="body-muted">
           Mostrando {start}–{end} de {total} resultados
         </p>
         <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            Pagina {currentPage} de {pageCount}
+          </span>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>Filas por pagina</span>
             <Select
@@ -261,7 +270,7 @@ export function DataTable<TData, TValue>({
             disabled={!table.getCanPreviousPage()}
           >
             <ChevronLeftIcon className="size-4" />
-            Anterior
+            <span className="hidden sm:inline">Anterior</span>
           </Button>
           <Button
             size="sm"
@@ -269,7 +278,7 @@ export function DataTable<TData, TValue>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Siguiente
+            <span className="hidden sm:inline">Siguiente</span>
             <ChevronRightIcon className="size-4" />
           </Button>
         </div>

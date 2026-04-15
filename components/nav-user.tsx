@@ -56,11 +56,11 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="h-12 rounded-xl border border-sidebar-border/60 bg-sidebar-accent/35 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg border border-sidebar-border/60">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">
+                <AvatarFallback className="rounded-lg bg-brand/15 text-brand">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -68,7 +68,7 @@ export function NavUser({
                 <span className="truncate text-[13px] font-medium">
                   {user.name}
                 </span>
-                <span className="truncate text-[11px] text-muted-foreground">
+                <span className="truncate text-[11px] text-muted-foreground/85">
                   {roleLabel}
                 </span>
               </div>
@@ -76,16 +76,16 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xl border-sidebar-border/70"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+                <Avatar className="h-8 w-8 rounded-lg border border-border/70">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">
+                  <AvatarFallback className="rounded-lg bg-brand/15 text-brand">
                     {initials}
                   </AvatarFallback>
                 </Avatar>

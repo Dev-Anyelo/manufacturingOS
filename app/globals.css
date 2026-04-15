@@ -345,7 +345,7 @@
     display: flex;
     min-height: 100%;
     flex-direction: column;
-    gap: var(--space-section);
+    gap: clamp(1rem, 2vw, var(--space-section));
   }
 
   .page-content {
@@ -353,7 +353,7 @@
     margin-inline: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--space-section);
+    gap: clamp(1rem, 2vw, var(--space-section));
   }
 
   .content-container {

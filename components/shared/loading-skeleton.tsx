@@ -25,7 +25,7 @@ export function LoadingSkeleton({
         {Array.from({ length: rows }).map((_, index) => (
           <div
             key={index}
-            className="rounded-xl border border-border bg-card p-5"
+            className="rounded-xl border border-border/70 bg-card/80 p-5"
           >
             <Skeleton className="skeleton-shimmer mb-3 h-3 w-24 rounded" />
             <Skeleton className="skeleton-shimmer mb-2 h-8 w-20 rounded" />
@@ -105,12 +105,12 @@ export function LoadingSkeleton({
   return (
     <div
       className={cn(
-        "space-y-0 overflow-hidden rounded-xl border border-border bg-card",
+        "space-y-0 overflow-hidden rounded-xl border border-border/70 bg-card/90",
         className
       )}
     >
       {/* Header */}
-      <div className="bg-muted/40 px-4 py-3">
+      <div className="bg-muted/30 px-4 py-3">
         <Skeleton className="skeleton-shimmer h-4 w-full rounded" />
       </div>
       {/* Rows */}

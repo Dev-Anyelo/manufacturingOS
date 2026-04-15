@@ -27,10 +27,10 @@ export function PageHeader({
   eyebrow,
 }: PageHeaderProps) {
   return (
-    <header className="mb-1 flex animate-fade-in flex-col gap-3 pb-4">
+    <header className="mb-1 flex animate-fade-in flex-col gap-4 pt-0">
       {breadcrumbs?.length ? (
         <Breadcrumb>
-          <BreadcrumbList>
+          <BreadcrumbList className="gap-1 text-xs">
             {breadcrumbs.map((item, index) => {
               const isLast = index === breadcrumbs.length - 1
 
@@ -38,7 +38,7 @@ export function PageHeader({
                 <div key={`${item.label}-${index}`} className="contents">
                   <BreadcrumbItem>
                     {isLast || !item.href ? (
-                      <BreadcrumbPage className="text-xs font-medium text-foreground/90">
+                      <BreadcrumbPage className="text-xs font-medium text-foreground/95">
                         {item.label}
                       </BreadcrumbPage>
                     ) : (
@@ -53,7 +53,7 @@ export function PageHeader({
                     )}
                   </BreadcrumbItem>
                   {!isLast ? (
-                    <BreadcrumbSeparator className="text-muted-foreground/60">
+                    <BreadcrumbSeparator className="text-muted-foreground/55">
                       <ChevronRightIcon className="size-3" />
                     </BreadcrumbSeparator>
                   ) : null}
@@ -64,9 +64,9 @@ export function PageHeader({
         </Breadcrumb>
       ) : null}
 
-      <div className="mt-1 flex w-full flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-3xl space-y-1.5">
-          <p className="eyebrow">{eyebrow ?? null}</p>
+          {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
           <h1 className="text-[clamp(1.35rem,2.2vw,1.9rem)] leading-tight font-semibold text-foreground">
             {title}
           </h1>

@@ -102,25 +102,25 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="rounded-2xl border border-border p-0 sm:max-w-136">
-        <AlertDialogHeader className="space-y-3 border-b border-border p-5">
+      <AlertDialogContent className="rounded-2xl border border-border/80 p-0 sm:max-w-2xl">
+        <AlertDialogHeader className="space-y-3 border-b border-border/80 bg-muted/10 p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <div
-              className={`inline-flex size-9 items-center justify-center rounded-lg border ${variantConfig[variant].iconClassName}`}
+              className={`inline-flex size-10 items-center justify-center rounded-lg border ${variantConfig[variant].iconClassName}`}
             >
-              <Icon className="size-4" />
+              <Icon className="size-4.5" />
             </div>
             <div className="space-y-1">
               <p className="label-overline">{variantConfig[variant].title}</p>
               <AlertDialogTitle>{title}</AlertDialogTitle>
             </div>
           </div>
-          <AlertDialogDescription className="text-pretty">
+          <AlertDialogDescription className="leading-relaxed text-pretty">
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-3 px-5 py-4">
+        <div className="space-y-3 px-5 py-4 sm:px-6 sm:py-5">
           {/* Consequences section for danger variant */}
           {variant === "danger" && consequences && consequences.length > 0 && (
             <div className="danger-consequences">
@@ -159,7 +159,7 @@ export function ConfirmDialog({
           ) : null}
 
           {highlightedText ? (
-            <p className="rounded-lg border border-border bg-muted/20 p-3 text-sm text-pretty text-foreground">
+            <p className="rounded-lg border border-border/80 bg-muted/20 p-3 text-sm leading-relaxed text-pretty text-foreground">
               Esta accion es permanente. ¿Seguro que deseas continuar con
               <span className="ml-1 font-semibold">{highlightedText}</span>?
             </p>
@@ -186,7 +186,7 @@ export function ConfirmDialog({
           ) : null}
         </div>
 
-        <AlertDialogFooter className="border-t border-border bg-muted/20 p-4 sm:justify-end">
+        <AlertDialogFooter className="border-t border-border/80 bg-muted/20 p-4 sm:justify-end sm:px-6 sm:py-4">
           <AlertDialogCancel
             onClick={() => onOpenChange(false)}
             disabled={pending}

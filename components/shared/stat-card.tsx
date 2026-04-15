@@ -48,11 +48,12 @@ export function StatCard({
   const Content = (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-xl border px-5 py-4 shadow-card transition-colors duration-150 ease-in-out before:absolute before:inset-x-0 before:top-0 before:h-0.5",
+        "group relative overflow-hidden rounded-xl border px-5 py-4 shadow-card transition-all duration-200 ease-in-out before:absolute before:inset-x-0 before:top-0 before:h-0.5",
         variantStyles[variant],
-        href && "cursor-pointer"
+        href && "hover:shadow-float cursor-pointer hover:-translate-y-0.5"
       )}
     >
+      <div className="pointer-events-none absolute -top-12 -right-12 size-28 rounded-full bg-brand/8 blur-2xl" />
       <div className="mb-3 flex items-center justify-between">
         <h3 className="label-overline">{title}</h3>
         <div
@@ -65,7 +66,7 @@ export function StatCard({
         </div>
       </div>
       <div className="flex items-baseline gap-3">
-        <div className="text-[28px] leading-none font-bold text-foreground">
+        <div className="text-[30px] leading-none font-bold tracking-tight text-foreground">
           {isLoading ? (
             <div className="h-8 w-24 animate-pulse rounded bg-muted/40" />
           ) : (
@@ -77,7 +78,7 @@ export function StatCard({
         {trend && (
           <div
             className={cn(
-              "inline-flex items-center rounded-md border px-2.5 py-1 text-xs leading-none font-medium",
+              "inline-flex items-center rounded-md border px-2.5 py-1 text-xs leading-none font-semibold",
               isPositiveTrend ? "status-success" : "status-danger"
             )}
           >

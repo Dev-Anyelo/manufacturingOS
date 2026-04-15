@@ -13,7 +13,7 @@ export default async function NewSalePage() {
     <section className="page-shell">
       <PageHeader
         title="Nueva venta"
-        description="Registra ventas en punto de venta con calculo de pago y recibo."
+        description="Registra ventas con calculo de pago y recibo."
         actions={
           <Button asChild variant="outline">
             <Link href="/sales">

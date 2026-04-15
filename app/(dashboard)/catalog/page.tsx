@@ -39,7 +39,7 @@ export default async function CatalogPage() {
           }
         />
 
-        <div className="rounded-xl border border-border bg-card p-1 shadow-sm">
+        <div>
           <CatalogWorkspace
             items={items.map((item) => ({
               id: item.id,

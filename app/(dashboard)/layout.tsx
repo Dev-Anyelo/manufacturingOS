@@ -6,8 +6,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { RealtimeBootstrap } from "@/components/providers/realtime-bootstrap"
 
 const layoutStyle = {
-  "--sidebar-width": "15rem",
-  "--header-height": "56px",
+  "--sidebar-width": "16.5rem",
+  "--header-height": "60px",
 } as CSSProperties
 
 export default async function DashboardLayout({
@@ -24,7 +24,7 @@ export default async function DashboardLayout({
       <SidebarInset>
         <SiteHeader user={user} />
         <div className="flex w-full flex-1 flex-col">
-          <div className="content-container flex flex-1 flex-col gap-6 px-4 py-4 md:px-6 md:py-5 xl:px-8">
+          <div className="content-container flex flex-1 flex-col gap-6 px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-7">
             {children}
           </div>
         </div>

@@ -6,14 +6,17 @@ import { usePathname } from "next/navigation"
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
 export function NavMain({
+  label,
   items,
 }: {
+  label?: string
   items: {
     title: string
     url: string
@@ -32,21 +35,26 @@ export function NavMain({
 
   return (
     <SidebarGroup>
+      {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
             const Icon = item.icon
+            const active = isItemActive(item.url)
 
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
                   tooltip={item.title}
-                  isActive={isItemActive(item.url)}
-                  className="h-10 rounded-lg px-3 text-sm font-normal text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground data-[active=true]:bg-brand/10 data-[active=true]:font-medium data-[active=true]:text-brand [&>svg]:mr-2.5 [&>svg]:size-5 [&>svg]:text-current"
+                  isActive={active}
+                  className="h-8 rounded px-3 text-sm text-sidebar-foreground/82 hover:text-sidebar-foreground data-[active=true]:text-sidebar-primary [&>svg]:mr-2.5 [&>svg]:size-4.5 [&>svg]:text-current"
                 >
-                  <Link href={item.url}>
-                    {Icon ? <Icon /> : null}
+                  <Link
+                    href={item.url}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    {Icon ? <Icon className="shrink-0" /> : null}
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>

@@ -38,7 +38,7 @@ export function SearchInput({
   return (
     <div
       className={cn(
-        "relative w-full rounded-md border border-border bg-surface-1",
+        "relative w-full rounded-lg border border-border/70 bg-surface-1 transition-[border-color,box-shadow] duration-150 focus-within:border-ring/70 focus-within:shadow-[0_0_0_3px_rgb(var(--brand-rgb)/0.12)]",
         className
       )}
     >
@@ -47,7 +47,7 @@ export function SearchInput({
         value={localValue}
         onChange={(event) => setLocalValue(event.target.value)}
         placeholder={placeholder}
-        className="h-8 border-0 bg-transparent pr-8 pl-8 text-sm shadow-none focus:ring-0"
+        className="h-9 border-0 bg-transparent pr-9 pl-8 text-sm shadow-none focus-visible:ring-0"
       />
       <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
         {isLoading ? (
@@ -58,7 +58,7 @@ export function SearchInput({
             size="icon-xs"
             variant="ghost"
             onClick={() => setLocalValue("")}
-            className="size-6"
+            className="size-6 rounded-md"
             aria-label="Limpiar búsqueda"
           >
             <XIcon className="size-3.5" />
