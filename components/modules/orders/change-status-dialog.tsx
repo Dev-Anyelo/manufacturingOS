@@ -219,13 +219,14 @@ export function ChangeStatusDialog({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="grid grid-cols-2 gap-2 border-t border-border/60 bg-background/80 px-5 py-3.5 backdrop-blur-sm">
+        <DialogFooter className="flex flex-col gap-2 border-t border-border/60 bg-background/80 px-5 py-3.5 backdrop-blur-sm sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="secondary"
             size="sm"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
+            className="w-full sm:w-auto"
           >
             Cancelar
           </Button>
@@ -235,6 +236,7 @@ export function ChangeStatusDialog({
             onClick={handleConfirm}
             disabled={isSubmitting}
             variant={isCancel ? "destructive" : "default"}
+            className="w-full sm:w-auto"
           >
             {isSubmitting ? (
               <>

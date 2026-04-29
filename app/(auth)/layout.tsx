@@ -8,7 +8,7 @@ export default function AuthLayout({
 }>) {
   return (
     <main className="relative min-h-svh overflow-hidden bg-background">
-      <section className="flex items-center justify-center py-4 lg:py-0">
+      <section className="flex min-h-svh items-center justify-center px-4 py-6 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">{children}</div>
       </section>
     </main>

@@ -341,7 +341,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="space-y-4">
               {/* Date + Category Row */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Fecha</Label>
                   <Popover>
@@ -451,7 +451,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="space-y-4">
               {/* Quantity + Unit Price + Total */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="quantity" className="text-sm font-medium">
                     Cantidad
@@ -577,7 +577,7 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pt-3">
                   {updatesInventory && (
-                    <div className="border-success/30 bg-success/5 grid grid-cols-2 gap-3 rounded-lg border border-dashed p-3">
+                    <div className="border-success/30 bg-success/5 grid grid-cols-1 gap-3 rounded-lg border border-dashed p-3 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">Material</Label>
                         <Select

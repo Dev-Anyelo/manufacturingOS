@@ -34,7 +34,7 @@ export default async function SettingsPage() {
       />
 
       <div className="page-content">
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <StatMini label="Perfil" value="Pendiente" tone="warning" />
           <StatMini label="Acceso" value="Solo admin" tone="brand" />
           <StatMini label="Alertas" value="Por modulo" tone="warning" />

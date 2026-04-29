@@ -27,10 +27,10 @@ export function PageHeader({
   eyebrow,
 }: PageHeaderProps) {
   return (
-    <header className="mb-1 flex animate-fade-in flex-col gap-4 pt-0">
+    <header className="mb-1 flex animate-fade-in flex-col gap-3 pt-0 sm:gap-4">
       {breadcrumbs?.length ? (
         <Breadcrumb>
-          <BreadcrumbList className="gap-1 text-xs">
+          <BreadcrumbList className="flex flex-wrap items-center gap-x-1 gap-y-1 text-[11px] sm:text-xs">
             {breadcrumbs.map((item, index) => {
               const isLast = index === breadcrumbs.length - 1
 
@@ -64,16 +64,18 @@ export function PageHeader({
         </Breadcrumb>
       ) : null}
 
-      <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div className="max-w-3xl space-y-1.5">
           {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-          <h1 className="text-[clamp(1.35rem,2.2vw,1.9rem)] leading-tight font-semibold text-foreground">
+          <h1 className="text-[clamp(1.25rem,2.2vw,1.9rem)] leading-tight font-semibold text-balance text-foreground sm:text-[clamp(1.35rem,2.2vw,1.9rem)]">
             {title}
           </h1>
-          {description ? <p className="body-muted">{description}</p> : null}
+          {description ? (
+            <p className="body-muted text-pretty">{description}</p>
+          ) : null}
         </div>
         {actions ? (
-          <div className="flex shrink-0 flex-wrap items-center justify-start gap-2 sm:justify-end sm:pb-0.5">
+          <div className="flex w-full shrink-0 flex-col gap-2 *:w-full sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:pb-0.5 sm:*:w-auto">
             {actions}
           </div>
         ) : null}

@@ -1,13 +1,12 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeftIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PageHeader } from "@/components/shared/page-header"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getPayrollPayment } from "@/lib/data/payroll"
+import { PageHeader } from "@/components/shared/page-header"
 import { PayslipPreview } from "@/components/modules/payroll/payslip-preview"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 type PayrollDetailPageProps = {
   params: Promise<{ id: string }> | { id: string }
@@ -26,11 +25,11 @@ export default async function PayrollDetailPage({
   return (
     <div className="page-shell">
       <PageHeader
-        title={`Pago ${payment.id.slice(0, 8)}`}
+        title={`Pago #${payment.id.slice(0, 8)}`}
         description="Detalle de planilla y comprobante asociado."
         breadcrumbs={[
           { label: "Planilla", href: "/payroll" },
-          { label: `Pago ${payment.id.slice(0, 8)}` },
+          { label: `Pago #${payment.id.slice(0, 8)}` },
         ]}
         actions={
           <Button asChild variant="outline" size="sm">
@@ -64,7 +63,7 @@ export default async function PayrollDetailPage({
           <CardHeader className="border-b border-border">
             <CardTitle>Gastos asociados</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 pt-6">
+          <CardContent className="space-y-3">
             {payment.expenses.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No hay gastos vinculados a este pago.

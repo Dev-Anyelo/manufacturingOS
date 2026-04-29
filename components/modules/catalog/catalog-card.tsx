@@ -1,12 +1,12 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Badge } from "@/components/ui/badge"
-import { EditIcon, EyeIcon, ShirtIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { ArrowUpRight, EditIcon, EyeIcon, ShirtIcon } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
-import { Card, CardContent } from "@/components/ui/card"
 
 export interface CatalogCardItem {
   id: string
@@ -28,12 +28,12 @@ export function CatalogCard({ item }: CatalogCardProps) {
   return (
     <Card
       className={cn(
-        "group flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-all duration-300",
+        "group flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card pt-0 shadow-sm transition-all duration-300",
         "hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
       )}
     >
       {/* Image zone */}
-      <div className="relative aspect-4/5 shrink-0 overflow-hidden bg-muted/30">
+      <div className="relative aspect-square shrink-0 overflow-hidden bg-muted/30">
         {item.imageUrl ? (
           <Image
             src={item.imageUrl}
@@ -52,7 +52,7 @@ export function CatalogCard({ item }: CatalogCardProps) {
           <div className="absolute top-2 left-2 z-10">
             <Badge
               variant="secondary"
-              className="border border-border/50 bg-background/80 px-2 py-0.5 text-[10px] font-medium shadow-sm backdrop-blur-md"
+              className="border border-border/50 bg-background/80 px-2 py-0.5 text-xs font-medium shadow-sm backdrop-blur-md"
             >
               {item.garmentType}
             </Badge>
@@ -65,36 +65,6 @@ export function CatalogCard({ item }: CatalogCardProps) {
             ourPriceUnit={item.ourPriceUnit}
             estimatedCost={item.estimatedCost}
           />
-        </div>
-
-        {/* Hover overlay with actions */}
-        <div className="absolute inset-0 z-20 flex items-center justify-center gap-3 bg-black/0 opacity-0 transition-all duration-300 group-hover:bg-black/40 group-hover:opacity-100 group-hover:backdrop-blur-[2px]">
-          <Button
-            size="icon"
-            variant="outline"
-            asChild
-            className="h-9 w-9 rounded-full border-border/30 bg-background/95 text-foreground shadow-lg transition-transform hover:scale-105 hover:bg-background"
-          >
-            <Link
-              href={`/catalog/${item.id}`}
-              aria-label={`Ver detalle de ${item.name}`}
-            >
-              <EyeIcon className="size-4" />
-            </Link>
-          </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            asChild
-            className="h-9 w-9 rounded-full border-border/30 bg-background/95 text-foreground shadow-lg transition-transform hover:scale-105 hover:bg-background"
-          >
-            <Link
-              href={`/catalog/${item.id}/edit`}
-              aria-label={`Editar ${item.name}`}
-            >
-              <EditIcon className="size-4" />
-            </Link>
-          </Button>
         </div>
       </div>
 
@@ -139,6 +109,17 @@ export function CatalogCard({ item }: CatalogCardProps) {
           </div>
         ) : null}
       </CardContent>
+      <CardFooter className="pt-3">
+        <Button size="icon" variant="outline" asChild className="w-full">
+          <Link
+            href={`/catalog/${item.id}`}
+            aria-label={`Ver detalle de ${item.name}`}
+          >
+            Detalle
+            <ArrowUpRight className="size-4" />
+          </Link>
+        </Button>
+      </CardFooter>
     </Card>
   )
 }

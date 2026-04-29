@@ -9,5 +9,5 @@ export function ExpenseCategoryBadge({ category }: ExpenseCategoryBadgeProps) {
   const label =
     EXPENSE_CATEGORIES[category as keyof typeof EXPENSE_CATEGORIES] ?? category
 
-  return <Badge className="status-subtle">{label}</Badge>
+  return <Badge variant="outline" className="rounded-xl">{label}</Badge>
 }

@@ -253,7 +253,7 @@ export function PosCatalogPanel({
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
               {sortedItems.map((item) => (
                 <CatalogProductCard
                   key={item.id}
@@ -312,7 +312,7 @@ function CatalogProductCard({
 
       {/* Info container */}
       <div className="flex flex-1 flex-col gap-2 p-3.5 text-left">
-        <p className="line-clamp-2 text-sm leading-tight font-semibold text-foreground">
+        <p className="line-clamp-2 text-sm leading-tight font-semibold text-foreground text-pretty">
           {item.name}
         </p>
 

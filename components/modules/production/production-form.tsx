@@ -49,6 +49,7 @@ import {
   UserCog2,
   Layers2Icon,
 } from "lucide-react"
+import { MetricCard } from "@/components/shared/metric-card"
 
 const GARMENT_TYPES = {
   shirt: "Camisa",
@@ -294,23 +295,26 @@ export function ProductionForm({
       noValidate
     >
       {/* Summary Stats */}
-      <div className="mb-6 grid grid-cols-3 gap-3 rounded-xl border border-border bg-card p-4">
-        <div className="text-center">
-          <p className="text-xs font-medium text-muted-foreground">Empleado</p>
-          <p className="truncate text-sm font-bold">
-            {selectedEmployee?.fullName || "—"}
-          </p>
-        </div>
-        <div className="border-x border-border text-center">
-          <p className="text-xs font-medium text-muted-foreground">Prendas</p>
-          <p className="text-success text-lg font-bold">{totalGarments}</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xs font-medium text-muted-foreground">Yardas</p>
-          <p className="text-warning text-lg font-bold">
-            {totalYards.toFixed(2)}
-          </p>
-        </div>
+      <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+        <MetricCard
+          label="Total prendas"
+          value={totalGarments}
+          icon={<Ruler className="size-4 text-muted-foreground" />}
+          accent="brand"
+        />
+        <MetricCard
+          label="Total yardas"
+          value={totalYards.toFixed(1)}
+          icon={<Scissors className="size-4 text-muted-foreground" />}
+          accent="success"
+        />
+
+        <MetricCard
+          label="Empleado"
+          value={selectedEmployee?.fullName || "No seleccionado"}
+          icon={<UserCog2 className="size-4 text-muted-foreground" />}
+          accent="warning"
+        />
       </div>
 
       {/* Tabbed Form */}
@@ -522,7 +526,7 @@ export function ProductionForm({
                     </div>
 
                     {/* Item Fields - Compact Grid */}
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-6">
                       <div className="space-y-1 sm:col-span-2">
                         <Label className="text-xs text-muted-foreground">
                           Material
@@ -580,7 +584,7 @@ export function ProductionForm({
                             )
                           }
                         >
-                          <SelectTrigger className="h-9 text-xs w-full">
+                          <SelectTrigger className="h-9 w-full text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -610,7 +614,7 @@ export function ProductionForm({
                             )
                           }
                         >
-                          <SelectTrigger className="h-9 text-xs w-full">
+                          <SelectTrigger className="h-9 w-full text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>

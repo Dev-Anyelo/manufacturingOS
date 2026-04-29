@@ -224,7 +224,7 @@ export function InventoryForm({
   return (
     <form className="mx-auto w-full" onSubmit={onSubmit} noValidate>
       {/* Summary Stats */}
-      <div className="mb-3 grid grid-cols-3 gap-3">
+      <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title="Valor total en stock"
           value={formatCurrency(totalValue)}
@@ -342,7 +342,7 @@ export function InventoryForm({
 
               {/* Conditional fields */}
               {category === MaterialCategory.fabric && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label
                       htmlFor="fabric_type"
@@ -416,7 +416,7 @@ export function InventoryForm({
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="space-y-4">
               {/* Quantity Grid */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-2">
                   <Label htmlFor="quantity" className="text-sm font-medium">
                     Cantidad

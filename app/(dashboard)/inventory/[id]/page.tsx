@@ -77,7 +77,7 @@ export default async function InventoryDetailPage({
       />
 
       <div className="page-content">
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           <StatCard
             title="Cantidad disponible"
             value={`${quantity} ${item.unit}`}
@@ -105,7 +105,7 @@ export default async function InventoryDetailPage({
         </div>
 
         <Tabs defaultValue="info" className="space-y-4">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-2 sm:w-auto">
             <TabsTrigger value="info">Info</TabsTrigger>
             <TabsTrigger value="movements">Movimientos</TabsTrigger>
           </TabsList>
@@ -134,7 +134,7 @@ export default async function InventoryDetailPage({
                   </div>
 
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="surface-1 rounded-lg border border-border p-3">
                         <p className="text-xs text-muted-foreground">
                           Categoria

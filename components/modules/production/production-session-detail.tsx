@@ -51,7 +51,7 @@ export function ProductionSessionDetail({
 }: ProductionSessionDetailProps) {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <StatCard
           title="Fecha de sesion"
           value={formatDateRelative(session.sessionDate)}
@@ -86,7 +86,55 @@ export function ProductionSessionDetail({
           </p>
         </CardHeader>
         <CardContent className="m-0 space-y-4 border-none bg-none p-0 pt-2 shadow-none">
-          <div className="rounded border border-border">
+          <div className="space-y-3 md:hidden">
+            {session.items.map((item) => (
+              <article
+                key={item.id}
+                className="rounded-xl border border-border/60 bg-card p-4 shadow-card"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground">
+                      {item.inventoryItemName}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <GarmentTypeBadge garmentType={item.garmentType} />
+                      <Badge variant="outline">
+                        {item.size === "custom" ? "Personalizada" : item.size}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Cantidad</p>
+                    <p className="text-sm font-semibold">{item.quantity}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div className="rounded-lg border border-border/60 bg-muted/10 p-2.5">
+                    <p className="label-overline">Yardas</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {item.yardsUsed.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border/60 bg-muted/10 p-2.5">
+                    <p className="label-overline">Material</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {item.inventoryItemName}
+                    </p>
+                  </div>
+                </div>
+
+                {item.notes ? (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {item.notes}
+                  </p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden rounded border border-border md:block">
             <Table>
               <TableHeader>
                 <TableRow>

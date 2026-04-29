@@ -48,14 +48,16 @@ export function StatCard({
   const Content = (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-xl border px-5 py-4 shadow-card transition-all duration-200 ease-in-out before:absolute before:inset-x-0 before:top-0 before:h-0.5",
+        "group relative overflow-hidden rounded-xl border px-4 py-4 shadow-card transition-all duration-200 ease-in-out before:absolute before:inset-x-0 before:top-0 before:h-0.5 sm:px-5",
         variantStyles[variant],
         href && "hover:shadow-float cursor-pointer hover:-translate-y-0.5"
       )}
     >
       <div className="pointer-events-none absolute -top-12 -right-12 size-28 rounded-full bg-brand/8 blur-2xl" />
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="label-overline">{title}</h3>
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <h3 className="label-overline max-w-48 text-[11px] sm:text-xs">
+          {title}
+        </h3>
         <div
           className={cn(
             "transition-colors group-hover:text-foreground/90",
@@ -66,7 +68,7 @@ export function StatCard({
         </div>
       </div>
       <div className="flex items-baseline gap-3">
-        <div className="text-base md:text-lg leading-none font-bold tracking-tight text-foreground">
+        <div className="min-w-0 text-base leading-none font-bold tracking-tight text-foreground sm:text-lg">
           {isLoading ? (
             <div className="h-8 w-24 animate-pulse rounded bg-muted/40" />
           ) : (
@@ -74,7 +76,7 @@ export function StatCard({
           )}
         </div>
       </div>
-      <div className="mt-3 flex items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         {trend && (
           <div
             className={cn(
@@ -91,7 +93,9 @@ export function StatCard({
           </div>
         )}
         {description && (
-          <p className="text-xs text-muted-foreground/70 text-pretty">{description}</p>
+          <p className="text-xs text-pretty text-muted-foreground/70">
+            {description}
+          </p>
         )}
       </div>
     </div>

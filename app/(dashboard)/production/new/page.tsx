@@ -20,7 +20,7 @@ export default async function NewProductionSessionPage() {
     <div className="page-shell">
       <PageHeader
         title="Nueva sesion de produccion"
-        description="Registra la producción del día. Agrega prendas y materiales usados."
+        description="Registra la producción del día."
         breadcrumbs={[
           { label: "Produccion", href: "/production" },
           { label: "Nueva sesion" },

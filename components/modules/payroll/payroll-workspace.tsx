@@ -147,7 +147,7 @@ export function PayrollWorkspace({
       {/* Tabs */}
       <Tabs defaultValue="payments" className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <TabsList className="h-9 rounded-xl border border-border/60 bg-muted/20 p-1">
+          <TabsList className="grid h-9 w-full grid-cols-2 rounded-xl border border-border/60 bg-muted/20 p-1 sm:w-auto">
             <TabsTrigger value="payments" className="gap-1.5 text-xs">
               <ReceiptIcon className="size-3.5" />
               Pagos
@@ -158,7 +158,12 @@ export function PayrollWorkspace({
             </TabsTrigger>
           </TabsList>
 
-          <Button type="button" size="sm" onClick={() => setCreateOpen(true)}>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setCreateOpen(true)}
+            className="w-full sm:w-auto"
+          >
             <PlusIcon className="size-4" />
             Nuevo pago
           </Button>
@@ -182,11 +187,11 @@ export function PayrollWorkspace({
               <CardTitle className="text-base font-semibold">
                 Acumulado por empleado
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription className="text-sm text-pretty">
                 Totales de planilla segun filtros y pagos registrados.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2 pt-4">
+            <CardContent className="space-y-2 sm:space-y-3">
               {employeeSummary.length === 0 ? (
                 <EmptyState
                   icon={

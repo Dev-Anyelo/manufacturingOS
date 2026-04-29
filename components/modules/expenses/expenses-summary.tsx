@@ -56,7 +56,7 @@ export function ExpensesSummary({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-3 pb-3">
           {topConcepts.length === 0 ? (
             <EmptyState
               icon={

@@ -24,14 +24,20 @@ export function SectionCard({
         className
       )}
     >
-      <div className="flex items-center justify-between border-b border-border/60 bg-muted/15 px-5 py-3.5">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 border-b border-border/60 bg-muted/15 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-3.5">
+        <div className="flex min-w-0 items-center gap-2">
           <span className="text-brand/85">{icon}</span>
-          <h3 className="text-[13px] font-semibold text-foreground">{title}</h3>
+          <h3 className="truncate text-[13px] font-semibold text-foreground sm:text-[13px]">
+            {title}
+          </h3>
         </div>
-        {headerRight}
+        {headerRight ? (
+          <div className="flex w-full items-center justify-start sm:w-auto sm:justify-end">
+            {headerRight}
+          </div>
+        ) : null}
       </div>
-      <div className={noPadding ? "" : "p-5 sm:p-5.5"}>{children}</div>
+      <div className={noPadding ? "" : "p-4 sm:p-5"}>{children}</div>
     </div>
   )
 }

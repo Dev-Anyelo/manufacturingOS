@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { EyeIcon } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
@@ -111,10 +111,10 @@ const columns: ColumnDef<SalesTableRow>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <Button asChild variant="ghost" size="sm" className="justify-start">
+      <Button asChild variant="ghost" size="sm" className="justify-start text-muted-foreground">
         <Link href={`/sales/${row.original.id}`}>
-          <EyeIcon className="size-4" />
           Ver
+          <ArrowUpRight className="size-4" />
         </Link>
       </Button>
     ),
@@ -151,7 +151,9 @@ export function SalesTable({ sales }: SalesTableProps) {
       searchPlaceholder="Buscar por cliente..."
       emptyMessage="Sin ventas registradas"
       emptyDescription="Las transacciones apareceran cuando registres ventas desde POS."
-      getRowClassName={(row) => (row.balanceDue > 0 ? "bg-warning-soft" : "")}
+      getRowClassName={(row) =>
+        row.balanceDue > 0 ? "bg-amber-50/30 dark:bg-yellow-900/5" : ""
+      }
       toolbar={
         <div className="flex flex-wrap items-center gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>

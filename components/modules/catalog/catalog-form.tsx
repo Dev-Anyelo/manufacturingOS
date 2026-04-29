@@ -202,7 +202,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
       noValidate
     >
       {/* Quick Stats Bar */}
-      <div className="mb-3 grid grid-cols-3 gap-3">
+      <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <MetricCard
           icon={<Package className="size-4" />}
           label="Precio de mercado"

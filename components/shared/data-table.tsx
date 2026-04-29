@@ -50,6 +50,49 @@ interface DataTableProps<TData, TValue> {
 type ColumnMeta = {
   className?: string
   headerClassName?: string
+  mobileHidden?: boolean
+  mobileLabel?: string
+}
+
+function humanizeLabel(value: string) {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^./, (char) => char.toUpperCase())
+}
+
+function isHiddenOnMobile(meta?: ColumnMeta) {
+  return Boolean(
+    meta?.mobileHidden || /(^|\s)hidden(\s|$)/.test(meta?.className ?? "")
+  )
+}
+
+function getMobileColumnLabel<TData, TValue>(
+  column: ColumnDef<TData, TValue>,
+  fallbackId: string
+) {
+  const meta = column.meta as ColumnMeta | undefined
+
+  if (meta?.mobileLabel) {
+    return meta.mobileLabel
+  }
+
+  if (fallbackId === "actions") {
+    return "Acciones"
+  }
+
+  if (typeof column.header === "string") {
+    return column.header
+  }
+
+  const accessorKey = (column as { accessorKey?: string | number }).accessorKey
+  if (typeof accessorKey === "string") {
+    return humanizeLabel(accessorKey)
+  }
+
+  return humanizeLabel(fallbackId)
 }
 
 export function DataTable<TData, TValue>({
@@ -102,6 +145,8 @@ export function DataTable<TData, TValue>({
   const pageCount = Math.max(table.getPageCount(), 1)
   const currentPage = Math.min(pagination.pageIndex + 1, pageCount)
 
+  const mobileRows = rows.filter((row) => row.getVisibleCells().length > 0)
+
   return (
     <div className="space-y-4">
       <div>
@@ -122,7 +167,113 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="table-enterprise overflow-hidden">
+      <div className="space-y-3 md:hidden">
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, index) => (
+            <div
+              key={`mobile-skeleton-${index}`}
+              className="rounded-xl border border-border/70 bg-card/95 p-4 shadow-card"
+            >
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-8 w-full" />
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Skeleton className="h-16 w-full rounded-lg" />
+                  <Skeleton className="h-16 w-full rounded-lg" />
+                </div>
+              </div>
+            </div>
+          ))
+        ) : mobileRows.length > 0 ? (
+          mobileRows.map((row) => {
+            const allCells = row.getVisibleCells()
+            const actionCell = allCells.find(
+              (cell) => cell.column.id === "actions"
+            )
+            const visibleCells = allCells.filter((cell) => {
+              if (cell.column.id === "actions") {
+                return false
+              }
+
+              const meta = cell.column.columnDef.meta as ColumnMeta | undefined
+              return !isHiddenOnMobile(meta)
+            })
+
+            const primaryCell = visibleCells[0]
+            const secondaryCells = visibleCells.slice(1)
+
+            return (
+              <article
+                key={row.id}
+                className={cn(
+                  "rounded-xl border border-border/70 bg-card/95 p-4 shadow-card",
+                  getRowClassName?.(row.original)
+                )}
+              >
+                {primaryCell ? (
+                  <div className="space-y-1.5">
+                    <p className="label-overline">
+                      {getMobileColumnLabel(
+                        primaryCell.column.columnDef,
+                        primaryCell.column.id
+                      )}
+                    </p>
+                    <div className="min-w-0 text-sm leading-relaxed font-semibold text-foreground">
+                      {flexRender(
+                        primaryCell.column.columnDef.cell,
+                        primaryCell.getContext()
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                {secondaryCells.length > 0 ? (
+                  <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {secondaryCells.map((cell) => (
+                      <div
+                        key={cell.id}
+                        className="space-y-1 rounded-lg border border-border/60 bg-muted/10 p-2.5"
+                      >
+                        <dt className="label-overline">
+                          {getMobileColumnLabel(
+                            cell.column.columnDef,
+                            cell.column.id
+                          )}
+                        </dt>
+                        <dd className="text-sm leading-relaxed text-foreground">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
+
+                {actionCell ? (
+                  <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-border/60 pt-3">
+                    {flexRender(
+                      actionCell.column.columnDef.cell,
+                      actionCell.getContext()
+                    )}
+                  </div>
+                ) : null}
+              </article>
+            )
+          })
+        ) : (
+          <EmptyState
+            icon={<InboxIcon />}
+            title={emptyMessage}
+            description={emptyDescription}
+            action={emptyAction}
+            compact
+          />
+        )}
+      </div>
+
+      <div className="table-enterprise hidden overflow-hidden md:block">
         <Table className="min-w-180">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -246,7 +397,7 @@ export function DataTable<TData, TValue>({
                 }))
               }
             >
-              <SelectTrigger className="w-20 h-8">
+              <SelectTrigger className="h-8 w-20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

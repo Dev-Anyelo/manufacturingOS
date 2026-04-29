@@ -309,7 +309,7 @@ export function PayrollForm({
               </div>
 
               {/* Period Dates - Inline */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Inicio</Label>
                   <Popover>
@@ -497,7 +497,7 @@ export function PayrollForm({
         <TabsContent value="metrics" className="space-y-4">
           <div>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label
                     htmlFor="pieces_produced"

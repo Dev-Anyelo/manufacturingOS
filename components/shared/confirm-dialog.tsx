@@ -181,11 +181,11 @@ export function ConfirmDialog({
           ) : null}
         </div>
 
-        <AlertDialogFooter className="grid grid-cols-2 gap-2 border-t border-border/80 bg-muted/20 px-4 py-4">
+        <AlertDialogFooter className="flex flex-col gap-2 border-t border-border/80 bg-muted/20 px-4 py-4 sm:flex-row sm:justify-end">
           <AlertDialogCancel
             onClick={() => onOpenChange(false)}
             disabled={pending}
-            className="min-w-28"
+            className="w-full sm:w-auto sm:min-w-28"
           >
             {cancelLabel}
           </AlertDialogCancel>
@@ -193,7 +193,7 @@ export function ConfirmDialog({
             asChild
             onClick={() => void handleConfirm()}
             disabled={pending || !confirmEnabled}
-            className="min-w-28"
+            className="w-full sm:w-auto sm:min-w-28"
           >
             <Button
               type="button"

@@ -67,7 +67,7 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
           {formatDate(payment.periodEnd)}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4 pt-6">
+      <CardContent className="space-y-3">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Devengado</p>

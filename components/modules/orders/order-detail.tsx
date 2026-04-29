@@ -81,7 +81,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
       <OrderStatusStepper status={currentStatus} />
 
       {/* ── Hero strip — métricas principales ── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Total pedido"
           value={
@@ -220,7 +220,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
               icon={<HashIcon className="size-4" />}
               className="md:col-span-3"
             >
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
                 <InfoRow
                   label="ID"
                   value={
@@ -347,131 +347,140 @@ export function OrderDetail({ order }: OrderDetailProps) {
             }
             noPadding
           >
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="pl-5 text-xs font-semibold tracking-wide uppercase">
-                    Descripción
-                  </TableHead>
-                  <TableHead className="hidden text-xs font-semibold tracking-wide uppercase md:table-cell">
-                    <span className="flex items-center gap-1">
-                      <PaletteIcon className="size-3" />
-                      Color / Talla
-                    </span>
-                  </TableHead>
-                  <TableHead className="text-right text-xs font-semibold tracking-wide uppercase">
-                    Cant.
-                  </TableHead>
-                  <TableHead className="pr-5 text-right text-xs font-semibold tracking-wide uppercase">
-                    Subtotal
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {order.items.map((item, idx) => {
-                  const measurementEntries = Object.entries(
-                    item.measurements ?? {}
-                  )
-                  return (
-                    <TableRow
-                      key={item.id}
-                      className={cn(
-                        "group transition-colors",
-                        idx % 2 === 0 ? "" : "bg-muted/20"
-                      )}
-                    >
-                      <TableCell className="py-3 pl-5">
-                        <div className="space-y-1.5">
-                          <div className="flex items-start gap-2">
-                            <div className="bg-info-soft text-info mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md text-xs font-bold">
-                              {idx + 1}
-                            </div>
-                            <div>
-                              <p className="text-xs leading-tight font-semibold text-foreground">
-                                {item.description}
-                              </p>
-                              {item.catalogItemName && (
-                                <p className="text-xs text-muted-foreground">
-                                  {item.catalogItemName}
-                                </p>
-                              )}
-                              {item.designNotes && (
-                                <p className="mt-1 text-xs text-muted-foreground italic">
-                                  "{item.designNotes}"
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          {/* Medidas colapsables */}
-                          {measurementEntries.length > 0 && (
-                            <details className="ml-8">
-                              <summary className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-brand select-none hover:text-brand/80">
-                                <RulerIcon className="size-3" />
-                                Ver {measurementEntries.length} medidas
-                              </summary>
-                              <div className="mt-1.5 ml-0.5 grid grid-cols-3 gap-1.5 rounded-lg border border-border bg-muted/20 p-2.5">
-                                {measurementEntries.map(([key, value]) => (
-                                  <div key={key} className="text-center">
-                                    <p className="text-xs text-muted-foreground">
-                                      {measurementLabels[key] ?? key}
-                                    </p>
-                                    <p className="font-mono text-xs font-semibold">
-                                      {String(value)}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            </details>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden py-3 md:table-cell">
-                        <div className="flex items-center gap-1.5 space-y-1">
-                          {item.color && item.size && (
-                            <span className="inline-flex text-xs font-medium uppercase">
-                              {item.color} - {item.size}
-                            </span>
-                          )}
+            <div className="space-y-4 p-3">
 
-                          {!item.color && !item.size && (
-                            <span className="text-xs text-muted-foreground">
-                              —
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-3 text-right">
-                        <span className="text-xs font-semibold">
-                          ×{item.quantity}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="pl-5 text-xs font-semibold tracking-wide uppercase">
+                        Descripción
+                      </TableHead>
+                      <TableHead className="hidden text-xs font-semibold tracking-wide uppercase md:table-cell">
+                        <span className="flex items-center gap-1">
+                          <PaletteIcon className="size-3" />
+                          Color / Talla
                         </span>
-                      </TableCell>
-                      <TableCell className="py-3 pr-5 text-right">
-                        <CurrencyDisplay
-                          amount={item.subtotal}
-                          size="sm"
-                          className="font-bold"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          <CurrencyDisplay amount={item.unitPrice} size="sm" />
-                          /u
-                        </p>
-                      </TableCell>
+                      </TableHead>
+                      <TableHead className="text-right text-xs font-semibold tracking-wide uppercase">
+                        Cant.
+                      </TableHead>
+                      <TableHead className="pr-5 text-right text-xs font-semibold tracking-wide uppercase">
+                        Subtotal
+                      </TableHead>
                     </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {order.items.map((item, idx) => {
+                      const measurementEntries = Object.entries(
+                        item.measurements ?? {}
+                      )
 
-            {/* Total footer */}
-            <div className="flex items-center justify-between border-t border-border bg-muted/20 px-5 py-3">
-              <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                Total del pedido
-              </span>
-              <CurrencyDisplay
-                amount={order.total}
-                size="sm"
-                className="font-bold"
-              />
+                      return (
+                        <TableRow
+                          key={item.id}
+                          className={cn(
+                            "group transition-colors",
+                            idx % 2 === 0 ? "" : "bg-muted/20"
+                          )}
+                        >
+                          <TableCell className="py-3 pl-5">
+                            <div className="space-y-1.5">
+                              <div className="flex items-start gap-2">
+                                <div className="bg-info-soft text-info mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md text-xs font-bold">
+                                  {idx + 1}
+                                </div>
+                                <div>
+                                  <p className="text-xs leading-tight font-semibold text-foreground">
+                                    {item.description}
+                                  </p>
+                                  {item.catalogItemName && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {item.catalogItemName}
+                                    </p>
+                                  )}
+                                  {item.designNotes && (
+                                    <p className="mt-1 text-xs text-muted-foreground italic">
+                                      "{item.designNotes}"
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              {/* Medidas colapsables */}
+                              {measurementEntries.length > 0 && (
+                                <details className="ml-8">
+                                  <summary className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-brand select-none hover:text-brand/80">
+                                    <RulerIcon className="size-3" />
+                                    Ver {measurementEntries.length} medidas
+                                  </summary>
+                                  <div className="mt-1.5 ml-0.5 grid grid-cols-3 gap-1.5 rounded-lg border border-border bg-muted/20 p-2.5">
+                                    {measurementEntries.map(([key, value]) => (
+                                      <div key={key} className="text-center">
+                                        <p className="text-xs text-muted-foreground">
+                                          {measurementLabels[key] ?? key}
+                                        </p>
+                                        <p className="font-mono text-xs font-semibold">
+                                          {String(value)}
+                                        </p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </details>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden py-3 md:table-cell">
+                            <div className="flex items-center gap-1.5 space-y-1">
+                              {item.color && item.size && (
+                                <span className="inline-flex text-xs font-medium uppercase">
+                                  {item.color} - {item.size}
+                                </span>
+                              )}
+
+                              {!item.color && !item.size && (
+                                <span className="text-xs text-muted-foreground">
+                                  —
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-3 text-right">
+                            <span className="text-xs font-semibold">
+                              ×{item.quantity}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-3 pr-5 text-right">
+                            <CurrencyDisplay
+                              amount={item.subtotal}
+                              size="sm"
+                              className="font-bold"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              <CurrencyDisplay
+                                amount={item.unitPrice}
+                                size="sm"
+                              />
+                              /u
+                            </p>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Total footer */}
+              <div className="flex items-center justify-between border-t border-border bg-muted/20 px-5 py-3">
+                <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  Total del pedido
+                </span>
+                <CurrencyDisplay
+                  amount={order.total}
+                  size="sm"
+                  className="font-bold"
+                />
+              </div>
             </div>
           </SectionCard>
 
@@ -495,7 +504,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
                 {order.referenceImages.map((src, index) => (
                   <a
                     key={`${src}-${index}`}

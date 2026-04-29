@@ -4,13 +4,12 @@ import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import type { PayrollTableRow } from "@/components/modules/payroll/payroll-table"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import type { PayrollTableRow } from "@/components/modules/payroll/payroll-table"
 
 import {
   BanknoteIcon,
@@ -153,20 +152,17 @@ export function MarkPaidDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="overflow-hidden border border-border/75 p-0 sm:max-w-xl">
-        <DialogHeader className="space-y-2 border-b border-border/70 bg-muted/10 px-5 py-4 sm:px-6">
+        <DialogHeader className="space-y-2 py-3 px-4">
           <div className="flex items-center justify-between gap-2">
             <DialogTitle>Marcar pago como pagado</DialogTitle>
-            <Badge variant="outline" className="text-xs">
-              Planilla
-            </Badge>
           </div>
           <DialogDescription>
             Confirma la fecha y metodo para procesar este pago de planilla.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 px-5 py-4 sm:px-6 sm:py-5">
-          <div className="grid grid-cols-1 gap-2 rounded-xl border border-border/70 bg-muted/15 p-3 sm:grid-cols-3">
+        <div className="space-y-4 px-4 py-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <StatLine label="Empleado" value={payment?.employeeName ?? "-"} />
             <StatLine
               label="Periodo"
@@ -232,7 +228,7 @@ export function MarkPaidDialog({
                 const Icon = method.icon
 
                 return (
-                  <label
+                  <Label
                     key={method.value}
                     className={cn(
                       "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-xs transition-colors",
@@ -244,7 +240,7 @@ export function MarkPaidDialog({
                     <RadioGroupItem value={method.value} className="sr-only" />
                     <Icon className="size-4" />
                     <span className="text-sm">{method.label}</span>
-                  </label>
+                  </Label>
                 )
               })}
             </RadioGroup>

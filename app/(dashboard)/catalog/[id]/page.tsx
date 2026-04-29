@@ -1,16 +1,15 @@
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import { ArrowLeftIcon, LayersIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { PageHeader } from "@/components/shared/page-header"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCatalogItem } from "@/lib/data/catalog"
-import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+import { ArrowLeftIcon, LayersIcon } from "lucide-react"
+import { PageHeader } from "@/components/shared/page-header"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CatalogForm } from "@/components/modules/catalog/catalog-form"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
 
 type CatalogDetailPageProps = {
   params: Promise<{ id: string }> | { id: string }

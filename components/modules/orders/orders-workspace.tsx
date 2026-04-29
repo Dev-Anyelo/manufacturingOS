@@ -57,7 +57,7 @@ export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
         {quickSummary.map((item) => (
           <div
             key={item.label}
@@ -70,17 +70,17 @@ export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
       </div>
 
       <Tabs defaultValue="kanban" className="space-y-4">
-        <TabsList className="h-9 rounded-xl border border-border/60 bg-muted/20 p-1">
+        <TabsList className="grid w-full grid-cols-2 rounded-xl border border-border/60 bg-muted/20 p-1 sm:w-auto">
           <TabsTrigger
             value="kanban"
-            className="h-7 gap-1.5 rounded-lg px-3 text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            className="gap-1.5 rounded-lg px-3 text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
           >
             <LayoutGridIcon className="size-3.5" />
             Kanban
           </TabsTrigger>
           <TabsTrigger
             value="table"
-            className="h-7 gap-1.5 rounded-lg px-3 text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            className="gap-1.5 rounded-lg px-3 text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
           >
             <TableIcon className="size-3.5" />
             Tabla

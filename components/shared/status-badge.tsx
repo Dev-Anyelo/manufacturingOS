@@ -56,7 +56,7 @@ const workOrderMap: Record<string, BadgeConfig> = {
 
 const saleMap: Record<string, BadgeConfig> = {
   paid: {
-    label: "Pagada",
+    label: "Pagado",
     icon: CheckCircle2Icon,
     className: "status-paid",
   },

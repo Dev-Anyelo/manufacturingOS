@@ -2,21 +2,23 @@
 
 import Link from "next/link"
 import * as React from "react"
+import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
+import { EmptyState } from "@/components/shared/empty-state"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
+import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+
 import {
+  ArrowUpRight,
   LayoutGridIcon,
   ListIcon,
   ShoppingBagIcon,
   SlidersHorizontalIcon,
 } from "lucide-react"
-import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
-import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
-import { EmptyState } from "@/components/shared/empty-state"
-import { cn } from "@/lib/utils"
 
 import {
   Select,
@@ -120,7 +122,10 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             size="sm"
             className="h-8 px-3 text-xs"
           >
-            <Link href={`/catalog/${row.original.id}`}>Detalle</Link>
+            <Link href={`/catalog/${row.original.id}`}>
+              Detalle 
+              <ArrowUpRight className="size-3.5" />
+            </Link>
           </Button>
         ),
       },
@@ -135,7 +140,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <Select value={garmentFilter} onValueChange={setGarmentFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="h-auto w-auto min-w-35 px-3 text-xs">
                 <SelectValue placeholder="Tipo de prenda" />
               </SelectTrigger>
               <SelectContent>
@@ -147,14 +152,21 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-auto px-3 text-xs"
+              onClick={() => setBulkDialogOpen(true)}
+            >
+              <SlidersHorizontalIcon className="size-3.5" />
+              Ajuste masivo
+            </Button>
 
-          <div className="flex items-center gap-2">
             {/* View toggle */}
             <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/20 p-0.5">
               <Button
                 type="button"
-                variant="outline"
+                variant={viewMode === "grid" ? "outline" : "ghost"}
                 onClick={() => setViewMode("grid")}
                 className={cn(
                   "flex size-7 items-center justify-center rounded-md text-xs transition-all",
@@ -168,7 +180,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
               </Button>
               <Button
                 type="button"
-                variant="outline"
+                variant={viewMode === "table" ? "outline" : "ghost"}
                 onClick={() => setViewMode("table")}
                 className={cn(
                   "flex size-7 items-center justify-center rounded-md text-xs transition-all",
@@ -181,16 +193,6 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
                 <ListIcon className="size-3.5" />
               </Button>
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 w-full px-3 text-xs sm:w-auto"
-              onClick={() => setBulkDialogOpen(true)}
-            >
-              <SlidersHorizontalIcon className="size-3.5" />
-              Ajuste masivo
-            </Button>
           </div>
         </div>
       </div>
@@ -213,7 +215,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             }
           />
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
             {filteredItems.map((item) => (
               <CatalogCard key={item.id} item={item} />
             ))}

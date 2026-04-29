@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
-import { CheckCircle2Icon, EyeIcon, MailIcon } from "lucide-react"
+import { ArrowUpRight, CheckCircle2Icon, MailIcon } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 
 import {
@@ -133,6 +133,7 @@ export function PayrollTable({
         header: "Estado",
         cell: ({ row }) => (
           <Badge
+            variant="outline"
             className={
               row.original.status === "paid" ? "tone-success" : "tone-warning"
             }
@@ -163,8 +164,8 @@ export function PayrollTable({
           <div className="flex justify-end gap-1">
             <Button asChild variant="ghost" size="sm" className="justify-start">
               <Link href={`/payroll/${row.original.id}`}>
-                <EyeIcon className="size-4" />
                 Ver
+                <ArrowUpRight className="size-4" />
               </Link>
             </Button>
 

@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { es } from "date-fns/locale"
 import { useForm } from "react-hook-form"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, startOfWeek, endOfWeek, addDays } from "date-fns"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 import {
   Calendar,
@@ -239,6 +240,11 @@ export function PayrollReportForm() {
     useState<PayrollRecord | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("table")
+  const isMobile = useIsMobile()
+
+  useEffect(() => {
+    setActiveTab(isMobile ? "cards" : "table")
+  }, [isMobile])
 
   const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 })
 
@@ -437,7 +443,7 @@ export function PayrollReportForm() {
 
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           {/* Week Navigation */}
-          <div className="mb-6 flex items-center justify-between rounded-xl border border-border bg-card p-4 shadow-sm">
+          <div className="mb-6 flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <Button
               variant="ghost"
               size="sm"
@@ -476,7 +482,7 @@ export function PayrollReportForm() {
           </div>
 
           {/* Summary Stats */}
-          <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="stat-card">
               <div className="flex items-start justify-between">
                 <div>
@@ -604,7 +610,7 @@ export function PayrollReportForm() {
             onValueChange={setActiveTab}
             className="space-y-4"
           >
-            <TabsList className="grid w-full max-w-xs grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 sm:max-w-xs">
               <TabsTrigger value="table" className="gap-2">
                 <FileSpreadsheet className="size-4" />
                 Tabla
@@ -760,7 +766,7 @@ export function PayrollReportForm() {
 
             {/* Cards View */}
             <TabsContent value="cards" className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredRecords.map((record) => (
                   <div
                     key={record.id}
@@ -786,7 +792,7 @@ export function PayrollReportForm() {
                       {getStatusBadge(record.status)}
                     </div>
 
-                    <div className="mb-4 grid grid-cols-2 gap-3">
+                    <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div className="rounded-lg bg-muted/50 p-3">
                         <p className="text-xs text-muted-foreground">Horas</p>
                         <p className="text-lg font-semibold">

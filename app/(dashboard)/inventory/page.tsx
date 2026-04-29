@@ -59,17 +59,10 @@ export default async function InventoryPage() {
           ]}
           actions={
             <div className="flex items-center gap-2">
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-              >
+              <Button asChild variant="outline" size="sm">
                 <Link href="/inventory">Exportar</Link>
               </Button>
-              <Button
-                asChild
-                size="sm"
-              >
+              <Button asChild size="sm">
                 <Link href="/inventory/new">
                   <PlusIcon className="size-4" />
                   Nuevo material
@@ -79,7 +72,7 @@ export default async function InventoryPage() {
           }
         />
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           <StatCard
             title="Materiales activos"
             value={tableItems.length}

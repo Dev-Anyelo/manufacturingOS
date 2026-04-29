@@ -269,7 +269,7 @@ export function PosCart({
           </div>
 
           {/* Settings: Channel & Discount */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 Canal
@@ -324,7 +324,7 @@ export function PosCart({
             <RadioGroup
               value={paymentMethod}
               onValueChange={onPaymentMethodChange}
-              className="grid grid-cols-2 gap-3"
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
             >
               {paymentMethods.map((method) => (
                 <label

@@ -105,7 +105,92 @@ export function OrderStatusStepper({
       </div>
 
       {/* Steps */}
-      <div className="overflow-x-auto px-5 py-4">
+      <div className="px-4 py-4 sm:hidden">
+        <ol className="space-y-2" aria-label="Progreso del pedido">
+          {flow.map((step) => {
+            const stepState = getStepState(step.status, status)
+
+            return (
+              <li
+                key={step.status}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg border px-3 py-2.5",
+                  stepState === "current" &&
+                    "border-brand/40 bg-brand/5 ring-1 ring-brand/15",
+                  stepState === "completed" &&
+                    "border-border/70 bg-background/80",
+                  stepState === "future" &&
+                    "border-border/60 bg-muted/10"
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex size-8 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300",
+                    stepState === "completed" &&
+                      "border-brand bg-brand text-white shadow-sm shadow-brand/30",
+                    stepState === "current" &&
+                      "border-brand bg-brand/10 text-brand animate-pulse",
+                    stepState === "future" &&
+                      "border-border bg-background text-muted-foreground/50"
+                  )}
+                  aria-label={step.label}
+                >
+                  {stepState === "completed" ? (
+                    <CheckIcon className="size-3.5" />
+                  ) : (
+                    step.icon
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={cn(
+                      "text-sm font-medium",
+                      stepState === "current" && "font-bold text-brand",
+                      stepState === "completed" && "text-foreground/80",
+                      stepState === "future" && "text-muted-foreground/60"
+                    )}
+                  >
+                    {step.label}
+                  </p>
+                </div>
+
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold uppercase",
+                    stepState === "current" && "bg-brand/10 text-brand",
+                    stepState === "completed" && "bg-success/10 text-success",
+                    stepState === "future" &&
+                      "bg-muted/40 text-muted-foreground"
+                  )}
+                >
+                  {stepState === "current"
+                    ? "Actual"
+                    : stepState === "completed"
+                      ? "Hecho"
+                      : "Pendiente"}
+                </span>
+              </li>
+            )
+          })}
+
+          {isCancelled && (
+            <li className="flex items-center gap-3 rounded-lg border border-danger/30 bg-danger-soft px-3 py-2.5 text-danger">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-full border-2 border-danger/50 bg-background text-danger">
+                <XCircleIcon className="size-3.5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold">Pedido cancelado</p>
+                <p className="text-xs text-danger/80">
+                  El flujo quedó detenido por esta razón.
+                </p>
+              </div>
+            </li>
+          )}
+        </ol>
+      </div>
+
+      <div className="hidden overflow-x-auto px-5 py-4 sm:block">
         <ol
           className="flex min-w-max items-center gap-0"
           aria-label="Progreso del pedido"
@@ -173,10 +258,7 @@ export function OrderStatusStepper({
             <li className="flex items-center">
               <div className="mx-2 mb-5 flex gap-0.5">
                 {[0, 1, 2].map((dot) => (
-                  <div
-                    key={dot}
-                    className="h-0.5 w-3 rounded-full bg-border"
-                  />
+                  <div key={dot} className="h-0.5 w-3 rounded-full bg-border" />
                 ))}
               </div>
               <div className="flex flex-col items-center gap-2">

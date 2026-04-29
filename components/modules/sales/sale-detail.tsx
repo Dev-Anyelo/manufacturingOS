@@ -1,7 +1,8 @@
+import { cn } from "@/lib/utils"
 import { SaleStatus } from "@prisma/client"
+import { StatCard } from "@/components/shared/stat-card"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { cn } from "@/lib/utils"
 
 import {
   Card,
@@ -103,92 +104,44 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="relative overflow-hidden shadow-md">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <ReceiptIcon className="size-16" />
-          </div>
-          <CardContent className="space-y-2 p-5">
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-              Total Venta
-            </p>
-            <CurrencyDisplay
-              amount={sale.total}
-              className="text-3xl font-black tracking-tight text-foreground"
-            />
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden shadow-md">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <WalletIcon className="text-success size-16" />
-          </div>
-          <CardContent className="space-y-2 p-5">
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-              Pagado
-            </p>
-            <CurrencyDisplay
-              amount={sale.amountPaid}
-              className="text-success text-3xl font-black tracking-tight"
-            />
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden shadow-md">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <PercentIcon className="text-danger size-16" />
-          </div>
-          <CardContent className="space-y-2 p-5">
-            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-              Descuento
-            </p>
-            <CurrencyDisplay
-              amount={sale.discount}
-              className="text-3xl font-black tracking-tight text-foreground"
-            />
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden shadow-md">
-          <CardContent className="space-y-2 p-5">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                Saldo Pendiente
-              </p>
-              <span className="rounded-full bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {totalItems} unds
-              </span>
-            </div>
-            <CurrencyDisplay
-              amount={sale.balanceDue}
-              className={cn(
-                "text-3xl font-black tracking-tight",
-                sale.balanceDue > 0 ? "text-warning" : "text-foreground"
-              )}
-            />
-            <div className="mt-4 w-full">
-              <div className="mb-1.5 flex items-center justify-between text-[0.6875rem] font-medium">
-                <span className="text-muted-foreground">Progreso de pago</span>
-                <span className="text-foreground">
-                  {Math.round(paidProgress)}%
-                </span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full border border-border/20 bg-muted/50">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all duration-1000 ease-out",
-                    paidProgress === 100 ? "bg-success" : "bg-brand"
-                  )}
-                  style={{ width: `${paidProgress}%` }}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Total de la Venta"
+          value={sale.total}
+          description={`${totalItems} unidades`}
+          icon={<ReceiptIcon className="size-4" />}
+        />
+        <StatCard
+          title="Monto Pagado"
+          value={sale.amountPaid}
+          description={`${paidProgress.toFixed(0)}% pagado`}
+          icon={<WalletIcon className="size-4" />}
+          variant="success"
+        />
+        <StatCard
+          title="Saldo Pendiente"
+          value={sale.balanceDue}
+          description={
+            sale.balanceDue > 0
+              ? "Pago pendiente"
+              : "Venta completamente pagada"
+          }
+          icon={<PercentIcon className="size-4" />}
+          variant={sale.balanceDue > 0 ? "warning" : "default"}
+        />
+        <StatCard
+          title="Método de Pago"
+          value={
+            paymentMethodLabelMap[sale.paymentMethod]?.label ??
+            sale.paymentMethod
+          }
+          description="Cómo pagó el cliente"
+          icon={<PaymentIcon className="size-4" />}
+        />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="shadow-md lg:col-span-2">
-          <CardHeader className="border-b border-border/40 bg-muted/10 pb-4">
+          <CardHeader className="border-b border-border/40 bg-muted/10 pb-2">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -199,14 +152,14 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                     </span>
                   </span>
                 </CardTitle>
-                <CardDescription className="mt-1.5 text-sm">
+                <CardDescription className="mt-1.5 text-sm text-pretty">
                   Registrada el {formatDate(sale.saleDate)}
                 </CardDescription>
               </div>
               <StatusBadge status={sale.status} type="sale" />
             </div>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">
+          <CardContent className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
             <div className="flex items-center gap-4 rounded-xl border border-border/40 bg-background p-4 shadow-sm">
               <div className="flex size-10 items-center justify-center rounded-lg bg-brand/10 text-brand">
                 <ChannelIcon className="size-5" />
@@ -238,15 +191,15 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
         </Card>
 
         <Card className="shadow-md">
-          <CardHeader className="border-b border-border/40 bg-muted/10 pb-4">
+          <CardHeader className="border-b border-border/40 bg-muted/10">
             <CardTitle className="flex items-center gap-2 text-base">
               <UserCircleIcon className="size-5 text-muted-foreground" />
               Información del Cliente
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 pt-6">
+          <CardContent className="space-y-3">
             <div>
-              <p className="text-lg font-bold text-foreground">
+              <p className="text-base font-bold text-foreground">
                 {sale.customerName}
               </p>
             </div>
@@ -294,57 +247,103 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader className="bg-muted/10">
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[40%] pl-6">Descripción</TableHead>
-                  <TableHead className="hidden sm:table-cell">Talla</TableHead>
-                  <TableHead className="text-right">Cant.</TableHead>
-                  <TableHead className="text-right">Unitario</TableHead>
-                  <TableHead className="pr-6 text-right">Subtotal</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sale.items.map((item) => (
-                  <TableRow key={item.id} className="group transition-colors">
-                    <TableCell className="py-4 pl-6">
-                      <span className="font-semibold text-foreground">
+            <div className="space-y-3 p-4 sm:p-6 md:hidden">
+              {sale.items.map((item) => (
+                <article
+                  key={item.id}
+                  className="rounded-xl border border-border/60 bg-card p-4 shadow-card"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-sm font-semibold text-foreground">
                         {item.description}
-                      </span>
-                    </TableCell>
-                    <TableCell className="hidden py-4 sm:table-cell">
+                      </p>
                       {item.size ? (
                         <span className="inline-flex items-center rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-xs font-medium text-muted-foreground">
                           {item.size}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground/50">-</span>
+                        <span className="text-xs text-muted-foreground/50">
+                          Sin talla
+                        </span>
                       )}
-                    </TableCell>
-                    <TableCell className="py-4 text-right font-medium">
-                      {item.quantity}
-                    </TableCell>
-                    <TableCell className="py-4 text-right text-muted-foreground">
-                      <CurrencyDisplay amount={item.unitPrice} size="sm" />
-                    </TableCell>
-                    <TableCell className="py-4 pr-6 text-right font-bold text-foreground">
-                      <CurrencyDisplay amount={item.subtotal} size="sm" />
-                    </TableCell>
+                    </div>
+                    <CurrencyDisplay amount={item.subtotal} size="sm" />
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div className="rounded-lg border border-border/60 bg-muted/10 p-2.5">
+                      <p className="label-overline">Cantidad</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">
+                        {item.quantity}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border/60 bg-muted/10 p-2.5">
+                      <p className="label-overline">Unitario</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">
+                        <CurrencyDisplay amount={item.unitPrice} size="sm" />
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader className="bg-muted/10">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-[40%] pl-6">Descripción</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Talla
+                    </TableHead>
+                    <TableHead className="text-right">Cant.</TableHead>
+                    <TableHead className="text-right">Unitario</TableHead>
+                    <TableHead className="pr-6 text-right">Subtotal</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {sale.items.map((item) => (
+                    <TableRow key={item.id} className="group transition-colors">
+                      <TableCell className="py-4 pl-6">
+                        <span className="font-semibold text-foreground">
+                          {item.description}
+                        </span>
+                      </TableCell>
+                      <TableCell className="hidden py-4 sm:table-cell">
+                        {item.size ? (
+                          <span className="inline-flex items-center rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                            {item.size}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground/50">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4 text-right font-medium">
+                        {item.quantity}
+                      </TableCell>
+                      <TableCell className="py-4 text-right text-muted-foreground">
+                        <CurrencyDisplay amount={item.unitPrice} size="sm" />
+                      </TableCell>
+                      <TableCell className="py-4 pr-6 text-right font-bold text-foreground">
+                        <CurrencyDisplay amount={item.subtotal} size="sm" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         <Card className="bg-muted/5 shadow-md">
-          <CardHeader className="border-b border-border/40 pb-4">
-            <CardTitle className="text-base">Resumen Financiero</CardTitle>
-            <CardDescription className="mt-1">
+          <CardHeader className="border-b border-border/40">
+            <CardTitle className="text-base text-pretty">Resumen Financiero</CardTitle>
+            <CardDescription className="text-pretty">
               Desglose de la transacción
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 pt-6">
+          <CardContent className="space-y-3">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium text-muted-foreground">
                 Subtotal
@@ -405,7 +404,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
               </div>
 
               {sale.balanceDue > 0 && (
-                <div className="bg-warning/10 border-warning/20 flex items-center justify-between rounded-lg border px-3 py-2">
+                <div className="bg-warning/10 border-warning/20 flex items-center justify-between">
                   <span className="text-warning-dark dark:text-warning font-bold">
                     Saldo Pendiente
                   </span>

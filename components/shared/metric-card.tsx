@@ -21,12 +21,14 @@ export function MetricCard({
   }
 
   return (
-    <div className="rounded-xl border border-border/70 bg-card/95 p-4 shadow-card transition-colors hover:bg-card">
+    <div className="rounded-xl border border-border/70 bg-card/95 p-3.5 shadow-card transition-colors hover:bg-card sm:p-4">
       <div className="flex items-start justify-between gap-2">
-        <p className="label-overline">{label}</p>
+        <p className="label-overline max-w-48 text-[11px] sm:text-xs">
+          {label}
+        </p>
         <span className={cn("mt-0.5", accentStyles[accent])}>{icon}</span>
       </div>
-      <div className="mt-2 text-foreground">{value}</div>
+      <div className="mt-2 min-w-0 text-foreground">{value}</div>
       {sub ? <div className="mt-2">{sub}</div> : null}
     </div>
   )

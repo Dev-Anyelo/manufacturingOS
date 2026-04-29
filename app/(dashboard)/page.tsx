@@ -170,7 +170,7 @@ export default async function DashboardPage() {
         ) : (
           <>
             {/* Zone 2: 4 StatCards */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
               <StatCard
                 title="Materiales activos"
                 value={inventoryCount}
@@ -363,7 +363,7 @@ export default async function DashboardPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {[
                       {
                         label: "Nueva venta",

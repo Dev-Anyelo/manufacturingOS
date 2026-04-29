@@ -89,7 +89,7 @@ export function NotificationPanel({
             {unreadCount} pendientes
           </Badge>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
             <p className="text-[11px] text-muted-foreground">Total</p>
             <p className="text-sm font-semibold">{items.length}</p>

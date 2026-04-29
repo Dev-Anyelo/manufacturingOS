@@ -111,7 +111,7 @@ export function BulkPriceDialog({
         </DialogHeader>
 
         <div className="space-y-4 px-4 py-4">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <SummaryCell label="Objetivo" value={targetLabel} />
             <SummaryCell
               label="Multiplicador"

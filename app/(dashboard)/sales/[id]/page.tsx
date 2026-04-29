@@ -7,7 +7,6 @@ import { decimalToNumber } from "@/lib/api/utils"
 import { getCurrentUser } from "@/lib/auth/current-user"
 import { PageHeader } from "@/components/shared/page-header"
 import { SaleDetail } from "@/components/modules/sales/sale-detail"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { UpdateSalePaymentButton } from "@/components/modules/sales/update-sale-payment-button"
 
 interface SaleDetailPageProps {
@@ -84,19 +83,6 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
             })),
           }}
         />
-
-        <Card className="border border-dashed border-border/40 bg-muted/20">
-          <CardHeader>
-            <CardTitle className="text-base text-brand">
-              Siguiente paso recomendado
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Si el cliente tiene saldo pendiente, registra el abono desde la
-            ficha de cobros cuando el prompt de Cuentas por cobrar este
-            habilitado.
-          </CardContent>
-        </Card>
       </div>
     </div>
   )

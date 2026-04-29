@@ -53,7 +53,7 @@ export default async function ProductionPage() {
             { label: "Produccion" },
           ]}
           actions={
-            <Button asChild size="sm">
+            <Button asChild size="sm" variant="outline">
               <Link href="/production/new">
                 <PlusIcon className="size-4" />
                 Nueva sesion
