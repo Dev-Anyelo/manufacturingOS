@@ -1,15 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import {
-  KeyRoundIcon,
-  Loader2Icon,
-  MailIcon,
-  ShieldCheckIcon,
-  SparklesIcon,
-} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,19 +11,17 @@ import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { loginSchema, type LoginInput } from "@/lib/validations/auth"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  KeyRoundIcon,
+  Loader2Icon,
+  MailIcon,
+  AlertCircleIcon,
+} from "lucide-react"
 
 const authErrorMap: Record<string, string> = {
-  invalid_credentials: "Correo o contrasena incorrectos.",
-  email_not_confirmed: "Debes confirmar tu correo antes de iniciar sesion.",
+  invalid_credentials: "Correo o contraseña incorrectos.",
+  email_not_confirmed: "Debes confirmar tu correo antes de iniciar sesión.",
 }
 
 export function LoginForm() {
@@ -38,15 +30,11 @@ export function LoginForm() {
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   })
 
   const onSubmit = form.handleSubmit(async (values) => {
     setSubmitError(null)
-
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({
       email: values.email,
@@ -56,7 +44,7 @@ export function LoginForm() {
     if (error) {
       const mappedError = error.code ? authErrorMap[error.code] : undefined
       setSubmitError(
-        mappedError ?? "No se pudo iniciar sesion. Intenta nuevamente."
+        mappedError ?? "No se pudo iniciar sesión. Intenta nuevamente."
       )
       return
     }
@@ -64,107 +52,166 @@ export function LoginForm() {
     router.push("/")
   })
 
+  const isSubmitting = form.formState.isSubmitting
+
   return (
-    <Card className="overflow-hidden border border-border/75 bg-card/95 shadow-card backdrop-blur-sm">
-      <CardHeader className="space-y-3 border-b border-border/70 bg-muted/10">
-        <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-brand/30 bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">
-          <ShieldCheckIcon className="size-3.5" />
-          Acceso seguro
-        </div>
-        <div className="space-y-1">
-          <CardTitle className="text-xl">Iniciar sesion</CardTitle>
+    <div className="flex min-h-svh w-full items-center justify-center bg-background p-4 sm:p-6">
+      {/* Decoración de fondo — dos manchas de color difusas */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 overflow-hidden"
+      >
+        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-brand/8 blur-3xl" />
+        <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-brand/5 blur-3xl" />
+      </div>
+
+      {/* CARD */}
+      <div className="relative w-full max-w-md">
+        {/* Cabecera fuera del card — marca / contexto */}
+        <div className="mb-8 space-y-1 text-center">
+          {/* Sustituye este bloque por tu logo real si lo tienes */}
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand shadow-lg shadow-brand/30">
+            <KeyRoundIcon
+              className="h-6 w-6 text-brand-foreground"
+              strokeWidth={1.75}
+            />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            Panel operativo
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Ingresa con tu usuario para acceder al panel operativo del taller.
+            Ingresa tus credenciales para continuar
           </p>
         </div>
-      </CardHeader>
-      <form onSubmit={onSubmit} noValidate>
-        <CardContent className="space-y-4 pt-6">
-          <div className="space-y-2 rounded-lg border border-border/70 bg-muted/15 p-3">
-            <Label htmlFor="email">Correo electronico</Label>
-            <div className="relative">
-              <MailIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                className="pl-9"
-                {...form.register("email")}
-              />
-            </div>
-            {form.formState.errors.email ? (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.email.message}
-              </p>
-            ) : null}
-          </div>
 
-          <div className="space-y-2 rounded-lg border border-border/70 bg-muted/15 p-3">
-            <Label htmlFor="password">Contrasena</Label>
-            <div className="relative">
-              <KeyRoundIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                className="pl-9"
-                {...form.register("password")}
-              />
-            </div>
-            {form.formState.errors.password ? (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.password.message}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="rounded-lg border border-border/70 bg-card/80 p-3">
-            <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground">
-              <SparklesIcon className="size-3.5 text-brand" />
-              Buenas practicas de acceso
-            </p>
-            <ul className="space-y-1 text-xs text-muted-foreground">
-              <li>Usa una contrasena privada y actualizada.</li>
-              <li>Cierra sesion en equipos compartidos.</li>
-              <li>Si olvidaste tu clave, usa recuperacion segura.</li>
-            </ul>
-          </div>
-
-          {submitError ? (
-            <Alert variant="destructive">
-              <AlertTitle>No se pudo iniciar sesion</AlertTitle>
-              <AlertDescription>{submitError}</AlertDescription>
-            </Alert>
-          ) : null}
-
-          <div className="flex items-center justify-between gap-2 text-xs">
-            <p className="text-muted-foreground">¿No recuerdas tu clave?</p>
-            <Link
-              href="/forgot-password"
-              className="font-medium text-primary underline-offset-2 hover:underline"
+        {/* Formulario */}
+        <div>
+          <form onSubmit={onSubmit} noValidate className="space-y-5 p-4">
+            {/* Campo: correo */}
+            <FieldGroup
+              label="Correo electrónico"
+              htmlFor="email"
+              error={form.formState.errors.email?.message}
             >
-              Recuperar acceso
-            </Link>
-          </div>
-        </CardContent>
+              <div className="relative">
+                <MailIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="tu@correo.com"
+                  className={cn(
+                    "h-11 pl-9 transition-all",
+                    "focus-visible:border-brand/60 focus-visible:ring-brand/40",
+                    form.formState.errors.email &&
+                      "border-destructive focus-visible:ring-destructive/30"
+                  )}
+                  {...form.register("email")}
+                />
+              </div>
+            </FieldGroup>
 
-        <CardFooter className="border-t border-border/70 bg-muted/10">
-          <Button
-            type="submit"
-            className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand-dark"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? (
-              <>
-                <Loader2Icon className="animate-spin" />
-                Ingresando...
-              </>
-            ) : (
-              "Ingresar"
+            {/* Campo: contraseña */}
+            <FieldGroup
+              label="Contraseña"
+              htmlFor="password"
+              error={form.formState.errors.password?.message}
+              action={
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-muted-foreground underline-offset-2 transition-colors hover:text-brand hover:underline"
+                >
+                  ¿Olvidaste tu clave?
+                </Link>
+              }
+            >
+              <div className="relative">
+                <KeyRoundIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  className={cn(
+                    "h-11 pl-9 transition-all",
+                    "focus-visible:border-brand/60 focus-visible:ring-brand/40",
+                    form.formState.errors.password &&
+                      "border-destructive focus-visible:ring-destructive/30"
+                  )}
+                  {...form.register("password")}
+                />
+              </div>
+            </FieldGroup>
+
+            {/* Error global de autenticación */}
+            {submitError && (
+              <div
+                role="alert"
+                className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/8 px-3.5 py-3 text-sm text-destructive"
+              >
+                <AlertCircleIcon className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>{submitError}</p>
+              </div>
             )}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+
+            {/* Botón de envío */}
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <Loader2Icon className="h-4 w-4 animate-spin" />
+                  Ingresando…
+                </span>
+              ) : (
+                "Ingresar"
+              )}
+            </Button>
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Componente auxiliar ─────────────────────────────────────────────────── */
+
+interface FieldGroupProps {
+  label: string
+  htmlFor: string
+  error?: string
+  action?: React.ReactNode
+  children: React.ReactNode
+}
+
+function FieldGroup({
+  label,
+  htmlFor,
+  error,
+  action,
+  children,
+}: FieldGroupProps) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <Label
+          htmlFor={htmlFor}
+          className={cn(
+            "text-sm font-medium",
+            error ? "text-destructive" : "text-foreground"
+          )}
+        >
+          {label}
+        </Label>
+        {action}
+      </div>
+      {children}
+      {error && (
+        <p className="text-xs leading-snug text-destructive">{error}</p>
+      )}
+    </div>
   )
 }
