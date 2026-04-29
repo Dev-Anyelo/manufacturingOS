@@ -66,7 +66,7 @@ export function StatCard({
         </div>
       </div>
       <div className="flex items-baseline gap-3">
-        <div className="text-[30px] leading-none font-bold tracking-tight text-foreground">
+        <div className="text-base md:text-lg leading-none font-bold tracking-tight text-foreground">
           {isLoading ? (
             <div className="h-8 w-24 animate-pulse rounded bg-muted/40" />
           ) : (

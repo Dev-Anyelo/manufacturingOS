@@ -3,7 +3,13 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { Loader2Icon, ShieldCheckIcon } from "lucide-react"
+import {
+  KeyRoundIcon,
+  Loader2Icon,
+  MailIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -59,8 +65,8 @@ export function LoginForm() {
   })
 
   return (
-    <Card className="overflow-hidden border border-border bg-muted/20 shadow-sm backdrop-blur-sm">
-      <CardHeader className="space-y-3 border-b border-border">
+    <Card className="overflow-hidden border border-border/75 bg-card/95 shadow-card backdrop-blur-sm">
+      <CardHeader className="space-y-3 border-b border-border/70 bg-muted/10">
         <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-brand/30 bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">
           <ShieldCheckIcon className="size-3.5" />
           Acceso seguro
@@ -74,14 +80,18 @@ export function LoginForm() {
       </CardHeader>
       <form onSubmit={onSubmit} noValidate>
         <CardContent className="space-y-4 pt-6">
-          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+          <div className="space-y-2 rounded-lg border border-border/70 bg-muted/15 p-3">
             <Label htmlFor="email">Correo electronico</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              {...form.register("email")}
-            />
+            <div className="relative">
+              <MailIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                className="pl-9"
+                {...form.register("email")}
+              />
+            </div>
             {form.formState.errors.email ? (
               <p className="text-xs text-destructive">
                 {form.formState.errors.email.message}
@@ -89,19 +99,35 @@ export function LoginForm() {
             ) : null}
           </div>
 
-          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+          <div className="space-y-2 rounded-lg border border-border/70 bg-muted/15 p-3">
             <Label htmlFor="password">Contrasena</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              {...form.register("password")}
-            />
+            <div className="relative">
+              <KeyRoundIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                className="pl-9"
+                {...form.register("password")}
+              />
+            </div>
             {form.formState.errors.password ? (
               <p className="text-xs text-destructive">
                 {form.formState.errors.password.message}
               </p>
             ) : null}
+          </div>
+
+          <div className="rounded-lg border border-border/70 bg-card/80 p-3">
+            <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <SparklesIcon className="size-3.5 text-brand" />
+              Buenas practicas de acceso
+            </p>
+            <ul className="space-y-1 text-xs text-muted-foreground">
+              <li>Usa una contrasena privada y actualizada.</li>
+              <li>Cierra sesion en equipos compartidos.</li>
+              <li>Si olvidaste tu clave, usa recuperacion segura.</li>
+            </ul>
           </div>
 
           {submitError ? (
@@ -122,10 +148,10 @@ export function LoginForm() {
           </div>
         </CardContent>
 
-        <CardFooter className="border-t border-border bg-muted/20">
+        <CardFooter className="border-t border-border/70 bg-muted/10">
           <Button
             type="submit"
-            className="w-full bg-brand text-brand-foreground hover:bg-brand-dark"
+            className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand-dark"
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? (

@@ -1,9 +1,11 @@
 import { Badge } from "@/components/ui/badge"
+import { formatDateRelative } from "@/lib/utils"
+import { StatCard } from "@/components/shared/stat-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { GarmentTypeBadge } from "@/components/modules/production/garment-type-badge"
 
 import {
-  ClipboardListIcon,
+  MessageCircleIcon,
   RulerIcon,
   ScissorsIcon,
   UserRoundIcon,
@@ -44,122 +46,47 @@ interface ProductionSessionDetailProps {
   session: ProductionDetailSession
 }
 
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
-
 export function ProductionSessionDetail({
   session,
 }: ProductionSessionDetailProps) {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border border-border/70 shadow-card">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Prendas
-            </p>
-            <p className="text-lg font-semibold">{session.totalGarments}</p>
-          </CardContent>
-        </Card>
-        <Card className="border border-border/70 shadow-card">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Yardas usadas
-            </p>
-            <p className="text-lg font-semibold">
-              {session.totalYardsUsed.toFixed(2)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border border-border/70 shadow-card">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Materiales
-            </p>
-            <p className="text-lg font-semibold">{session.items.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="border border-border/70 shadow-card">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Jornada
-            </p>
-            <p className="text-sm font-semibold">
-              {formatDateTime(session.sessionDate)}
-            </p>
-          </CardContent>
-        </Card>
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <StatCard
+          title="Fecha de sesion"
+          value={formatDateRelative(session.sessionDate)}
+          description="Fecha de la jornada de produccion."
+          icon={<RulerIcon className="size-4" />}
+        />
+        <StatCard
+          title="Empleado"
+          value={session.employeeName}
+          description="Nombre del empleado responsable de la sesion."
+          icon={<UserRoundIcon className="size-4" />}
+        />
+        <StatCard
+          title="Total prendas"
+          value={session.totalGarments.toString()}
+          description="Cantidad total de prendas confeccionadas."
+          icon={<ScissorsIcon className="size-4" />}
+        />
+        <StatCard
+          title="Total yardas"
+          value={session.totalYardsUsed.toFixed(2)}
+          description="Cantidad total de yardas de tela utilizadas."
+          icon={<RulerIcon className="size-4" />}
+        />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="border border-border/70 shadow-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Empleado
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="flex items-center gap-2 text-lg font-semibold">
-              <UserRoundIcon className="size-4 text-brand" />
-              {session.employeeName}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Registrado por {session.createdByName}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border/70 shadow-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Produccion total
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="flex items-center gap-2 text-lg font-semibold">
-              <ScissorsIcon className="size-4 text-brand" />
-              {session.totalGarments} prendas
-            </p>
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <RulerIcon className="size-4" />
-              {session.totalYardsUsed.toFixed(2)} yardas
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border/70 shadow-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Fechas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <p>
-              Jornada:{" "}
-              <span className="font-medium">
-                {formatDateTime(session.sessionDate)}
-              </span>
-            </p>
-            <p className="text-muted-foreground">
-              Creado: {formatDateTime(session.createdAt)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border border-border/70 shadow-card">
-        <CardHeader className="border-b border-border">
+      <Card className="m-0 rounded-none border-none bg-transparent p-0 shadow-none">
+        <CardHeader className="m-0 border-none bg-none p-0 shadow-none">
           <CardTitle>Items de produccion</CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground text-pretty">
             Detalle de insumos y prendas procesadas en la sesion.
           </p>
         </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          <div className="rounded-xl border border-border">
+        <CardContent className="m-0 space-y-4 border-none bg-none p-0 pt-2 shadow-none">
+          <div className="rounded border border-border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -207,7 +134,7 @@ export function ProductionSessionDetail({
 
           <div className="rounded-lg border border-border bg-muted/20 p-3">
             <p className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
-              <ClipboardListIcon className="size-4" />
+              <MessageCircleIcon className="size-3.5" />
               Notas de jornada
             </p>
             <p className="text-sm">

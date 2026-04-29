@@ -28,7 +28,7 @@ import {
   ShirtIcon,
   Settings2Icon,
   CommandIcon,
-  LayersIcon,
+  LayersPlusIcon,
 } from "lucide-react"
 
 type NavItem = {
@@ -60,7 +60,7 @@ const navigationSections: Array<{ label: string; items: NavItem[] }> = [
       {
         title: "Inventario",
         url: "/inventory",
-        icon: LayersIcon,
+        icon: LayersPlusIcon,
       },
       {
         title: "Produccion",

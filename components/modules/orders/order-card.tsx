@@ -15,8 +15,8 @@ import {
 
 import {
   AlertTriangleIcon,
+  ArrowUpRightIcon,
   CalendarIcon,
-  ChevronRightIcon,
   ScissorsIcon,
 } from "lucide-react"
 
@@ -120,7 +120,7 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
           >
             <Link href={`/orders/${order.id}`}>
               Ver detalle
-              <ChevronRightIcon className="size-3" />
+              <ArrowUpRightIcon className="size-4" />
             </Link>
           </Button>
         </div>

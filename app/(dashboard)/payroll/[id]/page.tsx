@@ -33,7 +33,7 @@ export default async function PayrollDetailPage({
           { label: `Pago ${payment.id.slice(0, 8)}` },
         ]}
         actions={
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" size="sm">
             <Link href="/payroll">
               <ArrowLeftIcon className="size-4" />
               Volver

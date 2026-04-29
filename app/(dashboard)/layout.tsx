@@ -23,8 +23,12 @@ export default async function DashboardLayout({
       <AppSidebar variant="inset" user={user} />
       <SidebarInset>
         <SiteHeader user={user} />
-        <div className="flex w-full flex-1 flex-col">
-          <div className="content-container flex flex-1 flex-col gap-6 px-4 py-4 md:px-6 lg:px-8">
+        <div className="relative flex w-full flex-1 flex-col overflow-hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,color-mix(in_oklab,var(--color-brand)_12%,transparent),transparent_52%),radial-gradient(circle_at_88%_0%,color-mix(in_oklab,var(--color-info)_10%,transparent),transparent_48%)]"
+          />
+          <div className="content-container relative z-10 flex flex-1 flex-col gap-6 px-4 py-4 md:px-6 lg:px-8">
             {children}
           </div>
         </div>

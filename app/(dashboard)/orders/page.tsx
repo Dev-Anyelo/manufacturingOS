@@ -1,10 +1,10 @@
 import Link from "next/link"
+import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { WorkOrderStatus } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getWorkOrders } from "@/lib/data/orders"
 import { StatCard } from "@/components/shared/stat-card"
-import { ChevronRightIcon, PlusIcon } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { OrdersWorkspace } from "@/components/modules/orders/orders-workspace"
 

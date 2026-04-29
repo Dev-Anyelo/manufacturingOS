@@ -36,7 +36,7 @@ export default async function CatalogDetailPage({
           { label: item.name },
         ]}
         actions={
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" size="sm">
             <Link href="/catalog">
               <ArrowLeftIcon className="size-4" />
               Volver

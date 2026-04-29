@@ -33,7 +33,7 @@ export default async function OrderDetailPage({
           { label: `#${order.id.slice(0, 8).toUpperCase()}` },
         ]}
         actions={
-          <Button asChild variant="outline" size="sm" className="gap-2">
+          <Button asChild variant="outline" size="sm">
             <Link href="/orders">
               <ArrowLeftIcon className="size-3.5" />
               Volver

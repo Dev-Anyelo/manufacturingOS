@@ -27,11 +27,11 @@ export default async function CatalogPage() {
                 size="sm"
                 className="hidden h-9 px-4 sm:flex"
               >
-                <Link href="/catalog">Exportar CVS</Link>
+                <Link href="#">Exportar</Link>
               </Button>
-              <Button asChild size="sm" className="h-9 px-4">
+              <Button asChild size="sm">
                 <Link href="/catalog/new">
-                  <PlusIcon className="mr-2 size-4" />
+                  <PlusIcon className="size-4" />
                   Nuevo producto
                 </Link>
               </Button>

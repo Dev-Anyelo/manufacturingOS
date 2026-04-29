@@ -42,7 +42,7 @@ export default async function SalesPage() {
           breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Ventas" }]}
           eyebrow="Comercial"
           actions={
-            <Button asChild>
+            <Button asChild size="sm">
               <Link href="/sales/new">
                 <PlusIcon className="size-4" />
                 Nueva venta

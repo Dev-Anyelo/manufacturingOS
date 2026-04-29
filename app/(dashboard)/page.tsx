@@ -4,13 +4,13 @@ import { AuditAction } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { StatCard } from "@/components/shared/stat-card"
 import { getDashboardStats } from "@/lib/data/dashboard"
 import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { StatusBadge } from "@/components/shared/status-badge"
+import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { formatCurrency, formatDateRelative, getInitials } from "@/lib/utils"
 
 import {
@@ -137,7 +137,7 @@ export default async function DashboardPage() {
     stats.pendingOrdersCount > 0 ||
     recentActivity.length > 0
 
-  const firstName = getInitials(user.fullName)
+  const firstName = user.fullName
   const greeting = getSpanishGreeting()
   const formattedDate = getFormattedDate()
 
@@ -388,14 +388,12 @@ export default async function DashboardPage() {
                       {
                         label: "Nuevo material",
                         href: "/inventory/new",
-                        color:
-                          "bg-muted/20 text-foreground",
+                        color: "bg-muted/20 text-foreground",
                       },
                       {
                         label: "Nuevo producto",
                         href: "/catalog/new",
-                        color:
-                          "bg-muted/20 text-foreground",
+                        color: "bg-muted/20 text-foreground",
                       },
                     ].map((item) => (
                       <Link

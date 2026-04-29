@@ -112,14 +112,10 @@ export function DataTable<TData, TValue>({
                 value={searchValue}
                 onChange={setSearchValue}
                 placeholder={searchPlaceholder}
-                className="w-full sm:max-w-sm"
+                className="w-full sm:max-w-xs"
                 isLoading={isLoading}
               />
             ) : null}
-
-            <span className="inline-flex w-fit items-center rounded-md border border-border/70 bg-muted/20 px-2.5 py-1 text-xs text-muted-foreground">
-              {total} registro{total === 1 ? "" : "s"}
-            </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">{toolbar}</div>
@@ -231,7 +227,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-card/35 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="body-muted">
           Mostrando {start}–{end} de {total} resultados
         </p>
@@ -250,7 +246,7 @@ export function DataTable<TData, TValue>({
                 }))
               }
             >
-              <SelectTrigger className="h-8 w-20">
+              <SelectTrigger className="w-20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

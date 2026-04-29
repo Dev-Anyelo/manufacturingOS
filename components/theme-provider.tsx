@@ -12,7 +12,6 @@ function ThemeProvider({
       attribute="class"
       storageKey="manufacturingos-theme"
       defaultTheme="dark"
-      forcedTheme="dark"
       enableSystem={false}
       disableTransitionOnChange
       {...props}

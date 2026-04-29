@@ -267,13 +267,6 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   return (
     <>
       <div className="hidden md:block">
-        <div className="grid grid-cols-4 gap-3 px-4 py-3">
-          <Stat label="Items" value={cartItems.length} />
-          <Stat label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
-          <Stat label="Descuento" value={`$${discountAmount.toFixed(2)}`} />
-          <Stat label="Total" value={`$${total.toFixed(2)}`} accent />
-        </div>
-
         <div className="flex h-[calc(100vh-14.5rem)] gap-0 overflow-hidden">
           <div className="flex-1 overflow-y-auto px-4">
             <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
@@ -286,11 +279,6 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       </div>
 
       <div className="space-y-3 md:hidden">
-        <div className="grid grid-cols-2 gap-2">
-          <Stat label="Items" value={cartItems.length} compact />
-          <Stat label="Total" value={`$${total.toFixed(2)}`} accent compact />
-        </div>
-
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="h-11 w-full rounded-xl border border-border/70 bg-background px-1">
             <TabsTrigger value="catalog" className="flex-1 gap-2 text-sm">
@@ -327,38 +315,5 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
         onNewSale={resetPos}
       />
     </>
-  )
-}
-
-function Stat({
-  label,
-  value,
-  accent = false,
-  compact = false,
-}: {
-  label: string
-  value: React.ReactNode
-  accent?: boolean
-  compact?: boolean
-}) {
-  return (
-    <div
-      className={
-        compact
-          ? "rounded-lg border border-border/70 bg-card/80 px-3 py-2"
-          : "rounded-lg border border-border/70 bg-muted/15 px-3 py-2.5"
-      }
-    >
-      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p
-        className={
-          accent ? "text-sm font-bold text-brand" : "text-sm font-semibold"
-        }
-      >
-        {value}
-      </p>
-    </div>
   )
 }

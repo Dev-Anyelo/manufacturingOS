@@ -12,11 +12,12 @@ import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { PosCustomer } from "@/components/modules/sales/types"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
+
 import {
   Popover,
   PopoverContent,
@@ -24,6 +25,10 @@ import {
 } from "@/components/ui/popover"
 
 import {
+  AlertCircleIcon,
+  CalculatorIcon,
+  CalendarIcon,
+  CheckCircleIcon,
   Loader2Icon,
   PlusIcon,
   RulerIcon,
@@ -38,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { StatCard } from "@/components/shared/stat-card"
 
 const channelOptions = [
   { value: "in_person", label: "En tienda" },
@@ -339,50 +345,43 @@ export function OrderForm({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border border-border shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Lineas
-            </p>
-            <p className="text-lg font-semibold">{fields.length}</p>
-            <p className="text-xs text-muted-foreground">
-              {totalUnits} unidades acumuladas
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border border-border shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Total sugerido
-            </p>
-            <CurrencyDisplay
-              amount={estimatedTotal}
-              className="font-semibold"
-            />
-          </CardContent>
-        </Card>
-        <Card className="border border-border shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Anticipo
-            </p>
-            <CurrencyDisplay
-              amount={Number(watchedAdvance || 0)}
-              className="font-semibold"
-            />
-          </CardContent>
-        </Card>
-        <Card className="border border-border shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Saldo estimado
-            </p>
-            <CurrencyDisplay
-              amount={pendingBalance}
-              className="font-semibold"
-            />
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Total del pedido"
+          value={estimatedTotal.toFixed(2)}
+          description={`${totalUnits} unidad${totalUnits !== 1 ? "es" : ""} en total`}
+          icon={<CalculatorIcon className="size-4" />}
+        />
+        
+        <StatCard
+          title="Adelanto pagado"
+          value={Number(watchedAdvance || 0).toFixed(2)}
+          description={pendingBalance > 0 ? "Saldo pendiente" : "Pago completo"}
+          icon={
+            pendingBalance > 0 ? (
+              <AlertCircleIcon className="text-warning size-4" />
+            ) : (
+              <CheckCircleIcon className="text-success size-4" />
+            )
+          }
+        />
+
+        <StatCard
+          title="Fecha de entrega"
+          value={
+            watchedDeliveryDate
+              ? formatDateLabel(watchedDeliveryDate)
+              : "No definida"
+          }
+          description="Fecha acordada para la entrega del pedido"
+          icon={<CalendarIcon className="size-4" />}
+        />
+
+        <StatCard
+          title="Imagenes de referencia"
+          value={referenceFiles.length}
+          description="Cantidad de imagenes cargadas para referencia"
+          icon={<UploadIcon className="size-4" />}
+        />
       </div>
 
       <Card className="border border-border">

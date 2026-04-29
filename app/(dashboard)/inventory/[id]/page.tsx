@@ -3,8 +3,8 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { getInventoryItem } from "@/lib/data/inventory"
+import { StatCard } from "@/components/shared/stat-card"
 import { PageHeader } from "@/components/shared/page-header"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -12,8 +12,10 @@ import { MovementHistory } from "@/components/modules/inventory/movement-history
 
 import {
   ArrowLeftIcon,
+  PencilLine,
   Building2Icon,
   ClipboardListIcon,
+  DollarSignIcon,
   LayersIcon,
 } from "lucide-react"
 
@@ -58,60 +60,48 @@ export default async function InventoryDetailPage({
         ]}
         actions={
           <>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" size="sm">
               <Link href="/inventory">
                 <ArrowLeftIcon className="size-4" />
                 Volver
               </Link>
             </Button>
-            <Button asChild>
-              <Link href={`/inventory/${item.id}/edit`}>Editar material</Link>
+            <Button asChild size="sm">
+              <Link href={`/inventory/${item.id}/edit`}>
+                <PencilLine className="size-3.5" />
+                Editar material
+              </Link>
             </Button>
           </>
         }
       />
 
       <div className="page-content">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Card className="border border-border">
-            <CardContent className="space-y-1 p-4">
-              <p className="text-xs tracking-wide text-muted-foreground uppercase">
-                Stock actual
-              </p>
-              <p className="text-lg font-semibold">
-                {quantity.toFixed(2)} {item.unit}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border border-border">
-            <CardContent className="space-y-1 p-4">
-              <p className="text-xs tracking-wide text-muted-foreground uppercase">
-                Minimo requerido
-              </p>
-              <p className="text-lg font-semibold">
-                {minimumStock.toFixed(2)} {item.unit}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border border-border">
-            <CardContent className="space-y-1 p-4">
-              <p className="text-xs tracking-wide text-muted-foreground uppercase">
-                Costo unitario
-              </p>
-              <CurrencyDisplay amount={unitPrice} className="font-semibold" />
-            </CardContent>
-          </Card>
-          <Card className="border border-border">
-            <CardContent className="space-y-1 p-4">
-              <p className="text-xs tracking-wide text-muted-foreground uppercase">
-                Valor estimado
-              </p>
-              <CurrencyDisplay
-                amount={estimatedValue}
-                className="font-semibold"
-              />
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <StatCard
+            title="Cantidad disponible"
+            value={`${quantity} ${item.unit}`}
+            description="Cantidad actual en stock."
+            icon={<LayersIcon className="size-4" />}
+          />
+          <StatCard
+            title="Minimo requerido"
+            value={`${minimumStock} ${item.unit}`}
+            description="Cantidad minima para reordenar."
+            icon={<Building2Icon className="size-4" />}
+          />
+          <StatCard
+            title="Precio unitario"
+            value={unitPrice.toFixed(2)}
+            description="Costo por unidad."
+            icon={<ClipboardListIcon className="size-4" />}
+          />
+          <StatCard
+            title="Valor estimado"
+            value={estimatedValue.toFixed(2)}
+            description="Valor total del inventario."
+            icon={<DollarSignIcon className="size-4" />}
+          />
         </div>
 
         <Tabs defaultValue="info" className="space-y-4">

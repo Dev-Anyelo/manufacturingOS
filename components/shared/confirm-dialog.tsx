@@ -102,8 +102,8 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="rounded-2xl border border-border/80 p-0 sm:max-w-2xl">
-        <AlertDialogHeader className="space-y-3 border-b border-border/80 bg-muted/10 p-5 sm:p-6">
+      <AlertDialogContent className="max-h-[85vh] overflow-y-auto rounded-2xl border border-border/80 p-0 sm:max-w-2xl">
+        <AlertDialogHeader className="space-y-3 border-b border-border/80 bg-muted/10 p-4">
           <div className="flex items-start gap-3">
             <div
               className={`inline-flex size-10 items-center justify-center rounded-lg border ${variantConfig[variant].iconClassName}`}
@@ -111,34 +111,36 @@ export function ConfirmDialog({
               <Icon className="size-4.5" />
             </div>
             <div className="space-y-1">
-              <p className="label-overline">{variantConfig[variant].title}</p>
               <AlertDialogTitle>{title}</AlertDialogTitle>
+              <AlertDialogDescription className="leading-relaxed text-pretty">
+                {description}
+              </AlertDialogDescription>
             </div>
           </div>
-          <AlertDialogDescription className="leading-relaxed text-pretty">
-            {description}
-          </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-3 px-5 py-4 sm:px-6 sm:py-5">
+        <div className="space-y-3 px-4">
           {/* Consequences section for danger variant */}
           {variant === "danger" && consequences && consequences.length > 0 && (
-            <div className="danger-consequences">
-              <p className="mb-1.5 text-sm font-medium text-foreground">
-                Consecuencias de esta accion:
-              </p>
-              <ul className="space-y-1">
-                {consequences.map((item, i) => (
-                  <li
-                    key={i}
-                    className="text-danger flex items-start gap-2 text-sm"
-                  >
-                    <span className="bg-danger mt-1.5 size-1 shrink-0 rounded-full" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <Alert variant="destructive" className="rounded-lg border">
+              <div className="flex items-start gap-3">
+                <AlertTriangleIcon className="text-danger mt-0.5 size-4" />
+                <div>
+                  <AlertTitle className="text-sm text-pretty text-foreground">
+                    {warningText ?? "Eliminar recurso es irreversible"}
+                  </AlertTitle>
+                  <AlertDescription className="text-xs text-pretty md:text-sm">
+                    Esto eliminara el recurso y todos los datos asociados,
+                    incluyendo:
+                    <ul className="mt-2 list-inside list-disc text-sm">
+                      {consequences.map((c) => (
+                        <li key={c}>{c}</li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </div>
+              </div>
+            </Alert>
           )}
 
           {/* Standard danger alert */}
@@ -156,13 +158,6 @@ export function ConfirmDialog({
                 </div>
               </div>
             </Alert>
-          ) : null}
-
-          {highlightedText ? (
-            <p className="rounded-lg border border-border/80 bg-muted/20 p-3 text-sm leading-relaxed text-pretty text-foreground">
-              Esta accion es permanente. ¿Seguro que deseas continuar con
-              <span className="ml-1 font-semibold">{highlightedText}</span>?
-            </p>
           ) : null}
 
           {/* Confirmation text input */}
@@ -186,7 +181,7 @@ export function ConfirmDialog({
           ) : null}
         </div>
 
-        <AlertDialogFooter className="border-t border-border/80 bg-muted/20 p-4 sm:justify-end sm:px-6 sm:py-4">
+        <AlertDialogFooter className="grid grid-cols-2 gap-2 border-t border-border/80 bg-muted/20 px-4 py-4">
           <AlertDialogCancel
             onClick={() => onOpenChange(false)}
             disabled={pending}

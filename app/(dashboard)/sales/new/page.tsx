@@ -15,13 +15,19 @@ export default async function NewSalePage() {
         title="Nueva venta"
         description="Registra ventas con calculo de pago y recibo."
         actions={
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" size="sm">
             <Link href="/sales">
               <ArrowLeftIcon className="size-4" />
-              Volver a ventas
+              Volver
             </Link>
           </Button>
         }
+
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Ventas", href: "/sales" },
+          { label: "Nueva venta" },
+        ]}
       />
 
       <div className="page-content mx-auto w-full">

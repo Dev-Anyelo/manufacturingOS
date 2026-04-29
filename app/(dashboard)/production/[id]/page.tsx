@@ -32,7 +32,7 @@ export default async function ProductionDetailPage({
           { label: `Sesion ${session.id.slice(0, 8)}` },
         ]}
         actions={
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" size="sm">
             <Link href="/production">
               <ArrowLeftIcon className="size-4" />
               Volver

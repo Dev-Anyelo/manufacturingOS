@@ -130,53 +130,12 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <MiniStat label="Items" value={items.length} />
-        <MiniStat label="Filtrados" value={filteredItems.length} />
-        <MiniStat label="Tipos" value={garmentTypes.length} />
-        <MiniStat
-          label="Vista"
-          value={viewMode === "grid" ? "Tarjetas" : "Tabla"}
-          accent
-        />
-      </div>
-
       {/* Toolbar */}
-      <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-card sm:px-5 sm:py-3.5">
+      <div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            {/* View toggle */}
-            <div className="flex items-center gap-0.5 rounded-lg border border-border bg-muted/20 p-0.5">
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                className={cn(
-                  "flex h-7 w-8 items-center justify-center rounded-md text-xs transition-all",
-                  viewMode === "grid"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                aria-label="Vista tarjetas"
-              >
-                <LayoutGridIcon className="size-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("table")}
-                className={cn(
-                  "flex h-7 w-8 items-center justify-center rounded-md text-xs transition-all",
-                  viewMode === "table"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                aria-label="Vista tabla"
-              >
-                <ListIcon className="size-3.5" />
-              </button>
-            </div>
-
             <Select value={garmentFilter} onValueChange={setGarmentFilter}>
-              <SelectTrigger className="h-8 w-full text-xs sm:w-52">
+              <SelectTrigger>
                 <SelectValue placeholder="Tipo de prenda" />
               </SelectTrigger>
               <SelectContent>
@@ -190,15 +149,49 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             </Select>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 w-full px-3 text-xs sm:w-auto"
-            onClick={() => setBulkDialogOpen(true)}
-          >
-            <SlidersHorizontalIcon className="size-3.5" />
-            Ajuste masivo
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* View toggle */}
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/20 p-0.5">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setViewMode("grid")}
+                className={cn(
+                  "flex size-7 items-center justify-center rounded-md text-xs transition-all",
+                  viewMode === "grid"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label="Vista tarjetas"
+              >
+                <LayoutGridIcon className="size-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setViewMode("table")}
+                className={cn(
+                  "flex size-7 items-center justify-center rounded-md text-xs transition-all",
+                  viewMode === "table"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label="Vista tabla"
+              >
+                <ListIcon className="size-3.5" />
+              </Button>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-full px-3 text-xs sm:w-auto"
+              onClick={() => setBulkDialogOpen(true)}
+            >
+              <SlidersHorizontalIcon className="size-3.5" />
+              Ajuste masivo
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -242,27 +235,6 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         onOpenChange={setBulkDialogOpen}
         onSuccess={() => router.refresh()}
       />
-    </div>
-  )
-}
-
-function MiniStat({
-  label,
-  value,
-  accent = false,
-}: {
-  label: string
-  value: React.ReactNode
-  accent?: boolean
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-card/75 px-3 py-2">
-      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p className={cn("text-sm font-semibold", accent && "text-brand")}>
-        {value}
-      </p>
     </div>
   )
 }

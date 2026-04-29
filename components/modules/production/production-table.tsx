@@ -4,8 +4,8 @@ import Link from "next/link"
 import * as React from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { EyeIcon, ScissorsIcon } from "lucide-react"
 import { type ColumnDef } from "@tanstack/react-table"
+import { ArrowUpRight, ScissorsIcon } from "lucide-react"
 import { DataTable } from "@/components/shared/data-table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DateRangePicker } from "@/components/shared/date-range-picker"
@@ -178,8 +178,8 @@ const columns: ColumnDef<ProductionTableRow>[] = [
         className="h-8 gap-1.5 px-2 text-xs"
       >
         <Link href={`/production/${row.original.id}`}>
-          <EyeIcon className="size-3.5" />
-          Ver
+          Detalles
+          <ArrowUpRight className="size-3.5" />
         </Link>
       </Button>
     ),
@@ -218,21 +218,8 @@ export function ProductionTable({ sessions }: ProductionTableProps) {
     })
   }, [dateRange.from, dateRange.to, employeeFilter, sessions])
 
-  const totalGarments = filtered.reduce(
-    (acc, row) => acc + row.totalGarments,
-    0
-  )
-  const totalYards = filtered.reduce((acc, row) => acc + row.totalYardsUsed, 0)
-
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Mini label="Sesiones" value={filtered.length} />
-        <Mini label="Prendas" value={totalGarments} accent />
-        <Mini label="Yardas" value={totalYards.toFixed(2)} />
-        <Mini label="Empleados" value={employeeOptions.length} />
-      </div>
-
       <DataTable
         columns={columns}
         data={filtered}
@@ -243,7 +230,7 @@ export function ProductionTable({ sessions }: ProductionTableProps) {
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
             <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-              <SelectTrigger className="h-8 w-44 text-xs">
+              <SelectTrigger className="text-xs">
                 <SelectValue placeholder="Empleado" />
               </SelectTrigger>
               <SelectContent>
@@ -264,31 +251,6 @@ export function ProductionTable({ sessions }: ProductionTableProps) {
           </div>
         }
       />
-    </div>
-  )
-}
-
-function Mini({
-  label,
-  value,
-  accent = false,
-}: {
-  label: string
-  value: React.ReactNode
-  accent?: boolean
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-card/80 px-3 py-2">
-      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p
-        className={
-          accent ? "text-sm font-semibold text-brand" : "text-sm font-semibold"
-        }
-      >
-        {value}
-      </p>
     </div>
   )
 }

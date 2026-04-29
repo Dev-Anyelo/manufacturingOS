@@ -4,9 +4,11 @@ import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { PayrollTableRow } from "@/components/modules/payroll/payroll-table"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
@@ -150,23 +152,38 @@ export function MarkPaidDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Marcar pago como pagado</DialogTitle>
+      <DialogContent className="overflow-hidden border border-border/75 p-0 sm:max-w-xl">
+        <DialogHeader className="space-y-2 border-b border-border/70 bg-muted/10 px-5 py-4 sm:px-6">
+          <div className="flex items-center justify-between gap-2">
+            <DialogTitle>Marcar pago como pagado</DialogTitle>
+            <Badge variant="outline" className="text-xs">
+              Planilla
+            </Badge>
+          </div>
           <DialogDescription>
             Confirma la fecha y metodo para procesar este pago de planilla.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-1 rounded-lg border border-border/60 bg-muted/20 p-3 text-sm">
-            <p className="font-medium">{payment?.employeeName}</p>
-            <p className="text-muted-foreground">
-              Periodo:{" "}
-              {payment
-                ? `${new Date(payment.periodStart).toLocaleDateString("es-PA")} - ${new Date(payment.periodEnd).toLocaleDateString("es-PA")}`
-                : "-"}
-            </p>
+        <div className="space-y-4 px-5 py-4 sm:px-6 sm:py-5">
+          <div className="grid grid-cols-1 gap-2 rounded-xl border border-border/70 bg-muted/15 p-3 sm:grid-cols-3">
+            <StatLine label="Empleado" value={payment?.employeeName ?? "-"} />
+            <StatLine
+              label="Periodo"
+              value={
+                payment
+                  ? `${new Date(payment.periodStart).toLocaleDateString("es-PA")} - ${new Date(payment.periodEnd).toLocaleDateString("es-PA")}`
+                  : "-"
+              }
+            />
+            <StatLine
+              label="Total"
+              value={
+                <span className="text-brand">
+                  <CurrencyDisplay amount={payment?.total ?? 0} size="sm" />
+                </span>
+              }
+            />
           </div>
 
           <div className="space-y-2">
@@ -209,7 +226,7 @@ export function MarkPaidDialog({
               onValueChange={(value) =>
                 setPaymentMethod(value as "cash" | "transfer" | "other")
               }
-              className="grid grid-cols-3 gap-2"
+              className="grid grid-cols-1 gap-2 sm:grid-cols-3"
             >
               {paymentMethods.map((method) => {
                 const Icon = method.icon
@@ -218,7 +235,7 @@ export function MarkPaidDialog({
                   <label
                     key={method.value}
                     className={cn(
-                      "flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border p-2.5 text-xs transition-colors",
+                      "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-xs transition-colors",
                       paymentMethod === method.value
                         ? "bg-brand-muted border-brand font-medium text-brand"
                         : "border-border text-muted-foreground hover:bg-muted/40"
@@ -226,7 +243,7 @@ export function MarkPaidDialog({
                   >
                     <RadioGroupItem value={method.value} className="sr-only" />
                     <Icon className="size-4" />
-                    {method.label}
+                    <span className="text-sm">{method.label}</span>
                   </label>
                 )
               })}
@@ -240,17 +257,19 @@ export function MarkPaidDialog({
             <Textarea
               id="notes"
               className="min-h-20"
+              placeholder="Observaciones internas del pago (opcional)"
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
             />
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="grid grid-cols-1 gap-2 border-t border-border/70 bg-muted/10 px-5 py-4 sm:flex sm:justify-end sm:px-6">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
           >
             Cancelar
           </Button>
@@ -268,5 +287,16 @@ export function MarkPaidDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function StatLine({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-card/85 px-3 py-2">
+      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+        {label}
+      </p>
+      <p className="text-sm font-semibold">{value}</p>
+    </div>
   )
 }

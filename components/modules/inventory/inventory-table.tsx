@@ -4,7 +4,6 @@ import Link from "next/link"
 import { toast } from "sonner"
 import Image from "next/image"
 import * as React from "react"
-import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,10 +15,10 @@ import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { AdjustStockDialog } from "@/components/modules/inventory/adjust-stock-dialog"
 
 import {
+  ArrowUpRightIcon,
   EllipsisVerticalIcon,
-  EyeIcon,
   LayersIcon,
-  PencilIcon,
+  PencilLineIcon,
   PowerIcon,
   SlidersHorizontalIcon,
 } from "lucide-react"
@@ -225,14 +224,14 @@ function createInventoryColumns(
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem asChild>
                 <Link href={`/inventory/${item.id}`}>
-                  <EyeIcon className="size-4" />
+                  <ArrowUpRightIcon className="size-4" />
                   Ver detalle
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/inventory/${item.id}/edit`}>
-                  <PencilIcon className="size-4" />
-                  Editar
+                  <PencilLineIcon className="size-4" />
+                  Editar material
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => actions.onAdjust(item)}>
@@ -335,13 +334,6 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
 
   return (
     <>
-      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <StatTile label="Total" value={filteredItems.length} />
-        <StatTile label="Bajo" value={lowCount} tone="warning" />
-        <StatTile label="Critico" value={criticalCount} tone="danger" />
-        <StatTile label="Agotado" value={outCount} tone="danger" />
-      </div>
-
       <DataTable
         columns={columns}
         data={filteredItems}
@@ -421,30 +413,5 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         onConfirm={handleDeactivate}
       />
     </>
-  )
-}
-
-function StatTile({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string
-  value: number
-  tone?: "default" | "warning" | "danger"
-}) {
-  const toneClass = {
-    default: "text-foreground",
-    warning: "text-warning",
-    danger: "text-danger",
-  }[tone]
-
-  return (
-    <div className="rounded-lg border border-border/70 bg-card/80 px-3 py-2">
-      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p className={cn("text-sm font-semibold", toneClass)}>{value}</p>
-    </div>
   )
 }

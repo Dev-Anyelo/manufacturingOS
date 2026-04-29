@@ -1,10 +1,9 @@
 import Link from "next/link"
 import { ArrowLeftIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
-import { PageHeader } from "@/components/shared/page-header"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getOrderFormBootstrap } from "@/lib/data/orders"
+import { PageHeader } from "@/components/shared/page-header"
 import { OrderForm } from "@/components/modules/orders/order-form"
 
 export default async function NewOrderPage() {
@@ -17,13 +16,18 @@ export default async function NewOrderPage() {
         title="Nuevo pedido"
         description="Registra prendas, cliente y detalles de entrega para iniciar produccion."
         actions={
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" size="sm">
             <Link href="/orders">
               <ArrowLeftIcon className="size-4" />
-              Volver a pedidos
+              Volver
             </Link>
           </Button>
         }
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Pedidos", href: "/orders" },
+          { label: "Nuevo pedido" },
+        ]}
       />
 
       <div className="page-content">
