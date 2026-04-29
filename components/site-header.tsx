@@ -1,9 +1,9 @@
-import { Separator } from "@/components/ui/separator"
 import { UserRole } from "@/types"
+import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import type { CurrentUser } from "@/lib/auth/current-user"
-import { NotificationBell } from "@/components/notifications/notification-bell"
 import { CalendarDaysIcon, ShieldCheckIcon } from "lucide-react"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 
 type SiteHeaderProps = {
   user: CurrentUser
@@ -36,7 +36,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
             <h1 className="truncate text-sm font-semibold sm:text-base">
               Centro de operaciones
             </h1>
-            <p className="hidden truncate text-[11px] text-muted-foreground md:block">
+            <p className="hidden truncate text-xs text-muted-foreground md:block">
               manufacturingOS · ERP para confeccion y textiles
             </p>
           </div>

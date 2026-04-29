@@ -10,10 +10,10 @@ export default async function NewSalePage() {
   const { catalogItems, customers } = await getSalesPosBootstrap()
 
   return (
-    <section className="page-shell min-h-0 flex-1">
+    <section className="flex h-[calc(100vh-var(--header-height))] min-h-0 flex-col md:h-full">
       <PageHeader
-        title="Nueva venta"
-        description="Registra ventas con calculo de pago y recibo."
+        title="Nueva Venta"
+        description="Registra ventas con cálculo de pago y recibo."
         actions={
           <Button asChild variant="outline" size="sm">
             <Link href="/sales">
@@ -28,8 +28,7 @@ export default async function NewSalePage() {
           { label: "Nueva venta" },
         ]}
       />
-
-      <div className="page-content mx-auto min-h-0 w-full flex-1 gap-4">
+      <div className="mt-1 flex-1">
         <PosInterface
           catalogItems={catalogItems.map((item) => ({
             id: item.id,

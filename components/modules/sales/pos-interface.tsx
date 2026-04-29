@@ -2,14 +2,14 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PosCart } from "@/components/modules/sales/pos-cart"
-import { SaleReceipt } from "@/components/modules/sales/sale-receipt"
-import { PosCatalogPanel } from "@/components/modules/sales/pos-catalog-panel"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { SaleReceipt } from "@/components/modules/sales/sale-receipt"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { cn } from "@/lib/utils"
+import { PosCatalogPanel } from "@/components/modules/sales/pos-catalog-panel"
 
 import {
   Drawer,
@@ -452,10 +452,10 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
           className={cn(
             "grid min-h-0 flex-1 grid-cols-1 grid-rows-1 gap-3 overflow-hidden",
             "md:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)] md:gap-4",
-            "lg:grid-cols-[minmax(0,1fr)_26rem] lg:grid-rows-1 lg:gap-6"
+            "lg:grid-cols-[minmax(0,1fr)_420px] lg:grid-rows-1 lg:gap-6"
           )}
         >
-          <div className="min-h-0 overflow-hidden rounded-xl border border-border/70 bg-card/60 shadow-card">
+          <div className="min-h-0 overflow-hidden rounded-2xl bg-card/80 shadow-lg backdrop-blur-sm">
             <PosCatalogPanel
               items={catalogItems}
               onAddItem={handleAddItem}
@@ -463,32 +463,32 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
             />
           </div>
 
-          <div className="hidden min-h-0 overflow-hidden rounded-xl border border-border/70 bg-card/80 shadow-card md:block">
+          <div className="hidden min-h-0 overflow-hidden rounded-2xl bg-card/80 shadow-lg backdrop-blur-sm md:block">
             <PosCart {...cartProps} />
           </div>
         </div>
 
         {/* Mobile sticky bar */}
         <div className="md:hidden">
-          <div className="sticky bottom-0 z-20 -mx-4 border-t border-border/70 bg-background/90 px-4 py-3 backdrop-blur-sm">
+          <div className="sticky bottom-0 z-20 -mx-4 border-t border-border/40 bg-card/80 px-4 py-4 shadow-[0_-4px_15px_rgba(0,0,0,0.02)] backdrop-blur-md">
             <Button
               type="button"
-              size="lg"
-              className="w-full justify-between"
+              className="h-14 w-full justify-between rounded-xl text-base shadow-sm"
               onClick={() => setCartDrawerOpen(true)}
               disabled={cartItems.length === 0}
+              size="lg"
             >
               <span className="inline-flex items-center gap-2">
-                <ShoppingCartIcon className="size-4" />
-                <span>Carrito</span>
+                <ShoppingCartIcon className="size-5" />
+                <span className="font-semibold">Carrito de venta</span>
                 {cartItems.length > 0 ? (
-                  <Badge className="h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-xs text-brand-foreground">
+                  <Badge className="ml-1 h-5 min-w-5 justify-center rounded-full border-0 bg-background px-1.5 text-xs text-foreground shadow-sm">
                     {cartItems.length}
                   </Badge>
                 ) : null}
               </span>
-              <span className="tabular-nums">
-                <CurrencyDisplay amount={total} size="sm" />
+              <span className="text-lg font-bold tracking-tight tabular-nums">
+                <CurrencyDisplay amount={total} />
               </span>
             </Button>
 
@@ -507,21 +507,29 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       {/* Mobile drawer cart */}
       <div className="md:hidden">
         <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen}>
-          <DrawerContent className="h-[80vh] p-0">
-            <DrawerHeader className="border-b border-border/70 bg-muted/10">
+          <DrawerContent className="h-[85vh] border-border/40 bg-background p-0">
+            <div className="flex justify-center pt-3">
+              <span className="block h-1.5 w-12 rounded-full bg-muted-foreground/30" />
+            </div>
+            <DrawerHeader className="sticky top-0 z-10 border-b border-border/40 bg-card/50 pb-4">
               <DrawerTitle className="inline-flex items-center justify-center gap-2">
-                <ShoppingCartIcon className="size-4" />
-                <span>Carrito y cobro</span>
+                <ShoppingCartIcon className="size-5 text-brand" />
+                <span className="text-base font-semibold">Carrito y cobro</span>
               </DrawerTitle>
-              <DrawerDescription>
+              <DrawerDescription className="mt-1 text-sm">
                 {cartItems.length > 0
-                  ? `${cartItems.length} item${cartItems.length === 1 ? "" : "s"} • Total ${total.toFixed(2)}`
+                  ? `${cartItems.length} item${cartItems.length === 1 ? "" : "s"} • Total `
                   : "Agrega productos desde el catálogo."}
+                {cartItems.length > 0 && (
+                  <span className="font-bold text-foreground">
+                    <CurrencyDisplay amount={total} size="sm" />
+                  </span>
+                )}
               </DrawerDescription>
             </DrawerHeader>
             <PosCart
               {...cartProps}
-              className="h-full rounded-none border-0 shadow-none"
+              className="h-full rounded-none border-0 bg-transparent shadow-none"
               variant="drawer"
             />
           </DrawerContent>

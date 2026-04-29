@@ -85,9 +85,9 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
           }}
         />
 
-        <Card className="border border-dashed border-border bg-muted/20">
+        <Card className="border border-dashed border-border/40 bg-muted/20">
           <CardHeader>
-            <CardTitle className="text-base">
+            <CardTitle className="text-base text-brand">
               Siguiente paso recomendado
             </CardTitle>
           </CardHeader>
