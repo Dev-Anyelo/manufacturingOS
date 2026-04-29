@@ -13,6 +13,11 @@ interface SearchInputProps {
   placeholder?: string
   debounceMs?: number
   isLoading?: boolean
+  size?: "sm" | "md" | "lg"
+  inputProps?: Omit<
+    React.ComponentProps<"input">,
+    "value" | "onChange" | "placeholder" | "className"
+  >
   className?: string
 }
 
@@ -22,6 +27,8 @@ export function SearchInput({
   placeholder = "Buscar...",
   debounceMs = 250,
   isLoading = false,
+  size = "md",
+  inputProps,
   className,
 }: SearchInputProps) {
   const [localValue, setLocalValue] = React.useState(value)
@@ -42,12 +49,25 @@ export function SearchInput({
         className
       )}
     >
-      <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
+      <SearchIcon
+        className={cn(
+          "pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground",
+          size === "lg" ? "size-4" : "size-3.5"
+        )}
+      />
       <Input
+        {...inputProps}
         value={localValue}
         onChange={(event) => setLocalValue(event.target.value)}
         placeholder={placeholder}
-        className="h-9 border-0 bg-transparent pr-9 pl-8 text-sm shadow-none focus-visible:ring-0"
+        className={cn(
+          "border-0 bg-transparent pr-9 pl-8 shadow-none focus-visible:ring-0",
+          size === "sm"
+            ? "h-8 text-sm"
+            : size === "lg"
+              ? "h-11 text-base"
+              : "h-9 text-sm"
+        )}
       />
       <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
         {isLoading ? (

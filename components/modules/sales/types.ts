@@ -4,6 +4,8 @@ export interface PosCatalogItem {
   garmentType: string | null
   salePrice: number
   imageUrl: string | null
+  /** Optional stock indicator (if/when the backend provides it). */
+  stock?: number | null
 }
 
 export interface PosCustomer {

@@ -34,7 +34,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
           />
           <div className="min-w-0 space-y-0.5">
             <h1 className="truncate text-sm font-semibold sm:text-base">
-              Centro de Operaciones
+              Centro de operaciones
             </h1>
             <p className="hidden truncate text-[11px] text-muted-foreground md:block">
               manufacturingOS · ERP para confeccion y textiles

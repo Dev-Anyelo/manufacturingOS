@@ -16,15 +16,17 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { PosCartItem, PosCustomer } from "@/components/modules/sales/types"
 
 import {
+  ArrowLeftRightIcon,
+  BanknoteIcon,
   CalendarIcon,
   CheckCircle2Icon,
+  CreditCardIcon,
   Loader2Icon,
   MinusIcon,
   PlusIcon,
   ShirtIcon,
   ShoppingCartIcon,
   Trash2Icon,
-  XIcon,
 } from "lucide-react"
 
 import {
@@ -42,6 +44,8 @@ import {
 } from "@/components/ui/select"
 
 export interface PosCartProps {
+  className?: string
+  variant?: "panel" | "drawer"
   items: PosCartItem[]
   customers: PosCustomer[]
   selectedCustomer: PosCustomer | null
@@ -69,13 +73,36 @@ export interface PosCartProps {
   onNotesChange: (value: string) => void
   onSubmit: () => void
   isSubmitting?: boolean
+  canSubmit?: boolean
+  highlightRowId?: string | null
+  onRequestClear?: () => void
 }
 
 const paymentMethods = [
-  { value: "cash", label: "Efectivo" },
-  { value: "transfer", label: "Transferencia" },
-  { value: "credit", label: "Credito" },
-  { value: "mixed", label: "Mixto" },
+  {
+    value: "cash",
+    label: "Efectivo",
+    description: "Recibido y cambio.",
+    icon: BanknoteIcon,
+  },
+  {
+    value: "transfer",
+    label: "Transferencia",
+    description: "Pago digital.",
+    icon: CreditCardIcon,
+  },
+  {
+    value: "credit",
+    label: "Credito",
+    description: "Cuenta por cobrar.",
+    icon: CalendarIcon,
+  },
+  {
+    value: "mixed",
+    label: "Mixto",
+    description: "Efectivo + transferencia.",
+    icon: ArrowLeftRightIcon,
+  },
 ]
 
 function toInputDate(value: Date) {
@@ -100,6 +127,8 @@ function formatDateLabel(value: string) {
 }
 
 export function PosCart({
+  className,
+  variant = "panel",
   items,
   customers,
   selectedCustomer,
@@ -127,37 +156,64 @@ export function PosCart({
   onNotesChange,
   onSubmit,
   isSubmitting = false,
+  canSubmit,
+  highlightRowId,
+  onRequestClear,
 }: PosCartProps) {
   const discountAmount = subtotal * (discountPercent / 100)
-  const changeGiven = Math.max(receivedAmount - total, 0)
+  const taxAmount = 0
+
+  const computedAmountPaid =
+    paymentMethod === "cash"
+      ? receivedAmount
+      : paymentMethod === "mixed"
+        ? receivedAmount + amountPaid
+        : amountPaid
+
+  const pendingAmount = Math.max(total - computedAmountPaid, 0)
+  const changeGiven = Math.max(computedAmountPaid - total, 0)
+  const allowSubmit = canSubmit ?? items.length > 0
 
   return (
-    <div className="flex h-full flex-col gap-0 overflow-hidden rounded-xl border border-border bg-card/80 shadow-card">
-      <div className="flex items-center justify-between gap-2 border-b border-border/70 bg-muted/10 px-1 py-3">
-        <div className="flex items-center gap-2 px-4 text-sm font-semibold">
-          <ShoppingCartIcon className="size-4 text-muted-foreground" />
-          <span className="text-sm font-semibold">Carrito</span>
+    <div
+      className={cn(
+        "flex h-full flex-col gap-0 overflow-hidden rounded-xl border border-border/70 bg-card/80 shadow-card",
+        variant === "drawer" && "rounded-none border-0 shadow-none",
+        className
+      )}
+    >
+      {variant === "panel" ? (
+        <div className="flex items-center justify-between gap-2 border-b border-border/70 bg-muted/10 px-1 py-3">
+          <div className="flex items-center gap-2 px-4 text-sm font-semibold">
+            <ShoppingCartIcon className="size-4 text-muted-foreground" />
+            <span className="text-sm font-semibold">Carrito</span>
+            {items.length > 0 ? (
+              <Badge className="h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-xs text-brand-foreground">
+                {items.length}
+              </Badge>
+            ) : null}
+          </div>
           {items.length > 0 ? (
-            <Badge className="h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-xs text-brand-foreground">
-              {items.length}
-            </Badge>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+              onClick={() => {
+                if (onRequestClear) {
+                  onRequestClear()
+                  return
+                }
+
+                items.forEach((item) => onRemoveItem(item.rowId))
+              }}
+            >
+              <Trash2Icon className="mr-1 size-3" />
+              Limpiar
+            </Button>
           ) : null}
         </div>
-        {items.length > 0 ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
-            onClick={() => {
-              items.forEach((item) => onRemoveItem(item.rowId))
-            }}
-          >
-            <XIcon className="mr-1 size-3" />
-            Limpiar
-          </Button>
-        ) : null}
-      </div>
+      ) : null}
 
       {/* Cart items */}
       <ScrollArea className="min-h-0 flex-1 px-4">
@@ -174,6 +230,9 @@ export function PosCart({
               <CartItemRow
                 key={item.rowId}
                 item={item}
+                highlighted={Boolean(
+                  highlightRowId && highlightRowId === item.rowId
+                )}
                 onIncrease={() => onIncreaseQuantity(item.rowId)}
                 onDecrease={() => onDecreaseQuantity(item.rowId)}
                 onRemove={() => onRemoveItem(item.rowId)}
@@ -236,20 +295,45 @@ export function PosCart({
             <RadioGroup
               value={paymentMethod}
               onValueChange={onPaymentMethodChange}
-              className="grid grid-cols-2 gap-1.5"
+              className="grid grid-cols-2 gap-2"
             >
               {paymentMethods.map((method) => (
                 <label
                   key={method.value}
                   className={cn(
-                    "flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-xs transition-all",
+                    "group flex cursor-pointer gap-2 rounded-xl border p-3 text-left text-xs transition-colors",
                     paymentMethod === method.value
-                      ? "border-brand bg-brand/10 font-medium text-brand"
-                      : "border-border bg-muted/20 text-muted-foreground hover:bg-muted/30"
+                      ? "border-brand/60 bg-brand/10"
+                      : "border-border/70 bg-muted/10 hover:bg-muted/20"
                   )}
                 >
-                  <RadioGroupItem value={method.value} className="size-3" />
-                  <span>{method.label}</span>
+                  <RadioGroupItem
+                    value={method.value}
+                    className="mt-0.5 size-3"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div
+                      className={cn(
+                        "flex items-center gap-2",
+                        paymentMethod === method.value
+                          ? "text-brand"
+                          : "text-foreground"
+                      )}
+                    >
+                      <method.icon
+                        className={cn(
+                          "size-4",
+                          paymentMethod === method.value
+                            ? "text-brand"
+                            : "text-muted-foreground"
+                        )}
+                      />
+                      <span className="font-medium">{method.label}</span>
+                    </div>
+                    <p className="mt-0.5 line-clamp-1 text-[0.6875rem] text-muted-foreground">
+                      {method.description}
+                    </p>
+                  </div>
                 </label>
               ))}
             </RadioGroup>
@@ -270,6 +354,7 @@ export function PosCart({
                     step={0.01}
                     className="h-8 pl-6 text-xs"
                     value={receivedAmount}
+                    data-pos-enter-submit="true"
                     onChange={(event) =>
                       onReceivedAmountChange(Number(event.target.value || 0))
                     }
@@ -304,6 +389,7 @@ export function PosCart({
                     step={0.01}
                     className="h-8 pl-6 text-xs"
                     value={amountPaid}
+                    data-pos-enter-submit="true"
                     onChange={(event) =>
                       onAmountPaidChange(Number(event.target.value || 0))
                     }
@@ -336,14 +422,19 @@ export function PosCart({
                     />
                   </PopoverContent>
                 </Popover>
+                {!dueDate ? (
+                  <p className="text-warning text-[0.6875rem]">
+                    Requerido para credito.
+                  </p>
+                ) : null}
               </div>
             </div>
           ) : null}
 
-          {/* Transfer / Mixed */}
-          {paymentMethod === "transfer" || paymentMethod === "mixed" ? (
+          {/* Transfer specific */}
+          {paymentMethod === "transfer" ? (
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">Monto pagado $</Label>
+              <Label className="text-xs font-medium">Transferencia $</Label>
               <div className="relative">
                 <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
                   $
@@ -354,11 +445,70 @@ export function PosCart({
                   step={0.01}
                   className="h-8 pl-6 text-xs"
                   value={amountPaid}
+                  data-pos-enter-submit="true"
                   onChange={(event) =>
                     onAmountPaidChange(Number(event.target.value || 0))
                   }
                 />
               </div>
+            </div>
+          ) : null}
+
+          {/* Mixed specific */}
+          {paymentMethod === "mixed" ? (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Efectivo $</Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      className="h-8 pl-6 text-xs"
+                      value={receivedAmount}
+                      data-pos-enter-submit="true"
+                      onChange={(event) =>
+                        onReceivedAmountChange(Number(event.target.value || 0))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Transferencia $</Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      className="h-8 pl-6 text-xs"
+                      value={amountPaid}
+                      data-pos-enter-submit="true"
+                      onChange={(event) =>
+                        onAmountPaidChange(Number(event.target.value || 0))
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {changeGiven > 0 ? (
+                <div className="bg-success-soft border-success-soft flex items-center justify-between rounded-lg border px-3 py-2">
+                  <span className="text-success text-xs font-medium">
+                    Cambio
+                  </span>
+                  <span className="text-success text-sm font-bold tabular-nums">
+                    <CurrencyDisplay amount={changeGiven} size="sm" />
+                  </span>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -391,11 +541,36 @@ export function PosCart({
                 </span>
               </div>
             ) : null}
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Impuesto</span>
+              <span className="font-medium tabular-nums">
+                <CurrencyDisplay amount={taxAmount} size="sm" />
+              </span>
+            </div>
             <Separator className="my-1 opacity-40" />
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold">Total</span>
               <span className="text-lg font-bold text-brand tabular-nums">
                 <CurrencyDisplay amount={total} />
+              </span>
+            </div>
+
+            <Separator className="my-2 opacity-40" />
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Pagado</span>
+              <span className="font-medium tabular-nums">
+                <CurrencyDisplay amount={computedAmountPaid} size="sm" />
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Pendiente</span>
+              <span
+                className={cn(
+                  "font-medium tabular-nums",
+                  pendingAmount > 0 ? "text-warning" : "text-success"
+                )}
+              >
+                <CurrencyDisplay amount={pendingAmount} size="sm" />
               </span>
             </div>
           </div>
@@ -405,8 +580,8 @@ export function PosCart({
       <div className="border-t border-border/70 bg-card/95 p-3">
         <Button
           type="button"
-          onClick={onSubmit}
-          disabled={items.length === 0 || isSubmitting}
+          onClick={() => void onSubmit()}
+          disabled={!allowSubmit || isSubmitting}
           className="w-full"
         >
           {isSubmitting ? (
@@ -423,19 +598,26 @@ export function PosCart({
 
 function CartItemRow({
   item,
+  highlighted,
   onIncrease,
   onDecrease,
   onRemove,
   onSizeChange,
 }: {
   item: PosCartItem
+  highlighted: boolean
   onIncrease: () => void
   onDecrease: () => void
   onRemove: () => void
   onSizeChange: (size: string) => void
 }) {
   return (
-    <div className="group space-y-2 rounded-lg border border-border bg-muted/20 p-2.5">
+    <div
+      className={cn(
+        "group space-y-2 rounded-xl border border-border/70 bg-muted/10 p-2.5 shadow-card transition-colors",
+        highlighted && "border-brand/60 bg-brand/10"
+      )}
+    >
       <div className="flex items-start gap-2">
         <div className="relative size-10 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
           {item.imageUrl ? (

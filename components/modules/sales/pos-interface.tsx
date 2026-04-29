@@ -3,10 +3,28 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { PosCart } from "@/components/modules/sales/pos-cart"
 import { SaleReceipt } from "@/components/modules/sales/sale-receipt"
 import { PosCatalogPanel } from "@/components/modules/sales/pos-catalog-panel"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { cn } from "@/lib/utils"
+
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
+
+import {
+  KeyboardIcon,
+  ShoppingCartIcon,
+  SparklesIcon,
+  Trash2Icon,
+} from "lucide-react"
 
 import type {
   PosCatalogItem,
@@ -35,11 +53,16 @@ function createCartItem(catalogItem: PosCatalogItem): PosCartItem {
 }
 
 export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
-  const [activeTab, setActiveTab] = React.useState("catalog")
   const [customerOptions, setCustomerOptions] = React.useState(customers)
   const [selectedCustomer, setSelectedCustomer] =
     React.useState<PosCustomer | null>(null)
   const [cartItems, setCartItems] = React.useState<PosCartItem[]>([])
+  const [cartDrawerOpen, setCartDrawerOpen] = React.useState(false)
+  const [confirmClearOpen, setConfirmClearOpen] = React.useState(false)
+  const [addCounts, setAddCounts] = React.useState<Record<string, number>>({})
+  const [highlightRowId, setHighlightRowId] = React.useState<string | null>(
+    null
+  )
   const [channel, setChannel] = React.useState("in_person")
   const [paymentMethod, setPaymentMethod] = React.useState("cash")
   const [discountPercent, setDiscountPercent] = React.useState(0)
@@ -73,28 +96,46 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   }, [subtotal, discountAmount])
 
   const computedAmountPaid = React.useMemo(() => {
-    if (paymentMethod === "cash") {
-      return receivedAmount
-    }
+    if (paymentMethod === "cash") return receivedAmount
+    if (paymentMethod === "mixed") return receivedAmount + amountPaid
     return amountPaid
-  }, [paymentMethod, receivedAmount, amountPaid])
+  }, [amountPaid, paymentMethod, receivedAmount])
+
+  const changeGiven = React.useMemo(() => {
+    return Math.max(computedAmountPaid - total, 0)
+  }, [computedAmountPaid, total])
+
+  const canSubmit =
+    cartItems.length > 0 &&
+    !isSubmitting &&
+    (paymentMethod !== "cash" || receivedAmount > 0) &&
+    (paymentMethod !== "transfer" || amountPaid > 0) &&
+    (paymentMethod !== "mixed" || receivedAmount + amountPaid > 0) &&
+    (paymentMethod !== "credit" || Boolean(dueDate))
 
   function handleAddItem(catalogItem: PosCatalogItem) {
+    setAddCounts((previous) => ({
+      ...previous,
+      [catalogItem.id]: (previous[catalogItem.id] ?? 0) + 1,
+    }))
+
     setCartItems((previous) => {
       const existingIndex = previous.findIndex(
         (item) => item.catalogItemId === catalogItem.id && item.size === ""
       )
 
       if (existingIndex === -1) {
-        return [createCartItem(catalogItem), ...previous]
+        const created = createCartItem(catalogItem)
+        setHighlightRowId(created.rowId)
+        return [created, ...previous]
       }
 
       const next = [...previous]
       const existing = next[existingIndex]
       next[existingIndex] = { ...existing, quantity: existing.quantity + 1 }
+      setHighlightRowId(existing.rowId)
       return next
     })
-    setActiveTab("cart")
   }
 
   function handleIncreaseQuantity(rowId: string) {
@@ -132,6 +173,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   function resetPos() {
     setSelectedCustomer(null)
     setCartItems([])
+    setAddCounts({})
     setChannel("in_person")
     setPaymentMethod("cash")
     setDiscountPercent(0)
@@ -141,10 +183,29 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     setNotes("")
     setReceiptOpen(false)
     setReceiptData(null)
-    setActiveTab("catalog")
+    setCartDrawerOpen(false)
   }
 
-  async function handleSubmitSale() {
+  React.useEffect(() => {
+    if (!highlightRowId) return
+
+    const timer = window.setTimeout(() => setHighlightRowId(null), 650)
+    return () => window.clearTimeout(timer)
+  }, [highlightRowId])
+
+  const requestClearCart = React.useCallback(() => {
+    if (cartItems.length === 0) return
+    setConfirmClearOpen(true)
+  }, [cartItems.length])
+
+  const clearCart = React.useCallback(() => {
+    setCartItems([])
+    setReceivedAmount(0)
+    setAmountPaid(0)
+    toast.success("Carrito limpiado.")
+  }, [])
+
+  const handleSubmitSale = React.useCallback(async () => {
     if (cartItems.length === 0) {
       toast.error("Agrega al menos un item para registrar la venta.")
       return
@@ -155,11 +216,32 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       return
     }
 
+    if (paymentMethod === "transfer" && amountPaid <= 0) {
+      toast.error("Ingresa el monto pagado por transferencia.")
+      return
+    }
+
+    if (paymentMethod === "mixed" && receivedAmount + amountPaid <= 0) {
+      toast.error("Ingresa los montos del pago mixto.")
+      return
+    }
+
+    if (paymentMethod === "credit" && !dueDate) {
+      toast.error("Selecciona la fecha compromiso del credito.")
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
+      const paymentBreakdownNote =
+        paymentMethod === "mixed"
+          ? `Pago mixto: Efectivo $${receivedAmount.toFixed(2)} + Transferencia $${amountPaid.toFixed(2)}`
+          : ""
+
       const saleNotes = [
         notes.trim(),
+        paymentBreakdownNote,
         paymentMethod === "credit" && dueDate
           ? `Fecha compromiso: ${dueDate}`
           : "",
@@ -209,7 +291,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
         discount: discountAmount,
         total,
         amountPaid: computedAmountPaid,
-        changeGiven: Math.max(computedAmountPaid - total, 0),
+        changeGiven,
         items: cartItems.map((item) => ({
           id: item.rowId,
           name: item.name,
@@ -221,6 +303,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       })
 
       setReceiptOpen(true)
+      setCartDrawerOpen(false)
       toast.success("Venta registrada correctamente.")
     } catch (error) {
       const message =
@@ -231,7 +314,101 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     } finally {
       setIsSubmitting(false)
     }
-  }
+  }, [
+    amountPaid,
+    cartItems,
+    changeGiven,
+    channel,
+    computedAmountPaid,
+    discountAmount,
+    dueDate,
+    notes,
+    paymentMethod,
+    receivedAmount,
+    selectedCustomer,
+    subtotal,
+    total,
+  ])
+
+  React.useEffect(() => {
+    function isEditableTarget(target: EventTarget | null) {
+      if (!target || !(target instanceof HTMLElement)) return false
+      const tag = target.tagName
+      return (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        target.isContentEditable
+      )
+    }
+
+    function allowEnterSubmitFromTarget(target: EventTarget | null) {
+      if (!target || !(target instanceof HTMLElement)) return false
+      return target.getAttribute("data-pos-enter-submit") === "true"
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (receiptOpen) return
+
+      const isMobile = window.matchMedia("(max-width: 767px)").matches
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault()
+        const searchInput = document.getElementById(
+          "pos-catalog-search"
+        ) as HTMLInputElement | null
+        searchInput?.focus()
+        return
+      }
+
+      if (event.key === "Escape") {
+        if (isMobile && cartDrawerOpen) {
+          setCartDrawerOpen(false)
+          return
+        }
+
+        if (cartItems.length > 0) {
+          event.preventDefault()
+          setConfirmClearOpen(true)
+        }
+
+        return
+      }
+
+      if (event.key === "Enter") {
+        const isEditable = isEditableTarget(event.target)
+        if (isEditable && !allowEnterSubmitFromTarget(event.target)) {
+          return
+        }
+
+        if (cartItems.length === 0) {
+          return
+        }
+
+        if (isMobile && !cartDrawerOpen) {
+          event.preventDefault()
+          setCartDrawerOpen(true)
+          return
+        }
+
+        if (!canSubmit) {
+          return
+        }
+
+        event.preventDefault()
+        void handleSubmitSale()
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [
+    canSubmit,
+    cartDrawerOpen,
+    cartItems.length,
+    handleSubmitSale,
+    receiptOpen,
+  ])
 
   const cartProps = {
     items: cartItems,
@@ -262,51 +439,105 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     onNotesChange: setNotes,
     onSubmit: handleSubmitSale,
     isSubmitting,
+    canSubmit,
+    highlightRowId,
+    onRequestClear: requestClearCart,
   }
 
   return (
     <>
-      <div className="hidden md:block">
-        <div className="flex h-[calc(100vh-14.5rem)] gap-0 overflow-hidden">
-          <div className="flex-1 overflow-y-auto pr-3">
-            <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
+      <div className="flex h-full min-h-0 flex-col gap-3">
+        {/* POS layout: desktop = 2 columns, tablet = stacked, mobile = catalog + drawer cart */}
+        <div
+          className={cn(
+            "grid min-h-0 flex-1 grid-cols-1 grid-rows-1 gap-3 overflow-hidden",
+            "md:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)] md:gap-4",
+            "lg:grid-cols-[minmax(0,1fr)_26rem] lg:grid-rows-1 lg:gap-6"
+          )}
+        >
+          <div className="min-h-0 overflow-hidden rounded-xl border border-border/70 bg-card/60 shadow-card">
+            <PosCatalogPanel
+              items={catalogItems}
+              onAddItem={handleAddItem}
+              addCounts={addCounts}
+            />
           </div>
 
-          <div className="flex w-85 shrink-0 flex-col overflow-hidden lg:w-95">
+          <div className="hidden min-h-0 overflow-hidden rounded-xl border border-border/70 bg-card/80 shadow-card md:block">
             <PosCart {...cartProps} />
+          </div>
+        </div>
+
+        {/* Mobile sticky bar */}
+        <div className="md:hidden">
+          <div className="sticky bottom-0 z-20 -mx-4 border-t border-border/70 bg-background/90 px-4 py-3 backdrop-blur-sm">
+            <Button
+              type="button"
+              size="lg"
+              className="w-full justify-between"
+              onClick={() => setCartDrawerOpen(true)}
+              disabled={cartItems.length === 0}
+            >
+              <span className="inline-flex items-center gap-2">
+                <ShoppingCartIcon className="size-4" />
+                <span>Carrito</span>
+                {cartItems.length > 0 ? (
+                  <Badge className="h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-xs text-brand-foreground">
+                    {cartItems.length}
+                  </Badge>
+                ) : null}
+              </span>
+              <span className="tabular-nums">
+                <CurrencyDisplay amount={total} size="sm" />
+              </span>
+            </Button>
+
+            <p className="mt-2 flex items-center justify-center gap-2 text-[0.6875rem] text-muted-foreground">
+              <KeyboardIcon className="size-3.5" />
+              <span>
+                Atajos: <span className="font-medium">Ctrl/⌘ K</span> buscar •{" "}
+                <span className="font-medium">Enter</span> cobrar •{" "}
+                <span className="font-medium">Esc</span> limpiar
+              </span>
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-3 md:hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="h-11 w-full rounded-xl border border-border/70 bg-background px-1">
-            <TabsTrigger value="catalog" className="flex-1 gap-2 text-sm">
-              Catalogo
-            </TabsTrigger>
-            <TabsTrigger value="cart" className="flex-1 gap-1.5 text-sm">
-              Carrito
-              {cartItems.length > 0 ? (
-                <Badge className="h-5 min-w-5 justify-center rounded-full bg-brand px-1.5 text-xs text-brand-foreground">
-                  {cartItems.length}
-                </Badge>
-              ) : null}
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent
-            value="catalog"
-            className="mt-0 h-[calc(100vh-20rem)] overflow-y-auto px-1 pt-3"
-          >
-            <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
-          </TabsContent>
-          <TabsContent
-            value="cart"
-            className="mt-0 h-[calc(100vh-20rem)] overflow-y-auto"
-          >
-            <PosCart {...cartProps} />
-          </TabsContent>
-        </Tabs>
+      {/* Mobile drawer cart */}
+      <div className="md:hidden">
+        <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen}>
+          <DrawerContent className="h-[80vh] p-0">
+            <DrawerHeader className="border-b border-border/70 bg-muted/10">
+              <DrawerTitle className="inline-flex items-center justify-center gap-2">
+                <ShoppingCartIcon className="size-4" />
+                <span>Carrito y cobro</span>
+              </DrawerTitle>
+              <DrawerDescription>
+                {cartItems.length > 0
+                  ? `${cartItems.length} item${cartItems.length === 1 ? "" : "s"} • Total ${total.toFixed(2)}`
+                  : "Agrega productos desde el catálogo."}
+              </DrawerDescription>
+            </DrawerHeader>
+            <PosCart
+              {...cartProps}
+              className="h-full rounded-none border-0 shadow-none"
+              variant="drawer"
+            />
+          </DrawerContent>
+        </Drawer>
       </div>
+
+      <ConfirmDialog
+        open={confirmClearOpen}
+        onOpenChange={setConfirmClearOpen}
+        title="Limpiar carrito"
+        description="Esto eliminara todos los productos y montos ingresados para esta venta."
+        confirmLabel="Limpiar carrito"
+        cancelLabel="Cancelar"
+        variant="warning"
+        onConfirm={clearCart}
+      />
 
       <SaleReceipt
         open={receiptOpen}

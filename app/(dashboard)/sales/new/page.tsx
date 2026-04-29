@@ -10,7 +10,7 @@ export default async function NewSalePage() {
   const { catalogItems, customers } = await getSalesPosBootstrap()
 
   return (
-    <section className="page-shell">
+    <section className="page-shell min-h-0 flex-1">
       <PageHeader
         title="Nueva venta"
         description="Registra ventas con calculo de pago y recibo."
@@ -22,7 +22,6 @@ export default async function NewSalePage() {
             </Link>
           </Button>
         }
-
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
           { label: "Ventas", href: "/sales" },
@@ -30,7 +29,7 @@ export default async function NewSalePage() {
         ]}
       />
 
-      <div className="page-content mx-auto w-full">
+      <div className="page-content mx-auto min-h-0 w-full flex-1 gap-4">
         <PosInterface
           catalogItems={catalogItems.map((item) => ({
             id: item.id,
