@@ -6,7 +6,7 @@ export default function NewCatalogItemPage() {
     <div className="page-shell">
       <PageHeader
         title="Nuevo producto"
-        description="Registra una prenda con precios de mercado y estructura de costos."
+        description="Agrega un nuevo artículo al catálogo"
         breadcrumbs={[
           { label: "Catalogo", href: "/catalog" },
           { label: "Nuevo" },

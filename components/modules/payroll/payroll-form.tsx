@@ -4,16 +4,13 @@ import { z } from "zod"
 import * as React from "react"
 import { toast } from "sonner"
 import { useForm } from "react-hook-form"
-import { Loader2Icon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Separator } from "@/components/ui/separator"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
   Popover,
@@ -29,9 +26,24 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+import {
+  Loader2,
+  Calendar as CalendarIcon,
+  User,
+  Banknote,
+  Plus,
+  Minus,
+  CreditCard,
+  Clock,
+  Scissors,
+  TrendingUp,
+  X,
+} from "lucide-react"
+import { MetricCard } from "@/components/shared/metric-card"
+
 const payrollFormSchema = z
   .object({
-    employee_id: z.string().uuid("Selecciona un empleado valido"),
+    employee_id: z.string().uuid("Selecciona un empleado válido"),
     period_start: z.string().min(1, "La fecha de inicio es obligatoria"),
     period_end: z.string().min(1, "La fecha de fin es obligatoria"),
     pieces_produced: z.coerce.number().int().min(0).optional().nullable(),
@@ -97,15 +109,25 @@ function parseInputDate(value: string) {
 }
 
 function formatDateLabel(value: string) {
-  if (!value) {
-    return "Seleccionar fecha"
-  }
+  if (!value) return "Seleccionar"
 
   return new Intl.DateTimeFormat("es-PA", {
     day: "2-digit",
     month: "short",
-    year: "numeric",
   }).format(parseInputDate(value))
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("es-PA", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount)
+}
+
+const contractTypeLabels = {
+  fixed_salary: "Salario fijo",
+  per_piece: "Por pieza",
+  hourly: "Por hora",
 }
 
 export function PayrollForm({
@@ -140,14 +162,14 @@ export function PayrollForm({
 
   const total = Math.max(watchBaseAmount + watchBonuses - watchDeductions, 0)
 
-  React.useEffect(() => {
-    const selected = employees.find(
-      (employee) => employee.id === selectedEmployeeId
-    )
+  const selectedEmployee = React.useMemo(
+    () => employees.find((e) => e.id === selectedEmployeeId),
+    [employees, selectedEmployeeId]
+  )
 
-    if (!selected) {
-      return
-    }
+  React.useEffect(() => {
+    const selected = employees.find((e) => e.id === selectedEmployeeId)
+    if (!selected) return
 
     if (selected.baseSalary && Number(form.getValues("base_amount")) === 0) {
       form.setValue("base_amount", Number(selected.baseSalary), {
@@ -175,9 +197,7 @@ export function PayrollForm({
 
       const response = await fetch("/api/payroll", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
 
@@ -190,7 +210,7 @@ export function PayrollForm({
         throw new Error(result.error ?? "No se pudo registrar el pago.")
       }
 
-      toast.success("Pago de planilla creado.")
+      toast.success("Pago de nómina registrado exitosamente")
       onSuccess()
     } catch (error) {
       const message =
@@ -204,257 +224,356 @@ export function PayrollForm({
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="space-y-4"
+      className="mx-auto w-full space-y-4"
       noValidate
     >
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Empleado</Label>
-        <Select
-          value={form.watch("employee_id")}
-          onValueChange={(value) =>
-            form.setValue("employee_id", value, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecciona empleado" />
-          </SelectTrigger>
-          <SelectContent>
-            {employees.map((employee) => (
-              <SelectItem key={employee.id} value={employee.id}>
-                {employee.fullName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {form.formState.errors.employee_id ? (
-          <p className="text-danger text-xs">
-            {form.formState.errors.employee_id.message}
-          </p>
-        ) : null}
+      {/* Total Summary Card */}
+      <div>
+        <MetricCard
+          icon={<TrendingUp className="size-4 text-green-500" />}
+          label="Total a pagar"
+          value={formatCurrency(total)}
+        />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Inicio</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                {formatDateLabel(watchPeriodStart)}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2" align="start">
-              <Calendar
-                mode="single"
-                selected={
-                  watchPeriodStart
-                    ? parseInputDate(watchPeriodStart)
-                    : undefined
-                }
-                onSelect={(date) => {
-                  if (!date) {
-                    return
+      {/* Tabbed Form */}
+      <Tabs defaultValue="employee" className="w-full">
+        <TabsList className="mb-4 grid w-full grid-cols-3">
+          <TabsTrigger value="employee" className="gap-1.5 text-xs sm:text-sm">
+            <User className="size-3.5" />
+            Empleado
+          </TabsTrigger>
+          <TabsTrigger value="amounts" className="gap-1.5 text-xs sm:text-sm">
+            <Banknote className="size-3.5" />
+            Montos
+          </TabsTrigger>
+          <TabsTrigger value="metrics" className="gap-1.5 text-xs sm:text-sm">
+            <Clock className="size-3.5" />
+            Métricas
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Employee Tab */}
+        <TabsContent value="employee" className="space-y-4">
+          <div>
+            <div className="space-y-4">
+              {/* Employee Selector */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Empleado <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={form.watch("employee_id")}
+                  onValueChange={(value) =>
+                    form.setValue("employee_id", value, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
                   }
+                >
+                  <SelectTrigger className="h-11 w-full">
+                    <SelectValue placeholder="Selecciona un empleado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        <div className="flex items-center gap-2">
+                          <div className="flex size-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                            {employee.fullName.charAt(0)}
+                          </div>
+                          <span>{employee.fullName}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.employee_id && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.employee_id.message}
+                  </p>
+                )}
 
-                  form.setValue("period_start", toInputDate(date), {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Fin</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                {formatDateLabel(watchPeriodEnd)}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2" align="start">
-              <Calendar
-                mode="single"
-                selected={
-                  watchPeriodEnd ? parseInputDate(watchPeriodEnd) : undefined
-                }
-                onSelect={(date) => {
-                  if (!date) {
-                    return
+                {/* Employee Info Badge */}
+                {selectedEmployee && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium">
+                      {contractTypeLabels[selectedEmployee.contractType]}
+                    </span>
+                    {selectedEmployee.baseSalary && (
+                      <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium">
+                        Base: {formatCurrency(selectedEmployee.baseSalary)}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Period Dates - Inline */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Inicio</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-10 w-full justify-start font-normal"
+                      >
+                        <CalendarIcon className="mr-2 size-4 text-muted-foreground" />
+                        {formatDateLabel(watchPeriodStart)}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          watchPeriodStart
+                            ? parseInputDate(watchPeriodStart)
+                            : undefined
+                        }
+                        onSelect={(date) => {
+                          if (!date) return
+                          form.setValue("period_start", toInputDate(date), {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          })
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Fin</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-10 w-full justify-start font-normal"
+                      >
+                        <CalendarIcon className="mr-2 size-4 text-muted-foreground" />
+                        {formatDateLabel(watchPeriodEnd)}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          watchPeriodEnd
+                            ? parseInputDate(watchPeriodEnd)
+                            : undefined
+                        }
+                        onSelect={(date) => {
+                          if (!date) return
+                          form.setValue("period_end", toInputDate(date), {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          })
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {form.formState.errors.period_end && (
+                    <p className="text-xs text-destructive">
+                      {form.formState.errors.period_end.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Amounts Tab */}
+        <TabsContent value="amounts" className="space-y-4">
+          <div>
+            <div className="space-y-4">
+              {/* Base + Bonuses + Deductions in grid */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="base_amount"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <Banknote className="size-3.5" />
+                    Base
+                  </Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      id="base_amount"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      {...form.register("base_amount", { valueAsNumber: true })}
+                      className="h-10 pl-6 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="bonuses"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <Plus className="text-success size-3.5" />
+                    Bonos
+                  </Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      id="bonuses"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      {...form.register("bonuses", { valueAsNumber: true })}
+                      className="h-10 pl-6 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="deductions"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <Minus className="size-3.5 text-destructive" />
+                    Deducciones
+                  </Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      id="deductions"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      {...form.register("deductions", { valueAsNumber: true })}
+                      className="h-10 pl-6 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1 text-sm font-medium">
+                  <CreditCard className="size-3.5" />
+                  Método de pago
+                </Label>
+                <Select
+                  value={form.watch("payment_method") ?? "none"}
+                  onValueChange={(value) =>
+                    form.setValue(
+                      "payment_method",
+                      value === "none"
+                        ? null
+                        : (value as "cash" | "transfer" | "other"),
+                      { shouldDirty: true }
+                    )
                   }
-
-                  form.setValue("period_end", toInputDate(date), {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          {form.formState.errors.period_end ? (
-            <p className="text-danger text-xs">
-              {form.formState.errors.period_end.message}
-            </p>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="pieces_produced" className="text-sm font-medium">
-            Piezas
-          </Label>
-          <Input
-            id="pieces_produced"
-            type="number"
-            min={0}
-            step="1"
-            {...form.register("pieces_produced", { valueAsNumber: true })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="hours_worked" className="text-sm font-medium">
-            Horas
-          </Label>
-          <Input
-            id="hours_worked"
-            type="number"
-            min={0}
-            step="0.25"
-            {...form.register("hours_worked", { valueAsNumber: true })}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="base_amount" className="text-sm font-medium">
-            Monto base
-          </Label>
-          <Input
-            id="base_amount"
-            type="number"
-            min={0}
-            step="0.01"
-            {...form.register("base_amount", { valueAsNumber: true })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="bonuses" className="text-sm font-medium">
-            Bonos
-          </Label>
-          <Input
-            id="bonuses"
-            type="number"
-            min={0}
-            step="0.01"
-            {...form.register("bonuses", { valueAsNumber: true })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="deductions" className="text-sm font-medium">
-            Deducciones
-          </Label>
-          <Input
-            id="deductions"
-            type="number"
-            min={0}
-            step="0.01"
-            {...form.register("deductions", { valueAsNumber: true })}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Metodo de pago (opcional)</Label>
-        <Select
-          value={form.watch("payment_method") ?? "none"}
-          onValueChange={(value) =>
-            form.setValue(
-              "payment_method",
-              value === "none"
-                ? null
-                : (value as "cash" | "transfer" | "other"),
-              {
-                shouldDirty: true,
-              }
-            )
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Sin definir" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Sin definir</SelectItem>
-            <SelectItem value="cash">Efectivo</SelectItem>
-            <SelectItem value="transfer">Transferencia</SelectItem>
-            <SelectItem value="other">Otro</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="notes" className="text-sm font-medium">
-          Notas
-        </Label>
-        <Textarea id="notes" className="min-h-20" {...form.register("notes")} />
-      </div>
-
-      <Card className="bg-success-soft border-success-soft sticky bottom-0 sm:static">
-        <CardContent className="space-y-2 p-4 text-sm">
-          <h3 className="font-semibold">Resumen del pago</h3>
-          <div className="flex justify-between text-muted-foreground">
-            <span>Base</span>
-            <CurrencyDisplay amount={watchBaseAmount} />
-          </div>
-          {watchBonuses > 0 ? (
-            <div className="text-success flex justify-between">
-              <span>+ Bonificaciones</span>
-              <CurrencyDisplay amount={watchBonuses} />
+                >
+                  <SelectTrigger className="h-10 w-full">
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin definir</SelectItem>
+                    <SelectItem value="cash">Efectivo</SelectItem>
+                    <SelectItem value="transfer">Transferencia</SelectItem>
+                    <SelectItem value="other">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          ) : null}
-          {watchDeductions > 0 ? (
-            <div className="text-danger flex justify-between">
-              <span>- Deducciones</span>
-              <CurrencyDisplay amount={watchDeductions} />
-            </div>
-          ) : null}
-          <Separator />
-          <div className="flex justify-between text-base font-bold">
-            <span>Total a pagar</span>
-            <CurrencyDisplay amount={total} size="lg" className="text-brand" />
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        {onCancel ? (
-          <Button type="button" variant="outline" onClick={onCancel}>
+        {/* Metrics Tab */}
+        <TabsContent value="metrics" className="space-y-4">
+          <div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="pieces_produced"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <Scissors className="text-success size-3.5" />
+                    Piezas producidas
+                  </Label>
+                  <Input
+                    id="pieces_produced"
+                    type="number"
+                    min={0}
+                    step="1"
+                    placeholder="0"
+                    {...form.register("pieces_produced", {
+                      valueAsNumber: true,
+                    })}
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="hours_worked"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <Clock className="text-info size-3.5" />
+                    Horas trabajadas
+                  </Label>
+                  <Input
+                    id="hours_worked"
+                    type="number"
+                    min={0}
+                    step="0.25"
+                    placeholder="0"
+                    {...form.register("hours_worked", { valueAsNumber: true })}
+                    className="h-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-sm font-medium">
+                  Notas
+                </Label>
+                <Textarea
+                  id="notes"
+                  rows={3}
+                  placeholder="Observaciones del período..."
+                  {...form.register("notes")}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Actions */}
+      <div className="mt-6 flex gap-3">
+        {onCancel && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1"
+          >
             Cancelar
           </Button>
-        ) : null}
-        <Button
-          type="submit"
-          className="bg-brand text-brand-foreground"
-          disabled={isSubmitting}
-        >
+        )}
+        <Button type="submit" disabled={isSubmitting} className="flex-1 gap-2">
           {isSubmitting ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : null}
-          Guardar pago
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Banknote className="size-4" />
+          )}
+          Registrar pago
         </Button>
       </div>
     </form>

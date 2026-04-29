@@ -178,7 +178,7 @@ export function PayrollWorkspace({
 
         <TabsContent value="employees">
           <Card className="rounded-xl border border-border shadow-sm">
-            <CardHeader className="border-b border-border pb-3">
+            <CardHeader className="border-b border-border pb-3 px-4 pt-0">
               <CardTitle className="text-base font-semibold">
                 Acumulado por empleado
               </CardTitle>
@@ -223,10 +223,10 @@ export function PayrollWorkspace({
 
       {/* Create payment dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-h-[90vh]">
+        <DialogContent className="sm:max-h-[90vh] bg-none  px-4 py-3">
           <DialogHeader className="py-4 text-base text-pretty">
             <DialogTitle>Nuevo pago de planilla</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-pretty">
               Registra un nuevo pago con el periodo y montos correspondientes.
             </DialogDescription>
           </DialogHeader>

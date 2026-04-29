@@ -156,7 +156,7 @@ export function ExpensesTable({ expenses }: ExpensesTableProps) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <SummaryTile label="Registros" value={filtered.length} />
+        <SummaryTile label="Registros" value={filtered.length} accent />
         <SummaryTile
           label="Total filtrado"
           value={<CurrencyDisplay amount={filteredTotal} size="sm" />}

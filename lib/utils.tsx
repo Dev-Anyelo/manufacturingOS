@@ -143,6 +143,7 @@ export function formatDate(value: string | Date) {
 }
 
 export function formatCurrency(amount: number) {
+  // forzar a nicaragua
   return new Intl.NumberFormat("es-PA", {
     style: "currency",
     currency: "USD",
@@ -152,7 +153,7 @@ export function formatCurrency(amount: number) {
 
 export function getSpanishGreeting() {
   const hour = new Date().getHours()
-  if (hour < 12) return "Buenos dias"
+  if (hour < 12) return "Buenos días"
   if (hour < 19) return "Buenas tardes"
   return "Buenas noches"
 }

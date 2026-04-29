@@ -4,43 +4,16 @@ import { z } from "zod"
 import { toast } from "sonner"
 import * as React from "react"
 import Image from "next/image"
+import { cn } from "@/lib/utils"
 import { useForm } from "react-hook-form"
-import { MaterialCategory } from "@/types"
-import { Form } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { MaterialCategory } from "@prisma/client"
 import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FormFieldWrapper } from "@/components/shared/form-field-wrapper"
-import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card"
-
-import {
-  Box,
-  DollarSign,
-  FileText,
-  ImageIcon,
-  LayersIcon,
-  Loader2,
-  PackageIcon,
-  Palette,
-  Scissors,
-  SettingsIcon,
-  Tag,
-  Truck,
-  Upload,
-  WrenchIcon,
-  X,
-} from "lucide-react"
+import { StatCard } from "@/components/shared/stat-card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
   Select,
@@ -49,6 +22,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+
+import {
+  Loader2,
+  Upload,
+  X,
+  Package,
+  Tag,
+  Layers,
+  Wrench,
+  Settings,
+  Scissors,
+  Palette,
+  Truck,
+  AlertTriangle,
+  CheckCircle2,
+  ImageIcon,
+  Save,
+} from "lucide-react"
 
 const inventoryFormSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -71,30 +62,52 @@ interface InventoryFormProps {
   mode: "create" | "edit"
   itemId?: string
   defaultValues?: Partial<InventoryFormValues>
+  onSuccess?: () => void
+  onCancel?: () => void
 }
 
 const categoryOptions = [
-  { value: MaterialCategory.Fabric, label: "Telas", icon: LayersIcon },
-  { value: MaterialCategory.Supplies, label: "Insumos", icon: PackageIcon },
-  { value: MaterialCategory.Tools, label: "Herramientas", icon: WrenchIcon },
   {
-    value: MaterialCategory.Machinery,
+    value: MaterialCategory.fabric,
+    label: "Telas",
+    icon: Layers,
+    color: "text-info",
+  },
+  {
+    value: MaterialCategory.supplies,
+    label: "Insumos",
+    icon: Package,
+    color: "text-success",
+  },
+  {
+    value: MaterialCategory.tools,
+    label: "Herramientas",
+    icon: Wrench,
+    color: "text-warning",
+  },
+  {
+    value: MaterialCategory.machinery,
     label: "Maquinaria",
-    icon: SettingsIcon,
+    icon: Settings,
+    color: "text-muted-foreground",
   },
 ] as const
 
 const unitOptions = ["yd", "metros", "unidades", "rollos"] as const
 
-function normalizeOptionalValue(value?: string | null) {
-  const normalized = value?.trim()
-  return normalized ? normalized : null
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("es-PA", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount)
 }
 
 export function InventoryForm({
   mode,
   itemId,
   defaultValues,
+  onSuccess,
+  onCancel,
 }: InventoryFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [imageFile, setImageFile] = React.useState<File | null>(null)
@@ -107,7 +120,7 @@ export function InventoryForm({
     resolver: zodResolver(inventoryFormSchema),
     defaultValues: {
       name: defaultValues?.name ?? "",
-      category: defaultValues?.category ?? MaterialCategory.Fabric,
+      category: defaultValues?.category ?? MaterialCategory.fabric,
       fabric_type: defaultValues?.fabric_type ?? "",
       color: defaultValues?.color ?? "",
       quantity: defaultValues?.quantity ?? 0,
@@ -125,6 +138,16 @@ export function InventoryForm({
   const quantityWatch = form.watch("quantity")
   const minimumStockWatch = form.watch("minimum_stock")
   const unitWatch = form.watch("unit")
+  const unitPriceWatch = form.watch("unit_price")
+
+  const stockStatus = React.useMemo(() => {
+    if (quantityWatch <= 0) return "out"
+    if (quantityWatch <= minimumStockWatch) return "low"
+    if (quantityWatch <= minimumStockWatch * 1.5) return "warning"
+    return "ok"
+  }, [quantityWatch, minimumStockWatch])
+
+  const totalValue = quantityWatch * unitPriceWatch
 
   React.useEffect(() => {
     return () => {
@@ -150,13 +173,43 @@ export function InventoryForm({
   const onSubmit = form.handleSubmit(async (values) => {
     setIsSubmitting(true)
     try {
-      // Simulated submit for demo
-      await new Promise((r) => setTimeout(r, 1000))
+      const endpoint =
+        mode === "create" ? "/api/inventory" : `/api/inventory/${itemId}`
+      const method = mode === "create" ? "POST" : "PATCH"
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
+          fabric_type: values.fabric_type?.trim() || null,
+          color: values.color?.trim() || null,
+          supplier: values.supplier?.trim() || null,
+          notes: values.notes?.trim() || null,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error ?? "No se pudo guardar el material.")
+      }
+
+      if (imageFile && result.data?.id) {
+        const formData = new FormData()
+        formData.append("file", imageFile)
+        await fetch(`/api/inventory/${result.data.id}/image`, {
+          method: "POST",
+          body: formData,
+        })
+      }
+
       toast.success(
         mode === "create"
-          ? "Material creado correctamente."
-          : "Material actualizado correctamente."
+          ? "Material agregado al inventario"
+          : "Material actualizado correctamente"
       )
+      onSuccess?.()
     } catch (error) {
       const message =
         error instanceof Error
@@ -169,465 +222,417 @@ export function InventoryForm({
   })
 
   return (
-    <Form {...form}>
-      <form
-        className="animate-fade-in space-y-6"
-        onSubmit={onSubmit}
-        noValidate
-      >
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Left column - Main info */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Card 1: Identificación */}
-            <Card className="animate-slide-up overflow-hidden border border-border p-0">
-              <CardHeader className="border-b border-border bg-muted/20 px-4 py-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="bg-info-soft flex size-8 items-center justify-center rounded-lg">
-                    <Tag className="text-info size-4" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base font-semibold text-pretty">
-                      Identificación
-                    </CardTitle>
-                    <CardDescription className="text-xs text-pretty">
-                      Nombre, categoría y datos básicos del material.
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 px-4 pt-0 pb-5">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <FormFieldWrapper
-                    control={form.control}
-                    name="name"
-                    label="Nombre del material"
-                    required
-                  >
-                    {(field) => (
-                      <Input
-                        {...field}
-                        placeholder="Ej: Denim azul premium"
-                        className="text-sm transition-colors"
-                      />
-                    )}
-                  </FormFieldWrapper>
+    <form className="mx-auto w-full" onSubmit={onSubmit} noValidate>
+      {/* Summary Stats */}
+      <div className="mb-3 grid grid-cols-3 gap-3">
+        <StatCard
+          title="Valor total en stock"
+          value={formatCurrency(totalValue)}
+          icon={<Tag className="size-5 text-muted-foreground" />}
+        />
+        <StatCard
+          title="Estado del stock"
+          value={
+            stockStatus === "ok"
+              ? "Óptimo"
+              : stockStatus === "warning"
+                ? "Moderado"
+                : stockStatus === "low"
+                  ? "Bajo"
+                  : "Sin stock"
+          }
+          icon={
+            stockStatus === "ok" ? (
+              <CheckCircle2 className="text-success size-5" />
+            ) : (
+              <AlertTriangle className="size-5 text-destructive" />
+            )
+          }
+        />
+        <StatCard
+          title="Unidad de medida"
+          value={unitWatch}
+          icon={<Layers className="size-5 text-muted-foreground" />}
+        />
+      </div>
 
-                  <FormFieldWrapper
-                    control={form.control}
-                    name="category"
-                    label="Categoría"
-                    required
-                  >
-                    {(field) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={(v) =>
-                          field.onChange(v as MaterialCategory)
-                        }
-                      >
-                        <SelectTrigger className="w-full text-sm transition-colors">
-                          <SelectValue placeholder="Selecciona categoría" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categoryOptions.map((opt) => {
-                            const Icon = opt.icon
-                            return (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                <span className="flex items-center gap-2">
-                                  <Icon className="size-4 text-muted-foreground" />
-                                  {opt.label}
-                                </span>
-                              </SelectItem>
-                            )
-                          })}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </FormFieldWrapper>
-                </div>
+      {/* Tabbed Form */}
+      <Tabs defaultValue="info" className="w-full">
+        <TabsList className="mb-4 grid w-full grid-cols-3">
+          <TabsTrigger value="info" className="gap-1.5 text-xs sm:text-sm">
+            <Tag className="size-3.5" />
+            Información
+          </TabsTrigger>
+          <TabsTrigger value="stock" className="gap-1.5 text-xs sm:text-sm">
+            <Package className="size-3.5" />
+            Stock
+          </TabsTrigger>
+          <TabsTrigger value="media" className="gap-1.5 text-xs sm:text-sm">
+            <ImageIcon className="size-3.5" />
+            Imagen
+          </TabsTrigger>
+        </TabsList>
 
-                {/* Conditional fabric type */}
-                <div
-                  className={`grid transition-all duration-300 ${
-                    category === MaterialCategory.Fabric
-                      ? "grid-rows-[1fr] opacity-100"
-                      : "grid-rows-[0fr] opacity-0"
-                  }`}
-                >
-                  <div className="overflow-hidden">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <FormFieldWrapper
-                        control={form.control}
-                        name="fabric_type"
-                        label="Tipo de tela"
-                      >
-                        {(field) => (
-                          <div className="relative">
-                            <Scissors className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                              value={field.value ?? ""}
-                              onChange={field.onChange}
-                              placeholder="Ej: Algodón pima"
-                              className="pl-9 text-sm transition-colors"
-                            />
-                          </div>
-                        )}
-                      </FormFieldWrapper>
-
-                      <FormFieldWrapper
-                        control={form.control}
-                        name="color"
-                        label="Color"
-                      >
-                        {(field) => (
-                          <div className="relative">
-                            <Palette className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                              value={field.value ?? ""}
-                              onChange={field.onChange}
-                              placeholder="Ej: Azul marino"
-                              className="pl-9 text-sm transition-colors"
-                            />
-                          </div>
-                        )}
-                      </FormFieldWrapper>
-                    </div>
-                  </div>
-                </div>
-
-                {category !== MaterialCategory.Fabric && (
-                  <FormFieldWrapper
-                    control={form.control}
-                    name="color"
-                    label="Color"
-                  >
-                    {(field) => (
-                      <div className="relative">
-                        <Palette className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          value={field.value ?? ""}
-                          onChange={field.onChange}
-                          placeholder="Ej: Azul marino"
-                          className="pl-9 text-sm transition-colors"
-                        />
-                      </div>
-                    )}
-                  </FormFieldWrapper>
-                )}
-
-                <Separator className="opacity-40" />
-
-                <FormFieldWrapper
-                  control={form.control}
-                  name="supplier"
-                  label="Proveedor"
-                >
-                  {(field) => (
-                    <div className="relative">
-                      <Truck className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        value={field.value ?? ""}
-                        onChange={field.onChange}
-                        placeholder="Ej: Textiles Panamá"
-                        className="pl-9 text-sm transition-colors"
-                      />
-                    </div>
-                  )}
-                </FormFieldWrapper>
-              </CardContent>
-            </Card>
-
-            {/* Card 2: Stock y precios */}
-            <Card
-              className="animate-slide-up overflow-hidden border border-border p-0"
-              style={{ animationDelay: "0.1s" }}
-            >
-              <CardHeader className="border-b border-border bg-muted/20 px-4 py-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-brand/10">
-                    <DollarSign className="text-success size-4" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base font-semibold text-pretty">
-                      Stock y precios
-                    </CardTitle>
-                    <CardDescription className="text-xs text-pretty">
-                      Cantidades, unidades y costos de adquisición.
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 px-4 pt-0 pb-3">
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <FormFieldWrapper
-                    control={form.control}
-                    name="quantity"
-                    label="Cantidad"
-                    required
-                  >
-                    {(field) => (
-                      <Input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={field.value}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        className="text-sm transition-colors"
-                      />
-                    )}
-                  </FormFieldWrapper>
-
-                  <FormFieldWrapper
-                    control={form.control}
-                    name="unit"
-                    label="Unidad"
-                    required
-                  >
-                    {(field) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full text-sm transition-colors">
-                          <SelectValue placeholder="Unidad" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {unitOptions.map((u) => (
-                            <SelectItem key={u} value={u}>
-                              {u}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </FormFieldWrapper>
-
-                  <FormFieldWrapper
-                    control={form.control}
-                    name="minimum_stock"
-                    label="Stock mínimo"
-                    required
-                  >
-                    {(field) => (
-                      <Input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={field.value}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        className="text-sm transition-colors"
-                      />
-                    )}
-                  </FormFieldWrapper>
-
-                  <FormFieldWrapper
-                    control={form.control}
-                    name="unit_price"
-                    label="Precio unitario"
-                    required
-                  >
-                    {(field) => (
-                      <div className="relative">
-                        <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm font-medium text-muted-foreground">
-                          $
-                        </span>
-                        <Input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          className="pl-7 text-sm transition-colors"
-                          value={field.value}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                        />
-                      </div>
-                    )}
-                  </FormFieldWrapper>
-                </div>
-
-                {/* Stock indicator */}
-                <div className="rounded-xl border border-border bg-muted/20 p-4">
-                  <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                    <Box className="size-3" />
-                    Vista previa del stock
-                  </p>
-                  <StockIndicator
-                    quantity={quantityWatch ?? 0}
-                    minimumStock={minimumStockWatch ?? 0}
-                    unit={unitWatch ?? "yd"}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Card 3: Notas */}
-            <Card
-              className="animate-slide-up overflow-hidden border border-border p-0"
-              style={{ animationDelay: "0.15s" }}
-            >
-              <CardHeader className="border-b border-border bg-muted/20 px-4 py-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-yellow-400/10">
-                    <FileText className="text-warning size-4" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base font-semibold text-pretty">
-                      Notas adicionales
-                    </CardTitle>
-                    <CardDescription className="text-xs text-pretty">
-                      Información complementaria sobre el material.
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-5 px-4 pt-0 pb-5">
-                <FormFieldWrapper
-                  control={form.control}
-                  name="notes"
-                  label="Notas"
-                >
-                  {(field) => (
-                    <Textarea
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                      placeholder="Detalles adicionales, instrucciones de uso, observaciones..."
-                      className="min-h-28 resize-none text-sm transition-colors"
-                    />
-                  )}
-                </FormFieldWrapper>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right column - Image & actions */}
-          <div className="space-y-6">
-            {/* Image upload card */}
-            <Card
-              className="animate-slide-up overflow-hidden border border-border p-0"
-              style={{ animationDelay: "0.05s" }}
-            >
-              <CardHeader className="border-b border-border bg-muted/20 px-4 py-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="bg-info-soft flex size-8 items-center justify-center rounded-lg">
-                    <ImageIcon className="text-info size-4" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base font-semibold">
-                      Imagen
-                    </CardTitle>
-                    <CardDescription className="text-xs text-pretty">
-                      Foto del material (opcional).
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 px-4 pt-0 pb-5">
-                <Label
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    setIsDragging(false)
-                    handleFileSelection(e.dataTransfer.files?.[0] ?? null)
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault()
-                    setIsDragging(true)
-                  }}
-                  onDragLeave={() => setIsDragging(false)}
-                  className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200 ${
-                    isDragging
-                      ? "border-brand bg-brand/10"
-                      : "border-border bg-muted/20 hover:border-brand/40 hover:bg-muted/20"
-                  }`}
-                >
-                  {previewUrl ? (
-                    <div className="relative w-full">
-                      <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-background">
-                        <Image
-                          src={previewUrl}
-                          alt="Preview del material"
-                          className="h-full w-full object-cover"
-                          fill
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="absolute -top-2 -right-2 size-7 rounded-full shadow-md"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          setImageFile(null)
-                          setPreviewUrl(null)
-                        }}
-                      >
-                        <X className="size-3.5" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="rounded-full bg-muted p-3">
-                        <Upload className="size-5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          Arrastra o haz click
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          PNG, JPG, WEBP · Máx 5MB
-                        </p>
-                      </div>
-                    </>
-                  )}
+        {/* Info Tab */}
+        <TabsContent value="info" className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="space-y-4">
+              {/* Name + Category */}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="name" className="text-sm font-medium">
+                    Nombre <span className="text-destructive">*</span>
+                  </Label>
                   <Input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    aria-label="Seleccionar imagen"
-                    onChange={(e) =>
-                      handleFileSelection(e.target.files?.[0] ?? null)
-                    }
+                    id="name"
+                    {...form.register("name")}
+                    placeholder="Ej: Denim azul premium"
+                    className="h-10"
                   />
+                  {form.formState.errors.name && (
+                    <p className="text-xs text-destructive">
+                      {form.formState.errors.name.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Categoría</Label>
+                  <Select
+                    value={form.watch("category")}
+                    onValueChange={(v) =>
+                      form.setValue("category", v as MaterialCategory)
+                    }
+                  >
+                    <SelectTrigger className="h-10 w-full">
+                      <SelectValue placeholder="Selecciona" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOptions.map((opt) => {
+                        const Icon = opt.icon
+                        return (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            <div className="flex items-center gap-2">
+                              <Icon className={cn("size-4", opt.color)} />
+                              {opt.label}
+                            </div>
+                          </SelectItem>
+                        )
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="supplier"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <Truck className="size-3.5" />
+                    Proveedor
+                  </Label>
+                  <Input
+                    id="supplier"
+                    {...form.register("supplier")}
+                    placeholder="Ej: Textiles S.A."
+                    className="h-10"
+                  />
+                </div>
+              </div>
+
+              {/* Conditional fields */}
+              {category === MaterialCategory.fabric && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="fabric_type"
+                      className="flex items-center gap-1 text-sm font-medium"
+                    >
+                      <Scissors className="size-3.5" />
+                      Tipo de tela
+                    </Label>
+                    <Input
+                      id="fabric_type"
+                      {...form.register("fabric_type")}
+                      placeholder="Ej: Algodón pima"
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="color"
+                      className="flex items-center gap-1 text-sm font-medium"
+                    >
+                      <Palette className="size-3.5" />
+                      Color
+                    </Label>
+                    <Input
+                      id="color"
+                      {...form.register("color")}
+                      placeholder="Ej: Azul marino"
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {category !== MaterialCategory.fabric && (
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="color"
+                    className="flex items-center gap-1 text-sm font-medium"
+                  >
+                    <Palette className="size-3.5" />
+                    Color / Variante
+                  </Label>
+                  <Input
+                    id="color"
+                    {...form.register("color")}
+                    placeholder="Ej: Negro, Plata, etc."
+                    className="h-10"
+                  />
+                </div>
+              )}
+
+              {/* Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-sm font-medium">
+                  Notas
                 </Label>
-              </CardContent>
-            </Card>
-
-            {/* Actions card */}
-            <Card
-              className="animate-slide-up overflow-hidden border border-border p-0"
-              style={{ animationDelay: "0.2s" }}
-            >
-              <CardContent className="grid grid-cols-2 gap-3 px-4 pt-3 pb-3">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full transition-all"
-                  size="sm"
-                >
-                  {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-
-                  {isSubmitting
-                    ? mode === "create"
-                      ? "Creando"
-                      : "Guardando"
-                    : mode === "create"
-                      ? "Crear material"
-                      : "Guardar"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  size="sm"
-                  onClick={() => form.reset()}
-                >
-                  Cancelar
-                </Button>
-              </CardContent>
-            </Card>
+                <Textarea
+                  id="notes"
+                  rows={2}
+                  {...form.register("notes")}
+                  placeholder="Información adicional..."
+                  className="resize-none"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      </form>
-    </Form>
+        </TabsContent>
+
+        {/* Stock Tab */}
+        <TabsContent value="stock" className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="space-y-4">
+              {/* Quantity Grid */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quantity" className="text-sm font-medium">
+                    Cantidad
+                  </Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    {...form.register("quantity", { valueAsNumber: true })}
+                    className="h-10"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Unidad</Label>
+                  <Select
+                    value={form.watch("unit")}
+                    onValueChange={(v) => form.setValue("unit", v)}
+                  >
+                    <SelectTrigger className="h-10 w-full">
+                      <SelectValue placeholder="Unidad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {unitOptions.map((u) => (
+                        <SelectItem key={u} value={u}>
+                          {u}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="minimum_stock"
+                    className="text-sm font-medium"
+                  >
+                    Stock mín.
+                  </Label>
+                  <Input
+                    id="minimum_stock"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    {...form.register("minimum_stock", { valueAsNumber: true })}
+                    className="h-10"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="unit_price" className="text-sm font-medium">
+                    Precio
+                  </Label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
+                      $
+                    </span>
+                    <Input
+                      id="unit_price"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      {...form.register("unit_price", { valueAsNumber: true })}
+                      className="h-10 pl-6"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Stock Status */}
+              <div className="rounded-lg border border-border bg-muted/30 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Estado del stock
+                  </span>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
+                      stockStatus === "ok" && "bg-success/10 text-success",
+                      stockStatus === "warning" && "bg-warning/10 text-warning",
+                      stockStatus === "low" &&
+                        "bg-destructive/10 text-destructive",
+                      stockStatus === "out" &&
+                        "bg-destructive/20 text-destructive"
+                    )}
+                  >
+                    {stockStatus === "ok" && (
+                      <CheckCircle2 className="size-3" />
+                    )}
+                    {stockStatus !== "ok" && (
+                      <AlertTriangle className="size-3" />
+                    )}
+                    {stockStatus === "ok" && "Óptimo"}
+                    {stockStatus === "warning" && "Moderado"}
+                    {stockStatus === "low" && "Bajo"}
+                    {stockStatus === "out" && "Sin stock"}
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      stockStatus === "ok" && "bg-success",
+                      stockStatus === "warning" && "bg-warning",
+                      stockStatus === "low" && "bg-destructive",
+                      stockStatus === "out" && "bg-destructive"
+                    )}
+                    style={{
+                      width: `${Math.min((quantityWatch / (minimumStockWatch * 2)) * 100, 100)}%`,
+                    }}
+                  />
+                  <div
+                    className="absolute top-0 h-full w-0.5 bg-foreground/20"
+                    style={{ left: "50%" }}
+                  />
+                </div>
+                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                  <span>0</span>
+                  <span>Mín: {minimumStockWatch}</span>
+                  <span>{minimumStockWatch * 2}+</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Media Tab */}
+        <TabsContent value="media" className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <label
+              onDrop={(e) => {
+                e.preventDefault()
+                setIsDragging(false)
+                handleFileSelection(e.dataTransfer.files?.[0] ?? null)
+              }}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setIsDragging(true)
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              className={cn(
+                "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all",
+                isDragging
+                  ? "border-accent bg-accent/10"
+                  : "border-border bg-muted/30 hover:border-accent/50"
+              )}
+            >
+              {previewUrl ? (
+                <div className="relative w-full max-w-50">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted">
+                    <Image
+                      src={previewUrl}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 size-7 rounded-full shadow-lg"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setImageFile(null)
+                      setPreviewUrl(null)
+                    }}
+                  >
+                    <X className="size-3" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-full bg-muted p-3">
+                    <Upload className="size-6 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-pretty">
+                      Arrastra o selecciona una imagen
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      PNG, JPG hasta 5MB
+                    </p>
+                  </div>
+                </>
+              )}
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) =>
+                  handleFileSelection(e.target.files?.[0] ?? null)
+                }
+              />
+            </label>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Actions */}
+      <div className="mt-6 flex items-center justify-end gap-3">
+        <Button type="button" variant="outline" onClick={onCancel} size="sm">
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={isSubmitting} size="sm">
+          {isSubmitting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Save className="size-4" />
+          )}
+          {mode === "create" ? "Agregar material" : "Guardar cambios"}
+        </Button>
+      </div>
+    </form>
   )
 }

@@ -4,15 +4,29 @@ import { z } from "zod"
 import * as React from "react"
 import Image from "next/image"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2Icon, UploadIcon, XIcon } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { MetricCard } from "@/components/shared/metric-card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+import {
+  Loader2,
+  Upload,
+  X,
+  Package,
+  DollarSign,
+  FileText,
+  Sparkles,
+  ImageIcon,
+  Save,
+  ArrowUpDown,
+} from "lucide-react"
 
 const catalogFormSchema = z.object({
   name: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -40,10 +54,18 @@ function normalizeOptional(value?: string | null) {
   return normalized ? normalized : null
 }
 
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("es-PA", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount)
+}
+
 export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [imageFile, setImageFile] = React.useState<File | null>(null)
+  const [isDragging, setIsDragging] = React.useState(false)
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(
     defaultValues?.image_url ?? null
   )
@@ -63,6 +85,13 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
     },
   })
 
+  const watchedCost = (form.watch("estimated_cost") as number) ?? 0
+  const watchedOurPrice = (form.watch("our_price_unit") as number) ?? 0
+  const profitMargin =
+    watchedOurPrice > 0 && watchedCost > 0
+      ? (((watchedOurPrice - watchedCost) / watchedOurPrice) * 100).toFixed(1)
+      : null
+
   React.useEffect(() => {
     return () => {
       if (previewUrl?.startsWith("blob:")) {
@@ -72,12 +101,10 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
   }, [previewUrl])
 
   function handleFileSelection(file: File | null) {
-    if (!file) {
-      return
-    }
+    if (!file) return
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Debes seleccionar una imagen valida.")
+      toast.error("Debes seleccionar una imagen válida.")
       return
     }
 
@@ -90,9 +117,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
   }
 
   async function uploadImage(targetId: string) {
-    if (!imageFile) {
-      return
-    }
+    if (!imageFile) return
 
     const formData = new FormData()
     formData.append("file", imageFile)
@@ -122,9 +147,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
 
       const response = await fetch(endpoint, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: values.name.trim(),
           description: normalizeOptional(values.description),
@@ -147,7 +170,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
 
       if (!response.ok || !result.success || !result.data) {
         throw new Error(
-          result.error ?? "No se pudo guardar el item de catalogo."
+          result.error ?? "No se pudo guardar el item de catálogo."
         )
       }
 
@@ -155,8 +178,8 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
 
       toast.success(
         mode === "create"
-          ? "Item de catalogo creado."
-          : "Item de catalogo actualizado."
+          ? "Producto agregado al catálogo"
+          : "Producto actualizado correctamente"
       )
 
       router.push(`/catalog/${result.data.id}`)
@@ -165,7 +188,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
       const message =
         error instanceof Error
           ? error.message
-          : "No se pudo guardar el item de catalogo."
+          : "No se pudo guardar el item de catálogo."
       toast.error(message)
     } finally {
       setIsSubmitting(false)
@@ -173,230 +196,387 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
   }
 
   return (
-    <Card className="m-0 rounded-none border-none bg-transparent p-0 shadow-none">
-      <CardHeader className="hidden border-none bg-none">
-        <CardTitle>
-          {mode === "create" ? "Nuevo item de catalogo" : "Editar item"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="m-0 space-y-4 border-none bg-transparent p-0 shadow-none">
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6"
-          noValidate
-        >
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Imagen del producto</p>
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="mx-auto w-full"
+      noValidate
+    >
+      {/* Quick Stats Bar */}
+      <div className="mb-3 grid grid-cols-3 gap-3">
+        <MetricCard
+          icon={<Package className="size-4" />}
+          label="Precio de mercado"
+          value={
+            form.watch("market_price_unit")
+              ? formatCurrency(form.watch("market_price_unit") as number)
+              : "N/A"
+          }
+          accent="default"
+        />
+        <MetricCard
+          icon={<DollarSign className="size-4" />}
+          label="Nuestro precio"
+          value={
+            form.watch("our_price_unit")
+              ? formatCurrency(form.watch("our_price_unit") as number)
+              : "N/A"
+          }
+          accent="brand"
+        />
+        <MetricCard
+          label="Costo estimado"
+          value={
+            form.watch("estimated_cost")
+              ? formatCurrency(form.watch("estimated_cost") as number)
+              : "N/A"
+          }
+          accent="success"
+          icon={<Sparkles className="size-4" />}
+        />
+      </div>
+
+      {/* Tabbed Form */}
+      <Tabs defaultValue="info" className="w-full">
+        <TabsList className="mb-6 grid w-full grid-cols-3">
+          <TabsTrigger value="info" className="gap-2">
+            <Package className="size-4" />
+            <span className="hidden sm:inline">Información</span>
+          </TabsTrigger>
+          <TabsTrigger value="pricing" className="gap-2">
+            <DollarSign className="size-4" />
+            <span className="hidden sm:inline">Precios</span>
+          </TabsTrigger>
+          <TabsTrigger value="media" className="gap-2">
+            <ImageIcon className="size-4" />
+            <span className="hidden sm:inline">Media</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Info Tab */}
+        <TabsContent value="info" className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Nombre del producto{" "}
+                  <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  {...form.register("name")}
+                  placeholder="Ej: Camisa Oxford Premium"
+                  className="h-11"
+                />
+                {form.formState.errors.name && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="garment_type" className="text-sm font-medium">
+                  Tipo de prenda <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="garment_type"
+                  {...form.register("garment_type")}
+                  placeholder="Ej: Camisa"
+                  className="h-11"
+                />
+                {form.formState.errors.garment_type && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.garment_type.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="estimated_cost" className="text-sm font-medium">
+                  Costo estimado
+                </Label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    id="estimated_cost"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    placeholder="0.00"
+                    {...form.register("estimated_cost", {
+                      valueAsNumber: true,
+                    })}
+                    className="h-11 pl-7"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="description" className="text-sm font-medium">
+                  Descripción
+                </Label>
+                <Textarea
+                  id="description"
+                  rows={3}
+                  placeholder="Describe las características del producto..."
+                  {...form.register("description")}
+                  className="resize-none"
+                />
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label
+                  htmlFor="notes"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
+                  <FileText className="size-3.5" />
+                  Notas internas
+                </Label>
+                <Textarea
+                  id="notes"
+                  rows={2}
+                  placeholder="Información privada, instrucciones..."
+                  {...form.register("notes")}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Pricing Tab */}
+        <TabsContent value="pricing" className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="space-y-6">
+              {/* Market Prices */}
+              <div>
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="flex size-6 items-center justify-center rounded-full bg-muted text-xs font-semibold">
+                    M
+                  </span>
+                  <span className="text-sm font-medium">Precio de mercado</span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="market_price_unit"
+                      className="text-sm font-medium"
+                    >
+                      Unitario <span className="text-destructive">*</span>
+                    </Label>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                        $
+                      </span>
+                      <Input
+                        id="market_price_unit"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        placeholder="0.00"
+                        {...form.register("market_price_unit", {
+                          valueAsNumber: true,
+                        })}
+                        className="h-11 pl-7"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="market_price_dozen"
+                      className="text-sm font-medium"
+                    >
+                      Por docena
+                    </Label>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                        $
+                      </span>
+                      <Input
+                        id="market_price_dozen"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        placeholder="0.00"
+                        {...form.register("market_price_dozen", {
+                          valueAsNumber: true,
+                        })}
+                        className="h-11 pl-7"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* Our Prices */}
+              <div>
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="flex size-6 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
+                    N
+                  </span>
+                  <span className="text-sm font-medium">Nuestro precio</span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="our_price_unit"
+                      className="text-sm font-medium"
+                    >
+                      Unitario <span className="text-destructive">*</span>
+                    </Label>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                        $
+                      </span>
+                      <Input
+                        id="our_price_unit"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        placeholder="0.00"
+                        {...form.register("our_price_unit", {
+                          valueAsNumber: true,
+                        })}
+                        className="h-11 pl-7"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="our_price_dozen"
+                      className="text-sm font-medium"
+                    >
+                      Por docena
+                    </Label>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                        $
+                      </span>
+                      <Input
+                        id="our_price_dozen"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        placeholder="0.00"
+                        {...form.register("our_price_dozen", {
+                          valueAsNumber: true,
+                        })}
+                        className="h-11 pl-7"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Profit Summary */}
+              <div className="rounded-lg border-2 border-dashed border-accent/30 bg-accent/5 p-4 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <ArrowUpDown className="size-4" />
+                  <span className="text-sm font-medium">
+                    Margen de ganancia
+                  </span>
+                </div>
+                <p className="mt-1 text-base font-bold">
+                  {profitMargin ? `${profitMargin}%` : "Ingresa precios"}
+                </p>
+                {profitMargin && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Ganancia: {formatCurrency(watchedOurPrice - watchedCost)}{" "}
+                    por unidad
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Media Tab */}
+        <TabsContent value="media" className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-5">
             <Label
-              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 p-6 text-center transition-colors hover:border-brand/60 hover:bg-muted/40"
-              onDrop={(event) => {
-                event.preventDefault()
-                handleFileSelection(event.dataTransfer.files?.[0] ?? null)
+              onDrop={(e) => {
+                e.preventDefault()
+                setIsDragging(false)
+                handleFileSelection(e.dataTransfer.files?.[0] ?? null)
               }}
-              onDragOver={(event) => event.preventDefault()}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setIsDragging(true)
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              className={cn(
+                "flex cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed p-8 text-center transition-all",
+                isDragging
+                  ? "border-accent bg-accent/10"
+                  : "border-border bg-muted/30 hover:border-accent/50 hover:bg-muted/50"
+              )}
             >
               {previewUrl ? (
-                <div className="relative h-40 w-full overflow-hidden rounded-lg border border-border bg-background sm:w-64">
-                  <Image
-                    src={previewUrl}
-                    alt="Preview de producto"
-                    fill
-                    className="object-cover"
-                  />
+                <div className="relative w-full max-w-xs">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted">
+                    <Image
+                      src={previewUrl}
+                      alt="Preview del producto"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                   <Button
                     type="button"
                     size="icon"
                     variant="destructive"
-                    className="absolute top-2 right-2 size-7"
-                    onClick={(event) => {
-                      event.preventDefault()
+                    className="absolute -top-2 -right-2 size-8 rounded-full shadow-lg"
+                    onClick={(e) => {
+                      e.preventDefault()
                       setImageFile(null)
                       setPreviewUrl(null)
                     }}
                   >
-                    <XIcon className="size-4" />
+                    <X className="size-4" />
                   </Button>
                 </div>
               ) : (
                 <>
-                  <div className="rounded-full bg-muted p-3">
-                    <UploadIcon className="size-5 text-muted-foreground" />
+                  <div className="rounded-full bg-muted p-4">
+                    <Upload className="size-4 text-muted-foreground" />
                   </div>
-                  <p className="text-sm text-pretty text-muted-foreground">
-                    Arrastra una imagen o haz click para seleccionar
-                  </p>
+                  <div>
+                    <p className="font-medium">
+                      Arrastra una imagen o haz click para seleccionar
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      PNG, JPG hasta 5MB
+                    </p>
+                  </div>
                 </>
               )}
-
-              <Input
+              <input
                 type="file"
-                accept="image/*"
                 className="hidden"
-                aria-label="Seleccionar imagen del producto"
-                onChange={(event) =>
-                  handleFileSelection(event.target.files?.[0] ?? null)
+                accept="image/*"
+                onChange={(e) =>
+                  handleFileSelection(e.target.files?.[0] ?? null)
                 }
               />
             </Label>
           </div>
+        </TabsContent>
+      </Tabs>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="name" className="text-sm font-medium">
-                Nombre
-              </Label>
-              <Input
-                id="name"
-                {...form.register("name")}
-                placeholder="Ingrese el nombre del producto"
-              />
-              {form.formState.errors.name ? (
-                <p className="text-danger text-xs text-pretty">
-                  {form.formState.errors.name.message}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="garment_type" className="text-sm font-medium">
-                Tipo de prenda
-              </Label>
-              <Input
-                id="garment_type"
-                {...form.register("garment_type")}
-                placeholder="Ej: Camisa"
-              />
-              {form.formState.errors.garment_type ? (
-                <p className="text-danger text-xs text-pretty">
-                  {form.formState.errors.garment_type.message}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="estimated_cost" className="text-sm font-medium">
-                Costo estimado
-              </Label>
-              <Input
-                id="estimated_cost"
-                type="number"
-                min={0}
-                placeholder="0.00"
-                step="0.01"
-                {...form.register("estimated_cost", { valueAsNumber: true })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="market_price_unit"
-                className="text-sm font-medium"
-              >
-                Precio mercado unitario
-              </Label>
-              <Input
-                id="market_price_unit"
-                type="number"
-                min={0}
-                step="0.01"
-                {...form.register("market_price_unit", { valueAsNumber: true })}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="market_price_dozen"
-                className="text-sm font-medium"
-              >
-                Precio mercado docena
-              </Label>
-              <Input
-                id="market_price_dozen"
-                type="number"
-                min={0}
-                step="0.01"
-                {...form.register("market_price_dozen", {
-                  valueAsNumber: true,
-                })}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="our_price_unit" className="text-sm font-medium">
-                Nuestro precio unitario
-              </Label>
-              <Input
-                id="our_price_unit"
-                type="number"
-                min={0}
-                step="0.01"
-                {...form.register("our_price_unit", { valueAsNumber: true })}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="our_price_dozen" className="text-sm font-medium">
-                Nuestro precio docena
-              </Label>
-              <Input
-                id="our_price_dozen"
-                type="number"
-                min={0}
-                step="0.01"
-                {...form.register("our_price_dozen", { valueAsNumber: true })}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="description" className="text-sm font-medium">
-                Descripcion
-              </Label>
-              <Textarea
-                id="description"
-                className="min-h-20"
-                placeholder="Ej: Camisa de algodón 100% con estampado personalizado. Disponible en varios colores y tallas."
-                {...form.register("description")}
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="notes" className="text-sm font-medium">
-                Notas internas
-              </Label>
-              <Textarea
-                id="notes"
-                className="min-h-20"
-                placeholder="Ej: El producto es de alta calidad y tiene una garantía de 1 año."
-                {...form.register("notes")}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/catalog")}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="bg-brand text-brand-foreground"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : null}
-              Guardar producto
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+      <div className="mt-3 flex w-full items-center justify-end gap-2 md:mt-5">
+        <Button type="submit" disabled={isSubmitting} className="gap-2">
+          {isSubmitting ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Save className="size-4" />
+          )}
+          {mode === "create" ? "Crear producto" : "Guardar cambios"}
+        </Button>
+      </div>
+    </form>
   )
 }

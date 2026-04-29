@@ -4,17 +4,29 @@ import { z } from "zod"
 import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { GARMENT_TYPES } from "@/types"
 import { useRouter } from "next/navigation"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useFieldArray, useForm } from "react-hook-form"
-import { productionSessionSchema } from "@/lib/validations/production"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useForm, useFieldArray } from "react-hook-form"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import {
   Command,
@@ -26,37 +38,40 @@ import {
 } from "@/components/ui/command"
 
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-
-import {
-  CheckIcon,
-  ChevronsUpDownIcon,
-  Loader2Icon,
-  PlusIcon,
-  Trash2Icon,
+  Calendar as CalendarIcon,
+  Plus,
+  Trash2,
+  Scissors,
+  Check,
+  ChevronsUpDown,
+  Ruler,
+  Factory,
+  UserCog2,
+  Layers2Icon,
 } from "lucide-react"
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+const GARMENT_TYPES = {
+  shirt: "Camisa",
+  skirt: "Falda",
+  shorts: "Shorts",
+  leggings: "Leggings",
+  pajamas: "Pijamas",
+  suit: "Traje",
+  sheets: "Sábanas",
+  blankets: "Mantas",
+  other: "Otro",
+} as const
 
 const productionFormSchema = z.object({
-  employee_id: z.string().uuid("El empleado seleccionado no es valido"),
-  session_date: z.string().min(1, "La fecha de sesion es obligatoria"),
+  employee_id: z.string().uuid("El empleado seleccionado no es válido"),
+  session_date: z.string().min(1, "La fecha de sesión es obligatoria"),
   notes: z.string().trim().max(1000).optional().nullable(),
   items: z
     .array(
       z.object({
         inventory_item_id: z
           .string()
-          .uuid("El material seleccionado no es valido"),
+          .uuid("El material seleccionado no es válido"),
         garment_type: z.enum([
           "shirt",
           "skirt",
@@ -77,17 +92,16 @@ const productionFormSchema = z.object({
           "XXL",
           "3XL",
           "4XL",
-          "custom",
+          "Personalizada",
         ]),
         quantity: z.coerce.number().int().min(1),
         yards_used: z.coerce.number().min(0),
         notes: z.string().trim().max(500).optional().nullable(),
       })
     )
-    .min(1, "Debes agregar al menos un item a la sesion"),
+    .min(1, "Debes agregar al menos un ítem a la sesión"),
 })
 
-type ProductionSchemaInput = z.input<typeof productionSessionSchema>
 type ProductionFormInput = z.input<typeof productionFormSchema>
 type ProductionFormOutput = z.output<typeof productionFormSchema>
 type ProductionFormValues = ProductionFormOutput
@@ -118,7 +132,7 @@ const sizeOptions: ProductionFormValues["items"][number]["size"][] = [
   "XXL",
   "3XL",
   "4XL",
-  "custom",
+  "Personalizada",
 ]
 
 const garmentOptions = Object.entries(GARMENT_TYPES).map(([value, label]) => ({
@@ -151,15 +165,15 @@ function normalizeOptional(value?: string | null) {
 }
 
 function formatDateLabel(value: string) {
-  if (!value) {
-    return "Seleccionar fecha"
-  }
+  if (!value) return "Seleccionar"
+
+  const [year, month, day] = value.split("-").map(Number)
+  const date = new Date(year, (month || 1) - 1, day || 1)
 
   return new Intl.DateTimeFormat("es-PA", {
     day: "2-digit",
     month: "short",
-    year: "numeric",
-  }).format(parseInputDate(value))
+  }).format(date)
 }
 
 function toInputDate(value: Date) {
@@ -200,13 +214,14 @@ export function ProductionForm({
   const watchedItems = form.watch("items")
   const selectedEmployeeId = form.watch("employee_id")
   const selectedSessionDate = form.watch("session_date")
+
   const today = React.useMemo(() => {
     const now = new Date()
     return new Date(now.getFullYear(), now.getMonth(), now.getDate())
   }, [])
 
   const selectedEmployee = React.useMemo(
-    () => employees.find((employee) => employee.id === selectedEmployeeId),
+    () => employees.find((e) => e.id === selectedEmployeeId),
     [employees, selectedEmployeeId]
   )
 
@@ -228,7 +243,7 @@ export function ProductionForm({
     setIsSubmitting(true)
 
     try {
-      const payload: ProductionSchemaInput = {
+      const payload = {
         employee_id: values.employee_id,
         session_date: parseInputDate(values.session_date),
         notes: normalizeOptional(values.notes),
@@ -244,9 +259,7 @@ export function ProductionForm({
 
       const response = await fetch("/api/production", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
 
@@ -257,17 +270,17 @@ export function ProductionForm({
       }
 
       if (!response.ok || !result.success || !result.data) {
-        throw new Error(result.error ?? "No se pudo registrar la sesion.")
+        throw new Error(result.error ?? "No se pudo registrar la sesión.")
       }
 
-      toast.success("Sesion de produccion registrada.")
+      toast.success("Sesión de producción registrada")
       router.push(`/production/${result.data.id}`)
       router.refresh()
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : "No se pudo registrar la sesion de produccion."
+          : "No se pudo registrar la sesión de producción."
       toast.error(message)
     } finally {
       setIsSubmitting(false)
@@ -277,357 +290,384 @@ export function ProductionForm({
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="space-y-6"
+      className="mx-auto w-full"
       noValidate
     >
-      <Card className="border border-border">
-        <CardHeader>
-          <CardTitle className="text-base">Datos de sesion</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Empleado</Label>
-            <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={employeeOpen}
-                  className="w-full justify-between"
-                >
-                  <span className="truncate">
-                    {selectedEmployee?.fullName ?? "Selecciona empleado"}
-                  </span>
-                  <ChevronsUpDownIcon className="size-4 text-muted-foreground" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-screen p-0 sm:w-104" align="start">
-                <Command>
-                  <CommandInput placeholder="Buscar empleado..." />
-                  <CommandList>
-                    <CommandEmpty>No se encontraron empleados.</CommandEmpty>
-                    <CommandGroup>
-                      {employees.map((employee) => (
-                        <CommandItem
-                          key={employee.id}
-                          onClick={() => {
-                            form.setValue("employee_id", employee.id, {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            })
-                            setEmployeeOpen(false)
-                          }}
-                        >
-                          <CheckIcon
-                            className={cn(
-                              "mr-2 size-4",
-                              employee.id === selectedEmployeeId
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          <span className="truncate">{employee.fullName}</span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {form.formState.errors.employee_id ? (
-              <p className="text-danger text-xs">
-                {form.formState.errors.employee_id.message}
-              </p>
-            ) : null}
-          </div>
+      {/* Summary Stats */}
+      <div className="mb-6 grid grid-cols-3 gap-3 rounded-xl border border-border bg-card p-4">
+        <div className="text-center">
+          <p className="text-xs font-medium text-muted-foreground">Empleado</p>
+          <p className="truncate text-sm font-bold">
+            {selectedEmployee?.fullName || "—"}
+          </p>
+        </div>
+        <div className="border-x border-border text-center">
+          <p className="text-xs font-medium text-muted-foreground">Prendas</p>
+          <p className="text-success text-lg font-bold">{totalGarments}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-xs font-medium text-muted-foreground">Yardas</p>
+          <p className="text-warning text-lg font-bold">
+            {totalYards.toFixed(2)}
+          </p>
+        </div>
+      </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Fecha de sesion</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  {formatDateLabel(selectedSessionDate)}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align="start">
-                <Calendar
-                  mode="single"
-                  selected={
-                    selectedSessionDate
-                      ? parseInputDate(selectedSessionDate)
-                      : undefined
-                  }
-                  onSelect={(date) => {
-                    if (!date) {
-                      return
-                    }
+      {/* Tabbed Form */}
+      <Tabs defaultValue="session" className="w-full">
+        <TabsList className="mb-4 grid w-full grid-cols-2">
+          <TabsTrigger value="session" className="gap-1.5 text-xs sm:text-sm">
+            <UserCog2 className="size-3.5" />
+            Sesión
+          </TabsTrigger>
+          <TabsTrigger value="items" className="gap-1.5 text-xs sm:text-sm">
+            <Scissors className="size-3.5" />
+            Producción ({fields.length})
+          </TabsTrigger>
+        </TabsList>
 
-                    form.setValue("session_date", toInputDate(date), {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }}
-                  disabled={(date) => date > today}
-                  initialFocus
+        {/* Session Tab */}
+        <TabsContent value="session" className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="space-y-4">
+              {/* Employee + Date Row */}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    Empleado <span className="text-destructive">*</span>
+                  </Label>
+                  <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={employeeOpen}
+                        className="h-10 w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {selectedEmployee?.fullName ?? "Seleccionar"}
+                        </span>
+                        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Buscar..." />
+                        <CommandList>
+                          {employees.length === 0 && (
+                            <CommandEmpty>
+                              No hay empleados disponibles
+                            </CommandEmpty>
+                          )}
+                          <CommandGroup>
+                            {employees.map((employee) => (
+                              <CommandItem
+                                key={employee.id}
+                                onSelect={() => {
+                                  form.setValue("employee_id", employee.id, {
+                                    shouldDirty: true,
+                                    shouldValidate: true,
+                                  })
+                                  setEmployeeOpen(false)
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "size-4",
+                                    employee.id === selectedEmployeeId
+                                      ? "opacity-100"
+                                      : ""
+                                  )}
+                                />
+                                <div className="flex items-center gap-2">
+                                  <div className="flex size-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                                    {employee.fullName.charAt(0)}
+                                  </div>
+                                  <span className="truncate">
+                                    {employee.fullName}
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {form.formState.errors.employee_id && (
+                    <p className="text-xs text-destructive">
+                      {form.formState.errors.employee_id.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Fecha</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-10 w-full justify-start font-normal"
+                      >
+                        <CalendarIcon className="mr-2 size-4 text-muted-foreground" />
+                        {formatDateLabel(selectedSessionDate)}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          selectedSessionDate
+                            ? parseInputDate(selectedSessionDate)
+                            : undefined
+                        }
+                        onSelect={(date) => {
+                          if (!date) return
+                          form.setValue("session_date", toInputDate(date), {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          })
+                        }}
+                        disabled={(date) => date > today}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-sm font-medium">
+                  Notas generales
+                </Label>
+                <Textarea
+                  id="notes"
+                  rows={2}
+                  placeholder="Observaciones de la jornada..."
+                  {...form.register("notes")}
+                  className="resize-none"
                 />
-              </PopoverContent>
-            </Popover>
-            {form.formState.errors.session_date ? (
-              <p className="text-danger text-xs">
-                {form.formState.errors.session_date.message as string}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="notes" className="text-sm font-medium">
-              Notas generales
-            </Label>
-            <Textarea
-              id="notes"
-              className="min-h-24"
-              placeholder="Observaciones de la jornada o rendimiento..."
-              {...form.register("notes")}
-            />
-          </div>
-
-          <div className="rounded-xl border border-border bg-surface-1 p-3 md:col-span-2">
-            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Lineas</p>
-                <p className="font-medium">{fields.length}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Prendas totales</p>
-                <p className="font-medium">{totalGarments}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Yardas usadas</p>
-                <p className="font-medium">{totalYards.toFixed(2)}</p>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      <Card className="border border-border">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Detalle de confeccion</CardTitle>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => append(emptyItem())}
-          >
-            <PlusIcon className="size-4" />
-            Agregar linea
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {fields.map((field, index) => {
-            const selectedItemId = form.watch(
-              `items.${index}.inventory_item_id`
-            )
-            const selectedMaterial = inventoryItems.find(
-              (item) => item.id === selectedItemId
-            )
-
-            return (
-              <div
-                key={field.id}
-                className="space-y-4 rounded-xl border border-border bg-card p-4"
-              >
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Material</Label>
-                    <Select
-                      value={
-                        form.watch(`items.${index}.inventory_item_id`) || ""
-                      }
-                      onValueChange={(value) =>
-                        form.setValue(
-                          `items.${index}.inventory_item_id`,
-                          value,
-                          {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          }
-                        )
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecciona material" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {inventoryItems.map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {form.formState.errors.items?.[index]?.inventory_item_id ? (
-                      <p className="text-danger text-xs">
-                        {
-                          form.formState.errors.items[index]?.inventory_item_id
-                            ?.message
-                        }
-                      </p>
-                    ) : null}
-                    {selectedMaterial ? (
-                      <p className="text-xs text-muted-foreground">
-                        Stock disponible: {selectedMaterial.quantity.toFixed(2)}{" "}
-                        {selectedMaterial.unit}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Prenda</Label>
-                    <Select
-                      value={
-                        form.watch(`items.${index}.garment_type`) || "shirt"
-                      }
-                      onValueChange={(value) =>
-                        form.setValue(
-                          `items.${index}.garment_type`,
-                          value as ProductionFormValues["items"][number]["garment_type"],
-                          {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          }
-                        )
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Tipo de prenda" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {garmentOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Talla</Label>
-                    <Select
-                      value={form.watch(`items.${index}.size`) || "M"}
-                      onValueChange={(value) =>
-                        form.setValue(
-                          `items.${index}.size`,
-                          value as ProductionFormValues["items"][number]["size"],
-                          {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          }
-                        )
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Talla" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sizeOptions.map((size) => (
-                          <SelectItem key={size} value={size}>
-                            {size === "custom" ? "Personalizada" : size}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Cantidad</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      step="1"
-                      {...form.register(`items.${index}.quantity`, {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    {form.formState.errors.items?.[index]?.quantity ? (
-                      <p className="text-danger text-xs">
-                        {form.formState.errors.items[index]?.quantity?.message}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Yardas usadas</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      {...form.register(`items.${index}.yards_used`, {
-                        valueAsNumber: true,
-                      })}
-                    />
-                    {form.formState.errors.items?.[index]?.yards_used ? (
-                      <p className="text-danger text-xs">
-                        {
-                          form.formState.errors.items[index]?.yards_used
-                            ?.message
-                        }
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Notas</Label>
-                    <Input
-                      {...form.register(`items.${index}.notes`)}
-                      placeholder="Opcional"
-                    />
-                  </div>
+        {/* Items Tab */}
+        <TabsContent value="items" className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-accent/10 dark:bg-accent">
+                  <Factory className="size-4" />
                 </div>
-
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={fields.length === 1}
-                    onClick={() => remove(index)}
-                  >
-                    <Trash2Icon className="size-4" />
-                    Quitar linea
-                  </Button>
-                </div>
+                <span className="text-sm font-medium">
+                  {fields.length} línea{fields.length !== 1 ? "s" : ""}
+                </span>
               </div>
-            )
-          })}
-        </CardContent>
-      </Card>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => append(emptyItem())}
+                className="gap-1.5"
+              >
+                <Plus className="size-3.5" />
+                Agregar
+              </Button>
+            </div>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push("/production")}
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          className="bg-brand text-brand-foreground"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <Loader2Icon className="size-4 animate-spin" />
-          ) : null}
-          Guardar sesion
-        </Button>
-      </div>
+            <div className="space-y-3">
+              {fields.map((field, index) => {
+                const selectedItemId = form.watch(
+                  `items.${index}.inventory_item_id`
+                )
+                const selectedMaterial = inventoryItems.find(
+                  (item) => item.id === selectedItemId
+                )
+                const itemQuantity = Number(
+                  form.watch(`items.${index}.quantity`) || 0
+                )
+                const itemYards = Number(
+                  form.watch(`items.${index}.yards_used`) || 0
+                )
+
+                return (
+                  <div
+                    key={field.id}
+                    className="rounded-lg border border-border bg-muted/30 p-3"
+                  >
+                    {/* Item Header */}
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="flex size-6 items-center justify-center rounded-md bg-accent/10 text-xs font-bold dark:bg-accent">
+                          {index + 1}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {itemQuantity} pz · {itemYards.toFixed(1)} yd
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={fields.length === 1}
+                        onClick={() => remove(index)}
+                        className="size-7 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+
+                    {/* Item Fields - Compact Grid */}
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                      <div className="space-y-1 sm:col-span-2">
+                        <Label className="text-xs text-muted-foreground">
+                          Material
+                        </Label>
+                        <Select
+                          value={
+                            form.watch(`items.${index}.inventory_item_id`) || ""
+                          }
+                          onValueChange={(value) =>
+                            form.setValue(
+                              `items.${index}.inventory_item_id`,
+                              value,
+                              {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              }
+                            )
+                          }
+                        >
+                          <SelectTrigger className="h-9 w-full text-xs">
+                            <SelectValue placeholder="Seleccionar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {inventoryItems.map((item) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                <div className="flex items-center gap-1">
+                                  <Layers2Icon className="size-3 text-muted-foreground" />
+                                  <span className="truncate">{item.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {selectedMaterial && (
+                          <p className="text-[10px] text-muted-foreground">
+                            Stock: {selectedMaterial.quantity.toFixed(1)}{" "}
+                            {selectedMaterial.unit}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Prenda
+                        </Label>
+                        <Select
+                          value={
+                            form.watch(`items.${index}.garment_type`) || "shirt"
+                          }
+                          onValueChange={(value) =>
+                            form.setValue(
+                              `items.${index}.garment_type`,
+                              value as ProductionFormValues["items"][number]["garment_type"],
+                              { shouldDirty: true, shouldValidate: true }
+                            )
+                          }
+                        >
+                          <SelectTrigger className="h-9 text-xs w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {garmentOptions.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Talla
+                        </Label>
+                        <Select
+                          value={form.watch(`items.${index}.size`) || "M"}
+                          onValueChange={(value) =>
+                            form.setValue(
+                              `items.${index}.size`,
+                              value as ProductionFormValues["items"][number]["size"],
+                              { shouldDirty: true, shouldValidate: true }
+                            )
+                          }
+                        >
+                          <SelectTrigger className="h-9 text-xs w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {sizeOptions.map((size) => (
+                              <SelectItem key={size} value={size}>
+                                {size}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Scissors className="size-3" />
+                          Piezas
+                        </Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          step="1"
+                          {...form.register(`items.${index}.quantity`, {
+                            valueAsNumber: true,
+                          })}
+                          className="h-9 text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Ruler className="size-3" />
+                          Yardas
+                        </Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          {...form.register(`items.${index}.yards_used`, {
+                            valueAsNumber: true,
+                          })}
+                          className="h-9 text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {form.formState.errors.items && (
+              <p className="mt-2 text-xs text-destructive">
+                {form.formState.errors.items.message}
+              </p>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </form>
   )
 }

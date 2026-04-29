@@ -1,3 +1,6 @@
+import Link from "next/link"
+import { ArrowLeftIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { PageHeader } from "@/components/shared/page-header"
 import { getProductionFormBootstrap } from "@/lib/data/production"
@@ -17,11 +20,19 @@ export default async function NewProductionSessionPage() {
     <div className="page-shell">
       <PageHeader
         title="Nueva sesion de produccion"
-        description="Registra prendas confeccionadas y consumo de tela por material."
+        description="Registra la producción del día. Agrega prendas y materiales usados."
         breadcrumbs={[
           { label: "Produccion", href: "/production" },
           { label: "Nueva sesion" },
         ]}
+        actions={
+          <Button asChild variant="outline" size="sm">
+            <Link href="/production">
+              <ArrowLeftIcon className="size-4" />
+              Volver
+            </Link>
+          </Button>
+        }
       />
 
       <div className="page-content">

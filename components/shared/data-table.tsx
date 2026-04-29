@@ -246,7 +246,7 @@ export function DataTable<TData, TValue>({
                 }))
               }
             >
-              <SelectTrigger className="w-20">
+              <SelectTrigger className="w-20 h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

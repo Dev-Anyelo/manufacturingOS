@@ -25,11 +25,11 @@ export default async function ProductionDetailPage({
   return (
     <div className="page-shell">
       <PageHeader
-        title={`Sesion ${session.id.slice(0, 8)}`}
+        title={`Sesión #${session.id.slice(0, 8)}`}
         description="Detalle de prendas confeccionadas y consumo por material."
         breadcrumbs={[
           { label: "Produccion", href: "/production" },
-          { label: `Sesion ${session.id.slice(0, 8)}` },
+          { label: `Sesión #${session.id.slice(0, 8)}` },
         ]}
         actions={
           <Button asChild variant="outline" size="sm">

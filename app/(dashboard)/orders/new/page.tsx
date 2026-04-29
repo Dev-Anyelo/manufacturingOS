@@ -14,7 +14,7 @@ export default async function NewOrderPage() {
     <section className="page-shell">
       <PageHeader
         title="Nuevo pedido"
-        description="Registra prendas, cliente y detalles de entrega para iniciar produccion."
+        description=" Crea un pedido para un cliente y especifica los detalles de entrega."
         actions={
           <Button asChild variant="outline" size="sm">
             <Link href="/orders">
@@ -34,7 +34,7 @@ export default async function NewOrderPage() {
         <OrderForm
           customers={customers.map((customer) => ({
             id: customer.id,
-            fullName: customer.fullName,
+            name: customer.fullName,
             phone: customer.phone,
             email: customer.email,
           }))}
