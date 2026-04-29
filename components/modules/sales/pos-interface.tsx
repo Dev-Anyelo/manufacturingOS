@@ -268,7 +268,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     <>
       <div className="hidden md:block">
         <div className="flex h-[calc(100vh-14.5rem)] gap-0 overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-4">
+          <div className="flex-1 overflow-y-auto pr-3">
             <PosCatalogPanel items={catalogItems} onAddItem={handleAddItem} />
           </div>
 

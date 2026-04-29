@@ -56,9 +56,9 @@ export function PosCatalogPanel({ items, onAddItem }: PosCatalogPanelProps) {
   }, [items, search, garmentType])
 
   return (
-    <div className="flex flex-col h-full gap-0">
+    <div className="flex h-full flex-col gap-0">
       {/* Sticky search bar */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-1 py-3">
+      <div className="sticky top-0 z-10 border-b border-border bg-background/95 px-1 py-3 backdrop-blur-sm">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_180px]">
           <SearchInput
             value={search}
@@ -95,11 +95,7 @@ export function PosCatalogPanel({ items, onAddItem }: PosCatalogPanelProps) {
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
             {filteredItems.map((item) => (
-              <CatalogProductCard
-                key={item.id}
-                item={item}
-                onAdd={onAddItem}
-              />
+              <CatalogProductCard key={item.id} item={item} onAdd={onAddItem} />
             ))}
           </div>
         )}
@@ -122,8 +118,8 @@ function CatalogProductCard({
   return (
     <div
       className={cn(
-        "group relative rounded-xl border border-border bg-muted/20 overflow-hidden",
-        "hover:border-border/80 hover:shadow-md transition-all duration-200 active:scale-[0.97]",
+        "group relative overflow-hidden rounded-xl border border-border bg-muted/20",
+        "transition-all duration-200 hover:border-border/80 hover:shadow-md active:scale-[0.97]",
         "cursor-pointer"
       )}
       onClick={() => onAdd(item)}
@@ -148,7 +144,7 @@ function CatalogProductCard({
           <div className="absolute top-1.5 left-1.5">
             <Badge
               variant="secondary"
-              className="text-[0.625rem] px-1.5 py-0 h-4 font-medium bg-background/80 backdrop-blur-sm border border-border"
+              className="h-4 border border-border bg-background/80 px-1.5 py-0 text-[0.625rem] font-medium backdrop-blur-sm"
             >
               {garmentLabel}
             </Badge>
@@ -156,13 +152,13 @@ function CatalogProductCard({
         ) : null}
 
         {/* Hover overlay with + button */}
-        <div className="absolute inset-0 flex items-center justify-center bg-brand/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="absolute inset-0 flex items-center justify-center bg-brand/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 type="button"
                 size="icon"
-                className="size-9 rounded-full bg-brand text-brand-foreground shadow-lg hover:bg-brand/90 transition-transform scale-90 group-hover:scale-100"
+                className="size-9 scale-90 rounded-full bg-brand text-brand-foreground shadow-lg transition-transform group-hover:scale-100 hover:bg-brand/90"
                 onClick={(event) => {
                   event.stopPropagation()
                   onAdd(item)
@@ -178,8 +174,8 @@ function CatalogProductCard({
       </div>
 
       {/* Info section */}
-      <div className="p-2.5 space-y-1">
-        <p className="text-xs font-semibold line-clamp-2 leading-tight">
+      <div className="space-y-1 p-2.5">
+        <p className="line-clamp-2 text-xs leading-tight font-semibold">
           {item.name}
         </p>
         <p className="text-sm font-bold text-brand tabular-nums">
