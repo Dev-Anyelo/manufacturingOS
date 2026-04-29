@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -43,12 +44,11 @@ export function LoginForm() {
 
     if (error) {
       const mappedError = error.code ? authErrorMap[error.code] : undefined
-      setSubmitError(
-        mappedError ?? "No se pudo iniciar sesión. Intenta nuevamente."
-      )
+      toast.error(mappedError || "Error al iniciar sesión. Intenta de nuevo.")
       return
     }
 
+    toast.success("¡Bienvenido de nuevo!")
     router.push("/")
   })
 
