@@ -351,7 +351,7 @@ export function OrderForm({
           description={`${totalUnits} unidad${totalUnits !== 1 ? "es" : ""} en total`}
           icon={<CalculatorIcon className="size-4" />}
         />
-        
+
         <StatCard
           title="Adelanto pagado"
           value={Number(watchedAdvance || 0).toFixed(2)}
@@ -372,14 +372,14 @@ export function OrderForm({
               ? formatDateLabel(watchedDeliveryDate)
               : "No definida"
           }
-          description="Fecha acordada para la entrega del pedido"
+          description="Fecha para la entrega del pedido"
           icon={<CalendarIcon className="size-4" />}
         />
 
         <StatCard
           title="Imagenes de referencia"
           value={referenceFiles.length}
-          description="Cantidad de imagenes cargadas para referencia"
+          description="Imágenes cargadas para referencia"
           icon={<UploadIcon className="size-4" />}
         />
       </div>
@@ -827,13 +827,14 @@ export function OrderForm({
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => router.push("/orders")}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="bg-brand text-brand-foreground"
+              size="sm"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

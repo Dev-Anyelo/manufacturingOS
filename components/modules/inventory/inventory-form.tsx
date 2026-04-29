@@ -3,10 +3,12 @@
 import { z } from "zod"
 import { toast } from "sonner"
 import * as React from "react"
+import Image from "next/image"
 import { useForm } from "react-hook-form"
 import { MaterialCategory } from "@/types"
 import { Form } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
@@ -521,7 +523,7 @@ export function InventoryForm({
                 </div>
               </CardHeader>
               <CardContent className="space-y-3 px-4 pt-0 pb-5">
-                <label
+                <Label
                   onDrop={(e) => {
                     e.preventDefault()
                     setIsDragging(false)
@@ -541,10 +543,11 @@ export function InventoryForm({
                   {previewUrl ? (
                     <div className="relative w-full">
                       <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-background">
-                        <img
+                        <Image
                           src={previewUrl}
                           alt="Preview del material"
                           className="h-full w-full object-cover"
+                          fill
                         />
                       </div>
                       <Button
@@ -585,7 +588,7 @@ export function InventoryForm({
                       handleFileSelection(e.target.files?.[0] ?? null)
                     }
                   />
-                </label>
+                </Label>
               </CardContent>
             </Card>
 
@@ -599,7 +602,7 @@ export function InventoryForm({
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full transition-all"
-                  size="lg"
+                  size="sm"
                 >
                   {isSubmitting && <Loader2 className="size-4 animate-spin" />}
 
@@ -615,7 +618,7 @@ export function InventoryForm({
                   type="button"
                   variant="outline"
                   className="w-full"
-                  size="lg"
+                  size="sm"
                   onClick={() => form.reset()}
                 >
                   Cancelar

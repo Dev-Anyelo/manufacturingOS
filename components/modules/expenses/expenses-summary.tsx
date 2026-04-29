@@ -2,6 +2,7 @@ import { formatCurrency } from "@/lib/utils"
 import { EXPENSE_CATEGORIES } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { EmptyState } from "@/components/shared/empty-state"
 import { TrendingDownIcon, WalletCardsIcon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -40,7 +41,7 @@ export function ExpensesSummary({
     <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3">
       {/* Left: Monthly total + top concepts */}
       <Card className="m-0 rounded-xl border border-border p-0 shadow-card lg:col-span-1">
-        <CardHeader className="border-b border-border px-4 pt-3 pb-2">
+        <CardHeader className="border-b border-border px-4 pt-3">
           <div className="flex items-center gap-2">
             <div className="bg-danger-soft flex h-9 w-9 items-center justify-center rounded-lg">
               <TrendingDownIcon className="text-danger size-4" />
@@ -55,14 +56,16 @@ export function ExpensesSummary({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3 pt-2">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Top conceptos
-          </p>
+        <CardContent className="space-y-3">
           {topConcepts.length === 0 ? (
-            <p className="text-xs text-pretty text-muted-foreground italic">
-              Sin gastos en el mes actual.
-            </p>
+            <EmptyState
+              icon={
+                <TrendingDownIcon className="size-6 text-muted-foreground" />
+              }
+              title="Sin gastos registrados"
+              description="Los gastos registrados en el mes apareceran aqui desglosados por concepto."
+              className="m-0 border-none bg-none p-0"
+            />
           ) : (
             topConcepts.slice(0, 4).map((concept, index) => (
               <div
@@ -111,11 +114,16 @@ export function ExpensesSummary({
             Distribucion por categoria
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 pt-4">
+        <CardContent className="space-y-3">
           {sortedCategories.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              Sin datos de gastos por categoria.
-            </p>
+            <EmptyState
+              icon={
+                <WalletCardsIcon className="size-6 text-muted-foreground" />
+              }
+              title="Sin gastos registrados"
+              description="Los gastos registrados en el mes apareceran aqui desglosados por categoria."
+              className="m-0 border-none bg-none p-0"
+            />
           ) : (
             sortedCategories.map(([key, value], index) => {
               const label =

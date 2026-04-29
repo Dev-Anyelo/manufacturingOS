@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2Icon, UploadIcon } from "lucide-react"
+import { ArrowUpRightIcon, Loader2Icon, UploadIcon } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { StatCard } from "@/components/shared/stat-card"
 
 const expenseFormSchema = z
   .object({
@@ -279,47 +280,46 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
       noValidate
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="border border-border shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Fecha
-            </p>
-            <p className="text-sm font-semibold">
-              {formatDateLabel(selectedExpenseDate)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border border-border shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Total estimado
-            </p>
-            <CurrencyDisplay
-              amount={Number.isFinite(calculatedTotal) ? calculatedTotal : 0}
-              className="font-semibold"
-            />
-          </CardContent>
-        </Card>
-        <Card className="border border-border shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Inventario
-            </p>
-            <p className="text-sm font-semibold">
-              {updatesInventory ? "Ajuste activo" : "Sin ajuste"}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border border-border shadow-sm">
-          <CardContent className="space-y-1 p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
-              Comprobante
-            </p>
-            <p className="truncate text-sm font-semibold">
-              {receiptFile ? "Adjuntado" : "No adjuntado"}
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Total a registrar"
+          value={Number(form.watch("total") ?? 0)}
+          description="Revisa el total antes de guardar el gasto."
+          icon={
+            <CurrencyDisplay amount={calculatedTotal} className="text-lg" />
+          }
+        />
+
+        <StatCard
+          title="Impacto en inventario"
+          value={
+            updatesInventory
+              ? `Suma stock en ${selectedInventoryItem?.name ?? "material seleccionado"}`
+              : "No aplica"
+          }
+          description={
+            updatesInventory
+              ? `El stock de ${selectedInventoryItem?.name ?? "material seleccionado"} se incrementara en ${form.watch("inventory_quantity_added") ?? 0} ${selectedInventoryItem?.unit ?? "unidades"}.`
+              : "Este gasto no afectara el inventario."
+          }
+          icon={
+            updatesInventory ? (
+              <ArrowUpRightIcon className="text-success size-4" />
+            ) : null
+          }
+        />
+
+        <StatCard
+          title="Comprobante"
+          value={receiptFile ? receiptFile.name : "Sin archivo"}
+          description={
+            receiptFile
+              ? "Archivo listo para subir"
+              : "No se ha seleccionado un recibo"
+          }
+          icon={
+            receiptFile ? <UploadIcon className="text-info size-4" /> : null
+          }
+        />
       </div>
 
       <Card className="border border-border">

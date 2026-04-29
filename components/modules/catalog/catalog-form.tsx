@@ -187,7 +187,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
         >
           <div className="space-y-2">
             <p className="text-sm font-medium">Imagen del producto</p>
-            <label
+            <Label
               className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 p-6 text-center transition-colors hover:border-brand/60 hover:bg-muted/40"
               onDrop={(event) => {
                 event.preventDefault()
@@ -222,7 +222,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
                   <div className="rounded-full bg-muted p-3">
                     <UploadIcon className="size-5 text-muted-foreground" />
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-pretty text-muted-foreground">
                     Arrastra una imagen o haz click para seleccionar
                   </p>
                 </>
@@ -237,7 +237,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
                   handleFileSelection(event.target.files?.[0] ?? null)
                 }
               />
-            </label>
+            </Label>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -245,9 +245,13 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
               <Label htmlFor="name" className="text-sm font-medium">
                 Nombre
               </Label>
-              <Input id="name" {...form.register("name")} />
+              <Input
+                id="name"
+                {...form.register("name")}
+                placeholder="Ingrese el nombre del producto"
+              />
               {form.formState.errors.name ? (
-                <p className="text-danger text-xs">
+                <p className="text-danger text-xs text-pretty">
                   {form.formState.errors.name.message}
                 </p>
               ) : null}
@@ -263,7 +267,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
                 placeholder="Ej: Camisa"
               />
               {form.formState.errors.garment_type ? (
-                <p className="text-danger text-xs">
+                <p className="text-danger text-xs text-pretty">
                   {form.formState.errors.garment_type.message}
                 </p>
               ) : null}
@@ -277,6 +281,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
                 id="estimated_cost"
                 type="number"
                 min={0}
+                placeholder="0.00"
                 step="0.01"
                 {...form.register("estimated_cost", { valueAsNumber: true })}
               />
@@ -295,6 +300,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
                 min={0}
                 step="0.01"
                 {...form.register("market_price_unit", { valueAsNumber: true })}
+                placeholder="0.00"
               />
             </div>
 
@@ -313,6 +319,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
                 {...form.register("market_price_dozen", {
                   valueAsNumber: true,
                 })}
+                placeholder="0.00"
               />
             </div>
 
@@ -326,6 +333,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
                 min={0}
                 step="0.01"
                 {...form.register("our_price_unit", { valueAsNumber: true })}
+                placeholder="0.00"
               />
             </div>
 
@@ -339,6 +347,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
                 min={0}
                 step="0.01"
                 {...form.register("our_price_dozen", { valueAsNumber: true })}
+                placeholder="0.00"
               />
             </div>
 
@@ -349,6 +358,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
               <Textarea
                 id="description"
                 className="min-h-20"
+                placeholder="Ej: Camisa de algodón 100% con estampado personalizado. Disponible en varios colores y tallas."
                 {...form.register("description")}
               />
             </div>
@@ -360,6 +370,7 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
               <Textarea
                 id="notes"
                 className="min-h-20"
+                placeholder="Ej: El producto es de alta calidad y tiene una garantía de 1 año."
                 {...form.register("notes")}
               />
             </div>

@@ -6,10 +6,13 @@ import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { StatCard } from "@/components/shared/stat-card"
+import { EmptyState } from "@/components/shared/empty-state"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { PayrollForm } from "@/components/modules/payroll/payroll-form"
-import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { MarkPaidDialog } from "@/components/modules/payroll/mark-paid-dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import {
   CheckCircle2Icon,
   PlusIcon,
@@ -17,8 +20,6 @@ import {
   UsersRoundIcon,
   WalletCardsIcon,
 } from "lucide-react"
-import { MarkPaidDialog } from "@/components/modules/payroll/mark-paid-dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
   Card,
@@ -187,10 +188,14 @@ export function PayrollWorkspace({
             </CardHeader>
             <CardContent className="space-y-2 pt-4">
               {employeeSummary.length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">
-                  Aun no hay pagos registrados para mostrar resumen por
-                  empleado.
-                </p>
+                <EmptyState
+                  icon={
+                    <UsersRoundIcon className="size-6 text-muted-foreground" />
+                  }
+                  title="Sin pagos registrados"
+                  description="Los totales por empleado aparecera aqui en cuanto registres pagos en la planilla."
+                  className="p-0 m-0 border-none bg-none"
+                />
               ) : (
                 employeeSummary.map((row) => (
                   <div
@@ -219,7 +224,7 @@ export function PayrollWorkspace({
       {/* Create payment dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-h-[90vh]">
-          <DialogHeader className="text-pretty text-base py-4">
+          <DialogHeader className="py-4 text-base text-pretty">
             <DialogTitle>Nuevo pago de planilla</DialogTitle>
             <DialogDescription>
               Registra un nuevo pago con el periodo y montos correspondientes.

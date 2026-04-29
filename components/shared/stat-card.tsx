@@ -91,7 +91,7 @@ export function StatCard({
           </div>
         )}
         {description && (
-          <p className="text-xs text-muted-foreground/70">{description}</p>
+          <p className="text-xs text-muted-foreground/70 text-pretty">{description}</p>
         )}
       </div>
     </div>

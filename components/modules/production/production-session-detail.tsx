@@ -61,19 +61,19 @@ export function ProductionSessionDetail({
         <StatCard
           title="Empleado"
           value={session.employeeName}
-          description="Nombre del empleado responsable de la sesion."
+          description="Responsable de la sesion."
           icon={<UserRoundIcon className="size-4" />}
         />
         <StatCard
           title="Total prendas"
           value={session.totalGarments.toString()}
-          description="Cantidad total de prendas confeccionadas."
+          description="Total de prendas confeccionadas."
           icon={<ScissorsIcon className="size-4" />}
         />
         <StatCard
           title="Total yardas"
           value={session.totalYardsUsed.toFixed(2)}
-          description="Cantidad total de yardas de tela utilizadas."
+          description="Total de yardas de tela utilizadas."
           icon={<RulerIcon className="size-4" />}
         />
       </div>
@@ -81,7 +81,7 @@ export function ProductionSessionDetail({
       <Card className="m-0 rounded-none border-none bg-transparent p-0 shadow-none">
         <CardHeader className="m-0 border-none bg-none p-0 shadow-none">
           <CardTitle>Items de produccion</CardTitle>
-          <p className="text-sm text-muted-foreground text-pretty">
+          <p className="text-sm text-pretty text-muted-foreground">
             Detalle de insumos y prendas procesadas en la sesion.
           </p>
         </CardHeader>
