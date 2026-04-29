@@ -149,7 +149,7 @@ function KanbanColumn({
         >
           {orders.length === 0 ? (
             <EmptyState
-              icon={InboxIcon}
+              icon={<InboxIcon />}
               title="Sin pedidos"
               description="No hay pedidos en esta etapa. Arrastra un pedido aquí o espera a que lleguen nuevos pedidos."
             />
@@ -238,7 +238,7 @@ export function OrderKanban({
         <div className="space-y-2">
           {mobileList.length === 0 ? (
             <EmptyState
-              icon={InboxIcon}
+              icon={<InboxIcon />}
               title="Sin pedidos para este filtro"
               description="No hay pedidos que coincidan con la etapa seleccionada."
               compact

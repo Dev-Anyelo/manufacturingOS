@@ -154,7 +154,7 @@ export default async function DashboardPage() {
 
         {!hasDashboardData ? (
           <EmptyState
-            icon={PackageSearchIcon}
+            icon={<PackageSearchIcon />}
             title="Sin datos operativos aun"
             description="Agrega materiales, ventas o pedidos para ver indicadores del tablero."
             action={
@@ -227,7 +227,7 @@ export default async function DashboardPage() {
                   {recentActivity.length === 0 ? (
                     <div className="p-6">
                       <EmptyState
-                        icon={HistoryIcon}
+                        icon={<HistoryIcon />}
                         title="Sin actividad"
                         description="Aun no hay operaciones registradas."
                         compact
@@ -293,7 +293,7 @@ export default async function DashboardPage() {
                   {criticalAlerts.length === 0 ? (
                     <div className="p-6">
                       <EmptyState
-                        icon={AlertTriangleIcon}
+                        icon={<AlertTriangleIcon />}
                         title="Sin alertas criticas"
                         description="Todos los materiales en niveles aceptables."
                         compact

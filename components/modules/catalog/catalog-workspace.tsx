@@ -199,7 +199,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
       {viewMode === "grid" ? (
         filteredItems.length === 0 ? (
           <EmptyState
-            icon={ShoppingBagIcon}
+            icon={<ShoppingBagIcon />}
             title="Sin productos en el catalogo"
             description="Agrega nuevos productos para iniciar ventas y pedidos."
             action={

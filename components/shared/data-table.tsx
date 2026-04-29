@@ -214,7 +214,7 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-56">
                   <EmptyState
-                    icon={InboxIcon}
+                    icon={<InboxIcon />}
                     title={emptyMessage}
                     description={emptyDescription}
                     action={emptyAction}

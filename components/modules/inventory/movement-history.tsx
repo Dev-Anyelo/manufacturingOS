@@ -22,7 +22,7 @@ export function MovementHistory({ movements, unit }: MovementHistoryProps) {
   if (movements.length === 0) {
     return (
       <EmptyState
-        icon={Clock3Icon}
+        icon={<Clock3Icon />}
         title="Sin movimientos registrados"
         description="El historial aparecera aqui cuando registres entradas, salidas o ajustes."
       />

@@ -2,14 +2,13 @@
 
 import Image from "next/image"
 import * as React from "react"
-import { GARMENT_TYPES } from "@/types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import type { PosCatalogItem } from "@/components/modules/sales/types"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { cn } from "@/lib/utils"
+import { GARMENT_TYPES } from "@/types"
+import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/shared/empty-state"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import type { PosCatalogItem } from "@/components/modules/sales/types"
 
 import {
   LayoutGridIcon,
@@ -196,7 +195,7 @@ export function PosCatalogPanel({
             value={sort}
             onValueChange={(value) => setSort(value as CatalogSort)}
           >
-            <SelectTrigger className="h-8 w-[140px] rounded-full border-border/50 bg-background text-xs shadow-sm">
+            <SelectTrigger className="h-8 w-35 rounded-full border-border/50 bg-background text-xs shadow-sm">
               <SelectValue placeholder="Ordenar" />
             </SelectTrigger>
             <SelectContent>
@@ -220,7 +219,7 @@ export function PosCatalogPanel({
         <div className="p-4 md:p-5">
           {sortedItems.length === 0 ? (
             <EmptyState
-              icon={ShoppingCartIcon}
+              icon={<ShoppingCartIcon />}
               title={hasActiveFilters ? "Sin resultados" : "Catálogo vacío"}
               description={
                 hasActiveFilters
@@ -289,7 +288,7 @@ function CatalogProductCard({
       onClick={() => onAdd(item)}
     >
       {/* Image container */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted/30">
+      <div className="relative aspect-4/3 w-full overflow-hidden bg-muted/30">
         {item.imageUrl ? (
           <Image
             src={item.imageUrl}
