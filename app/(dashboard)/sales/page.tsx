@@ -16,9 +16,21 @@ import {
   XCircleIcon,
 } from "lucide-react"
 
-export default async function SalesPage() {
+import { UrlDateFilter } from "@/components/shared/url-date-filter"
+import { parseDateParam } from "@/lib/api/utils"
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+
+export default async function SalesPage(props: { searchParams: SearchParams }) {
+  const searchParams = await props.searchParams
+  const from = Array.isArray(searchParams.from) ? searchParams.from[0] : searchParams.from
+  const to = Array.isArray(searchParams.to) ? searchParams.to[0] : searchParams.to
+
+  const dateFrom = parseDateParam(from)
+  const dateTo = parseDateParam(to)
+
   const [sales, todaySummary] = await Promise.all([
-    getSales(),
+    getSales({ dateFrom, dateTo }),
     getTodaySalesSummary(),
   ])
 
@@ -47,16 +59,19 @@ export default async function SalesPage() {
           description="Punto de venta y seguimiento de cobros."
           breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Ventas" }]}
           actions={
-            <Button
-              asChild
-              size="default"
-              className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
-            >
-              <Link href="/sales/new">
-                <PlusIcon className="size-4 shrink-0" />
-                Nueva venta
-              </Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <UrlDateFilter />
+              <Button
+                asChild
+                size="default"
+                className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
+              >
+                <Link href="/sales/new">
+                  <PlusIcon className="size-4 shrink-0" />
+                  Nueva venta
+                </Link>
+              </Button>
+            </div>
           }
         />
 

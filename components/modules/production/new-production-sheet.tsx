@@ -51,14 +51,14 @@ export function NewProductionSheet({ employees, inventoryItems }: NewProductionS
             isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
           )}
         >
-          <SheetHeader className="shrink-0 border-b border-border/70 px-6 py-4 text-left">
+          <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
             <div className="flex items-center gap-3">
               <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
                 <FactoryIcon className="size-4 text-primary" />
               </div>
               <div>
-                <SheetTitle className="text-base">Nueva sesión de producción</SheetTitle>
-                <SheetDescription className="text-sm">
+                <SheetTitle className="text-base text-pretty">Nueva sesión de producción</SheetTitle>
+                <SheetDescription className="text-sm text-pretty">
                   Registra la producción del día y el uso de materiales.
                 </SheetDescription>
               </div>
@@ -66,7 +66,7 @@ export function NewProductionSheet({ employees, inventoryItems }: NewProductionS
           </SheetHeader>
 
           <ScrollArea className="flex-1">
-            <div className="px-6 py-4">
+            <div className="px-4 py-4">
               <ProductionForm
                 employees={employees}
                 inventoryItems={inventoryItems}

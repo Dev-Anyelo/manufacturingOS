@@ -5,16 +5,23 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { type ColumnDef } from "@tanstack/react-table"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { DataTable } from "@/components/shared/data-table"
 import { EmptyState } from "@/components/shared/empty-state"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { CatalogForm } from "@/components/modules/catalog/catalog-form"
 import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
-import { CatalogForm } from "@/components/modules/catalog/catalog-form"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
-import { useIsMobile } from "@/hooks/use-mobile"
+
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet"
 
 import {
   ArrowUpRight,
@@ -110,6 +117,24 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         },
       },
       {
+        accessorKey: "totalStock",
+        header: () => <div className="text-right">Stock</div>,
+        cell: ({ row }) => (
+          <div className="text-right font-medium tabular-nums">
+            <span
+              className={cn(
+                "inline-flex min-w-8 items-center justify-center rounded-full px-2.5 py-0.5 text-xs",
+                row.original.totalStock > 0
+                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  : "bg-destructive/15 text-destructive"
+              )}
+            >
+              {row.original.totalStock}
+            </span>
+          </div>
+        ),
+      },
+      {
         accessorKey: "estimatedCost",
         header: "Margen",
         cell: ({ row }) => (
@@ -127,10 +152,10 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             asChild
             variant="ghost"
             size="sm"
-            className="min-h-10 px-3 text-xs sm:min-h-8 sm:h-8"
+            className="min-h-10 px-3 text-xs sm:h-8 sm:min-h-8"
           >
             <Link href={`/catalog/${row.original.id}`}>
-              Detalle 
+              Detalle
               <ArrowUpRight className="size-3.5" />
             </Link>
           </Button>
@@ -261,21 +286,21 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
           )}
         >
-          <SheetHeader className="shrink-0 border-b border-border/70 px-6 py-4 text-left">
+          <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
             <div className="flex items-center gap-3">
               <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
                 <ShoppingBagIcon className="size-4 text-primary" />
               </div>
               <div>
                 <SheetTitle className="text-base">Nuevo producto</SheetTitle>
-                <SheetDescription className="text-sm">
+                <SheetDescription className="text-sm text-pretty">
                   Agrega un nuevo producto al catálogo de prendas.
                 </SheetDescription>
               </div>
             </div>
           </SheetHeader>
           <ScrollArea className="flex-1">
-            <div className="px-6 py-4">
+            <div className="px-4 py-4">
               <CatalogForm
                 mode="create"
                 onSuccess={() => {

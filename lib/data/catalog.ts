@@ -35,6 +35,9 @@ export async function getCatalogItems(filters?: CatalogFilters) {
 
   return prisma.catalogItem.findMany({
     where,
+    include: {
+      finishedGoods: true
+    },
     orderBy: {
       createdAt: "desc",
     },
@@ -45,6 +48,22 @@ export async function getCatalogItem(id: string) {
   return prisma.catalogItem.findUnique({
     where: {
       id,
+    },
+    include: {
+      finishedGoods: {
+        orderBy: { size: "asc" },
+        include: {
+          movements: {
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            include: {
+              createdByProfile: {
+                select: { fullName: true },
+              },
+            },
+          },
+        },
+      },
     },
   })
 }

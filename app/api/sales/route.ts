@@ -125,6 +125,39 @@ export async function POST(request: Request) {
         },
       })
 
+      // Deduct Finished Good Stock if catalog_item_id is present
+      for (const item of payload.items) {
+        if (!item.catalog_item_id) continue
+
+        const fgs = await tx.finishedGoodStock.findFirst({
+          where: {
+            catalogItemId: item.catalog_item_id,
+            ...(item.size ? { size: item.size } : {})
+          },
+          orderBy: { stock: 'desc' }
+        })
+
+        if (fgs) {
+          const newStock = fgs.stock - item.quantity
+          await tx.finishedGoodStock.update({
+            where: { id: fgs.id },
+            data: { stock: newStock }
+          })
+
+          await tx.catalogMovement.create({
+            data: {
+              finishedGoodStockId: fgs.id,
+              movementType: "out",
+              quantity: item.quantity,
+              previousQuantity: fgs.stock,
+              newQuantity: newStock,
+              reason: `Venta: ${sale.id}`,
+              createdBy: profile.id
+            }
+          })
+        }
+      }
+
       await tx.notification.create({
         data: {
           userId: profile.id,

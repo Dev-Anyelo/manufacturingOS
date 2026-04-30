@@ -5,16 +5,16 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { es } from "date-fns/locale"
 import { useForm } from "react-hook-form"
-import { useState, useMemo, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useState, useMemo, useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, startOfWeek, endOfWeek, addDays } from "date-fns"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useIsMobile } from "@/hooks/use-mobile"
 
 import {
   Calendar,

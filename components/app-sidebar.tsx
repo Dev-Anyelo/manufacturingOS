@@ -29,6 +29,7 @@ import {
   ReceiptTextIcon,
   WalletIcon,
   UsersRoundIcon,
+  UsersIcon,
   ShirtIcon,
   Settings2Icon,
   CommandIcon,
@@ -45,6 +46,7 @@ const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/sales": ShoppingCartIcon,
   "/expenses": WalletIcon,
   "/payroll": UsersRoundIcon,
+  "/customers": UsersIcon,
   "/settings": Settings2Icon,
 }
 

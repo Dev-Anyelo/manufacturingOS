@@ -168,7 +168,11 @@ function formatDateLabel(value: string) {
   }).format(parseInputDate(value))
 }
 
-export function ExpenseForm({ inventoryItems, onSuccess, onCancel }: ExpenseFormProps) {
+export function ExpenseForm({
+  inventoryItems,
+  onSuccess,
+  onCancel,
+}: ExpenseFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [receiptFile, setReceiptFile] = React.useState<File | null>(null)
@@ -318,10 +322,14 @@ export function ExpenseForm({ inventoryItems, onSuccess, onCancel }: ExpenseForm
       noValidate
     >
       {/* Total Summary - Compact Info Bar */}
-      <div className="mb-4 flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
-        <div className="flex flex-col items-center px-4 py-2 shrink-0">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Total a registrar</span>
-          <span className="text-sm font-bold tabular-nums mt-0.5">{formatCurrency((watchedTotal as number) || 0)}</span>
+      <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
+        <div className="flex shrink-0 flex-col items-center px-4 py-2">
+          <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Total a registrar
+          </span>
+          <span className="mt-0.5 text-sm font-bold tabular-nums">
+            {formatCurrency((watchedTotal as number) || 0)}
+          </span>
         </div>
       </div>
 
@@ -344,7 +352,7 @@ export function ExpenseForm({ inventoryItems, onSuccess, onCancel }: ExpenseForm
 
         {/* Basic Tab */}
         <TabsContent value="basic" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="dborder-none m-0 bg-none p-0">
             <div className="space-y-4">
               {/* Date + Category Row */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -454,7 +462,7 @@ export function ExpenseForm({ inventoryItems, onSuccess, onCancel }: ExpenseForm
 
         {/* Amounts Tab */}
         <TabsContent value="amounts" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="dborder-none m-0 bg-none p-0">
             <div className="space-y-4">
               {/* Quantity + Unit Price + Total */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -526,7 +534,7 @@ export function ExpenseForm({ inventoryItems, onSuccess, onCancel }: ExpenseForm
 
         {/* Extras Tab */}
         <TabsContent value="extras" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="dborder-none m-0 bg-none p-0">
             <div className="space-y-4">
               {/* Inventory Toggle */}
               <Collapsible open={inventoryOpen} onOpenChange={setInventoryOpen}>
@@ -721,8 +729,8 @@ export function ExpenseForm({ inventoryItems, onSuccess, onCancel }: ExpenseForm
           </div>
         </TabsContent>
       </Tabs>
-      <div className="mt-3 flex w-full items-center justify-end gap-2 md:mt-5">
-        <Button type="submit" disabled={isSubmitting} className="gap-2">
+      <div className="mt-3 flex w-full items-center justify-center gap-2 md:mt-5">
+        <Button type="submit" disabled={isSubmitting} className="gap-2 w-full">
           {isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (

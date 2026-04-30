@@ -99,7 +99,12 @@ export async function POST(request: Request) {
         availableItems.map((item) => [item.id, decimalToNumber(item.quantity)])
       )
 
+      let totalGarments = 0
+      let totalYardsUsed = 0
+
       for (const item of payload.items) {
+        totalGarments += item.quantity
+        totalYardsUsed += item.yards_used
         const available = stockMap.get(item.inventory_item_id) ?? 0
 
         if (available < item.yards_used) {
@@ -117,6 +122,8 @@ export async function POST(request: Request) {
         data: {
           employeeId: payload.employee_id,
           sessionDate: payload.session_date,
+          totalGarments,
+          totalYardsUsed: toPrismaDecimal(totalYardsUsed),
           notes: payload.notes,
           createdBy: profile.id,
           items: {
@@ -135,12 +142,107 @@ export async function POST(request: Request) {
         },
       })
 
+      // Process inventory deduction and finished goods increment
+      for (const item of createdSession.items) {
+        // 1. Deduct raw material & log movement
+        const oldStock = stockMap.get(item.inventoryItemId) ?? 0
+        const newStock = oldStock - Number(item.yardsUsed)
+        
+        await tx.inventoryItem.update({
+          where: { id: item.inventoryItemId },
+          data: { quantity: toPrismaDecimal(newStock) }
+        })
+
+        await tx.inventoryMovement.create({
+          data: {
+            inventoryItemId: item.inventoryItemId,
+            movementType: "out",
+            quantity: item.yardsUsed,
+            previousQuantity: toPrismaDecimal(oldStock),
+            newQuantity: toPrismaDecimal(newStock),
+            reason: `Consumo Producción: ${createdSession.id}`,
+            createdBy: profile.id
+          }
+        })
+
+        // 2. Increase finished goods & log movement
+        let catalogItem = await tx.catalogItem.findFirst({
+          where: { garmentType: item.garmentType }
+        })
+
+        if (!catalogItem) {
+          catalogItem = await tx.catalogItem.create({
+            data: {
+              name: `Producto Terminado: ${item.garmentType}`,
+              garmentType: item.garmentType,
+              isActive: true,
+              salePrice: toPrismaDecimal(0)
+            }
+          })
+        }
+
+        // Link the item to the catalog item
+        await tx.productionSessionItem.update({
+          where: { id: item.id },
+          data: { catalogItemId: catalogItem.id }
+        })
+
+        // Upsert FinishedGoodStock
+        const existingFgs = await tx.finishedGoodStock.findFirst({
+          where: {
+            catalogItemId: catalogItem.id,
+            garmentType: item.garmentType,
+            size: item.size,
+            color: null
+          }
+        })
+
+        let fgsId = ""
+        let prevFgsStock = 0
+        let newFgsStock = item.quantity
+
+        if (existingFgs) {
+          fgsId = existingFgs.id
+          prevFgsStock = existingFgs.stock
+          newFgsStock = prevFgsStock + item.quantity
+
+          await tx.finishedGoodStock.update({
+            where: { id: fgsId },
+            data: { stock: newFgsStock }
+          })
+        } else {
+          const newFgs = await tx.finishedGoodStock.create({
+            data: {
+              catalogItemId: catalogItem.id,
+              garmentType: item.garmentType,
+              size: item.size,
+              color: null,
+              stock: item.quantity
+            }
+          })
+          fgsId = newFgs.id
+        }
+
+        // Log CatalogMovement
+        await tx.catalogMovement.create({
+          data: {
+            finishedGoodStockId: fgsId,
+            movementType: "in",
+            quantity: item.quantity,
+            previousQuantity: prevFgsStock,
+            newQuantity: newFgsStock,
+            reason: `Producción sesión: ${createdSession.id}`,
+            createdBy: profile.id
+          }
+        })
+      }
+
       await tx.notification.create({
         data: {
           userId: profile.id,
           type: NotificationType.production_saved,
-          title: "Sesion de produccion registrada",
-          body: "La sesion se guardo correctamente.",
+          title: "Sesión de producción registrada",
+          body: "La sesión se guardó correctamente y el stock fue actualizado.",
           metadata: {
             production_session_id: createdSession.id,
           },

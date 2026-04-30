@@ -48,8 +48,9 @@ import {
   Factory,
   UserCog2,
   Layers2Icon,
+  Loader2,
+  Save,
 } from "lucide-react"
-import { MetricCard } from "@/components/shared/metric-card"
 
 const GARMENT_TYPES = {
   shirt: "Camisa",
@@ -305,18 +306,28 @@ export function ProductionForm({
       noValidate
     >
       {/* Summary Stats - Compact Info Bar */}
-      <div className="mb-4 flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+      <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
           { label: "Total prendas", value: totalGarments },
           { label: "Total yardas", value: totalYards.toFixed(1) },
-          { label: "Empleado", value: selectedEmployee?.fullName || "No seleccionado" },
+          {
+            label: "Empleado",
+            value: selectedEmployee?.fullName || "No seleccionado",
+          },
         ].map((item, i) => (
-          <div key={i} className={cn(
-            "flex flex-col items-center px-4 py-2 shrink-0",
-            i > 0 && "border-l border-border/60"
-          )}>
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{item.label}</span>
-            <span className="text-sm font-bold tabular-nums mt-0.5">{item.value}</span>
+          <div
+            key={i}
+            className={cn(
+              "flex shrink-0 flex-col items-center px-4 py-2",
+              i > 0 && "border-l border-border/60"
+            )}
+          >
+            <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+              {item.label}
+            </span>
+            <span className="mt-0.5 text-sm font-bold tabular-nums">
+              {item.value}
+            </span>
           </div>
         ))}
       </div>
@@ -336,7 +347,7 @@ export function ProductionForm({
 
         {/* Session Tab */}
         <TabsContent value="session" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="m-0 border-none bg-none p-0">
             <div className="space-y-4">
               {/* Employee + Date Row */}
               <div className="grid gap-3 sm:grid-cols-2">
@@ -465,7 +476,7 @@ export function ProductionForm({
 
         {/* Items Tab */}
         <TabsContent value="items" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="m-0 border-none bg-none p-0">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="flex size-8 items-center justify-center rounded-lg bg-accent/10 dark:bg-accent">
@@ -676,6 +687,27 @@ export function ProductionForm({
           </div>
         </TabsContent>
       </Tabs>
+
+      <div className="mt-3 flex w-full items-center justify-center gap-2 md:mt-4">
+        <Button
+          type="submit"
+          size="sm"
+          disabled={isSubmitting}
+          className="w-full"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Guardando...
+            </>
+          ) : (
+            <>
+              <Save className="size-4" />
+              Crear sesión
+            </>
+          )}
+        </Button>
+      </div>
     </form>
   )
 }

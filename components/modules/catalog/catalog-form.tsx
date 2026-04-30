@@ -245,7 +245,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
 
         {/* Info Tab */}
         <TabsContent value="info" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-5">
+          <div className="border-none bg-none p-0 m-0">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="name" className="text-sm font-medium">
@@ -339,7 +339,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
 
         {/* Pricing Tab */}
         <TabsContent value="pricing" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-5">
+          <div className="border-none bg-none p-0 m-0">
             <div className="space-y-6">
               {/* Market Prices */}
               <div>
@@ -487,7 +487,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
 
         {/* Media Tab */}
         <TabsContent value="media" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-5">
+          <div className="border-none bg-none p-0 m-0">
             <Label
               onDrop={(e) => {
                 e.preventDefault()
@@ -558,8 +558,8 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
         </TabsContent>
       </Tabs>
 
-      <div className="mt-3 flex w-full items-center justify-end gap-2 md:mt-5">
-        <Button type="submit" disabled={isSubmitting} className="gap-2">
+      <div className="mt-3 flex w-full items-center justify-center gap-2 md:mt-5">
+        <Button type="submit" disabled={isSubmitting} className="gap-2 w-full">
           {isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (

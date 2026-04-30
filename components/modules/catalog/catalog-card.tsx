@@ -18,6 +18,7 @@ export interface CatalogCardItem {
   estimatedCost: number | null
   imageUrl: string | null
   notes: string | null
+  totalStock: number
 }
 
 interface CatalogCardProps {
@@ -59,12 +60,21 @@ export function CatalogCard({ item }: CatalogCardProps) {
           </div>
         ) : null}
 
-        {/* Profit margin indicator */}
-        <div className="absolute top-2 right-2 z-10">
+        {/* Profit margin indicator and Stock */}
+        <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-1.5">
           <ProfitMarginIndicator
             ourPriceUnit={item.ourPriceUnit}
             estimatedCost={item.estimatedCost}
           />
+          <Badge
+            variant={item.totalStock > 0 ? "default" : "destructive"}
+            className={cn(
+              "px-2 py-0.5 text-[10px] font-bold shadow-sm",
+              item.totalStock > 0 ? "bg-emerald-500/90 text-white" : ""
+            )}
+          >
+            {item.totalStock} en stock
+          </Badge>
         </div>
       </div>
 

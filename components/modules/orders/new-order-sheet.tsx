@@ -1,14 +1,21 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
-import { PlusIcon, ShoppingCartIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { OrderForm } from "@/components/modules/orders/order-form"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
-import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import { PlusIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { OrderForm } from "@/components/modules/orders/order-form"
+
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet"
 
 type PosCustomer = {
   id: string
@@ -37,7 +44,11 @@ interface NewOrderSheetProps {
   inventoryItems: InventoryChoice[]
 }
 
-export function NewOrderSheet({ customers, catalogItems, inventoryItems }: NewOrderSheetProps) {
+export function NewOrderSheet({
+  customers,
+  catalogItems,
+  inventoryItems,
+}: NewOrderSheetProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
   const [open, setOpen] = React.useState(false)
@@ -46,7 +57,7 @@ export function NewOrderSheet({ customers, catalogItems, inventoryItems }: NewOr
     <>
       <Button
         size="default"
-        className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
+        className="min-h-11 w-full gap-2 shadow-sm sm:min-h-10 sm:w-auto"
         onClick={() => setOpen(true)}
       >
         <PlusIcon className="size-4 shrink-0" />
@@ -63,20 +74,20 @@ export function NewOrderSheet({ customers, catalogItems, inventoryItems }: NewOr
         >
           <SheetHeader className="shrink-0 border-b border-border/70 px-6 py-4 text-left">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                <ShoppingCartIcon className="size-4 text-primary" />
-              </div>
               <div>
-                <SheetTitle className="text-base">Nueva orden</SheetTitle>
-                <SheetDescription className="text-sm">
-                  Crea un pedido para un cliente y especifica los detalles de entrega.
+                <SheetTitle className="text-base text-pretty">
+                  Nueva orden
+                </SheetTitle>
+                <SheetDescription className="text-sm text-pretty">
+                  Crea un pedido para un cliente y especifica los detalles de
+                  entrega.
                 </SheetDescription>
               </div>
             </div>
           </SheetHeader>
 
           <ScrollArea className="flex-1">
-            <div className="px-6 py-4">
+            <div className="px-4 py-4">
               <OrderForm
                 customers={customers}
                 catalogItems={catalogItems}

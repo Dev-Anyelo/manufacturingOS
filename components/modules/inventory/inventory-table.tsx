@@ -4,17 +4,17 @@ import Link from "next/link"
 import { toast } from "sonner"
 import Image from "next/image"
 import * as React from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { DataTable } from "@/components/shared/data-table"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { InventoryForm } from "@/components/modules/inventory/inventory-form"
 import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { AdjustStockDialog } from "@/components/modules/inventory/adjust-stock-dialog"
-import { InventoryForm } from "@/components/modules/inventory/inventory-form"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { cn } from "@/lib/utils"
 
 import {
   ArrowUpDown,
@@ -360,16 +360,16 @@ function InventoryFormSheet({
           isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
         )}
       >
-        <SheetHeader className="border-b border-border/70 px-6 py-4 text-left shrink-0">
+        <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
               <BoxesIcon className="size-4 text-primary" />
             </div>
             <div>
-              <SheetTitle className="text-base">
+              <SheetTitle className="text-base text-pretty">
                 {mode === "create" ? "Nuevo material" : "Editar material"}
               </SheetTitle>
-              <SheetDescription className="text-sm">
+              <SheetDescription className="text-sm text-pretty">
                 {mode === "create"
                   ? "Agrega un nuevo material al inventario."
                   : `Edita los datos de "${item?.name}".`}
@@ -379,7 +379,7 @@ function InventoryFormSheet({
         </SheetHeader>
 
         <ScrollArea className="flex-1">
-          <div className="px-6 py-4">
+          <div className="px-4 py-4">
             <InventoryForm
               mode={mode}
               itemId={mode === "edit" ? item?.id : undefined}
@@ -399,8 +399,12 @@ function InventoryFormSheet({
 
 export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
   const router = useRouter()
-  const [categoryFilter, setCategoryFilter] = React.useState<string>("all")
-  const [stockFilter, setStockFilter] = React.useState<string>("all")
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const categoryFilter = searchParams.get("category") || "all"
+  const stockFilter = searchParams.get("status") || "all"
+
   const [adjustingItem, setAdjustingItem] =
     React.useState<InventoryTableRow | null>(null)
   const [editingItem, setEditingItem] =
@@ -409,6 +413,16 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
     React.useState<InventoryTableRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
   const [createOpen, setCreateOpen] = React.useState(false)
+
+  const updateFilters = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value === "all") {
+      params.delete(key)
+    } else {
+      params.set(key, value)
+    }
+    router.push(`${pathname}?${params.toString()}`)
+  }
 
   const filteredItems = React.useMemo(() => {
     return items.filter((item) => {
@@ -490,7 +504,10 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
               <PlusIcon className="size-4 shrink-0" />
               Nuevo material
             </Button>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <Select
+              value={categoryFilter}
+              onValueChange={(v) => updateFilters("category", v)}
+            >
               <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
@@ -503,7 +520,10 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
               </SelectContent>
             </Select>
 
-            <Select value={stockFilter} onValueChange={setStockFilter}>
+            <Select
+              value={stockFilter}
+              onValueChange={(v) => updateFilters("status", v)}
+            >
               <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
@@ -559,7 +579,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         }}
       >
         <AlertDialogContent className="max-w-md border-destructive/30">
-          <AlertDialogHeader className="gap-2 py-3 px-3">
+          <AlertDialogHeader className="gap-2 px-3 py-3">
             <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-destructive/10">
               <Trash2Icon className="size-5 text-destructive" />
             </div>
@@ -576,10 +596,12 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
               del catálogo operativo.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-2 grid grid-cols-2 border-t py-4 px-4">
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+          <AlertDialogFooter className="grid grid-cols-2 gap-2 border-t px-4 py-4 sm:gap-2">
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"
+              className="gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isDeleting}
               onClick={(e) => {
                 e.preventDefault()

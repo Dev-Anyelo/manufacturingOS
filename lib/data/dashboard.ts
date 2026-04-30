@@ -191,3 +191,75 @@ export async function getUnreadNotificationsCount(userId: string) {
     },
   })
 }
+
+export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?: Date } = {}) {
+  const endDate = options.dateTo ?? new Date()
+  if (!options.dateTo) endDate.setHours(23, 59, 59, 999)
+
+  const startDate = options.dateFrom ?? new Date()
+  if (!options.dateFrom) {
+    startDate.setDate(endDate.getDate() - 30) // Default to 30 days if no range provided
+    startDate.setHours(0, 0, 0, 0)
+  }
+
+  const [sales, expenses] = await Promise.all([
+    prisma.sale.findMany({
+      where: {
+        saleDate: {
+          gte: startDate,
+          lte: endDate,
+        },
+        status: {
+          not: "cancelled",
+        },
+      },
+      select: {
+        saleDate: true,
+        total: true,
+        discount: true,
+      },
+    }),
+    prisma.expense.findMany({
+      where: {
+        expenseDate: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        expenseDate: true,
+        total: true,
+      },
+    }),
+  ])
+
+  const daysMap = new Map<string, { date: string; sales: number; expenses: number }>()
+
+  // Initialize days with 0 between start and end
+  const current = new Date(startDate)
+  while (current <= endDate) {
+    const dateStr = current.toISOString().split("T")[0]
+    daysMap.set(dateStr, { date: dateStr, sales: 0, expenses: 0 })
+    current.setDate(current.getDate() + 1)
+  }
+
+  // Aggregate Sales
+  for (const sale of sales) {
+    const dateStr = sale.saleDate.toISOString().split("T")[0]
+    const current = daysMap.get(dateStr)
+    if (current) {
+      current.sales += decimalToNumber(sale.total) - decimalToNumber(sale.discount)
+    }
+  }
+
+  // Aggregate Expenses
+  for (const exp of expenses) {
+    const dateStr = exp.expenseDate.toISOString().split("T")[0]
+    const current = daysMap.get(dateStr)
+    if (current) {
+      current.expenses += decimalToNumber(exp.total)
+    }
+  }
+
+  return Array.from(daysMap.values()).sort((a, b) => a.date.localeCompare(b.date))
+}

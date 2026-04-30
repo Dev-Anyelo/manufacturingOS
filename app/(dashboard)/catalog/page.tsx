@@ -45,6 +45,7 @@ export default async function CatalogPage() {
                   : decimalToNumber(item.estimatedCost),
               imageUrl: item.imageUrl,
               notes: item.notes,
+              totalStock: item.finishedGoods?.reduce((sum, fg) => sum + fg.stock, 0) ?? 0,
             }))}
           />
         </div>

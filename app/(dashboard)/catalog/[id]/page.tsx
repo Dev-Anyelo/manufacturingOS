@@ -1,14 +1,17 @@
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCatalogItem } from "@/lib/data/catalog"
-import { ArrowLeftIcon, LayersIcon } from "lucide-react"
+import { ArrowLeftIcon, BoxesIcon, LayersIcon } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
+import { EmptyState } from "@/components/shared/empty-state"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CatalogForm } from "@/components/modules/catalog/catalog-form"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
 
 type CatalogDetailPageProps = {
@@ -162,6 +165,76 @@ export default async function CatalogDetailPage({
                 {item.notes ?? "Sin notas."}
               </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Finished Goods Stock Breakdown */}
+        <Card className="border border-border shadow-sm">
+          <CardHeader className="border-b border-border">
+            <div className="flex items-center gap-2">
+              <BoxesIcon className="size-4 text-muted-foreground" />
+              <CardTitle>Inventario de producto terminado</CardTitle>
+            </div>
+            <CardDescription>
+              Stock disponible por talla. Se actualiza automáticamente con producción y ventas.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {item.finishedGoods.length === 0 ? (
+              <EmptyState
+                icon={<BoxesIcon />}
+                title="Sin stock registrado"
+                description="El stock se generará automáticamente al registrar sesiones de producción."
+                compact
+              />
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {item.finishedGoods.map((fg) => {
+                  const isLow = fg.stock > 0 && fg.stock <= fg.minimumStock
+                  const isOut = fg.stock <= 0
+                  return (
+                    <div
+                      key={fg.id}
+                      className={cn(
+                        "rounded-xl border p-4 text-center transition-colors",
+                        isOut
+                          ? "border-red-500/30 bg-red-500/5"
+                          : isLow
+                            ? "border-amber-500/30 bg-amber-500/5"
+                            : "border-border bg-card hover:bg-muted/40"
+                      )}
+                    >
+                      <Badge
+                        variant="outline"
+                        className="mb-2 text-xs font-mono uppercase"
+                      >
+                        {fg.size}
+                      </Badge>
+                      <p
+                        className={cn(
+                          "text-2xl font-bold tabular-nums",
+                          isOut
+                            ? "text-red-600 dark:text-red-400"
+                            : isLow
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-foreground"
+                        )}
+                      >
+                        {fg.stock}
+                      </p>
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        mín: {fg.minimumStock}
+                      </p>
+                      {fg.color ? (
+                        <p className="mt-0.5 text-[10px] text-muted-foreground truncate">
+                          {fg.color}
+                        </p>
+                      ) : null}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 

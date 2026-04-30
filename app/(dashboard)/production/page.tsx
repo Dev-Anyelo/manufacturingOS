@@ -1,5 +1,3 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
@@ -9,15 +7,26 @@ import { ProductionTable } from "@/components/modules/production/production-tabl
 import { NewProductionSheet } from "@/components/modules/production/new-production-sheet"
 
 import {
-  PlusIcon,
   ScissorsIcon,
   LayersIcon,
   CalendarCheckIcon,
 } from "lucide-react"
 
-export default async function ProductionPage() {
+import { UrlDateFilter } from "@/components/shared/url-date-filter"
+import { parseDateParam } from "@/lib/api/utils"
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+
+export default async function ProductionPage(props: { searchParams: SearchParams }) {
+  const searchParams = await props.searchParams
+  const from = Array.isArray(searchParams.from) ? searchParams.from[0] : searchParams.from
+  const to = Array.isArray(searchParams.to) ? searchParams.to[0] : searchParams.to
+
+  const dateFrom = parseDateParam(from)
+  const dateTo = parseDateParam(to)
+
   const [sessions, bootstrap] = await Promise.all([
-    getProductionSessions(),
+    getProductionSessions({ dateFrom, dateTo }),
     getProductionFormBootstrap()
   ])
 
@@ -58,15 +67,18 @@ export default async function ProductionPage() {
             { label: "Producción" },
           ]}
           actions={
-            <NewProductionSheet 
-              employees={bootstrap.employees}
-              inventoryItems={bootstrap.inventoryItems.map((i) => ({
-                id: i.id,
-                name: i.name,
-                unit: i.unit,
-                quantity: decimalToNumber(i.quantity),
-              }))}
-            />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <UrlDateFilter />
+              <NewProductionSheet 
+                employees={bootstrap.employees}
+                inventoryItems={bootstrap.inventoryItems.map((i) => ({
+                  id: i.id,
+                  name: i.name,
+                  unit: i.unit,
+                  quantity: decimalToNumber(i.quantity),
+                }))}
+              />
+            </div>
           }
         />
 

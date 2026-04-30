@@ -30,6 +30,7 @@ export const dashboardNavSections: DashboardNavSection[] = [
       { title: "Inventario", url: "/inventory" },
       { title: "Catálogo", url: "/catalog" },
       { title: "Gastos", url: "/expenses" },
+      { title: "Clientes", url: "/customers" },
       { title: "Planilla", url: "/payroll" },
     ],
   },

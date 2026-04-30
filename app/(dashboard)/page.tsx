@@ -1,24 +1,26 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AuditAction } from "@prisma/client"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { parseDateParam } from "@/lib/api/utils"
 import { decimalToNumber } from "@/lib/api/utils"
+import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { StatCard } from "@/components/shared/stat-card"
-import {
-  getDashboardStats,
-  getDashboardUrgentOrders,
-} from "@/lib/data/dashboard"
 import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { StatusBadge } from "@/components/shared/status-badge"
+import { UrlDateFilter } from "@/components/shared/url-date-filter"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { formatCurrency, formatDate, formatDateRelative } from "@/lib/utils"
+
 import {
-  formatCurrency,
-  formatDate,
-  formatDateRelative,
-} from "@/lib/utils"
+  getDashboardStats,
+  getDashboardUrgentOrders,
+  getFinancialChartData,
+} from "@/lib/data/dashboard"
 
 import {
   AlertTriangleIcon,
@@ -38,8 +40,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+
 import {
   Table,
   TableBody,
@@ -103,8 +104,7 @@ function getFormattedDate() {
 
 function pctVersusYesterday(current: number, previous: number) {
   if (previous > 0) {
-    const raw =
-      Math.round(((current - previous) / previous) * 1000) / 10
+    const raw = Math.round(((current - previous) / previous) * 1000) / 10
     return {
       value: Math.abs(raw),
       isPositive: current >= previous,
@@ -137,9 +137,30 @@ function stockBarValue(quantity: number, minimumStock: number) {
   return Math.min(100, (quantity / (minimumStock * 2)) * 100)
 }
 
-export default async function DashboardPage() {
-  const [stats, inventorySnapshot, recentActivity, user, urgentOrders] =
-    await Promise.all([
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
+
+export default async function DashboardPage(props: {
+  searchParams: SearchParams
+}) {
+  const searchParams = await props.searchParams
+  const from = Array.isArray(searchParams.from)
+    ? searchParams.from[0]
+    : searchParams.from
+  const to = Array.isArray(searchParams.to)
+    ? searchParams.to[0]
+    : searchParams.to
+
+  const dateFrom = parseDateParam(from)
+  const dateTo = parseDateParam(to)
+
+  const [
+    stats,
+    inventorySnapshot,
+    recentActivity,
+    user,
+    urgentOrders,
+    chartData,
+  ] = await Promise.all([
     getDashboardStats(),
     prisma.inventoryItem.findMany({
       where: { isActive: true },
@@ -164,6 +185,7 @@ export default async function DashboardPage() {
     }),
     requireCurrentUser(),
     getDashboardUrgentOrders(8),
+    getFinancialChartData({ dateFrom, dateTo }),
   ])
 
   const inventoryCount = inventorySnapshot.length
@@ -193,10 +215,7 @@ export default async function DashboardPage() {
     urgentOrders.length > 0 ||
     recentActivity.length > 0
 
-  const salesTrend = pctVersusYesterday(
-    stats.todaySales,
-    stats.yesterdaySales
-  )
+  const salesTrend = pctVersusYesterday(stats.todaySales, stats.yesterdaySales)
   const garmentsTrend = pctVersusYesterday(
     stats.todayGarments,
     stats.yesterdayGarments
@@ -208,7 +227,7 @@ export default async function DashboardPage() {
 
   return (
     <section className="page-shell">
-      <div className="page-content space-y-6">
+      <div className="page-content space-y-4">
         {/* Zone 1: Personalized greeting */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <PageHeader
@@ -223,6 +242,7 @@ export default async function DashboardPage() {
                 </span>
               </>
             }
+            actions={<UrlDateFilter />}
           />
         </div>
 
@@ -240,7 +260,7 @@ export default async function DashboardPage() {
         ) : (
           <>
             {/* Zone 2: KPI principal */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 xl:gap-6">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
               <StatCard
                 title="Ventas hoy"
                 value={formatCurrency(stats.todaySales)}
@@ -278,8 +298,8 @@ export default async function DashboardPage() {
             </div>
 
             {urgentOrders.length > 0 ? (
-              <Card className="rounded-xl border border-border overflow-hidden">
-                <CardHeader className="border-b border-border pb-3">
+              <Card className="overflow-hidden rounded-xl border border-border pt-2">
+                <CardHeader className="border-b border-border pb-3 pl-4">
                   <div className="flex items-center gap-2">
                     <ClipboardListIcon className="size-4 text-muted-foreground" />
                     <CardTitle className="text-base font-semibold">
@@ -312,7 +332,7 @@ export default async function DashboardPage() {
                             >
                               <TableCell className="font-medium">
                                 <div className="flex flex-col gap-1">
-                                  <span className="truncate max-w-48">
+                                  <span className="max-w-48 truncate">
                                     {o.customerName}
                                   </span>
                                   <span className="font-mono text-xs text-muted-foreground">
@@ -361,7 +381,7 @@ export default async function DashboardPage() {
 
             {/* Zone Chart */}
             <div className="w-full xl:col-span-3">
-              <ChartAreaInteractive />
+              <ChartAreaInteractive data={chartData} />
             </div>
 
             {/* Zone 3: Activity Feed (2/3) + Alerts sidebar (1/3) */}
@@ -441,8 +461,8 @@ export default async function DashboardPage() {
                       Stock crítico
                     </CardTitle>
                   </div>
-                  <CardDescription className="text-sm">
-                    Materiales con stock crítico o agotado. Ajusta desde el detalle.
+                  <CardDescription className="text-sm text-pretty">
+                    Materiales con stock crítico o agotado.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -471,17 +491,14 @@ export default async function DashboardPage() {
                                 >
                                   {item.name}
                                 </Link>
-                                <p className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
+                                <p className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
                                   <span className="font-bold text-foreground">
                                     {item.quantity}
                                   </span>{" "}
                                   / min {item.minimumStock} {item.unit}
                                 </p>
                               </div>
-                              <StatusBadge
-                                status={item.status}
-                                type="stock"
-                              />
+                              <StatusBadge status={item.status} type="stock" />
                             </div>
                             <Progress
                               value={stockBarValue(
@@ -519,119 +536,6 @@ export default async function DashboardPage() {
                       <ChevronRightIcon className="size-3" />
                     </Link>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Zone 4: Quick stats row */}
-            <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
-              {/* Production today */}
-              <Card className="rounded-xl border border-border">
-                <CardHeader className="border-b border-border pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ScissorsIcon className="size-4 text-muted-foreground" />
-                      <CardTitle className="text-base font-semibold">
-                        Accesos rápidos
-                      </CardTitle>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {[
-                      {
-                        label: "Nueva venta",
-                        href: "/sales/new",
-                        color: "bg-success-soft text-success",
-                      },
-                      {
-                        label: "Nuevo pedido",
-                        href: "/orders/new",
-                        color: "bg-info-soft text-info",
-                      },
-                      {
-                        label: "Nueva sesión",
-                        href: "/production/new",
-                        color: "bg-warning-soft text-warning",
-                      },
-                      {
-                        label: "Nuevo gasto",
-                        href: "/expenses/new",
-                        color: "bg-danger-soft text-danger",
-                      },
-                      {
-                        label: "Nuevo material",
-                        href: "/inventory/new",
-                        color: "bg-muted/20 text-foreground",
-                      },
-                      {
-                        label: "Nuevo producto",
-                        href: "/catalog/new",
-                        color: "bg-muted/20 text-foreground",
-                      },
-                    ].map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`flex items-center justify-center rounded-lg px-3 py-2.5 text-xs font-medium transition-all hover:scale-[1.01] ${item.color}`}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* System summary */}
-              <Card className="rounded-xl border border-border">
-                <CardHeader className="border-b border-border pb-3">
-                  <CardTitle className="text-base font-semibold">
-                    Resumen del sistema
-                  </CardTitle>
-                  <CardDescription className="text-sm">
-                    Métricas de operación generales.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 pt-4">
-                  {[
-                    {
-                      label: "Materiales en inventario",
-                      value: inventoryCount,
-                      href: "/inventory",
-                    },
-                    {
-                      label: "Pedidos activos",
-                      value: stats.pendingOrdersCount,
-                      href: "/orders",
-                    },
-                    {
-                      label: "Ventas registradas hoy",
-                      value: stats.todaySalesCount,
-                      href: "/sales",
-                    },
-                    {
-                      label: "Materiales con alerta",
-                      value: lowOrCriticalCount,
-                      href: "/inventory",
-                    },
-                  ].map((row) => (
-                    <Link
-                      key={row.label}
-                      href={row.href}
-                      className="group -mx-2 flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/30"
-                    >
-                      <span className="text-sm text-muted-foreground transition-colors group-hover:text-foreground">
-                        {row.label}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-bold tabular-nums">
-                          {row.value}
-                        </span>
-                        <ChevronRightIcon className="size-3.5 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground" />
-                      </div>
-                    </Link>
-                  ))}
                 </CardContent>
               </Card>
             </div>

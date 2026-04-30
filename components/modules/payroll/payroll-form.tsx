@@ -228,9 +228,9 @@ export function PayrollForm({
       noValidate
     >
       {/* Total Summary - Compact Info Bar */}
-      <div className="flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+      <div className="flex items-center justify-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
         <div className="flex flex-col items-center px-4 py-2 shrink-0">
-          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Total a pagar</span>
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total a pagar</span>
           <span className="text-sm font-bold tabular-nums mt-0.5 text-brand">{formatCurrency(total)}</span>
         </div>
       </div>

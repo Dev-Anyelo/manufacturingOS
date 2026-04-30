@@ -1,13 +1,25 @@
+import { formatCurrency } from "@/lib/utils"
+import { ExpenseCategory } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
-import { getExpenses, getMonthlyExpenseOverview, getExpensesFormBootstrap } from "@/lib/data/expenses"
 import { ExpensesTable } from "@/components/modules/expenses/expenses-table"
 import { ExpensesSummary } from "@/components/modules/expenses/expenses-summary"
 import { NewExpenseSheet } from "@/components/modules/expenses/new-expense-sheet"
-import { TrendingDownIcon, WalletCardsIcon, TagIcon, BarChart2Icon } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+
+import {
+  getExpenses,
+  getMonthlyExpenseOverview,
+  getExpensesFormBootstrap,
+} from "@/lib/data/expenses"
+
+import {
+  TrendingDownIcon,
+  WalletCardsIcon,
+  TagIcon,
+  BarChart2Icon,
+} from "lucide-react"
 
 export default async function ExpensesPage() {
   const [expenses, overview, bootstrap] = await Promise.all([
@@ -40,8 +52,26 @@ export default async function ExpensesPage() {
   const topCategoryEntry = Object.entries(overview.byCategory).sort(
     (a, b) => b[1] - a[1]
   )[0]
-  const topCategoryName = topCategoryEntry?.[0] ?? "—"
+  const topCategoryRaw = topCategoryEntry?.[0]
   const topCategoryAmount = topCategoryEntry?.[1] ?? 0
+
+  const categoryLabels: Record<string, string> = {
+    [ExpenseCategory.fabrics]: "Fabricas",
+    [ExpenseCategory.supplies]: "Suministros",
+    [ExpenseCategory.tools]: "Herramientas",
+    [ExpenseCategory.machinery]: "Maquinaria",
+    [ExpenseCategory.outsourced_labor]: "Mano de obra externa",
+    [ExpenseCategory.services]: "Servicios",
+    [ExpenseCategory.packaging]: "Empaques",
+    [ExpenseCategory.office]: "Oficina",
+    [ExpenseCategory.payroll]: "Nómina",
+    [ExpenseCategory.other]: "Otro",
+  }
+
+  const topCategoryName = topCategoryRaw
+    ? categoryLabels[topCategoryRaw] ||
+      topCategoryRaw.charAt(0).toUpperCase() + topCategoryRaw.slice(1)
+    : "—"
 
   return (
     <section className="page-shell">

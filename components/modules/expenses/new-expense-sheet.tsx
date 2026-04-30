@@ -45,14 +45,14 @@ export function NewExpenseSheet({ inventoryItems }: NewExpenseSheetProps) {
             isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
           )}
         >
-          <SheetHeader className="shrink-0 border-b border-border/70 px-6 py-4 text-left">
+          <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
             <div className="flex items-center gap-3">
               <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
                 <ReceiptIcon className="size-4 text-primary" />
               </div>
               <div>
                 <SheetTitle className="text-base">Nuevo gasto</SheetTitle>
-                <SheetDescription className="text-sm">
+                <SheetDescription className="text-sm text-pretty">
                   Registra un egreso operativo o compra de insumos.
                 </SheetDescription>
               </div>
@@ -60,7 +60,7 @@ export function NewExpenseSheet({ inventoryItems }: NewExpenseSheetProps) {
           </SheetHeader>
 
           <ScrollArea className="flex-1">
-            <div className="px-6 py-4">
+            <div className="px-4 py-4">
               <ExpenseForm
                 inventoryItems={inventoryItems}
                 onSuccess={() => {

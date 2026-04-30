@@ -224,21 +224,35 @@ export function InventoryForm({
   return (
     <form className="mx-auto w-full" onSubmit={onSubmit} noValidate>
       {/* Summary Stats - Compact Info Bar */}
-      <div className="mb-4 flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+      <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
           { label: "Valor", value: formatCurrency(totalValue) },
-          { 
-            label: "Estado", 
-            value: stockStatus === "ok" ? "Óptimo" : stockStatus === "warning" ? "Moderado" : stockStatus === "low" ? "Bajo" : "Sin stock" 
+          {
+            label: "Estado",
+            value:
+              stockStatus === "ok"
+                ? "Óptimo"
+                : stockStatus === "warning"
+                  ? "Moderado"
+                  : stockStatus === "low"
+                    ? "Bajo"
+                    : "Sin stock",
           },
           { label: "Unidad", value: unitWatch || "N/A" },
         ].map((item, i) => (
-          <div key={i} className={cn(
-            "flex flex-col items-center px-4 py-2 shrink-0",
-            i > 0 && "border-l border-border/60"
-          )}>
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{item.label}</span>
-            <span className="text-sm font-bold tabular-nums mt-0.5">{item.value}</span>
+          <div
+            key={i}
+            className={cn(
+              "flex shrink-0 flex-col items-center px-4 py-2",
+              i > 0 && "border-l border-border/60"
+            )}
+          >
+            <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+              {item.label}
+            </span>
+            <span className="mt-0.5 text-sm font-bold tabular-nums">
+              {item.value}
+            </span>
           </div>
         ))}
       </div>
@@ -262,7 +276,7 @@ export function InventoryForm({
 
         {/* Info Tab */}
         <TabsContent value="info" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="m-0 border-none bg-none p-0">
             <div className="space-y-4">
               {/* Name + Category */}
               <div className="grid gap-3 sm:grid-cols-2">
@@ -400,7 +414,7 @@ export function InventoryForm({
 
         {/* Stock Tab */}
         <TabsContent value="stock" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="m-0 border-none bg-none p-0">
             <div className="space-y-4">
               {/* Quantity Grid */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -535,7 +549,7 @@ export function InventoryForm({
 
         {/* Media Tab */}
         <TabsContent value="media" className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="m-0 border-none bg-none p-0">
             <label
               onDrop={(e) => {
                 e.preventDefault()
@@ -607,7 +621,7 @@ export function InventoryForm({
       </Tabs>
 
       {/* Actions */}
-      <div className="mt-6 flex items-center justify-end gap-3">
+      <div className="mt-3 grid grid-cols-2 gap-2 md:mt-5">
         <Button type="button" variant="outline" onClick={onCancel} size="sm">
           Cancelar
         </Button>

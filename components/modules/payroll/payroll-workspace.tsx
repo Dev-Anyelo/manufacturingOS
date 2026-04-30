@@ -2,20 +2,20 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import { formatCurrency } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { EmptyState } from "@/components/shared/empty-state"
+import { KpiSection } from "@/components/shared/kpi-section"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { PayrollForm } from "@/components/modules/payroll/payroll-form"
 import { MarkPaidDialog } from "@/components/modules/payroll/mark-paid-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { KpiSection } from "@/components/shared/kpi-section"
-import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { cn } from "@/lib/utils"
 
 import {
   CheckCircle2Icon,
@@ -127,7 +127,10 @@ export function PayrollWorkspace({
   return (
     <div className="space-y-6">
       {/* Compact KPI cards in Collapsible */}
-      <KpiSection label="Resumen de planilla" gridClassName="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <KpiSection
+        label="Resumen de planilla"
+        gridClassName="grid grid-cols-2 sm:grid-cols-3 gap-3"
+      >
         <CompactKpiCard
           label="Pagos pendientes"
           value={pendingCount}
@@ -172,18 +175,12 @@ export function PayrollWorkspace({
       {/* Tabs */}
       <Tabs defaultValue="payments" className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl border border-border/60 bg-muted/20 p-1 sm:w-auto">
-            <TabsTrigger
-              value="payments"
-              className="gap-2 py-2.5 text-xs sm:text-sm"
-            >
+          <TabsList className="grid h-auto w-full grid-cols-2 border border-border/60 bg-muted/20 sm:w-auto">
+            <TabsTrigger value="payments" className="gap-2 text-xs sm:text-sm">
               <ReceiptIcon className="size-4 shrink-0" />
               Pagos
             </TabsTrigger>
-            <TabsTrigger
-              value="employees"
-              className="gap-2 py-2.5 text-xs sm:text-sm"
-            >
+            <TabsTrigger value="employees" className="gap-2 text-xs sm:text-sm">
               <UsersRoundIcon className="size-4 shrink-0" />
               Empleados
             </TabsTrigger>
@@ -214,7 +211,7 @@ export function PayrollWorkspace({
 
         <TabsContent value="employees">
           <Card className="rounded-xl border border-border shadow-sm">
-            <CardHeader className="border-b border-border px-4 pb-3 pt-4">
+            <CardHeader className="border-b border-border px-4 pt-4 pb-3">
               <div className="flex items-center gap-2">
                 <ClipboardListIcon className="size-4 text-muted-foreground" />
                 <CardTitle className="text-sm font-semibold">
@@ -233,7 +230,7 @@ export function PayrollWorkspace({
                   }
                   title="Sin pagos registrados"
                   description="Los totales por empleado aparecerán aquí cuando registres pagos en la planilla."
-                  className="p-0 m-0 border-none bg-none"
+                  className="m-0 border-none bg-none p-0"
                 />
               ) : (
                 employeeSummary.map((row) => (
@@ -269,22 +266,22 @@ export function PayrollWorkspace({
             isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
           )}
         >
-          <SheetHeader className="shrink-0 border-b border-border/70 px-6 py-4 text-left">
+          <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                <WalletCardsIcon className="size-4 text-primary" />
-              </div>
               <div>
-                <SheetTitle className="text-base">Nuevo pago de planilla</SheetTitle>
-                <SheetDescription className="text-sm">
-                  Registra un nuevo pago con el período y montos correspondientes.
+                <SheetTitle className="text-base text-pretty">
+                  Nuevo pago de planilla
+                </SheetTitle>
+                <SheetDescription className="text-sm text-pretty">
+                  Registra un nuevo pago con el período y montos
+                  correspondientes.
                 </SheetDescription>
               </div>
             </div>
           </SheetHeader>
 
           <ScrollArea className="flex-1">
-            <div className="px-6 py-4">
+            <div className="px-4 py-4">
               <PayrollForm
                 employees={employees}
                 onSuccess={() => {
