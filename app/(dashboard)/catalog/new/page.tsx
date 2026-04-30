@@ -8,12 +8,13 @@ export default function NewCatalogItemPage() {
         title="Nuevo producto"
         description="Agrega un nuevo artículo al catálogo"
         breadcrumbs={[
-          { label: "Catalogo", href: "/catalog" },
-          { label: "Nuevo" },
+          { label: "Dashboard", href: "/" },
+          { label: "Catálogo", href: "/catalog" },
+          { label: "Nuevo producto" },
         ]}
       />
 
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <CatalogForm mode="create" />
       </div>
     </div>

@@ -1,18 +1,34 @@
 import Link from "next/link"
+import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 
 interface StatCardProps {
   title: string
-  value: string | number
+  value: ReactNode
   description?: string
-  icon: React.ReactNode
+  icon: ReactNode
   trend?: { value: number; isPositive?: boolean; label: string }
   variant?: "default" | "warning" | "danger" | "success" | "info"
   isLoading?: boolean
   href?: string
-  accent?: string
 }
+
+const iconWrapStyles = {
+  default: "bg-muted text-muted-foreground",
+  success: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+  warning: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  danger: "bg-red-500/15 text-red-600 dark:text-red-400",
+  info: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+} satisfies Record<NonNullable<StatCardProps["variant"]>, string>
+
+const valueToneStyles = {
+  default: "text-foreground",
+  success: "text-emerald-600 dark:text-emerald-400",
+  warning: "text-amber-600 dark:text-amber-400",
+  danger: "text-red-600 dark:text-red-400",
+  info: "text-blue-600 dark:text-blue-400",
+} satisfies Record<NonNullable<StatCardProps["variant"]>, string>
 
 export function StatCard({
   title,
@@ -26,78 +42,69 @@ export function StatCard({
 }: StatCardProps) {
   const isPositiveTrend = trend?.isPositive ?? true
 
-  const variantStyles = {
-    default: "border-border bg-card hover:border-border/80 before:bg-brand/45",
-    success:
-      "border-success-soft bg-card hover:border-success-soft before:bg-success",
-    warning:
-      "border-warning-soft bg-card hover:border-warning-soft before:bg-warning",
-    danger:
-      "border-danger-soft bg-card hover:border-danger-soft before:bg-danger",
-    info: "border-info-soft bg-card hover:border-info-soft before:bg-info",
-  } satisfies Record<NonNullable<StatCardProps["variant"]>, string>
-
-  const iconStyles = {
-    default: "text-muted-foreground/75",
-    success: "text-success",
-    warning: "text-warning",
-    danger: "text-danger",
-    info: "text-info",
-  } satisfies Record<NonNullable<StatCardProps["variant"]>, string>
-
   const Content = (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-xl border px-4 py-4 shadow-card transition-all duration-200 ease-in-out before:absolute before:inset-x-0 before:top-0 before:h-0.5 sm:px-5",
-        variantStyles[variant],
-        href && "hover:shadow-float cursor-pointer hover:-translate-y-0.5"
+        "group rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-md",
+        href && "cursor-pointer"
       )}
     >
-      <div className="pointer-events-none absolute -top-12 -right-12 size-28 rounded-full bg-brand/8 blur-2xl" />
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <h3 className="label-overline max-w-48 text-[11px] sm:text-xs">
+      <div className="flex items-start justify-between gap-3">
+        <p className="max-w-[14rem] text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {title}
-        </h3>
+        </p>
         <div
           className={cn(
-            "transition-colors group-hover:text-foreground/90",
-            iconStyles[variant]
+            "flex size-10 shrink-0 items-center justify-center rounded-lg [&>svg]:size-5",
+            iconWrapStyles[variant]
           )}
         >
           {icon}
         </div>
       </div>
-      <div className="flex items-baseline gap-3">
-        <div className="min-w-0 text-base leading-none font-bold tracking-tight text-foreground sm:text-lg">
-          {isLoading ? (
-            <div className="h-8 w-24 animate-pulse rounded bg-muted/40" />
-          ) : (
-            value
-          )}
+
+      <div
+        className={cn(
+          "mt-4 text-3xl font-bold tracking-tight tabular-nums",
+          !isLoading && valueToneStyles[variant]
+        )}
+      >
+        {isLoading ? (
+          <div className="h-9 w-28 animate-pulse rounded-md bg-muted" />
+        ) : (
+          value
+        )}
+      </div>
+
+      {(description ?? trend) ? (
+        <div className="mt-4 space-y-2 border-t border-border/70 pt-3">
+          {trend ? (
+            <div
+              className={cn(
+                "inline-flex items-center gap-1 text-xs font-semibold tabular-nums",
+                isPositiveTrend
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-red-600 dark:text-red-400"
+              )}
+            >
+              {isPositiveTrend ? (
+                <TrendingUpIcon className="size-3.5" />
+              ) : (
+                <TrendingDownIcon className="size-3.5" />
+              )}
+              {Math.abs(trend.value)}%{" "}
+              <span className="font-normal text-muted-foreground">
+                {trend.label}
+              </span>
+            </div>
+          ) : null}
+          {description ? (
+            <p className="text-xs leading-relaxed text-pretty text-muted-foreground">
+              {description}
+            </p>
+          ) : null}
         </div>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {trend && (
-          <div
-            className={cn(
-              "inline-flex items-center rounded-md border px-2.5 py-1 text-xs leading-none font-semibold",
-              isPositiveTrend ? "status-success" : "status-danger"
-            )}
-          >
-            {isPositiveTrend ? (
-              <TrendingUpIcon className="mr-1 h-3 w-3" />
-            ) : (
-              <TrendingDownIcon className="mr-1 h-3 w-3" />
-            )}
-            {Math.abs(trend.value)}%
-          </div>
-        )}
-        {description && (
-          <p className="text-xs text-pretty text-muted-foreground/70">
-            {description}
-          </p>
-        )}
-      </div>
+      ) : null}
     </div>
   )
 

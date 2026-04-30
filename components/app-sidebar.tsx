@@ -6,6 +6,10 @@ import { UserRole } from "@/types"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import type { CurrentUser } from "@/lib/auth/current-user"
+import {
+  dashboardNavSections,
+  filterDashboardNavForRole,
+} from "@/lib/nav/dashboard-links"
 
 import {
   Sidebar,
@@ -31,86 +35,18 @@ import {
   LayersPlusIcon,
 } from "lucide-react"
 
-type NavItem = {
-  title: string
-  url: string
-  icon: React.ComponentType<{ className?: string }>
-  adminOnly?: boolean
+const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  "/": LayoutDashboardIcon,
+  "/reports": BookOpenTextIcon,
+  "/inventory": LayersPlusIcon,
+  "/production": FactoryIcon,
+  "/orders": ReceiptTextIcon,
+  "/catalog": ShirtIcon,
+  "/sales": ShoppingCartIcon,
+  "/expenses": WalletIcon,
+  "/payroll": UsersRoundIcon,
+  "/settings": Settings2Icon,
 }
-
-const navigationSections: Array<{ label: string; items: NavItem[] }> = [
-  {
-    label: "General",
-    items: [
-      {
-        title: "Dashboard",
-        url: "/",
-        icon: LayoutDashboardIcon,
-      },
-      {
-        title: "Reportes",
-        url: "/reports",
-        icon: BookOpenTextIcon,
-      },
-    ],
-  },
-  {
-    label: "Operaciones",
-    items: [
-      {
-        title: "Inventario",
-        url: "/inventory",
-        icon: LayersPlusIcon,
-      },
-      {
-        title: "Produccion",
-        url: "/production",
-        icon: FactoryIcon,
-      },
-      {
-        title: "Pedidos",
-        url: "/orders",
-        icon: ReceiptTextIcon,
-      },
-      {
-        title: "Catalogo",
-        url: "/catalog",
-        icon: ShirtIcon,
-      },
-    ],
-  },
-  {
-    label: "Comercial y Finanzas",
-    items: [
-      {
-        title: "Ventas",
-        url: "/sales",
-        icon: ShoppingCartIcon,
-      },
-      {
-        title: "Gastos",
-        url: "/expenses",
-        icon: WalletIcon,
-      },
-      {
-        title: "Planilla",
-        url: "/payroll",
-        icon: UsersRoundIcon,
-      },
-    ],
-  },
-  {
-    label: "Sistema",
-    items: [
-      {
-        title: "Configuracion",
-        url: "/settings",
-        icon: Settings2Icon,
-        adminOnly: true,
-      },
-    ],
-  },
-]
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   user: CurrentUser
@@ -124,18 +60,16 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     [UserRole.Readonly]: "Solo lectura",
   }[user.role]
 
-  const filteredSections = navigationSections
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => {
-        if (!item.adminOnly) {
-          return true
-        }
-
-        return user.role === UserRole.Admin
-      }),
-    }))
-    .filter((section) => section.items.length > 0)
+  const filteredSections = filterDashboardNavForRole(
+    dashboardNavSections,
+    user.role
+  ).map((section) => ({
+    ...section,
+    items: section.items.map((item) => ({
+      ...item,
+      icon: navIcons[item.url] ?? LayoutDashboardIcon,
+    })),
+  }))
 
   return (
     <Sidebar collapsible="offcanvas" variant="floating" {...props}>
@@ -147,7 +81,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
               className="data-[slot=sidebar-menu-button]:h-auto! data-[slot=sidebar-menu-button]:rounded-xl! data-[slot=sidebar-menu-button]:border! data-[slot=sidebar-menu-button]:border-sidebar-border/60! data-[slot=sidebar-menu-button]:bg-sidebar-accent/40! data-[slot=sidebar-menu-button]:px-3! data-[slot=sidebar-menu-button]:py-2.5!"
             >
               <Link href="/" className="flex items-center gap-3">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-brand text-white shadow-sm">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                   <CommandIcon className="size-4" />
                 </div>
                 <div className="min-w-0 space-y-0.5">
@@ -155,7 +89,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                     manufacturingOS
                   </p>
                   <p className="truncate text-[11px] text-sidebar-foreground/65">
-                    ERP Textil · {roleLabel}
+                    ERP textil · {roleLabel}
                   </p>
                 </div>
               </Link>

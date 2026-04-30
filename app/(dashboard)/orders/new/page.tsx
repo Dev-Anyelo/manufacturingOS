@@ -14,9 +14,14 @@ export default async function NewOrderPage() {
     <section className="page-shell">
       <PageHeader
         title="Nuevo pedido"
-        description=" Crea un pedido para un cliente y especifica los detalles de entrega."
+        description="Crea un pedido para un cliente y especifica los detalles de entrega."
         actions={
-          <Button asChild variant="outline" size="sm">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-10 sm:min-h-9"
+          >
             <Link href="/orders">
               <ArrowLeftIcon className="size-4" />
               Volver
@@ -30,7 +35,7 @@ export default async function NewOrderPage() {
         ]}
       />
 
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <OrderForm
           customers={customers.map((customer) => ({
             id: customer.id,

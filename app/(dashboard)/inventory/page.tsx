@@ -49,7 +49,7 @@ export default async function InventoryPage() {
 
   return (
     <section className="page-shell">
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <PageHeader
           title="Inventario"
           description="Control de telas, insumos, herramientas y maquinaria."
@@ -58,13 +58,22 @@ export default async function InventoryPage() {
             { label: "Inventario" },
           ]}
           actions={
-            <div className="flex items-center gap-2">
-              <Button asChild variant="outline" size="sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="min-h-10 w-full sm:w-auto sm:min-h-9"
+              >
                 <Link href="/inventory">Exportar</Link>
               </Button>
-              <Button asChild size="sm">
+              <Button
+                asChild
+                size="default"
+                className="min-h-11 w-full gap-2 shadow-sm sm:min-h-10 sm:w-auto"
+              >
                 <Link href="/inventory/new">
-                  <PlusIcon className="size-4" />
+                  <PlusIcon className="size-4 shrink-0" />
                   Nuevo material
                 </Link>
               </Button>
@@ -72,7 +81,7 @@ export default async function InventoryPage() {
           }
         />
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-6">
           <StatCard
             title="Materiales activos"
             value={tableItems.length}

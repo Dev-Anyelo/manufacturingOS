@@ -28,11 +28,17 @@ export default async function PayrollDetailPage({
         title={`Pago #${payment.id.slice(0, 8)}`}
         description="Detalle de planilla y comprobante asociado."
         breadcrumbs={[
+          { label: "Dashboard", href: "/" },
           { label: "Planilla", href: "/payroll" },
           { label: `Pago #${payment.id.slice(0, 8)}` },
         ]}
         actions={
-          <Button asChild variant="outline" size="sm">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-10 sm:min-h-9"
+          >
             <Link href="/payroll">
               <ArrowLeftIcon className="size-4" />
               Volver
@@ -41,7 +47,7 @@ export default async function PayrollDetailPage({
         }
       />
 
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <PayslipPreview
           payment={{
             id: payment.id,

@@ -13,14 +13,19 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { AdjustStockDialog } from "@/components/modules/inventory/adjust-stock-dialog"
+import { cn } from "@/lib/utils"
 
 import {
-  ArrowUpRightIcon,
+  ArrowUpDown,
+  Building2Icon,
+  CogIcon,
   EllipsisVerticalIcon,
-  LayersIcon,
-  PencilLineIcon,
-  PowerIcon,
-  SlidersHorizontalIcon,
+  EyeIcon,
+  PackageIcon,
+  PencilIcon,
+  ShirtIcon,
+  Trash2Icon,
+  WrenchIcon,
 } from "lucide-react"
 
 import {
@@ -64,23 +69,44 @@ interface InventoryTableProps {
 
 const categoryConfig: Record<
   InventoryTableRow["category"],
-  { label: string; classes: string }
+  {
+    label: string
+    Icon: typeof ShirtIcon
+    tileClass: string
+    badgeClass: string
+  }
 > = {
   fabric: {
     label: "Telas",
-    classes: "status-brand",
+    Icon: ShirtIcon,
+    tileClass:
+      "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+    badgeClass:
+      "border-violet-200/80 bg-violet-100 text-violet-800 dark:border-violet-900 dark:bg-violet-950 dark:text-violet-200",
   },
   supplies: {
     label: "Insumos",
-    classes: "status-info",
+    Icon: PackageIcon,
+    tileClass:
+      "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+    badgeClass:
+      "border-blue-200/80 bg-blue-100 text-blue-800 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200",
   },
   tools: {
     label: "Herramientas",
-    classes: "status-warning",
+    Icon: WrenchIcon,
+    tileClass:
+      "border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-300",
+    badgeClass:
+      "border-amber-200/80 bg-amber-100 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200",
   },
   machinery: {
     label: "Maquinaria",
-    classes: "status-subtle",
+    Icon: CogIcon,
+    tileClass:
+      "border-slate-400/35 bg-muted text-slate-700 dark:text-slate-200",
+    badgeClass:
+      "border-slate-200 bg-slate-100 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
   },
 }
 
@@ -107,6 +133,7 @@ function createInventoryColumns(
       cell: ({ row }) => {
         const item = row.original
         const catConfig = categoryConfig[item.category]
+        const CatIcon = catConfig.Icon
 
         return (
           <div className="flex min-w-0 items-center gap-3">
@@ -120,16 +147,24 @@ function createInventoryColumns(
                 />
               </div>
             ) : (
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted text-muted-foreground">
-                <LayersIcon className="size-4" />
+              <span
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-md border",
+                  catConfig.tileClass
+                )}
+              >
+                <CatIcon className="size-4" />
               </span>
             )}
             <div className="min-w-0 space-y-0.5">
-              <p className="truncate text-sm leading-tight font-semibold">
+              <p className="truncate text-sm leading-tight font-medium">
                 {item.name}
               </p>
               <div className="flex items-center gap-1.5">
-                <Badge variant="outline" className={catConfig.classes}>
+                <Badge
+                  variant="outline"
+                  className={cn("text-xs font-normal", catConfig.badgeClass)}
+                >
                   {catConfig.label}
                 </Badge>
               </div>
@@ -151,11 +186,13 @@ function createInventoryColumns(
       meta: {
         className: "hidden lg:table-cell",
         headerClassName: "hidden lg:table-cell",
+        mobileCardVisible: true,
+        mobileLabel: "Stock",
       },
     },
     {
       id: "unitPrice",
-      header: () => <div className="text-right">Precio unitario</div>,
+      header: () => <div className="text-right">Precio</div>,
       cell: ({ row }) => (
         <div className="text-right font-medium tabular-nums">
           <CurrencyDisplay amount={row.original.unitPrice} />
@@ -183,17 +220,20 @@ function createInventoryColumns(
         const truncated = supplier.length > 22
         const text = truncated ? `${supplier.slice(0, 22)}...` : supplier
 
+        const inner = (
+          <span className="inline-flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+            <Building2Icon className="size-3.5 shrink-0 opacity-70" />
+            <span className="truncate">{text}</span>
+          </span>
+        )
+
         if (!truncated) {
-          return <span className="text-sm text-muted-foreground">{text}</span>
+          return inner
         }
 
         return (
           <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-help text-sm text-muted-foreground">
-                {text}
-              </span>
-            </TooltipTrigger>
+            <TooltipTrigger asChild>{inner}</TooltipTrigger>
             <TooltipContent>{supplier}</TooltipContent>
           </Tooltip>
         )
@@ -215,7 +255,7 @@ function createInventoryColumns(
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-8 opacity-60 transition-opacity hover:opacity-100"
+                className="size-10 min-h-10 min-w-10 opacity-70 transition-opacity hover:opacity-100"
               >
                 <EllipsisVerticalIcon className="size-4" />
                 <span className="sr-only">Abrir acciones</span>
@@ -224,18 +264,18 @@ function createInventoryColumns(
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem asChild>
                 <Link href={`/inventory/${item.id}`}>
-                  <ArrowUpRightIcon className="size-4" />
+                  <EyeIcon className="size-4" />
                   Ver detalle
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/inventory/${item.id}/edit`}>
-                  <PencilLineIcon className="size-4" />
+                  <PencilIcon className="size-4" />
                   Editar material
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => actions.onAdjust(item)}>
-                <SlidersHorizontalIcon className="size-4" />
+                <ArrowUpDown className="size-4" />
                 Ajustar stock
               </DropdownMenuItem>
               {actions.canDeactivate ? (
@@ -245,7 +285,7 @@ function createInventoryColumns(
                     variant="destructive"
                     onClick={() => actions.onDeactivate(item)}
                   >
-                    <PowerIcon className="size-4" />
+                    <Trash2Icon className="size-4" />
                     Desactivar
                   </DropdownMenuItem>
                 </>
@@ -339,8 +379,8 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         data={filteredItems}
         searchKey="name"
         searchPlaceholder="Buscar por nombre o proveedor..."
-        emptyMessage="Sin materiales disponibles"
-        emptyDescription="Ajusta tus filtros o crea un nuevo material para empezar."
+        emptyMessage="No hay materiales registrados"
+        emptyDescription="Busca otro termino o agrega el primer material al inventario."
         emptyAction={
           <Button asChild size="sm">
             <Link href="/inventory/new">Nuevo material</Link>

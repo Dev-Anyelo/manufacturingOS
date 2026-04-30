@@ -27,7 +27,7 @@ export default async function ExpensesPage() {
 
   return (
     <section className="page-shell">
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <PageHeader
           title="Gastos"
           description="Controla egresos operativos y compras de insumos."
@@ -35,10 +35,11 @@ export default async function ExpensesPage() {
           actions={
             <Button
               asChild
-              size="sm"
+              size="default"
+              className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
             >
               <Link href="/expenses/new">
-                <PlusIcon className="size-4" />
+                <PlusIcon className="size-4 shrink-0" />
                 Nuevo gasto
               </Link>
             </Button>

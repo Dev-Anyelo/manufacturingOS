@@ -28,11 +28,17 @@ export default async function ProductionDetailPage({
         title={`Sesión #${session.id.slice(0, 8)}`}
         description="Detalle de prendas confeccionadas y consumo por material."
         breadcrumbs={[
-          { label: "Produccion", href: "/production" },
+          { label: "Dashboard", href: "/" },
+          { label: "Producción", href: "/production" },
           { label: `Sesión #${session.id.slice(0, 8)}` },
         ]}
         actions={
-          <Button asChild variant="outline" size="sm">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-10 sm:min-h-9"
+          >
             <Link href="/production">
               <ArrowLeftIcon className="size-4" />
               Volver
@@ -41,7 +47,7 @@ export default async function ProductionDetailPage({
         }
       />
 
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <ProductionSessionDetail
           session={{
             id: session.id,

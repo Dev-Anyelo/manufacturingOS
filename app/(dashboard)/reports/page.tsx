@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 import {
   BarChart3Icon,
@@ -16,9 +17,9 @@ export default function ReportsPage() {
     {
       title: "Operaciones",
       description:
-        "Produccion diaria, uso de materiales y cumplimiento de entregas.",
+        "Producción diaria, uso de materiales y cumplimiento de entregas.",
       items: [
-        "Produccion diaria",
+        "Producción diaria",
         "Consumo de inventario",
         "Pedidos atrasados",
       ],
@@ -26,14 +27,14 @@ export default function ReportsPage() {
     },
     {
       title: "Comercial",
-      description: "Desempeno de ventas por canal, ticket y margen.",
+      description: "Desempeño de ventas por canal, ticket y margen.",
       items: ["Ventas por canal", "Top productos", "Margen por producto"],
       tone: "status-brand",
     },
     {
       title: "Finanzas",
-      description: "Control de egresos y flujo de planilla por periodo.",
-      items: ["Gastos por categoria", "Planilla mensual", "Balance operativo"],
+      description: "Control de egresos y flujo de planilla por período.",
+      items: ["Gastos por categoría", "Planilla mensual", "Balance operativo"],
       tone: "status-warning",
     },
   ]
@@ -46,16 +47,26 @@ export default function ReportsPage() {
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Reportes" }]}
       />
 
-      <div className="page-content">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="page-content space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            Filtra por rango de fechas en cada exportación cuando estén
+            disponibles.
+          </p>
+          <Button size="sm" variant="outline" disabled className="min-h-10">
+            Exportar Excel
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
           <Card className="border border-border/70 shadow-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs text-muted-foreground">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 Reportes diarios
               </CardTitle>
             </CardHeader>
             <CardContent className="flex items-center gap-2">
-              <CalendarClockIcon className="size-4 text-brand" />
+              <CalendarClockIcon className="size-4 text-primary" />
               <p className="text-sm font-semibold">
                 Disponibles al cierre diario
               </p>
@@ -63,7 +74,7 @@ export default function ReportsPage() {
           </Card>
           <Card className="border border-border/70 shadow-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs text-muted-foreground">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 Indicadores KPI
               </CardTitle>
             </CardHeader>
@@ -76,8 +87,8 @@ export default function ReportsPage() {
           </Card>
           <Card className="border border-border/70 shadow-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs text-muted-foreground">
-                Exportacion
+              <CardTitle className="text-xs font-medium text-muted-foreground">
+                Exportación
               </CardTitle>
             </CardHeader>
             <CardContent className="flex items-center gap-2">
@@ -87,42 +98,46 @@ export default function ReportsPage() {
           </Card>
         </div>
 
+        <Separator className="bg-border/70" />
+
         <Card className="border border-border/70 shadow-card">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 border-b border-border/70 bg-muted/10 pb-3">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 border-b border-border/70 bg-muted/10 pb-3">
             <CardTitle className="text-base">Centro de reportes</CardTitle>
-            <Button size="sm" variant="outline" disabled>
+            <Button size="sm" variant="outline" disabled className="min-h-10">
               Generar reporte
             </Button>
           </CardHeader>
-          <CardContent className="pt-4">
+          <CardContent className="space-y-6 pt-6">
             <EmptyState
               icon={<BookOpenTextIcon />}
               title="Sin reportes generados"
-              description="Los reportes estaran disponibles en cuanto exista actividad operativa."
+              description="Los reportes estarán disponibles en cuanto exista actividad operativa."
             />
 
-            <div className="mt-4 grid grid-cols-1 gap-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-4">
               {reportBlocks.map((block) => (
                 <div
                   key={block.title}
-                  className="space-y-2 rounded-lg border border-border/70 bg-card/90 p-3"
+                  className="space-y-3 rounded-xl border border-border/70 bg-card/90 p-4 shadow-card"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-semibold">{block.title}</p>
-                    <Badge className={block.tone}>Planeado</Badge>
+                    <Badge variant="outline" className={block.tone}>
+                      Planeado
+                    </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-pretty text-muted-foreground">
                     {block.description}
                   </p>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {block.items.map((item) => (
                       <div
                         key={item}
-                        className="flex items-center justify-between rounded-md border border-border/60 bg-muted/15 px-2.5 py-1.5"
+                        className="flex items-center justify-between rounded-md border border-border/60 bg-muted/15 px-2.5 py-2"
                       >
                         <p className="text-xs">{item}</p>
                         <Badge variant="outline" className="text-[10px]">
-                          Proximamente
+                          Próximamente
                         </Badge>
                       </div>
                     ))}
@@ -133,28 +148,6 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  )
-}
-
-function MiniStat({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string
-  value: string
-  icon: React.ComponentType<{ className?: string }>
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-card/85 px-3 py-2">
-      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold">
-        <Icon className="size-3.5 text-brand" />
-        {value}
-      </p>
     </div>
   )
 }

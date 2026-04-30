@@ -61,8 +61,8 @@ export function LoginForm() {
         aria-hidden
         className="pointer-events-none fixed inset-0 overflow-hidden"
       >
-        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-brand/8 blur-3xl" />
-        <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-brand/5 blur-3xl" />
+        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
       </div>
 
       {/* CARD */}
@@ -70,9 +70,9 @@ export function LoginForm() {
         {/* Cabecera fuera del card — marca / contexto */}
         <div className="mb-8 space-y-1 text-center">
           {/* Sustituye este bloque por tu logo real si lo tienes */}
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand shadow-lg shadow-brand/30">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/25">
             <KeyRoundIcon
-              className="h-6 w-6 text-brand-foreground"
+              className="h-6 w-6 text-primary-foreground"
               strokeWidth={1.75}
             />
           </div>
@@ -119,7 +119,7 @@ export function LoginForm() {
               action={
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-muted-foreground underline-offset-2 transition-colors hover:text-brand hover:underline"
+                  className="text-xs text-muted-foreground underline-offset-2 transition-colors hover:text-primary hover:underline"
                 >
                   ¿Olvidaste tu clave?
                 </Link>

@@ -19,14 +19,20 @@ export default async function NewProductionSessionPage() {
   return (
     <div className="page-shell">
       <PageHeader
-        title="Nueva sesion de produccion"
+        title="Nueva sesión de producción"
         description="Registra la producción del día."
         breadcrumbs={[
-          { label: "Produccion", href: "/production" },
-          { label: "Nueva sesion" },
+          { label: "Dashboard", href: "/" },
+          { label: "Producción", href: "/production" },
+          { label: "Nueva sesión" },
         ]}
         actions={
-          <Button asChild variant="outline" size="sm">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-10 sm:min-h-9"
+          >
             <Link href="/production">
               <ArrowLeftIcon className="size-4" />
               Volver
@@ -35,7 +41,7 @@ export default async function NewProductionSessionPage() {
         }
       />
 
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <ProductionForm
           employees={bootstrap.employees}
           inventoryItems={inventoryOptions}

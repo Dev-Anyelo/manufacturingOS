@@ -114,7 +114,7 @@ const columns: ColumnDef<ProductionTableRow>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2.5">
         <Avatar className="size-7 shrink-0">
-          <AvatarFallback className="bg-brand/10 text-xs font-semibold text-brand">
+          <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
             {initials(row.original.employeeName)}
           </AvatarFallback>
         </Avatar>
@@ -152,6 +152,8 @@ const columns: ColumnDef<ProductionTableRow>[] = [
     meta: {
       className: "hidden sm:table-cell",
       headerClassName: "hidden sm:table-cell",
+      mobileCardVisible: true,
+      mobileLabel: "Yardas",
     },
   },
   {
@@ -175,7 +177,7 @@ const columns: ColumnDef<ProductionTableRow>[] = [
         asChild
         variant="ghost"
         size="sm"
-        className="h-8 gap-1.5 px-2 text-xs"
+        className="min-h-10 gap-1.5 px-3 text-xs sm:min-h-8 sm:h-8 sm:px-2"
       >
         <Link href={`/production/${row.original.id}`}>
           Detalles
@@ -230,7 +232,7 @@ export function ProductionTable({ sessions }: ProductionTableProps) {
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
             <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-              <SelectTrigger className="text-xs">
+              <SelectTrigger className="min-h-10 text-xs sm:min-h-9">
                 <SelectValue placeholder="Empleado" />
               </SelectTrigger>
               <SelectContent>

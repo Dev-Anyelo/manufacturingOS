@@ -68,7 +68,7 @@ export function ForgotPasswordForm() {
   return (
     <Card className="overflow-hidden border border-border/70 bg-card/95 shadow-card backdrop-blur-sm">
       <CardHeader className="space-y-3 border-b border-border/70 bg-muted/10">
-        <div className="bg-brand-muted inline-flex w-fit items-center gap-2 rounded-lg border border-brand/30 px-2.5 py-1 text-xs font-medium text-brand">
+        <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
           <MailCheckIcon className="size-3.5" />
           Recuperacion de acceso
         </div>
@@ -102,7 +102,7 @@ export function ForgotPasswordForm() {
 
           <div className="rounded-lg border border-border/70 bg-card/80 p-3">
             <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground">
-              <ShieldCheckIcon className="size-3.5 text-brand" />
+              <ShieldCheckIcon className="size-3.5 text-primary" />
               Seguridad de recuperacion
             </p>
             <ul className="space-y-1 text-xs text-muted-foreground">
@@ -131,7 +131,7 @@ export function ForgotPasswordForm() {
               href="/login"
               className="font-medium text-primary underline-offset-2 hover:underline"
             >
-              Volver a iniciar sesion
+              Volver a iniciar sesión
             </Link>
           </div>
         </CardContent>
@@ -139,7 +139,7 @@ export function ForgotPasswordForm() {
         <CardFooter className="border-t border-border/70 bg-muted/10">
           <Button
             type="submit"
-            className="h-10 w-full bg-brand text-brand-foreground hover:bg-brand-dark"
+            className="min-h-11 w-full"
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? (

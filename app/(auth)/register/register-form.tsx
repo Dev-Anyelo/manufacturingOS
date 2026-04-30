@@ -69,7 +69,7 @@ export function RegisterForm() {
   return (
     <Card className="overflow-hidden border border-border bg-muted/20 shadow-sm backdrop-blur-sm">
       <CardHeader className="space-y-3 border-b border-border">
-        <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-brand/30 bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand">
+        <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
           <ShieldCheckIcon className="size-3.5" />
           Alta segura
         </div>
@@ -134,16 +134,12 @@ export function RegisterForm() {
           ) : null}
 
           <Link href="/login" className="text-xs text-primary hover:underline">
-            Ya tienes cuenta? Inicia sesion
+            ¿Ya tienes cuenta? Inicia sesión
           </Link>
         </CardContent>
 
         <CardFooter className="border-t border-border bg-muted/20">
-          <Button
-            type="submit"
-            className="w-full bg-brand text-brand-foreground hover:bg-brand-dark"
-            disabled={form.formState.isSubmitting}
-          >
+          <Button type="submit" className="min-h-11 w-full" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? (
               <>
                 <Loader2Icon className="animate-spin" />

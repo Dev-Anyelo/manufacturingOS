@@ -100,7 +100,7 @@ function KanbanColumn({
   })
 
   return (
-    <div className="flex min-w-0 flex-col">
+    <div className="flex min-w-[272px] flex-col lg:min-w-0">
       {/* Header */}
       <div
         className={cn(
@@ -140,7 +140,7 @@ function KanbanColumn({
           "transition-all duration-100",
           cfg.bodyBg,
           cfg.border,
-          isOver && "bg-brand/5 ring-1 ring-brand ring-inset"
+          isOver && "bg-primary/5 ring-1 ring-primary ring-inset"
         )}
       >
         <SortableContext
@@ -214,7 +214,7 @@ export function OrderKanban({
               setMobileFilter(value as WorkOrderStatus | "all")
             }
           >
-            <SelectTrigger className="w-full rounded-xl">
+            <SelectTrigger className="h-11 w-full rounded-xl md:h-10">
               <SelectValue placeholder="Filtrar etapa" />
             </SelectTrigger>
             <SelectContent>
@@ -258,13 +258,15 @@ export function OrderKanban({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div
-        className="grid grid-cols-1 gap-3 pb-4 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4"
-        role="list"
-      >
-        {statuses.map((s) => (
-          <KanbanColumn key={s} status={s} orders={ordersByStatus[s]} />
-        ))}
+      <div className="-mx-4 overflow-x-auto pb-4 lg:mx-0">
+        <div
+          className="flex min-w-max gap-3 px-4 lg:grid lg:min-w-0 lg:grid-cols-6 lg:gap-3 lg:px-0"
+          role="list"
+        >
+          {statuses.map((s) => (
+            <KanbanColumn key={s} status={s} orders={ordersByStatus[s]} />
+          ))}
+        </div>
       </div>
       <DragOverlay>
         {activeOrder && (

@@ -32,12 +32,18 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
         title={`Venta #${sale.id.slice(0, 8)}`}
         description="Consulta items, pagos y estado para esta venta."
         breadcrumbs={[
+          { label: "Dashboard", href: "/" },
           { label: "Ventas", href: "/sales" },
           { label: `#${sale.id.slice(0, 8)}` },
         ]}
         actions={
           <>
-            <Button asChild variant="outline" size="sm">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="min-h-10 sm:min-h-9"
+            >
               <Link href="/sales">
                 <ArrowLeft className="mr-1.5 h-4 w-4" />
                 Volver
@@ -46,7 +52,7 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
             {sale.status !== "paid" ? (
               <UpdateSalePaymentButton saleId={sale.id} />
             ) : null}
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="min-h-10 sm:min-h-9">
               <Link href="/sales/new">
                 <Plus className="mr-1.5 h-4 w-4" />
                 Nueva venta
@@ -56,7 +62,7 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
         }
       />
 
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <SaleDetail
           sale={{
             id: sale.id,

@@ -4,20 +4,57 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { groupByStatus } from "@/lib/utils"
 import { WorkOrderStatus } from "@prisma/client"
-import { LayoutGridIcon, TableIcon } from "lucide-react"
 import { OrderKanban } from "@/components/modules/orders/order-kanban"
 import { OrdersTable } from "@/components/modules/orders/orders-table"
 import type { OrderSummaryItem } from "@/components/modules/orders/types"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
+import { Button } from "@/components/ui/button"
+import { LayoutGridIcon, TableIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface OrdersWorkspaceProps {
   initialOrders: OrderSummaryItem[]
 }
 
+type PipelineFilter =
+  | "all"
+  | "received_bucket"
+  | "in_production"
+  | "ready"
+  | "cancelled"
+
+const PIPELINE_OPTIONS: Array<{ key: PipelineFilter; label: string }> = [
+  { key: "all", label: "Todos" },
+  { key: "received_bucket", label: "Recibidos" },
+  { key: "in_production", label: "En producción" },
+  { key: "ready", label: "Listos" },
+  { key: "cancelled", label: "Cancelados" },
+]
+
+function matchesPipeline(order: OrderSummaryItem, filter: PipelineFilter) {
+  switch (filter) {
+    case "all":
+      return true
+    case "received_bucket":
+      return (
+        order.status === WorkOrderStatus.received ||
+        order.status === WorkOrderStatus.confirmed
+      )
+    case "in_production":
+      return order.status === WorkOrderStatus.in_production
+    case "ready":
+      return order.status === WorkOrderStatus.ready
+    case "cancelled":
+      return order.status === WorkOrderStatus.cancelled
+  }
+}
+
 export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
   const router = useRouter()
   const [orders, setOrders] = React.useState(initialOrders)
+  const [pipelineFilter, setPipelineFilter] =
+    React.useState<PipelineFilter>("all")
   const [statusDialogState, setStatusDialogState] = React.useState<{
     order: OrderSummaryItem
     targetStatus: WorkOrderStatus
@@ -27,67 +64,77 @@ export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
     setOrders(initialOrders)
   }, [initialOrders])
 
-  const grouped = React.useMemo(() => groupByStatus(orders), [orders])
+  const pipelineCounts = React.useMemo(() => {
+    return {
+      all: orders.length,
+      received_bucket: orders.filter((o) =>
+        matchesPipeline(o, "received_bucket")
+      ).length,
+      in_production: orders.filter((o) =>
+        matchesPipeline(o, "in_production")
+      ).length,
+      ready: orders.filter((o) => matchesPipeline(o, "ready")).length,
+      cancelled: orders.filter((o) => matchesPipeline(o, "cancelled")).length,
+    }
+  }, [orders])
 
-  const quickSummary = React.useMemo(
-    () => [
-      {
-        label: "Recibidos",
-        value: grouped[WorkOrderStatus.received].length,
-        className: "status-subtle",
-      },
-      {
-        label: "En producción",
-        value: grouped[WorkOrderStatus.in_production].length,
-        className: "status-warning",
-      },
-      {
-        label: "Listos",
-        value: grouped[WorkOrderStatus.ready].length,
-        className: "status-success",
-      },
-      {
-        label: "Cancelados",
-        value: grouped[WorkOrderStatus.cancelled].length,
-        className: "status-danger",
-      },
-    ],
-    [grouped]
+  const filteredOrders = React.useMemo(
+    () => orders.filter((o) => matchesPipeline(o, pipelineFilter)),
+    [orders, pipelineFilter]
+  )
+
+  const grouped = React.useMemo(
+    () => groupByStatus(filteredOrders),
+    [filteredOrders]
   )
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-        {quickSummary.map((item) => (
-          <div
-            key={item.label}
-            className={`inline-flex items-center gap-2 rounded-md border px-2.5 py-1 text-xs ${item.className}`}
-          >
-            <span>{item.label}</span>
-            <span className="font-semibold tabular-nums">{item.value}</span>
-          </div>
-        ))}
+      <div className="space-y-3">
+        <p className="label-overline text-muted-foreground">
+          Filtrar por etapa del embudo
+        </p>
+        <div className="-mx-1 flex gap-2 overflow-x-auto pb-1">
+          {PIPELINE_OPTIONS.map(({ key, label }) => (
+            <Button
+              key={key}
+              type="button"
+              variant={pipelineFilter === key ? "secondary" : "outline"}
+              size="sm"
+              className={cn(
+                "h-10 shrink-0 rounded-lg px-3 text-xs font-medium sm:h-9 sm:text-sm",
+                pipelineFilter === key && "border-primary/35 bg-primary/10"
+              )}
+              onClick={() => setPipelineFilter(key)}
+            >
+              <span>{label}</span>
+              <span className="ml-1.5 inline-flex min-w-[1.25rem] justify-center rounded-full border border-border/80 bg-background/80 px-1.5 text-[11px] font-semibold tabular-nums">
+                {pipelineCounts[key]}
+              </span>
+            </Button>
+          ))}
+        </div>
       </div>
 
       <Tabs defaultValue="kanban" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 rounded-xl border border-border/60 bg-muted/20 p-1 sm:w-auto">
+        <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl border border-border/60 bg-muted/20 p-1 sm:inline-flex sm:w-auto">
           <TabsTrigger
             value="kanban"
-            className="gap-1.5 rounded-lg px-3 text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            className="gap-2 rounded-lg px-4 py-2.5 text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm sm:py-2 sm:text-sm"
           >
-            <LayoutGridIcon className="size-3.5" />
+            <LayoutGridIcon className="size-4 shrink-0" />
             Kanban
           </TabsTrigger>
           <TabsTrigger
             value="table"
-            className="gap-1.5 rounded-lg px-3 text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            className="gap-2 rounded-lg px-4 py-2.5 text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm sm:py-2 sm:text-sm"
           >
-            <TableIcon className="size-3.5" />
+            <TableIcon className="size-4 shrink-0" />
             Tabla
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="kanban" className="mt-0">
+        <TabsContent value="kanban" className="mt-0 focus-visible:outline-none">
           <OrderKanban
             ordersByStatus={grouped}
             onStatusIntent={(order, targetStatus) =>
@@ -96,12 +143,12 @@ export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
           />
         </TabsContent>
 
-        <TabsContent value="table" className="mt-0">
-          <OrdersTable orders={orders} />
+        <TabsContent value="table" className="mt-0 focus-visible:outline-none">
+          <OrdersTable orders={filteredOrders} suppressStatusFilter />
         </TabsContent>
       </Tabs>
 
-      {statusDialogState && (
+      {statusDialogState ? (
         <ChangeStatusDialog
           orderId={statusDialogState.order.id}
           currentStatus={statusDialogState.order.status}
@@ -122,7 +169,7 @@ export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
             router.refresh()
           }}
         />
-      )}
+      ) : null}
     </>
   )
 }

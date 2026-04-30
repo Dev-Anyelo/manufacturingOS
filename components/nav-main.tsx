@@ -48,7 +48,7 @@ export function NavMain({
                   asChild
                   tooltip={item.title}
                   isActive={active}
-                  className="h-8 rounded px-3 text-sm text-sidebar-foreground/82 hover:text-sidebar-foreground data-[active=true]:text-sidebar-primary [&>svg]:mr-2.5 [&>svg]:size-4.5 [&>svg]:text-current"
+                  className="h-8 rounded border-l-2 border-transparent px-3 text-sm text-sidebar-foreground/82 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground data-[active=true]:border-primary data-[active=true]:bg-primary/10 data-[active=true]:font-medium data-[active=true]:text-primary [&>svg]:mr-2.5 [&>svg]:size-4.5 [&>svg]:text-current"
                 >
                   <Link
                     href={item.url}

@@ -55,8 +55,7 @@ export default async function OrdersPage() {
 
   return (
     <section className="page-shell">
-      <div className="page-content">
-        {/* ── Page header ── */}
+      <div className="page-content space-y-6">
         <PageHeader
           title="Órdenes"
           description="Gestiona las órdenes de tus clientes y el proceso de producción."
@@ -65,17 +64,20 @@ export default async function OrdersPage() {
             { label: "Órdenes" },
           ]}
           actions={
-            <Button asChild size="sm">
+            <Button
+              asChild
+              size="default"
+              className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
+            >
               <Link href="/orders/new">
-                <PlusIcon className="size-4" />
+                <PlusIcon className="size-4 shrink-0" />
                 Nueva orden
               </Link>
             </Button>
           }
         />
 
-        {/* ── Stat cards ── */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
           <StatCard
             title="Recibidos"
             value={stats.received}

@@ -98,8 +98,9 @@ export const statusConfig: Record<
     label: "En producción",
     progress: 60,
     icon: <ScissorsIcon className="size-3.5" />,
-    dot: "bg-warning",
-    badge: "bg-warning-soft text-warning border-warning/20",
+    dot: "bg-[color:var(--stage)]",
+    badge:
+      "bg-[rgb(var(--stage-rgb)/0.14)] text-[color:var(--stage)] border-[rgb(var(--stage-rgb)/0.28)]",
     headerBg: "bg-[var(--surface-2)]",
     bodyBg: "bg-[var(--surface-1)]",
     border: "border-border",
@@ -108,8 +109,9 @@ export const statusConfig: Record<
     label: "Listo",
     progress: 85,
     icon: <PackageCheckIcon className="size-3.5" />,
-    dot: "bg-brand",
-    badge: "bg-[rgba(16,185,129,0.12)] text-[var(--color-brand)] border-[var(--color-brand)]/20",
+    dot: "bg-success",
+    badge:
+      "bg-[rgb(var(--success-rgb)/0.14)] text-success border-[rgb(var(--success-rgb)/0.28)]",
     headerBg: "bg-[var(--surface-2)]",
     bodyBg: "bg-[var(--surface-1)]",
     border: "border-border",

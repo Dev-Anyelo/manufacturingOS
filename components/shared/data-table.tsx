@@ -52,6 +52,8 @@ type ColumnMeta = {
   headerClassName?: string
   mobileHidden?: boolean
   mobileLabel?: string
+  /** Include in mobile cards even when responsive `hidden` appears in className */
+  mobileCardVisible?: boolean
 }
 
 function humanizeLabel(value: string) {
@@ -64,6 +66,10 @@ function humanizeLabel(value: string) {
 }
 
 function isHiddenOnMobile(meta?: ColumnMeta) {
+  if (meta?.mobileCardVisible) {
+    return false
+  }
+
   return Boolean(
     meta?.mobileHidden || /(^|\s)hidden(\s|$)/.test(meta?.className ?? "")
   )
@@ -326,7 +332,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   className={cn(
-                    "h-13 cursor-pointer border-b border-border/55 transition-colors duration-100 hover:bg-muted/20",
+                    "h-13 cursor-pointer border-b border-border/55 transition-colors duration-100 hover:bg-muted/50",
                     getRowClassName?.(row.original)
                   )}
                 >

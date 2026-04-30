@@ -22,7 +22,7 @@ export default async function PayrollPage() {
 
   return (
     <section className="page-shell">
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <PageHeader
           title="Planilla"
           description="Administra empleados, contratos y pagos."

@@ -44,29 +44,33 @@ export default async function ProductionPage() {
 
   return (
     <section className="page-shell">
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <PageHeader
-          title="Produccion"
-          description="Registra sesiones de confeccion y consumo de materiales."
+          title="Producción"
+          description="Registra sesiones de confección y consumo de materiales."
           breadcrumbs={[
             { label: "Dashboard", href: "/" },
-            { label: "Produccion" },
+            { label: "Producción" },
           ]}
           actions={
-            <Button asChild size="sm" variant="outline">
+            <Button
+              asChild
+              size="default"
+              className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
+            >
               <Link href="/production/new">
-                <PlusIcon className="size-4" />
-                Nueva sesion
+                <PlusIcon className="size-4 shrink-0" />
+                Nueva sesión
               </Link>
             </Button>
           }
         />
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-3 xl:gap-6">
           <StatCard
             title="Sesiones hoy"
             value={stats.sessionCount}
-            description="Sesiones de produccion del dia"
+            description="Sesiones de producción del día"
             icon={<CalendarCheckIcon className="size-5" />}
           />
           <StatCard

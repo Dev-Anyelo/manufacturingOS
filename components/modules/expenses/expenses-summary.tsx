@@ -12,12 +12,12 @@ interface ExpensesSummaryProps {
   byCategory: Record<string, number>
 }
 const categoryColors = [
-  "bg-brand",
+  "bg-primary",
   "bg-info",
   "bg-warning",
   "bg-danger",
   "bg-success",
-  "bg-brand",
+  "bg-primary",
   "bg-info",
 ]
 
@@ -38,7 +38,7 @@ export function ExpensesSummary({
     : null
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3 lg:gap-6">
       {/* Left: Monthly total + top concepts */}
       <Card className="m-0 rounded-xl border border-border p-0 shadow-card lg:col-span-1">
         <CardHeader className="border-b border-border px-4 pt-3">
@@ -63,7 +63,7 @@ export function ExpensesSummary({
                 <TrendingDownIcon className="size-6 text-muted-foreground" />
               }
               title="Sin gastos registrados"
-              description="Los gastos registrados en el mes apareceran aqui desglosados por concepto."
+              description="Los gastos del mes aparecerán aquí desglosados por concepto."
               className="m-0 border-none bg-none p-0"
             />
           ) : (

@@ -46,7 +46,7 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="relative rounded-lg border border-transparent bg-muted/30 transition-colors hover:border-border/60 hover:bg-muted/60"
+          className="relative size-10 min-h-10 min-w-10 rounded-lg border border-transparent bg-muted/30 transition-colors hover:border-border/60 hover:bg-muted/60"
           aria-label="Abrir notificaciones"
         >
           <BellIcon className={cn("size-4", pulse && "animate-pulse")} />

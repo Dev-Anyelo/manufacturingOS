@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/shared/status-badge"
 import type { OrderSummaryItem } from "@/components/modules/orders/types"
 
@@ -41,19 +42,23 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
         "group relative rounded-xl border border-border bg-muted/20",
         "transition-all duration-150",
         isDragging
-          ? "scale-105 rotate-2 border-brand opacity-95 shadow-xl ring-1 ring-brand"
+          ? "scale-105 rotate-2 border-primary opacity-95 shadow-xl ring-1 ring-primary"
           : "hover:-translate-y-px hover:border-border/80 hover:shadow-md",
-        overdue && "border-warning bg-warning-soft",
+        overdue &&
+          "border-red-500/40 bg-red-500/5 dark:border-red-500/35 dark:bg-red-950/25",
         className
       )}
     >
       {/* Overdue ribbon */}
-      {overdue && (
-        <div className="bg-warning absolute -top-px -right-px flex items-center gap-1 rounded-tr-xl rounded-bl-lg px-2 py-0.5 text-xs font-bold tracking-wider text-black uppercase shadow-sm">
-          <AlertTriangleIcon className="size-2.5" />
-          Atrasado
-        </div>
-      )}
+      {overdue ? (
+        <Badge
+          className="absolute -top-1.5 -right-1.5 z-10 inline-flex animate-pulse items-center gap-1 border border-red-600/30 bg-red-600 px-2 py-0.5 text-[10px] font-bold tracking-widest text-white uppercase shadow-md dark:bg-red-500"
+          variant="destructive"
+        >
+          <AlertTriangleIcon className="size-2.5 shrink-0" />
+          ATRASADO
+        </Badge>
+      ) : null}
 
       <div className="p-3">
         {/* Header: customer + ID */}
@@ -107,7 +112,7 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
             </p>
             <div className="mt-1 h-1 w-22 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-brand transition-all duration-500"
+                className="h-full rounded-full bg-primary transition-all duration-500"
                 style={{ width: `${paidPercent}%` }}
               />
             </div>
@@ -116,7 +121,7 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
             asChild
             variant="ghost"
             size="sm"
-            className="h-7 gap-1 rounded-lg px-2 text-xs font-medium"
+            className="h-10 min-h-10 gap-1 rounded-lg px-3 text-xs font-medium sm:h-8 sm:min-h-8"
           >
             <Link href={`/orders/${order.id}`}>
               Ver detalle

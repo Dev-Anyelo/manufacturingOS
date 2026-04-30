@@ -25,32 +25,32 @@ export default async function SettingsPage() {
   return (
     <div className="page-shell">
       <PageHeader
-        title="Configuracion"
-        description="Gestiona parametros globales del sistema y del taller."
+        title="Configuración"
+        description="Gestiona parámetros globales del sistema y del taller."
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
-          { label: "Configuracion" },
+          { label: "Configuración" },
         ]}
       />
 
-      <div className="page-content">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="page-content space-y-6">
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           <StatMini label="Perfil" value="Pendiente" tone="warning" />
           <StatMini label="Acceso" value="Solo admin" tone="brand" />
-          <StatMini label="Alertas" value="Por modulo" tone="warning" />
-          <StatMini label="Auditoria" value="Activa" tone="success" />
+          <StatMini label="Alertas" value="Por módulo" tone="warning" />
+          <StatMini label="Auditoría" value="Activa" tone="success" />
         </div>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
           <Card className="border border-border/70 shadow-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs text-muted-foreground">
-                Estado de configuracion
+                Estado de configuración
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <Settings2Icon className="size-4 text-brand" />
+                <Settings2Icon className="size-4 text-primary" />
                 <p className="text-sm font-semibold">
                   Pendiente de personalizar
                 </p>
@@ -85,7 +85,7 @@ export default async function SettingsPage() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
           <Card className="border border-border/70 shadow-card">
             <CardHeader className="flex flex-row items-center justify-between gap-2 border-b border-border/70 bg-muted/10 pb-3">
               <CardTitle className="text-base">Perfil de empresa</CardTitle>
@@ -97,7 +97,7 @@ export default async function SettingsPage() {
               <EmptyState
                 icon={<Building2Icon />}
                 title="Datos de empresa pendientes"
-                description="Configura nombre comercial, contacto, moneda base y parametros operativos."
+                description="Configura nombre comercial, contacto, moneda base y parámetros operativos."
                 compact
               />
             </CardContent>
@@ -114,8 +114,8 @@ export default async function SettingsPage() {
             <CardContent className="space-y-3 pt-4">
               {[
                 "Umbrales de stock y alertas",
-                "Politicas de notificacion",
-                "Reglas de automatizacion",
+                "Políticas de notificación",
+                "Reglas de automatización",
                 "Preferencias de reportes",
               ].map((item) => (
                 <div
@@ -127,7 +127,7 @@ export default async function SettingsPage() {
                     <p className="text-sm">{item}</p>
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    Proximamente
+                    Próximamente
                   </Badge>
                 </div>
               ))}
@@ -149,7 +149,7 @@ function StatMini({
   tone?: "brand" | "warning" | "success"
 }) {
   const toneClass = {
-    brand: "text-brand",
+    brand: "text-primary",
     warning: "text-warning",
     success: "text-success",
   }[tone]

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { StatCard } from "@/components/shared/stat-card"
@@ -119,13 +119,12 @@ export function PayrollWorkspace({
   }
 
   return (
-    <div className="space-y-5">
-      {/* StatCards row */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-3 xl:gap-6">
         <StatCard
           title="Pagos pendientes"
           value={pendingCount}
-          description={`Monto: $${totalPendingAmount.toFixed(2)}`}
+          description={`Monto: ${formatCurrency(totalPendingAmount)}`}
           icon={<WalletCardsIcon className="size-5" />}
           variant={pendingCount > 0 ? "warning" : "default"}
         />
@@ -147,22 +146,28 @@ export function PayrollWorkspace({
       {/* Tabs */}
       <Tabs defaultValue="payments" className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <TabsList className="grid h-9 w-full grid-cols-2 rounded-xl border border-border/60 bg-muted/20 p-1 sm:w-auto">
-            <TabsTrigger value="payments" className="gap-1.5 text-xs">
-              <ReceiptIcon className="size-3.5" />
+          <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl border border-border/60 bg-muted/20 p-1 sm:w-auto">
+            <TabsTrigger
+              value="payments"
+              className="gap-2 py-2.5 text-xs sm:text-sm"
+            >
+              <ReceiptIcon className="size-4 shrink-0" />
               Pagos
             </TabsTrigger>
-            <TabsTrigger value="employees" className="gap-1.5 text-xs">
-              <UsersRoundIcon className="size-3.5" />
+            <TabsTrigger
+              value="employees"
+              className="gap-2 py-2.5 text-xs sm:text-sm"
+            >
+              <UsersRoundIcon className="size-4 shrink-0" />
               Empleados
             </TabsTrigger>
           </TabsList>
 
           <Button
             type="button"
-            size="sm"
+            size="default"
             onClick={() => setCreateOpen(true)}
-            className="w-full sm:w-auto"
+            className="min-h-11 w-full gap-2 sm:min-h-10 sm:w-auto"
           >
             <PlusIcon className="size-4" />
             Nuevo pago
@@ -198,7 +203,7 @@ export function PayrollWorkspace({
                     <UsersRoundIcon className="size-6 text-muted-foreground" />
                   }
                   title="Sin pagos registrados"
-                  description="Los totales por empleado aparecera aqui en cuanto registres pagos en la planilla."
+                  description="Los totales por empleado aparecerán aquí cuando registres pagos en la planilla."
                   className="p-0 m-0 border-none bg-none"
                 />
               ) : (
@@ -209,7 +214,7 @@ export function PayrollWorkspace({
                   >
                     <div className="flex items-center gap-2.5">
                       <Avatar className="size-7 shrink-0">
-                        <AvatarFallback className="bg-brand/10 text-xs font-semibold text-brand">
+                        <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
                           {getInitials(row.employeeName)}
                         </AvatarFallback>
                       </Avatar>
@@ -255,31 +260,6 @@ export function PayrollWorkspace({
         }}
         onSuccess={handleRefresh}
       />
-    </div>
-  )
-}
-
-function StatMini({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string
-  value: React.ReactNode
-  tone?: "default" | "warning" | "success"
-}) {
-  const toneClass = {
-    default: "text-foreground",
-    warning: "text-warning",
-    success: "text-success",
-  }[tone]
-
-  return (
-    <div className="rounded-lg border border-border/70 bg-card/80 px-3 py-2">
-      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p className={cn("text-sm font-semibold", toneClass)}>{value}</p>
     </div>
   )
 }

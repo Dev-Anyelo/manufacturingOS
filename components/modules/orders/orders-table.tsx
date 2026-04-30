@@ -13,6 +13,7 @@ import type { OrderSummaryItem } from "@/components/modules/orders/types"
 
 import {
   channelLabelMap,
+  cn,
   formatDate,
   isOverdue,
   statusConfig,
@@ -79,6 +80,8 @@ const columns: ColumnDef<OrderSummaryItem>[] = [
     meta: {
       className: "hidden sm:table-cell",
       headerClassName: "hidden sm:table-cell",
+      mobileCardVisible: true,
+      mobileLabel: "Prendas",
     },
   },
   {
@@ -89,6 +92,10 @@ const columns: ColumnDef<OrderSummaryItem>[] = [
         <CurrencyDisplay amount={row.original.balanceDue} colored size="sm" />
       </div>
     ),
+    meta: {
+      mobileCardVisible: true,
+      mobileLabel: "Saldo",
+    },
   },
   {
     accessorKey: "status",
@@ -101,7 +108,12 @@ const columns: ColumnDef<OrderSummaryItem>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <Button asChild variant="ghost" size="sm" className="justify-start">
+      <Button
+        asChild
+        variant="ghost"
+        size="sm"
+        className="min-h-10 justify-start px-3 sm:min-h-9"
+      >
         <Link href={`/orders/${row.original.id}`}>
           <EyeIcon className="size-4" />
           Ver
@@ -113,9 +125,14 @@ const columns: ColumnDef<OrderSummaryItem>[] = [
 
 interface OrdersTableProps {
   orders: OrderSummaryItem[]
+  /** Hide estado filter when parent workspace applies pipeline tabs */
+  suppressStatusFilter?: boolean
 }
 
-export function OrdersTable({ orders }: OrdersTableProps) {
+export function OrdersTable({
+  orders,
+  suppressStatusFilter = false,
+}: OrdersTableProps) {
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | WorkOrderStatus
   >("all")
@@ -133,29 +150,31 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
   const toolbar = (
     <>
-      <Select
-        value={statusFilter}
-        onValueChange={(value) =>
-          setStatusFilter(value as "all" | WorkOrderStatus)
-        }
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Estado" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos los estados</SelectItem>
-          {statusOptions.map((status) => (
-            <SelectItem key={status} value={status}>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`size-2 rounded-full ${statusConfig[status].dot}`}
-                />
-                {statusConfig[status].label}
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {!suppressStatusFilter ? (
+        <Select
+          value={statusFilter}
+          onValueChange={(value) =>
+            setStatusFilter(value as "all" | WorkOrderStatus)
+          }
+        >
+          <SelectTrigger className="min-h-10 sm:min-h-9">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los estados</SelectItem>
+            {statusOptions.map((status) => (
+              <SelectItem key={status} value={status}>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`size-2 rounded-full ${statusConfig[status].dot}`}
+                  />
+                  {statusConfig[status].label}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
 
       <Select
         value={channelFilter}
@@ -163,7 +182,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           setChannelFilter(value as "all" | OrderSummaryItem["channel"])
         }
       >
-        <SelectTrigger>
+        <SelectTrigger className="min-h-10 sm:min-h-9">
           <SelectValue placeholder="Canal" />
         </SelectTrigger>
         <SelectContent>
@@ -188,7 +207,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       emptyDescription="Ajusta los filtros para ver resultados"
       toolbar={toolbar}
       getRowClassName={(order) =>
-        isOverdue(order) ? "bg-amber-50/30 dark:bg-amber-950/10" : ""
+        isOverdue(order) ? cn("tone-warning border-l-2 border-l-warning/50") : ""
       }
     />
   )

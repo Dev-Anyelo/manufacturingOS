@@ -11,27 +11,31 @@ export default async function CatalogPage() {
 
   return (
     <section className="page-shell">
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <PageHeader
-          title="Catalogo"
+          title="Catálogo"
           description="Define prendas, precios base y estructura de costos para ventas y producción."
           breadcrumbs={[
             { label: "Dashboard", href: "/" },
-            { label: "Catalogo" },
+            { label: "Catálogo" },
           ]}
           actions={
-            <div className="flex items-center gap-3">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
               <Button
                 asChild
                 variant="outline"
                 size="sm"
-                className="hidden h-9 px-4 sm:flex"
+                className="hidden min-h-10 px-4 sm:flex sm:min-h-9"
               >
                 <Link href="#">Exportar</Link>
               </Button>
-              <Button asChild size="sm">
+              <Button
+                asChild
+                size="default"
+                className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
+              >
                 <Link href="/catalog/new">
-                  <PlusIcon className="size-4" />
+                  <PlusIcon className="size-4 shrink-0" />
                   Nuevo producto
                 </Link>
               </Button>

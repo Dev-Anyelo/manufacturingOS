@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import type { CurrentUser } from "@/lib/auth/current-user"
 import { CalendarDaysIcon, ShieldCheckIcon } from "lucide-react"
-import { NotificationBell } from "@/components/notifications/notification-bell"
+import { DashboardHeaderActions } from "@/components/dashboard-header-actions"
 
 type SiteHeaderProps = {
   user: CurrentUser
@@ -42,16 +42,16 @@ export function SiteHeader({ user }: SiteHeaderProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <div className="hidden items-center gap-1.5 rounded-lg border border-border/70 bg-card/60 px-2.5 py-1 text-[11px] text-muted-foreground md:inline-flex">
             <CalendarDaysIcon className="size-3.5" />
             <span className="capitalize">{todayLabel}</span>
           </div>
-          <div className="hidden items-center gap-1.5 rounded-lg border border-brand/30 bg-brand/8 px-2.5 py-1 text-[11px] text-brand lg:inline-flex">
+          <div className="hidden items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] text-primary lg:inline-flex">
             <ShieldCheckIcon className="size-3.5" />
             <span>{roleLabel}</span>
           </div>
-          <NotificationBell />
+          <DashboardHeaderActions userRole={user.role} />
         </div>
       </div>
     </header>

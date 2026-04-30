@@ -13,7 +13,7 @@ import {
 
 interface PageHeaderProps {
   title: string
-  description?: string
+  description?: ReactNode
   actions?: ReactNode
   breadcrumbs?: { label: string; href?: string }[]
   eyebrow?: string
@@ -67,11 +67,13 @@ export function PageHeader({
       <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div className="max-w-3xl space-y-1.5">
           {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-          <h1 className="text-[clamp(1.25rem,2.2vw,1.9rem)] leading-tight font-semibold text-balance text-foreground sm:text-[clamp(1.35rem,2.2vw,1.9rem)]">
+          <h1 className="text-balance text-2xl font-bold tracking-tight text-foreground">
             {title}
           </h1>
           {description ? (
-            <p className="body-muted text-pretty">{description}</p>
+            <div className="text-pretty text-sm text-muted-foreground">
+              {description}
+            </div>
           ) : null}
         </div>
         {actions ? (

@@ -29,11 +29,17 @@ export default async function OrderDetailPage({
         title={`Pedido #${order.id.slice(0, 8).toUpperCase()}`}
         description="Detalle completo del pedido, flujo de producción y trazabilidad."
         breadcrumbs={[
-          { label: "Pedidos", href: "/orders" },
+          { label: "Dashboard", href: "/" },
+          { label: "Órdenes", href: "/orders" },
           { label: `#${order.id.slice(0, 8).toUpperCase()}` },
         ]}
         actions={
-          <Button asChild variant="outline" size="sm">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-10 sm:min-h-9"
+          >
             <Link href="/orders">
               <ArrowLeftIcon className="size-3.5" />
               Volver
@@ -41,7 +47,7 @@ export default async function OrderDetailPage({
           </Button>
         }
       />
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <OrderDetail
           order={{
             id: order.id,

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 interface CurrencyDisplayProps {
   amount: number | string | Prisma.Decimal
   currency?: string
-  size?: "sm" | "md" | "lg"
+  size?: "sm" | "md" | "lg" | "kpi"
   colored?: boolean
   className?: string
 }
@@ -17,6 +17,7 @@ const sizeClassMap: Record<
   sm: "text-sm",
   md: "text-base",
   lg: "text-xl font-semibold",
+  kpi: "text-3xl font-bold tabular-nums tracking-tight",
 }
 
 export function CurrencyDisplay({

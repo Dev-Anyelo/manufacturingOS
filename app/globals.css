@@ -125,6 +125,8 @@
   --danger: #ef4444;
   --critical: #dc2626;
   --info: #3b82f6;
+  --stage: #6366f1;
+  --delivered: #15803d;
 
   --success-rgb: 52 178 123;
   --warning-rgb: 245 158 11;
@@ -132,6 +134,8 @@
   --critical-rgb: 220 38 38;
   --info-rgb: 59 130 246;
   --brand-rgb: 52 178 123;
+  --stage-rgb: 99 102 241;
+  --delivered-rgb: 21 128 61;
 
   --chart-1: #34b27b;
   --chart-2: #06b6d4;
@@ -203,6 +207,8 @@
   --danger: #ef4444;
   --critical: #dc2626;
   --info: #3b82f6;
+  --stage: #6366f1;
+  --delivered: #15803d;
 
   --success-rgb: 52 178 123;
   --warning-rgb: 245 158 11;
@@ -210,6 +216,8 @@
   --critical-rgb: 220 38 38;
   --info-rgb: 59 130 246;
   --brand-rgb: 52 178 123;
+  --stage-rgb: 99 102 241;
+  --delivered-rgb: 21 128 61;
 
   --sidebar: #ffffff;
   --sidebar-foreground: #171717;
@@ -627,6 +635,18 @@
     color: var(--info);
     background-color: rgb(var(--info-rgb) / 0.15);
     border-color: rgb(var(--info-rgb) / 0.25);
+  }
+
+  .status-stage {
+    color: var(--stage);
+    background-color: rgb(var(--stage-rgb) / 0.15);
+    border-color: rgb(var(--stage-rgb) / 0.28);
+  }
+
+  .status-delivered {
+    color: var(--delivered);
+    background-color: rgb(var(--delivered-rgb) / 0.14);
+    border-color: rgb(var(--delivered-rgb) / 0.28);
   }
 
   .status-brand {

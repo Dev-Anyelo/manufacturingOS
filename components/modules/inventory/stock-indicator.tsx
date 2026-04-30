@@ -17,48 +17,53 @@ export function StockIndicator({
 
   let status: "critical" | "warning" | "good"
   if (quantity <= 0) status = "critical"
-  else if (quantity < minimumStock) status = "warning"
+  else if (minimumStock > 0 && quantity <= minimumStock) status = "critical"
+  else if (minimumStock > 0 && quantity <= minimumStock * 2)
+    status = "warning"
   else status = "good"
 
   const config = {
     critical: {
       icon: XCircle,
-      label: "Sin stock",
-      barColor: "bg-danger",
-      textColor: "text-danger",
-      bgColor: "bg-danger-soft",
+      label: quantity <= 0 ? "Agotado" : "Stock crítico",
+      barColor: "bg-red-500 dark:bg-red-500",
+      textColor: "text-red-600 dark:text-red-400",
+      bgColor: "bg-red-500/10",
     },
     warning: {
       icon: AlertTriangle,
       label: "Stock bajo",
-      barColor: "bg-warning",
-      textColor: "text-warning",
-      bgColor: "bg-warning-soft",
+      barColor: "bg-amber-500 dark:bg-amber-500",
+      textColor: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-500/10",
     },
     good: {
       icon: CheckCircle2,
       label: "Stock óptimo",
-      barColor: "bg-success",
-      textColor: "text-success",
-      bgColor: "bg-success-soft",
+      barColor: "bg-emerald-500 dark:bg-emerald-500",
+      textColor: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-500/10",
     },
   }[status]
 
   const Icon = config.icon
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <div className="flex items-center gap-2">
           <div className={`rounded-full p-1 ${config.bgColor}`}>
             <Icon className={`size-3.5 ${config.textColor}`} />
           </div>
-          <span className={`text-sm font-medium ${config.textColor}`}>
+          <span className={`text-xs font-medium ${config.textColor}`}>
             {config.label}
           </span>
         </div>
-        <span className="text-sm font-semibold text-pretty text-foreground">
-          {quantity} / {minimumStock} {unit}
+        <span className="tabular-nums text-sm text-muted-foreground">
+          <span className="font-bold text-foreground">{quantity}</span>
+          <span> / </span>
+          <span>{minimumStock}</span>
+          <span className="ml-1 text-xs">{unit}</span>
         </span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-muted">

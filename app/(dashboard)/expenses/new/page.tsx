@@ -15,12 +15,18 @@ export default async function NewExpensePage() {
         title="Nuevo gasto"
         description="Registra compras, servicios y egresos operativos del taller."
         breadcrumbs={[
+          { label: "Dashboard", href: "/" },
           { label: "Gastos", href: "/expenses" },
-          { label: "Nuevo" },
+          { label: "Nuevo gasto" },
         ]}
         actions={
-          <Button asChild variant="outline" size="sm">
-            <Link href="/catalog">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-10 sm:min-h-9"
+          >
+            <Link href="/expenses">
               <ArrowLeftIcon className="size-4" />
               Volver
             </Link>
@@ -28,7 +34,7 @@ export default async function NewExpensePage() {
         }
       />
 
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <ExpenseForm
           inventoryItems={bootstrap.inventoryItems.map((item) => ({
             id: item.id,

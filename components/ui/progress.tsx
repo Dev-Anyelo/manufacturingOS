@@ -28,7 +28,7 @@ export function Progress({
       <div
         data-slot="progress-indicator"
         className={cn(
-          "h-full rounded-full bg-brand transition-all duration-200",
+          "h-full rounded-full bg-emerald-500 transition-all duration-200 dark:bg-emerald-500",
           indicatorClassName
         )}
         style={{ width: `${normalizedValue}%` }}

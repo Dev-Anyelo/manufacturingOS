@@ -1,7 +1,5 @@
-import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { getInventoryItem } from "@/lib/data/inventory"
 import { StatCard } from "@/components/shared/stat-card"
 import { PageHeader } from "@/components/shared/page-header"
@@ -9,10 +7,12 @@ import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MovementHistory } from "@/components/modules/inventory/movement-history"
+import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/shared/status-badge"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { InventoryDetailActions } from "@/components/modules/inventory/inventory-detail-actions"
 
 import {
-  ArrowLeftIcon,
-  PencilLine,
   Building2Icon,
   ClipboardListIcon,
   DollarSignIcon,
@@ -34,6 +34,24 @@ function getCategoryLabel(category: string) {
   return map[category] ?? category
 }
 
+function getCategoryBadgeClass(category: string) {
+  const map: Record<string, string> = {
+    fabric: "status-info",
+    supplies: "status-success",
+    tools: "status-warning",
+    machinery: "status-subtle",
+  }
+
+  return map[category] ?? "status-subtle"
+}
+
+function getStockBadgeStatus(quantity: number, minimumStock: number) {
+  if (quantity <= 0) return "out"
+  if (quantity <= minimumStock) return "critical"
+  if (quantity <= minimumStock * 2) return "low"
+  return "normal"
+}
+
 export default async function InventoryDetailPage({
   params,
 }: InventoryDetailPageProps) {
@@ -48,6 +66,7 @@ export default async function InventoryDetailPage({
   const minimumStock = Number(item.minimumStock)
   const unitPrice = Number(item.unitPrice)
   const estimatedValue = quantity * unitPrice
+  const stockStatus = getStockBadgeStatus(quantity, minimumStock)
 
   return (
     <div className="page-shell">
@@ -55,29 +74,34 @@ export default async function InventoryDetailPage({
         title={item.name}
         description="Detalle del material y su historial de movimientos."
         breadcrumbs={[
+          { label: "Dashboard", href: "/" },
           { label: "Inventario", href: "/inventory" },
           { label: item.name },
         ]}
         actions={
-          <>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/inventory">
-                <ArrowLeftIcon className="size-4" />
-                Volver
-              </Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href={`/inventory/${item.id}/edit`}>
-                <PencilLine className="size-3.5" />
-                Editar material
-              </Link>
-            </Button>
-          </>
+          <InventoryDetailActions
+            item={{
+              id: item.id,
+              name: item.name,
+              quantity,
+              unit: item.unit,
+            }}
+          />
         }
       />
 
-      <div className="page-content">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+      <div className="page-content space-y-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge
+            variant="outline"
+            className={getCategoryBadgeClass(item.category)}
+          >
+            {getCategoryLabel(item.category)}
+          </Badge>
+          <StatusBadge status={stockStatus} type="stock" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-6">
           <StatCard
             title="Cantidad disponible"
             value={`${quantity} ${item.unit}`}
@@ -85,20 +109,20 @@ export default async function InventoryDetailPage({
             icon={<LayersIcon className="size-4" />}
           />
           <StatCard
-            title="Minimo requerido"
+            title="Mínimo requerido"
             value={`${minimumStock} ${item.unit}`}
-            description="Cantidad minima para reordenar."
+            description="Cantidad mínima para reordenar."
             icon={<Building2Icon className="size-4" />}
           />
           <StatCard
             title="Precio unitario"
-            value={unitPrice.toFixed(2)}
+            value={<CurrencyDisplay amount={unitPrice} size="lg" />}
             description="Costo por unidad."
             icon={<ClipboardListIcon className="size-4" />}
           />
           <StatCard
             title="Valor estimado"
-            value={estimatedValue.toFixed(2)}
+            value={<CurrencyDisplay amount={estimatedValue} size="lg" />}
             description="Valor total del inventario."
             icon={<DollarSignIcon className="size-4" />}
           />
@@ -113,7 +137,7 @@ export default async function InventoryDetailPage({
           <TabsContent value="info" className="space-y-4">
             <Card className="border border-border">
               <CardHeader className="border-b border-border">
-                <CardTitle>Informacion general</CardTitle>
+                <CardTitle>Información general</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_1fr]">
@@ -137,7 +161,7 @@ export default async function InventoryDetailPage({
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="surface-1 rounded-lg border border-border p-3">
                         <p className="text-xs text-muted-foreground">
-                          Categoria
+                          Categoría
                         </p>
                         <p className="text-sm font-medium">
                           {getCategoryLabel(item.category)}
@@ -147,8 +171,8 @@ export default async function InventoryDetailPage({
                         <p className="text-xs text-muted-foreground">
                           Precio unitario
                         </p>
-                        <p className="text-sm font-medium">
-                          ${Number(item.unitPrice).toFixed(2)}
+                        <p className="text-sm font-medium tabular-nums">
+                          <CurrencyDisplay amount={item.unitPrice} />
                         </p>
                       </div>
                       <div className="surface-1 rounded-lg border border-border p-3">

@@ -12,10 +12,15 @@ export default async function NewSalePage() {
   return (
     <section className="flex h-[calc(100vh-var(--header-height))] min-h-0 flex-col md:h-full">
       <PageHeader
-        title="Nueva Venta"
+        title="Nueva venta"
         description="Registra ventas con cálculo de pago y recibo."
         actions={
-          <Button asChild variant="outline" size="sm">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-10 sm:min-h-9"
+          >
             <Link href="/sales">
               <ArrowLeftIcon className="size-4" />
               Volver

@@ -78,7 +78,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         accessorKey: "ourPriceUnit",
         header: () => <div className="text-right">Unitario</div>,
         cell: ({ row }) => (
-          <div className="text-right font-bold text-brand tabular-nums">
+          <div className="text-right font-bold text-primary tabular-nums">
             <CurrencyDisplay
               amount={row.original.ourPriceUnit ?? 0}
               size="sm"
@@ -120,7 +120,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             asChild
             variant="ghost"
             size="sm"
-            className="h-8 px-3 text-xs"
+            className="min-h-10 px-3 text-xs sm:min-h-8 sm:h-8"
           >
             <Link href={`/catalog/${row.original.id}`}>
               Detalle 
@@ -140,7 +140,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <Select value={garmentFilter} onValueChange={setGarmentFilter}>
-              <SelectTrigger className="h-auto w-auto min-w-35 px-3 text-xs">
+              <SelectTrigger className="h-11 min-h-11 w-auto min-w-36 px-3 text-xs sm:h-10 sm:min-h-10">
                 <SelectValue placeholder="Tipo de prenda" />
               </SelectTrigger>
               <SelectContent>
@@ -155,42 +155,44 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             <Button
               variant="outline"
               size="sm"
-              className="h-8 w-auto px-3 text-xs"
+              className="min-h-11 w-auto px-3 text-xs sm:min-h-9"
               onClick={() => setBulkDialogOpen(true)}
             >
               <SlidersHorizontalIcon className="size-3.5" />
-              Ajuste masivo
+              Ajuste masivo de precios
             </Button>
 
             {/* View toggle */}
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/20 p-0.5">
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/20 p-1">
               <Button
                 type="button"
                 variant={viewMode === "grid" ? "outline" : "ghost"}
+                size="icon"
                 onClick={() => setViewMode("grid")}
                 className={cn(
-                  "flex size-7 items-center justify-center rounded-md text-xs transition-all",
+                  "size-10 shrink-0 rounded-md sm:size-9",
                   viewMode === "grid"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
                 aria-label="Vista tarjetas"
               >
-                <LayoutGridIcon className="size-3.5" />
+                <LayoutGridIcon className="size-4" />
               </Button>
               <Button
                 type="button"
                 variant={viewMode === "table" ? "outline" : "ghost"}
+                size="icon"
                 onClick={() => setViewMode("table")}
                 className={cn(
-                  "flex size-7 items-center justify-center rounded-md text-xs transition-all",
+                  "size-10 shrink-0 rounded-md sm:size-9",
                   viewMode === "table"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
                 aria-label="Vista tabla"
               >
-                <ListIcon className="size-3.5" />
+                <ListIcon className="size-4" />
               </Button>
             </div>
           </div>
@@ -202,20 +204,16 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         filteredItems.length === 0 ? (
           <EmptyState
             icon={<ShoppingBagIcon />}
-            title="Sin productos en el catalogo"
+            title="Sin productos en el catálogo"
             description="Agrega nuevos productos para iniciar ventas y pedidos."
             action={
-              <Button
-                asChild
-                size="sm"
-                className="bg-brand text-brand-foreground"
-              >
+              <Button asChild size="sm">
                 <Link href="/catalog/new">Nuevo producto</Link>
               </Button>
             }
           />
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
             {filteredItems.map((item) => (
               <CatalogCard key={item.id} item={item} />
             ))}
@@ -227,7 +225,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
           data={filteredItems}
           searchKey="name"
           searchPlaceholder="Buscar prenda..."
-          emptyMessage="Sin productos de catalogo"
+          emptyMessage="Sin productos en catálogo"
           emptyDescription="Agrega nuevos productos para iniciar ventas y pedidos."
         />
       )}

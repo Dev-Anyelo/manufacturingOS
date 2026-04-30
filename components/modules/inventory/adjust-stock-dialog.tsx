@@ -8,6 +8,15 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 import {
   Loader2Icon,
@@ -15,15 +24,6 @@ import {
   PlusCircleIcon,
   RefreshCcwDotIcon,
 } from "lucide-react"
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 
 type AdjustmentType = "add" | "subtract" | "set"
 
@@ -93,6 +93,7 @@ export function AdjustStockDialog({
   item,
   onAdjusted,
 }: AdjustStockDialogProps) {
+  const isMobile = useIsMobile()
   const [adjustmentType, setAdjustmentType] =
     React.useState<AdjustmentType>("add")
   const [quantity, setQuantity] = React.useState<number>(0)
@@ -122,12 +123,10 @@ export function AdjustStockDialog({
   const delta = nextQuantity - currentItem.quantity
   const deltaTone =
     delta > 0
-      ? "text-success"
+      ? "text-emerald-600 dark:text-emerald-400"
       : delta < 0
-        ? "text-danger"
+        ? "text-red-600 dark:text-red-400"
         : "text-muted-foreground"
-  const previewTone =
-    nextQuantity < currentItem.quantity ? "text-danger" : "text-success"
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -182,120 +181,136 @@ export function AdjustStockDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden border border-border/75 p-0 sm:max-w-xl">
-        <DialogHeader className="border-b border-border/70 bg-muted/10 px-4 py-4">
-          <DialogTitle className="text-base text-pretty">
-            Ajustar stock
-          </DialogTitle>
-          <DialogDescription className="text-sm text-pretty">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side={isMobile ? "bottom" : "right"}
+        className={cn(
+          "flex flex-col gap-0 border-border p-0 sm:max-w-xl",
+          isMobile ? "max-h-[92vh] rounded-t-2xl" : ""
+        )}
+      >
+        <SheetHeader className="border-b border-border/70 bg-muted/10 px-4 py-4 text-left">
+          <SheetTitle className="text-base text-pretty">Ajustar stock</SheetTitle>
+          <SheetDescription className="text-sm text-pretty">
             Registra un ajuste con trazabilidad para{" "}
             <strong>{currentItem.name}</strong>.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <form className="space-y-4 px-4 py-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <MetricBox
-              label="Stock actual"
-              value={`${currentItem.quantity.toFixed(2)} ${currentItem.unit}`}
-            />
-            <MetricBox
-              label="Ajuste"
-              value={
-                <span className={cn("tabular-nums", deltaTone)}>
-                  {delta > 0 ? "+" : ""}
-                  {delta.toFixed(2)} {currentItem.unit}
-                </span>
-              }
-            />
-            <MetricBox
-              label="Resultado"
-              value={`${nextQuantity.toFixed(2)} ${currentItem.unit}`}
-            />
-          </div>
+        <form
+          className="flex flex-1 flex-col overflow-y-auto"
+          onSubmit={handleSubmit}
+        >
+          <div className="space-y-4 px-4 py-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <MetricBox
+                label="Stock actual"
+                value={`${currentItem.quantity.toFixed(2)} ${currentItem.unit}`}
+              />
+              <MetricBox
+                label="Ajuste"
+                value={
+                  <span className={cn("tabular-nums", deltaTone)}>
+                    {delta > 0 ? "+" : ""}
+                    {delta.toFixed(2)} {currentItem.unit}
+                  </span>
+                }
+              />
+              <MetricBox
+                label="Resultado"
+                value={`${nextQuantity.toFixed(2)} ${currentItem.unit}`}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Tipo de ajuste</Label>
-            <RadioGroup
-              value={adjustmentType}
-              onValueChange={(value) =>
-                setAdjustmentType(value as AdjustmentType)
-              }
-              className="grid grid-cols-1 gap-2 sm:grid-cols-3"
-            >
-              {adjustmentOptions.map((option) => {
-                const Icon = option.icon
-                const active = adjustmentType === option.value
-
-                return (
-                  <label
-                    key={option.value}
-                    className={cn(
-                      "flex cursor-pointer gap-2 rounded-lg border px-3 py-2.5 transition-colors",
-                      active
-                        ? "border-brand bg-brand/10"
-                        : "border-border/70 bg-card hover:bg-muted/20"
-                    )}
-                  >
-                    <RadioGroupItem value={option.value} className="mt-0.5" />
-                    <div className="space-y-0.5">
-                      <p className="text-sm font-semibold text-foreground">
-                        <span className="inline-flex items-center gap-1.5">
-                          <Icon className="size-3.5" />
-                          {option.label}
-                        </span>
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {option.description}
-                      </p>
-                    </div>
-                  </label>
-                )
-              })}
-            </RadioGroup>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Cantidad</Label>
-              <div className="relative">
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={quantity || ""}
-                  onChange={(event) => setQuantity(Number(event.target.value))}
-                  placeholder="0.00"
-                  className="pr-14"
-                />
-                <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">
-                  {currentItem.unit}
+              <Label className="text-sm font-medium">Tipo de ajuste</Label>
+              <RadioGroup
+                value={adjustmentType}
+                onValueChange={(value) =>
+                  setAdjustmentType(value as AdjustmentType)
+                }
+                className="grid grid-cols-1 gap-2 sm:grid-cols-3"
+              >
+                {adjustmentOptions.map((option) => {
+                  const Icon = option.icon
+                  const active = adjustmentType === option.value
+
+                  return (
+                    <label
+                      key={option.value}
+                      className={cn(
+                        "flex cursor-pointer gap-2 rounded-lg border px-3 py-2.5 transition-colors",
+                        active
+                          ? "border-primary bg-primary/10"
+                          : "border-border/70 bg-card hover:bg-muted/20"
+                      )}
+                    >
+                      <RadioGroupItem
+                        value={option.value}
+                        className="mt-0.5"
+                      />
+                      <div className="space-y-0.5">
+                        <p className="text-sm font-semibold text-foreground">
+                          <span className="inline-flex items-center gap-1.5">
+                            <Icon className="size-3.5" />
+                            {option.label}
+                          </span>
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {option.description}
+                        </p>
+                      </div>
+                    </label>
+                  )
+                })}
+              </RadioGroup>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Cantidad</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={quantity || ""}
+                    onChange={(event) =>
+                      setQuantity(Number(event.target.value))
+                    }
+                    placeholder="0.00"
+                    className="pr-14"
+                  />
+                  <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">
+                    {currentItem.unit}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Motivo del ajuste</Label>
+              <Textarea
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder="Ejemplo: Correccion por conteo fisico de bodega"
+                className="min-h-24"
+              />
+              <div className="flex items-center justify-between text-xs">
+                <span
+                  className={
+                    reason.trim().length < 10
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-emerald-600 dark:text-emerald-400"
+                  }
+                >
+                  {reason.trim().length}/10
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Motivo del ajuste</Label>
-            <Textarea
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              placeholder="Ejemplo: Correccion por conteo fisico de bodega"
-              className="min-h-24"
-            />
-            <div className="flex items-center justify-between text-xs">
-              <span
-                className={
-                  reason.trim().length < 10 ? "text-warning" : "text-success"
-                }
-              >
-                {reason.trim().length}/10
-              </span>
-            </div>
-          </div>
-
-          <DialogFooter className="grid grid-cols-1 gap-2 border-t border-border/70 pt-3 sm:flex sm:justify-end">
+          <SheetFooter className="border-t border-border/70 pb-[max(env(safe-area-inset-bottom),1rem)] sm:flex-row sm:justify-end sm:gap-2">
             <Button
               type="button"
               variant="outline"
@@ -311,10 +326,10 @@ export function AdjustStockDialog({
               ) : null}
               Guardar ajuste
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
 

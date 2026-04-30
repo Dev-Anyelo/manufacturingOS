@@ -29,13 +29,19 @@ export default async function CatalogDetailPage({
     <div className="page-shell">
       <PageHeader
         title={item.name}
-        description="Detalle del producto y configuracion de precios."
+        description="Detalle del producto y configuración de precios."
         breadcrumbs={[
-          { label: "Catalogo", href: "/catalog" },
+          { label: "Dashboard", href: "/" },
+          { label: "Catálogo", href: "/catalog" },
           { label: item.name },
         ]}
         actions={
-          <Button asChild variant="outline" size="sm">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-10 sm:min-h-9"
+          >
             <Link href="/catalog">
               <ArrowLeftIcon className="size-4" />
               Volver
@@ -44,7 +50,7 @@ export default async function CatalogDetailPage({
         }
       />
 
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <Card className="border border-border shadow-sm">
           <CardHeader className="border-b border-border">
             <CardTitle>Resumen del producto</CardTitle>

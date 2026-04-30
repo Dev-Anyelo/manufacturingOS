@@ -1,8 +1,10 @@
 import Link from "next/link"
+import { SaleStatus } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { StatCard } from "@/components/shared/stat-card"
 import { PageHeader } from "@/components/shared/page-header"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { SalesTable } from "@/components/modules/sales/sales-table"
 import { getSales, getTodaySalesSummary } from "@/lib/data/sales"
 
@@ -11,6 +13,7 @@ import {
   PlusIcon,
   ReceiptTextIcon,
   WalletCardsIcon,
+  XCircleIcon,
 } from "lucide-react"
 
 export default async function SalesPage() {
@@ -32,52 +35,61 @@ export default async function SalesPage() {
 
   const pendingBalance = tableRows.reduce((acc, row) => acc + row.balanceDue, 0)
   const pendingSalesCount = tableRows.filter((row) => row.balanceDue > 0).length
+  const cancelledCount = tableRows.filter(
+    (row) => row.status === SaleStatus.cancelled
+  ).length
 
   return (
     <section className="page-shell">
-      <div className="page-content">
+      <div className="page-content space-y-6">
         <PageHeader
           title="Ventas"
           description="Punto de venta y seguimiento de cobros."
           breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Ventas" }]}
           actions={
-            <Button asChild size="sm">
+            <Button
+              asChild
+              size="default"
+              className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
+            >
               <Link href="/sales/new">
-                <PlusIcon className="size-4" />
+                <PlusIcon className="size-4 shrink-0" />
                 Nueva venta
               </Link>
             </Button>
           }
         />
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 xl:gap-6">
           <StatCard
             title="Ventas de hoy"
             value={todaySummary.total_sales}
             description="Transacciones registradas hoy"
-            icon={<ReceiptTextIcon className="size-4" />}
-            variant="success"
+            icon={<ReceiptTextIcon className="size-5" />}
+            variant={todaySummary.total_sales > 0 ? "success" : "default"}
           />
           <StatCard
-            title="Ingreso de hoy"
-            value={`$${todaySummary.total_amount.toFixed(2)}`}
-            description="Neto del dia"
-            icon={<DollarSignIcon className="size-4" />}
-            variant="success"
+            title="Total del día"
+            value={
+              <CurrencyDisplay amount={todaySummary.total_amount} size="lg" />
+            }
+            description="Ingreso neto del día"
+            icon={<DollarSignIcon className="size-5" />}
+            variant={todaySummary.total_amount > 0 ? "success" : "default"}
           />
           <StatCard
-            title="Con saldo pendiente"
-            value={pendingSalesCount}
-            description="Ventas por cobrar"
-            icon={<WalletCardsIcon className="size-4" />}
+            title="Pendientes de cobro"
+            value={<CurrencyDisplay amount={pendingBalance} size="lg" />}
+            description={`${pendingSalesCount} venta${pendingSalesCount !== 1 ? "s" : ""} con saldo`}
+            icon={<WalletCardsIcon className="size-5" />}
             variant={pendingSalesCount > 0 ? "warning" : "default"}
           />
           <StatCard
-            title="Saldo por cobrar"
-            value={`$${pendingBalance.toFixed(2)}`}
-            description="Pendiente por recuperar"
-            icon={<WalletCardsIcon className="size-4" />}
-            variant={pendingBalance > 0 ? "warning" : "default"}
+            title="Canceladas"
+            value={cancelledCount}
+            description="Ventas canceladas en el historial cargado"
+            icon={<XCircleIcon className="size-5" />}
+            variant={cancelledCount > 0 ? "danger" : "default"}
           />
         </div>
 

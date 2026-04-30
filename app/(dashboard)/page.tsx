@@ -5,13 +5,20 @@ import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { StatCard } from "@/components/shared/stat-card"
-import { getDashboardStats } from "@/lib/data/dashboard"
+import {
+  getDashboardStats,
+  getDashboardUrgentOrders,
+} from "@/lib/data/dashboard"
 import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { formatCurrency, formatDateRelative, getInitials } from "@/lib/utils"
+import {
+  formatCurrency,
+  formatDate,
+  formatDateRelative,
+} from "@/lib/utils"
 
 import {
   AlertTriangleIcon,
@@ -31,6 +38,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 type StockStatus = "normal" | "low" | "critical" | "out"
 
@@ -59,18 +76,18 @@ function getAuditTableLabel(tableName: string) {
     inventory_items: "Inventario",
     work_orders: "Pedidos",
     sales: "Ventas",
-    production_sessions: "Produccion",
+    production_sessions: "Producción",
     employees: "Empleados",
     payroll_payments: "Planilla",
     expenses: "Gastos",
-    catalog_items: "Catalogo",
+    catalog_items: "Catálogo",
   }
   return labels[tableName] ?? tableName
 }
 
 function getSpanishGreeting() {
   const hour = new Date().getHours()
-  if (hour < 12) return "Buenos dias"
+  if (hour < 12) return "Buenos días"
   if (hour < 19) return "Buenas tardes"
   return "Buenas noches"
 }
@@ -84,8 +101,45 @@ function getFormattedDate() {
   }).format(new Date())
 }
 
+function pctVersusYesterday(current: number, previous: number) {
+  if (previous > 0) {
+    const raw =
+      Math.round(((current - previous) / previous) * 1000) / 10
+    return {
+      value: Math.abs(raw),
+      isPositive: current >= previous,
+      label: "vs ayer",
+    }
+  }
+  if (previous === 0 && current > 0) {
+    return { value: 100, isPositive: true, label: "vs ayer" }
+  }
+  return undefined
+}
+
+function isDeliveryPast(iso: string) {
+  const d = new Date(iso)
+  d.setHours(0, 0, 0, 0)
+  const t = new Date()
+  t.setHours(0, 0, 0, 0)
+  return d < t
+}
+
+function progressIndicatorStock(status: StockStatus) {
+  if (status === "out" || status === "critical")
+    return "bg-red-500 dark:bg-red-500"
+  if (status === "low") return "bg-amber-500 dark:bg-amber-500"
+  return "bg-emerald-500 dark:bg-emerald-500"
+}
+
+function stockBarValue(quantity: number, minimumStock: number) {
+  if (minimumStock <= 0) return quantity > 0 ? 85 : 0
+  return Math.min(100, (quantity / (minimumStock * 2)) * 100)
+}
+
 export default async function DashboardPage() {
-  const [stats, inventorySnapshot, recentActivity, user] = await Promise.all([
+  const [stats, inventorySnapshot, recentActivity, user, urgentOrders] =
+    await Promise.all([
     getDashboardStats(),
     prisma.inventoryItem.findMany({
       where: { isActive: true },
@@ -109,6 +163,7 @@ export default async function DashboardPage() {
       },
     }),
     requireCurrentUser(),
+    getDashboardUrgentOrders(8),
   ])
 
   const inventoryCount = inventorySnapshot.length
@@ -135,7 +190,17 @@ export default async function DashboardPage() {
     lowOrCriticalCount > 0 ||
     stats.todaySalesCount > 0 ||
     stats.pendingOrdersCount > 0 ||
+    urgentOrders.length > 0 ||
     recentActivity.length > 0
+
+  const salesTrend = pctVersusYesterday(
+    stats.todaySales,
+    stats.yesterdaySales
+  )
+  const garmentsTrend = pctVersusYesterday(
+    stats.todayGarments,
+    stats.yesterdayGarments
+  )
 
   const firstName = user.fullName
   const greeting = getSpanishGreeting()
@@ -143,55 +208,46 @@ export default async function DashboardPage() {
 
   return (
     <section className="page-shell">
-      <div className="page-content">
+      <div className="page-content space-y-6">
         {/* Zone 1: Personalized greeting */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <PageHeader
             title={`${greeting}, ${firstName}`}
-            description={formattedDate}
+            description={
+              <>
+                <span className="block capitalize">{formattedDate}</span>
+                <span className="mt-1 block text-sm text-muted-foreground">
+                  {stats.todaySalesCount} ventas hoy ·{" "}
+                  {stats.pendingOrdersCount} pedidos activos ·{" "}
+                  {stats.todayGarments} prendas producidas
+                </span>
+              </>
+            }
           />
         </div>
 
         {!hasDashboardData ? (
           <EmptyState
             icon={<PackageSearchIcon />}
-            title="Sin datos operativos aun"
+            title="Sin datos operativos aún"
             description="Agrega materiales, ventas o pedidos para ver indicadores del tablero."
             action={
-              <Button
-                asChild
-                size="sm"
-                className="bg-brand text-brand-foreground"
-              >
+              <Button asChild size="sm">
                 <Link href="/inventory">Ir a inventario</Link>
               </Button>
             }
           />
         ) : (
           <>
-            {/* Zone 2: 4 StatCards */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+            {/* Zone 2: KPI principal */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 xl:gap-6">
               <StatCard
-                title="Materiales activos"
-                value={inventoryCount}
-                description="Registros activos disponibles"
-                icon={<BoxesIcon className="size-5" />}
-                href="/inventory"
-              />
-              <StatCard
-                title="Stock bajo o critico"
-                value={lowOrCriticalCount}
-                description="Requieren atencion de reposicion"
-                icon={<AlertTriangleIcon className="size-5" />}
-                variant={lowOrCriticalCount > 0 ? "warning" : "default"}
-                href="/inventory"
-              />
-              <StatCard
-                title="Ventas del dia"
+                title="Ventas hoy"
                 value={formatCurrency(stats.todaySales)}
-                description={`${stats.todaySalesCount} transacciones hoy`}
+                description={`${stats.todaySalesCount} transacciones`}
                 icon={<ShoppingCartIcon className="size-5" />}
                 variant={stats.todaySales > 0 ? "success" : "default"}
+                trend={salesTrend}
                 href="/sales"
               />
               <StatCard
@@ -199,9 +255,109 @@ export default async function DashboardPage() {
                 value={stats.pendingOrdersCount}
                 description="No entregados ni cancelados"
                 icon={<ClipboardListIcon className="size-5" />}
+                variant={stats.pendingOrdersCount > 0 ? "info" : "default"}
                 href="/orders"
               />
+              <StatCard
+                title="Prendas producidas hoy"
+                value={stats.todayGarments}
+                description="Total de prendas registradas"
+                icon={<ScissorsIcon className="size-5" />}
+                variant={stats.todayGarments > 0 ? "success" : "default"}
+                trend={garmentsTrend}
+                href="/production"
+              />
+              <StatCard
+                title="Alertas de inventario"
+                value={lowOrCriticalCount}
+                description={`${inventoryCount} materiales activos`}
+                icon={<BoxesIcon className="size-5" />}
+                variant={lowOrCriticalCount > 0 ? "danger" : "success"}
+                href="/inventory"
+              />
             </div>
+
+            {urgentOrders.length > 0 ? (
+              <Card className="rounded-xl border border-border overflow-hidden">
+                <CardHeader className="border-b border-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <ClipboardListIcon className="size-4 text-muted-foreground" />
+                    <CardTitle className="text-base font-semibold">
+                      Pedidos urgentes
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="text-sm">
+                    Próximos a vencer o con fecha de entrega pasada.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead>Cliente</TableHead>
+                          <TableHead>Fecha entrega</TableHead>
+                          <TableHead className="text-right">Prendas</TableHead>
+                          <TableHead>Estado</TableHead>
+                          <TableHead className="w-14" />
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {urgentOrders.map((o) => {
+                          const overdue = isDeliveryPast(o.deliveryDate)
+                          return (
+                            <TableRow
+                              key={o.id}
+                              className="border-border/55 hover:bg-muted/50"
+                            >
+                              <TableCell className="font-medium">
+                                <div className="flex flex-col gap-1">
+                                  <span className="truncate max-w-48">
+                                    {o.customerName}
+                                  </span>
+                                  <span className="font-mono text-xs text-muted-foreground">
+                                    #{o.id.slice(0, 8).toUpperCase()}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-sm whitespace-nowrap">
+                                {formatDate(o.deliveryDate)}
+                              </TableCell>
+                              <TableCell className="text-right font-bold tabular-nums">
+                                {o.garmentCount}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-wrap gap-2">
+                                  {overdue ? (
+                                    <Badge
+                                      variant="destructive"
+                                      className="animate-pulse text-[10px] font-bold tracking-widest uppercase"
+                                    >
+                                      ATRASADO
+                                    </Badge>
+                                  ) : null}
+                                  <StatusBadge
+                                    status={o.status}
+                                    type="work-order"
+                                  />
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button variant="ghost" size="sm" asChild>
+                                  <Link href={`/orders/${o.id}`}>
+                                    <ChevronRightIcon className="size-4" />
+                                  </Link>
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
 
             {/* Zone Chart */}
             <div className="w-full xl:col-span-3">
@@ -220,7 +376,7 @@ export default async function DashboardPage() {
                     </CardTitle>
                   </div>
                   <CardDescription className="text-sm">
-                    Ultimas operaciones registradas en el sistema.
+                    Últimas operaciones registradas en el sistema.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -276,17 +432,17 @@ export default async function DashboardPage() {
                 </CardContent>
               </Card>
 
-              {/* Alerts sidebar */}
+              {/* Stock crítico */}
               <Card className="rounded-xl border border-border">
                 <CardHeader className="border-b border-border pb-3">
                   <div className="flex items-center gap-2">
-                    <AlertTriangleIcon className="text-warning size-4" />
+                    <AlertTriangleIcon className="size-4 text-red-500" />
                     <CardTitle className="text-base font-semibold">
-                      Alertas activas
+                      Stock crítico
                     </CardTitle>
                   </div>
                   <CardDescription className="text-sm">
-                    Materiales con stock critico o agotado.
+                    Materiales con stock crítico o agotado. Ajusta desde el detalle.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -294,7 +450,7 @@ export default async function DashboardPage() {
                     <div className="p-6">
                       <EmptyState
                         icon={<AlertTriangleIcon />}
-                        title="Sin alertas criticas"
+                        title="Sin alertas críticas"
                         description="Todos los materiales en niveles aceptables."
                         compact
                       />
@@ -303,34 +459,53 @@ export default async function DashboardPage() {
                     <ScrollArea className="h-70">
                       <div className="divide-y divide-border/50">
                         {criticalAlerts.map((item) => (
-                          <Link
+                          <div
                             key={item.id}
-                            href={`/inventory/${item.id}`}
-                            className="group flex items-center justify-between gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
+                            className="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-muted/40"
                           >
-                            <div className="flex min-w-0 items-center gap-2">
-                              <span
-                                className={`h-2 w-2 shrink-0 rounded-full ${
-                                  item.status === "out"
-                                    ? "bg-muted-foreground"
-                                    : "bg-danger"
-                                }`}
-                              />
-                              <div className="min-w-0">
-                                <p className="truncate text-xs font-medium transition-colors group-hover:text-brand">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <Link
+                                  href={`/inventory/${item.id}`}
+                                  className="truncate text-xs font-medium text-foreground hover:text-primary hover:underline"
+                                >
                                   {item.name}
-                                </p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {item.quantity} / min {item.minimumStock}{" "}
-                                  {item.unit}
+                                </Link>
+                                <p className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
+                                  <span className="font-bold text-foreground">
+                                    {item.quantity}
+                                  </span>{" "}
+                                  / min {item.minimumStock} {item.unit}
                                 </p>
                               </div>
+                              <StatusBadge
+                                status={item.status}
+                                type="stock"
+                              />
                             </div>
-                            <div className="flex shrink-0 items-center gap-1.5">
-                              <StatusBadge status={item.status} type="stock" />
-                              <ChevronRightIcon className="size-3 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground" />
+                            <Progress
+                              value={stockBarValue(
+                                item.quantity,
+                                item.minimumStock
+                              )}
+                              className="h-2"
+                              indicatorClassName={progressIndicatorStock(
+                                item.status
+                              )}
+                            />
+                            <div className="flex justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                asChild
+                              >
+                                <Link href={`/inventory/${item.id}`}>
+                                  Ajustar
+                                </Link>
+                              </Button>
                             </div>
-                          </Link>
+                          </div>
                         ))}
                       </div>
                     </ScrollArea>
@@ -338,7 +513,7 @@ export default async function DashboardPage() {
                   <div className="border-t border-border px-4 py-2.5">
                     <Link
                       href="/inventory"
-                      className="flex items-center justify-center gap-1 text-xs font-medium text-brand transition-colors hover:text-brand/80"
+                      className="flex items-center justify-center gap-1 text-xs font-medium text-primary transition-colors hover:text-primary/90"
                     >
                       Ver todo el inventario
                       <ChevronRightIcon className="size-3" />
@@ -357,7 +532,7 @@ export default async function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <ScissorsIcon className="size-4 text-muted-foreground" />
                       <CardTitle className="text-base font-semibold">
-                        Accesos rapidos
+                        Accesos rápidos
                       </CardTitle>
                     </div>
                   </div>
@@ -376,7 +551,7 @@ export default async function DashboardPage() {
                         color: "bg-info-soft text-info",
                       },
                       {
-                        label: "Nueva sesion",
+                        label: "Nueva sesión",
                         href: "/production/new",
                         color: "bg-warning-soft text-warning",
                       },
@@ -415,7 +590,7 @@ export default async function DashboardPage() {
                     Resumen del sistema
                   </CardTitle>
                   <CardDescription className="text-sm">
-                    Metricas de operacion generales.
+                    Métricas de operación generales.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 pt-4">
