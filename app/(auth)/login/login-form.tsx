@@ -55,34 +55,16 @@ export function LoginForm() {
   const isSubmitting = form.formState.isSubmitting
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center bg-background p-4 sm:p-6">
-      {/* Decoración de fondo — dos manchas de color difusas */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 overflow-hidden"
-      >
-        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -right-32 -bottom-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+    <div className="w-full">
+      {/* Cabecera */}
+      <div className="mb-8 space-y-1 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Bienvenido de nuevo
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Ingresa tus datos para acceder al sistema
+        </p>
       </div>
-
-      {/* CARD */}
-      <div className="relative w-full max-w-md">
-        {/* Cabecera fuera del card — marca / contexto */}
-        <div className="mb-8 space-y-1 text-center">
-          {/* Sustituye este bloque por tu logo real si lo tienes */}
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/25">
-            <KeyRoundIcon
-              className="h-6 w-6 text-primary-foreground"
-              strokeWidth={1.75}
-            />
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Panel operativo
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Ingresa tus credenciales para continuar
-          </p>
-        </div>
 
         {/* Formulario */}
         <div>
@@ -170,10 +152,16 @@ export function LoginForm() {
                 "Ingresar"
               )}
             </Button>
+            {/* Links inferiores */}
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              ¿No tienes cuenta?{" "}
+              <Link href="/register" className="font-medium text-primary hover:underline">
+                Contacta al administrador
+              </Link>
+            </div>
           </form>
         </div>
       </div>
-    </div>
   )
 }
 

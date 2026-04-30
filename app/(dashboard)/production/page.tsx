@@ -4,8 +4,9 @@ import { decimalToNumber } from "@/lib/api/utils"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
-import { getProductionSessions } from "@/lib/data/production"
+import { getProductionSessions, getProductionFormBootstrap } from "@/lib/data/production"
 import { ProductionTable } from "@/components/modules/production/production-table"
+import { NewProductionSheet } from "@/components/modules/production/new-production-sheet"
 
 import {
   PlusIcon,
@@ -15,7 +16,10 @@ import {
 } from "lucide-react"
 
 export default async function ProductionPage() {
-  const sessions = await getProductionSessions()
+  const [sessions, bootstrap] = await Promise.all([
+    getProductionSessions(),
+    getProductionFormBootstrap()
+  ])
 
   const rows = sessions.map((session) => ({
     id: session.id,
@@ -54,16 +58,15 @@ export default async function ProductionPage() {
             { label: "Producción" },
           ]}
           actions={
-            <Button
-              asChild
-              size="default"
-              className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
-            >
-              <Link href="/production/new">
-                <PlusIcon className="size-4 shrink-0" />
-                Nueva sesión
-              </Link>
-            </Button>
+            <NewProductionSheet 
+              employees={bootstrap.employees}
+              inventoryItems={bootstrap.inventoryItems.map((i) => ({
+                id: i.id,
+                name: i.name,
+                unit: i.unit,
+                quantity: decimalToNumber(i.quantity),
+              }))}
+            />
           }
         />
 

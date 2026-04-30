@@ -559,14 +559,14 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         }}
       >
         <AlertDialogContent className="max-w-md border-destructive/30">
-          <AlertDialogHeader>
-            <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-destructive/10">
+          <AlertDialogHeader className="gap-2 py-3 px-3">
+            <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-destructive/10">
               <Trash2Icon className="size-5 text-destructive" />
             </div>
             <AlertDialogTitle className="text-center">
               Desactivar material
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-sm leading-relaxed">
+            <AlertDialogDescription className="text-center text-sm leading-relaxed text-pretty">
               Esta acción{" "}
               <strong className="text-foreground">no se puede deshacer</strong>.
               Se desactivará permanentemente{" "}
@@ -576,7 +576,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
               del catálogo operativo.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-2">
+          <AlertDialogFooter className="gap-2 sm:gap-2 grid grid-cols-2 border-t py-4 px-4">
             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"

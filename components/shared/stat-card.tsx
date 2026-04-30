@@ -45,66 +45,36 @@ export function StatCard({
   const Content = (
     <div
       className={cn(
-        "group rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-md",
+        "flex items-center gap-2.5 p-2.5 rounded-lg border bg-card transition-colors hover:bg-muted/30",
         href && "cursor-pointer"
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <p className="max-w-[14rem] text-xs font-medium tracking-wide text-muted-foreground uppercase">
+      <div
+        className={cn(
+          "shrink-0 h-8 w-8 rounded-md flex items-center justify-center [&>svg]:h-3.5 [&>svg]:w-3.5",
+          iconWrapStyles[variant]
+        )}
+      >
+        {icon}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide truncate leading-none mb-1">
           {title}
         </p>
         <div
           className={cn(
-            "flex size-10 shrink-0 items-center justify-center rounded-lg [&>svg]:size-5",
-            iconWrapStyles[variant]
+            "text-lg font-bold tabular-nums leading-none truncate",
+            !isLoading && valueToneStyles[variant]
           )}
         >
-          {icon}
+          {isLoading ? (
+            <div className="h-5 w-16 animate-pulse rounded bg-muted" />
+          ) : (
+            value
+          )}
         </div>
       </div>
-
-      <div
-        className={cn(
-          "mt-4 text-3xl font-bold tracking-tight tabular-nums",
-          !isLoading && valueToneStyles[variant]
-        )}
-      >
-        {isLoading ? (
-          <div className="h-9 w-28 animate-pulse rounded-md bg-muted" />
-        ) : (
-          value
-        )}
-      </div>
-
-      {(description ?? trend) ? (
-        <div className="mt-4 space-y-2 border-t border-border/70 pt-3">
-          {trend ? (
-            <div
-              className={cn(
-                "inline-flex items-center gap-1 text-xs font-semibold tabular-nums",
-                isPositiveTrend
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-red-600 dark:text-red-400"
-              )}
-            >
-              {isPositiveTrend ? (
-                <TrendingUpIcon className="size-3.5" />
-              ) : (
-                <TrendingDownIcon className="size-3.5" />
-              )}
-              {Math.abs(trend.value)}%{" "}
-              <span className="font-normal text-muted-foreground">
-                {trend.label}
-              </span>
-            </div>
-          ) : null}
-          {description ? (
-            <p className="text-xs leading-relaxed text-pretty text-muted-foreground">
-              {description}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   )
 

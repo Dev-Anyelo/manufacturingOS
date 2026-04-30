@@ -3,6 +3,7 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -33,6 +34,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 
 interface MarkPaidDialogProps {
   open: boolean
@@ -85,6 +96,7 @@ export function MarkPaidDialog({
   onOpenChange,
   onSuccess,
 }: MarkPaidDialogProps) {
+  const isMobile = useIsMobile()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [paymentDate, setPaymentDate] = React.useState(todayInputDate())
   const [paymentMethod, setPaymentMethod] = React.useState<
@@ -149,150 +161,154 @@ export function MarkPaidDialog({
     }
   }
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden border border-border/75 p-0 sm:max-w-xl">
-        <DialogHeader className="space-y-2 py-3 px-4">
-          <div className="flex items-center justify-between gap-2">
-            <DialogTitle>Marcar pago como pagado</DialogTitle>
-          </div>
-          <DialogDescription>
-            Confirma la fecha y metodo para procesar este pago de planilla.
-          </DialogDescription>
-        </DialogHeader>
+  const periodStr = payment
+    ? `${new Date(payment.periodStart).toLocaleDateString("es-PA")} - ${new Date(payment.periodEnd).toLocaleDateString("es-PA")}`
+    : "-"
 
-        <div className="space-y-4 px-4 py-3">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <StatLine label="Empleado" value={payment?.employeeName ?? "-"} />
-            <StatLine
-              label="Periodo"
-              value={
-                payment
-                  ? `${new Date(payment.periodStart).toLocaleDateString("es-PA")} - ${new Date(payment.periodEnd).toLocaleDateString("es-PA")}`
-                  : "-"
-              }
-            />
-            <StatLine
-              label="Total"
-              value={
-                <span className="text-brand">
-                  <CurrencyDisplay amount={payment?.total ?? 0} size="sm" />
-                </span>
-              }
-            />
-          </div>
+  const content = (
+    <>
+      <div className="shrink-0 space-y-1 border-b border-border/70 bg-muted/10 px-4 py-4 text-left">
+        <h2 className="text-base font-semibold text-pretty">
+          Marcar pago como pagado
+        </h2>
+        <p className="mt-1 text-sm text-pretty text-muted-foreground">
+          Confirma la fecha y metodo para procesar este pago de planilla.
+        </p>
+      </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Fecha de pago</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 size-4" />
-                  {formatDateLabel(paymentDate)}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align="start">
-                <Calendar
-                  mode="single"
-                  selected={
-                    paymentDate ? parseInputDate(paymentDate) : undefined
+      <div className="flex flex-1 flex-col space-y-4 overflow-y-auto px-4 py-4">
+        <dl className="flex flex-wrap items-center gap-x-1 gap-y-2 border-b pb-4 text-sm sm:flex-nowrap">
+          <div className="flex items-center gap-1.5 pr-3 sm:border-r">
+            <dt className="text-xs text-muted-foreground">Empleado:</dt>
+            <dd className="font-semibold">{payment?.employeeName ?? "-"}</dd>
+          </div>
+          <div className="flex items-center gap-1.5 sm:border-r sm:px-3">
+            <dt className="text-xs text-muted-foreground">Periodo:</dt>
+            <dd className="font-medium tabular-nums">{periodStr}</dd>
+          </div>
+          <div className="flex items-center gap-1.5 sm:pl-3">
+            <dt className="text-xs text-muted-foreground">Total:</dt>
+            <dd className="font-bold text-brand tabular-nums">
+              <CurrencyDisplay amount={payment?.total ?? 0} size="sm" />
+            </dd>
+          </div>
+        </dl>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Fecha de pago</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 size-4" />
+                {formatDateLabel(paymentDate)}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" align="start">
+              <Calendar
+                mode="single"
+                selected={paymentDate ? parseInputDate(paymentDate) : undefined}
+                onSelect={(date) => {
+                  if (!date) {
+                    return
                   }
-                  onSelect={(date) => {
-                    if (!date) {
-                      return
-                    }
 
-                    setPaymentDate(toInputDate(date))
-                  }}
-                  disabled={(date) => date > today}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Metodo de pago</Label>
-            <RadioGroup
-              value={paymentMethod}
-              onValueChange={(value) =>
-                setPaymentMethod(value as "cash" | "transfer" | "other")
-              }
-              className="grid grid-cols-1 gap-2 sm:grid-cols-3"
-            >
-              {paymentMethods.map((method) => {
-                const Icon = method.icon
-
-                return (
-                  <Label
-                    key={method.value}
-                    className={cn(
-                      "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-xs transition-colors",
-                      paymentMethod === method.value
-                        ? "bg-brand-muted border-brand font-medium text-brand"
-                        : "border-border text-muted-foreground hover:bg-muted/40"
-                    )}
-                  >
-                    <RadioGroupItem value={method.value} className="sr-only" />
-                    <Icon className="size-4" />
-                    <span className="text-sm">{method.label}</span>
-                  </Label>
-                )
-              })}
-            </RadioGroup>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="text-sm font-medium">
-              Notas
-            </Label>
-            <Textarea
-              id="notes"
-              className="min-h-20"
-              placeholder="Observaciones internas del pago (opcional)"
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-            />
-          </div>
+                  setPaymentDate(toInputDate(date))
+                }}
+                disabled={(date) => date > today}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
-        <DialogFooter className="grid grid-cols-1 gap-2 border-t border-border/70 bg-muted/10 px-5 py-4 sm:flex sm:justify-end sm:px-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Metodo de pago</Label>
+          <RadioGroup
+            value={paymentMethod}
+            onValueChange={(value) =>
+              setPaymentMethod(value as "cash" | "transfer" | "other")
+            }
+            className="grid grid-cols-1 gap-2 sm:grid-cols-3"
           >
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            className="bg-brand text-brand-foreground"
-            disabled={isSubmitting}
-            onClick={() => void handleSubmit()}
-          >
-            {isSubmitting ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : null}
-            Confirmar pago
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
+            {paymentMethods.map((method) => {
+              const Icon = method.icon
 
-function StatLine({ label, value }: { label: string; value: React.ReactNode }) {
+              return (
+                <Label
+                  key={method.value}
+                  className={cn(
+                    "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-xs transition-colors",
+                    paymentMethod === method.value
+                      ? "bg-brand-muted border-brand font-medium text-brand"
+                      : "border-border text-muted-foreground hover:bg-muted/40"
+                  )}
+                >
+                  <RadioGroupItem value={method.value} className="sr-only" />
+                  <Icon className="size-4" />
+                  <span className="text-sm">{method.label}</span>
+                </Label>
+              )
+            })}
+          </RadioGroup>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="notes" className="text-sm font-medium">
+            Notas
+          </Label>
+          <Textarea
+            id="notes"
+            className="min-h-[60px]"
+            rows={2}
+            placeholder="Observaciones internas del pago (opcional)"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border/70 bg-background p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isSubmitting}
+          onClick={() => onOpenChange(false)}
+          className="w-full sm:w-auto"
+        >
+          Cancelar
+        </Button>
+        <Button
+          type="button"
+          className="mt-2 w-full bg-brand text-brand-foreground sm:mt-0 sm:w-auto"
+          disabled={isSubmitting}
+          onClick={() => void handleSubmit()}
+        >
+          {isSubmitting ? (
+            <Loader2Icon className="mr-1.5 size-4 animate-spin" />
+          ) : null}
+          Confirmar pago
+        </Button>
+      </div>
+    </>
+  )
+
+  if (!isMobile) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-sm">
+          {content}
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
-    <div className="rounded-lg border border-border/60 bg-card/85 px-3 py-2">
-      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p className="text-sm font-semibold">{value}</p>
-    </div>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="gap-0 p-0">{content}</DrawerContent>
+    </Drawer>
   )
 }

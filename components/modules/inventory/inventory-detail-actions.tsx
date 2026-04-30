@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowLeftIcon, PencilLine, SlidersHorizontalIcon } from "lucide-react"
+import { ChevronLeftIcon, SlidersHorizontalIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { AdjustStockDialog } from "@/components/modules/inventory/adjust-stock-dialog"
@@ -26,14 +26,8 @@ export function InventoryDetailActions({ item }: InventoryDetailActionsProps) {
       <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
         <Button asChild variant="outline" size="sm" className="min-h-10 sm:min-h-9">
           <Link href="/inventory">
-            <ArrowLeftIcon className="size-4" />
+            <ChevronLeftIcon className="size-4" />
             Volver
-          </Link>
-        </Button>
-        <Button asChild size="sm" variant="outline" className="min-h-10 sm:min-h-9">
-          <Link href={`/inventory/${item.id}/edit`}>
-            <PencilLine className="size-3.5" />
-            Editar material
           </Link>
         </Button>
         <Button

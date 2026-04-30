@@ -150,6 +150,10 @@ interface OrderFormProps {
   customers: PosCustomer[]
   catalogItems: CatalogChoice[]
   inventoryItems: InventoryChoice[]
+  /** Called after successful submission — used when embedded in a Sheet */
+  onSuccess?: () => void
+  /** Called when the user cancels — used when embedded in a Sheet */
+  onCancel?: () => void
 }
 
 function getEmptyLine(): OrderFormValues["items"][number] {
@@ -210,6 +214,8 @@ export function OrderForm({
   customers,
   catalogItems,
   inventoryItems,
+  onSuccess,
+  onCancel,
 }: OrderFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -330,8 +336,12 @@ export function OrderForm({
       }
 
       toast.success("Pedido creado correctamente")
-      router.push(`/orders/${result.data.id}`)
-      router.refresh()
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push(`/orders/${result.data.id}`)
+        router.refresh()
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "No se pudo crear el pedido."
@@ -347,35 +357,22 @@ export function OrderForm({
       className="mx-auto w-full"
       noValidate
     >
-      {/* Summary Stats */}
-      <div className="mb-3">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
-          <StatCard
-            title="Total estimado"
-            value={formatCurrency(estimatedTotal)}
-            icon={<ShoppingCart className="size-4 text-muted-foreground" />}
-          />
-
-          <StatCard
-            title="Total unidades"
-            value={totalUnits.toString()}
-            icon={<Ruler className="size-4 text-muted-foreground" />}
-          />
-
-          <StatCard
-            title="Saldo pendiente"
-            value={formatCurrency(pendingBalance)}
-            icon={<DollarSign className="size-4 text-muted-foreground" />}
-          />
-
-          <StatCard
-            title="Fecha de entrega"
-            value={
-              watchedDeliveryDate ? formatDateLabel(watchedDeliveryDate) : "N/A"
-            }
-            icon={<CalendarIcon className="size-4 text-muted-foreground" />}
-          />
-        </div>
+      {/* Summary Stats - Compact Info Bar */}
+      <div className="mb-4 flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+        {[
+          { label: "Total", value: formatCurrency(estimatedTotal) },
+          { label: "Unidades", value: totalUnits.toString() },
+          { label: "Saldo", value: formatCurrency(pendingBalance) },
+          { label: "Entrega", value: watchedDeliveryDate ? formatDateLabel(watchedDeliveryDate) : "N/A" },
+        ].map((item, i) => (
+          <div key={i} className={cn(
+            "flex flex-col items-center px-4 py-2 shrink-0",
+            i > 0 && "border-l border-border/60"
+          )}>
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{item.label}</span>
+            <span className="text-sm font-bold tabular-nums mt-0.5">{item.value}</span>
+          </div>
+        ))}
       </div>
 
       {/* Tabbed Form */}

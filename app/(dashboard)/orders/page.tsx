@@ -3,11 +3,12 @@ import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { WorkOrderStatus } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
-import { getWorkOrders } from "@/lib/data/orders"
+import { getWorkOrders, getOrderFormBootstrap } from "@/lib/data/orders"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { OrdersWorkspace } from "@/components/modules/orders/orders-workspace"
+import { NewOrderSheet } from "@/components/modules/orders/new-order-sheet"
 
 import {
   ClipboardListIcon,
@@ -17,7 +18,10 @@ import {
 } from "lucide-react"
 
 export default async function OrdersPage() {
-  const orders = await getWorkOrders()
+  const [orders, bootstrap] = await Promise.all([
+    getWorkOrders(),
+    getOrderFormBootstrap(),
+  ])
 
   const orderRows = orders.map((order) => ({
     id: order.id,
@@ -65,16 +69,26 @@ export default async function OrdersPage() {
             { label: "Órdenes" },
           ]}
           actions={
-            <Button
-              asChild
-              size="default"
-              className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
-            >
-              <Link href="/orders/new">
-                <PlusIcon className="size-4 shrink-0" />
-                Nueva orden
-              </Link>
-            </Button>
+            <NewOrderSheet 
+              customers={bootstrap.customers.map((c) => ({
+                id: c.id,
+                name: c.fullName,
+                phone: c.phone,
+                email: c.email,
+              }))}
+              catalogItems={bootstrap.catalogItems.map((c) => ({
+                id: c.id,
+                name: c.name,
+                garmentType: c.garmentType,
+                salePrice: decimalToNumber(c.salePrice),
+              }))}
+              inventoryItems={bootstrap.inventoryItems.map((i) => ({
+                id: i.id,
+                name: i.name,
+                unit: i.unit,
+                quantity: decimalToNumber(i.quantity),
+              }))}
+            />
           }
         />
 

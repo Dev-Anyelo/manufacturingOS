@@ -7,8 +7,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ChevronsUpDownIcon, PlusIcon, XIcon } from "lucide-react"
+import { ChevronsUpDownIcon, PlusIcon, XIcon, UserPlusIcon, Loader2Icon } from "lucide-react"
 import type { PosCustomer } from "@/components/modules/sales/types"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 
 import {
   Command,
@@ -207,64 +215,89 @@ export function CustomerSelector({
                 <CommandSeparator />
 
                 <CommandGroup>
-                  {!showCreateForm ? (
-                    <CommandItem
-                      onClick={() => {
-                        setShowCreateForm(true)
-                        setNewCustomerName(searchValue.trim())
-                      }}
-                      className="font-medium text-brand"
-                    >
-                      <PlusIcon className="size-4" />
-                      Crear nuevo cliente
-                    </CommandItem>
-                  ) : (
-                    <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-2">
-                      <Input
-                        placeholder="Nombre completo"
-                        value={newCustomerName}
-                        onChange={(event) =>
-                          setNewCustomerName(event.target.value)
-                        }
-                      />
-                      <Input
-                        placeholder="Telefono"
-                        value={newCustomerPhone}
-                        onChange={(event) =>
-                          setNewCustomerPhone(event.target.value)
-                        }
-                      />
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setShowCreateForm(false)
-                            setNewCustomerName("")
-                            setNewCustomerPhone("")
-                          }}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          className={cn("bg-brand text-brand-foreground")}
-                          onClick={handleCreateCustomer}
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? "Guardando..." : "Guardar cliente"}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  <CommandItem
+                    onClick={() => {
+                      setShowCreateForm(true)
+                      setNewCustomerName(searchValue.trim())
+                      setOpen(false) // Close the combobox
+                    }}
+                    className="font-medium text-brand"
+                  >
+                    <PlusIcon className="size-4" />
+                    Crear nuevo cliente
+                  </CommandItem>
                 </CommandGroup>
               </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
       )}
+
+      {/* Sheet for creating a new customer */}
+      <Sheet open={showCreateForm} onOpenChange={setShowCreateForm}>
+        <SheetContent className="sm:max-w-md w-full p-0 flex flex-col gap-0">
+          <SheetHeader className="border-b border-border/70 px-6 py-4 text-left">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                <UserPlusIcon className="size-4 text-primary" />
+              </div>
+              <div>
+                <SheetTitle className="text-base">Nuevo cliente</SheetTitle>
+                <SheetDescription className="text-sm">
+                  Añade un nuevo cliente para esta orden/venta.
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+          
+          <div className="px-6 py-6 space-y-4 flex-1 overflow-y-auto">
+            <div className="space-y-2">
+              <Label htmlFor="customer-name">Nombre completo <span className="text-destructive">*</span></Label>
+              <Input
+                id="customer-name"
+                placeholder="Ej: Juan Perez"
+                value={newCustomerName}
+                onChange={(event) => setNewCustomerName(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="customer-phone">Telefono</Label>
+              <Input
+                id="customer-phone"
+                placeholder="Ej: 6000-0000"
+                value={newCustomerPhone}
+                onChange={(event) => setNewCustomerPhone(event.target.value)}
+              />
+            </div>
+          </div>
+          
+          <SheetFooter className="border-t border-border/70 p-4 sm:flex-row sm:justify-end sm:gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowCreateForm(false)
+                setNewCustomerName("")
+                setNewCustomerPhone("")
+              }}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleCreateCustomer}
+              disabled={isSubmitting}
+              className="mt-2 sm:mt-0"
+            >
+              {isSubmitting ? (
+                <Loader2Icon className="size-4 animate-spin mr-2" />
+              ) : null}
+              {isSubmitting ? "Guardando..." : "Guardar cliente"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

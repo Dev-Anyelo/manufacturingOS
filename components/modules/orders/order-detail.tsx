@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { OrderDetailData } from "@/components/modules/orders/types"
 import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { OrderStatusStepper } from "@/components/modules/orders/order-status-stepper"
 
 import {
@@ -21,6 +22,7 @@ import {
   CalendarIcon,
   CheckIcon,
   CircleDotIcon,
+  ChevronDown,
   ClockIcon,
   ExternalLinkIcon,
   HashIcon,
@@ -81,79 +83,43 @@ export function OrderDetail({ order }: OrderDetailProps) {
       <OrderStatusStepper status={currentStatus} />
 
       {/* ── Hero strip — métricas principales ── */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Total pedido"
-          value={
-            <CurrencyDisplay
-              amount={order.total}
-              size="lg"
-              className="font-bold"
-            />
-          }
-          icon={<ReceiptIcon className="size-4" />}
-          accent="default"
-        />
-        <MetricCard
-          label="Anticipo"
-          value={
-            <CurrencyDisplay
-              amount={order.advancePaid}
-              size="lg"
-              className="font-bold"
-            />
-          }
-          icon={<BanknoteIcon className="size-4" />}
-          accent="brand"
-        />
-        <MetricCard
-          label="Saldo pendiente"
-          value={
-            <CurrencyDisplay
-              amount={order.balanceDue}
-              size="lg"
-              colored={order.balanceDue > 0}
-              className="font-bold"
-            />
-          }
-          icon={<CircleDotIcon className="size-4" />}
-          accent={order.balanceDue > 0 ? "warning" : "success"}
-          sub={
-            <div className="mt-2 space-y-1">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Cobrado</span>
-                <span className="font-semibold tabular-nums">
-                  {paymentProgress.toFixed(0)}%
-                </span>
-              </div>
-              <div className="relative h-1 overflow-hidden rounded-full bg-muted">
-                <div
-                  className={cn(
-                    "absolute inset-y-0 left-0 rounded-full transition-all duration-700",
-                    paymentProgress >= 100 ? "bg-primary" : "bg-warning"
-                  )}
-                  style={{ width: `${paymentProgress}%` }}
-                />
+      <Collapsible defaultOpen className="border rounded-xl overflow-hidden bg-card">
+        <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/20 [&[data-state=open]>svg]:rotate-180">
+          <div className="flex items-center gap-2">
+            <ReceiptIcon className="size-4 text-primary" />
+            <span className="text-sm font-semibold">Resumen del pedido</span>
+          </div>
+          <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200" />
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 border-t divide-x divide-y md:divide-y-0">
+            <div className="p-4 flex flex-col justify-center">
+              <span className="text-[10px] uppercase text-muted-foreground font-medium mb-1">Total pedido</span>
+              <span className="text-lg font-bold tabular-nums leading-none"><CurrencyDisplay amount={order.total} /></span>
+            </div>
+            <div className="p-4 flex flex-col justify-center">
+              <span className="text-[10px] uppercase text-muted-foreground font-medium mb-1">Anticipo</span>
+              <span className="text-lg font-bold tabular-nums leading-none text-brand"><CurrencyDisplay amount={order.advancePaid} /></span>
+            </div>
+            <div className="p-4 flex flex-col justify-center">
+              <span className="text-[10px] uppercase text-muted-foreground font-medium mb-1">Saldo pendiente</span>
+              <span className={cn("text-lg font-bold tabular-nums leading-none", order.balanceDue > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400")}>
+                <CurrencyDisplay amount={order.balanceDue} />
+              </span>
+              <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                <span>Cobrado {paymentProgress.toFixed(0)}%</span>
               </div>
             </div>
-          }
-        />
-        <MetricCard
-          label="Entrega"
-          value={
-            <span className="text-base leading-tight font-bold">
-              {formatDate(order.deliveryDate)}
-            </span>
-          }
-          icon={<CalendarIcon className="size-4" />}
-          accent="default"
-          sub={
-            <p className="mt-1 text-xs font-medium text-muted-foreground">
-              {formatDateRelative(order.deliveryDate)} · {totalUnits} prendas
-            </p>
-          }
-        />
-      </div>
+            <div className="p-4 flex flex-col justify-center bg-muted/10">
+              <span className="text-[10px] uppercase text-muted-foreground font-medium mb-1">Entrega</span>
+              <span className="text-lg font-bold tabular-nums leading-none">{formatDate(order.deliveryDate)}</span>
+              <div className="mt-1 text-[10px] text-muted-foreground">
+                {formatDateRelative(order.deliveryDate)} · {totalUnits} prendas
+              </div>
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* ── Acciones de flujo ── */}
       {availableTransitions.length > 0 && (

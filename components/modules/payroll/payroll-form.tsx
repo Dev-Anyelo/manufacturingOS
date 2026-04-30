@@ -227,13 +227,12 @@ export function PayrollForm({
       className="mx-auto w-full space-y-4"
       noValidate
     >
-      {/* Total Summary Card */}
-      <div>
-        <MetricCard
-          icon={<TrendingUp className="size-4 text-green-500" />}
-          label="Total a pagar"
-          value={formatCurrency(total)}
-        />
+      {/* Total Summary - Compact Info Bar */}
+      <div className="flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+        <div className="flex flex-col items-center px-4 py-2 shrink-0">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Total a pagar</span>
+          <span className="text-sm font-bold tabular-nums mt-0.5 text-brand">{formatCurrency(total)}</span>
+        </div>
       </div>
 
       {/* Tabbed Form */}

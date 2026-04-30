@@ -2,8 +2,24 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { ArrowUpRight } from "lucide-react"
+import {
+  ArrowUpRight,
+  ExternalLinkIcon,
+  MessageCircleIcon,
+  MoreHorizontal,
+  MoreHorizontalIcon,
+  PackageIcon,
+  ShoppingCartIcon,
+  StoreIcon,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
@@ -36,6 +52,14 @@ const channelLabelMap: Record<string, string> = {
   other: "Otro",
 }
 
+const channelIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  in_person: StoreIcon,
+  order: PackageIcon,
+  whatsapp: MessageCircleIcon,
+  marketplace: ShoppingCartIcon,
+  other: MoreHorizontalIcon,
+}
+
 const paymentMethodLabelMap: Record<string, string> = {
   cash: "Efectivo",
   transfer: "Transferencia",
@@ -60,20 +84,36 @@ const columns: ColumnDef<SalesTableRow>[] = [
   {
     accessorKey: "customerName",
     header: "Cliente",
-    cell: ({ row }) => (
-      <p className="max-w-44 truncate text-sm font-medium">
-        {row.original.customerName}
-      </p>
-    ),
+    cell: ({ row }) => {
+      const name = row.original.customerName
+      const initials = name.substring(0, 2).toUpperCase()
+      return (
+        <div className="flex items-center gap-2">
+          <Avatar className="size-6 rounded-md">
+            <AvatarFallback className="text-[10px] rounded-md">{initials}</AvatarFallback>
+          </Avatar>
+          <span className="max-w-44 truncate text-sm font-medium">
+            {name}
+          </span>
+        </div>
+      )
+    },
   },
   {
     accessorKey: "channel",
     header: "Canal",
-    cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">
-        {channelLabelMap[row.original.channel] ?? row.original.channel}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const channel = row.original.channel
+      const Icon = channelIconMap[channel] ?? MoreHorizontalIcon
+      return (
+        <div className="flex items-center gap-1.5 text-muted-foreground">
+          <Icon className="size-3.5" />
+          <span className="text-sm">
+            {channelLabelMap[channel] ?? channel}
+          </span>
+        </div>
+      )
+    },
     meta: {
       className: "hidden md:table-cell",
       headerClassName: "hidden md:table-cell",
@@ -111,12 +151,28 @@ const columns: ColumnDef<SalesTableRow>[] = [
     id: "actions",
     header: "",
     cell: ({ row }) => (
-      <Button asChild variant="ghost" size="sm" className="justify-start text-muted-foreground">
-        <Link href={`/sales/${row.original.id}`}>
-          Ver
-          <ArrowUpRight className="size-4" />
-        </Link>
-      </Button>
+      <div className="flex items-center justify-end gap-1">
+        <Button asChild variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-foreground">
+          <Link href={`/sales/${row.original.id}`} title="Ver">
+            <ExternalLinkIcon className="size-3.5" />
+          </Link>
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-7 text-muted-foreground hover:text-foreground">
+              <MoreHorizontal className="size-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href={`/sales/${row.original.id}`}>Ver detalles</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={`/sales/${row.original.id}?print=true`}>Imprimir recibo</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     ),
   },
 ]

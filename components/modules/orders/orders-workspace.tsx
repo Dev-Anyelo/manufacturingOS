@@ -70,9 +70,8 @@ export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
       received_bucket: orders.filter((o) =>
         matchesPipeline(o, "received_bucket")
       ).length,
-      in_production: orders.filter((o) =>
-        matchesPipeline(o, "in_production")
-      ).length,
+      in_production: orders.filter((o) => matchesPipeline(o, "in_production"))
+        .length,
       ready: orders.filter((o) => matchesPipeline(o, "ready")).length,
       cancelled: orders.filter((o) => matchesPipeline(o, "cancelled")).length,
     }
@@ -108,7 +107,7 @@ export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
               onClick={() => setPipelineFilter(key)}
             >
               <span>{label}</span>
-              <span className="ml-1.5 inline-flex min-w-[1.25rem] justify-center rounded-full border border-border/80 bg-background/80 px-1.5 text-[11px] font-semibold tabular-nums">
+              <span className="ml-1.5 inline-flex min-w-5 justify-center rounded-full border border-border/80 bg-background/80 px-1.5 text-[11px] font-semibold tabular-nums">
                 {pipelineCounts[key]}
               </span>
             </Button>

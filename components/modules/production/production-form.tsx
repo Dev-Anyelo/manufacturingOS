@@ -122,6 +122,10 @@ type InventoryOption = {
 interface ProductionFormProps {
   employees: EmployeeOption[]
   inventoryItems: InventoryOption[]
+  /** Called after successful submission — used when embedded in a Sheet */
+  onSuccess?: () => void
+  /** Called when the user cancels — used when embedded in a Sheet */
+  onCancel?: () => void
 }
 
 const sizeOptions: ProductionFormValues["items"][number]["size"][] = [
@@ -192,6 +196,8 @@ function parseInputDate(value: string) {
 export function ProductionForm({
   employees,
   inventoryItems,
+  onSuccess,
+  onCancel,
 }: ProductionFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -275,8 +281,12 @@ export function ProductionForm({
       }
 
       toast.success("Sesión de producción registrada")
-      router.push(`/production/${result.data.id}`)
-      router.refresh()
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push(`/production/${result.data.id}`)
+        router.refresh()
+      }
     } catch (error) {
       const message =
         error instanceof Error
@@ -294,27 +304,21 @@ export function ProductionForm({
       className="mx-auto w-full"
       noValidate
     >
-      {/* Summary Stats */}
-      <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-        <MetricCard
-          label="Total prendas"
-          value={totalGarments}
-          icon={<Ruler className="size-4 text-muted-foreground" />}
-          accent="brand"
-        />
-        <MetricCard
-          label="Total yardas"
-          value={totalYards.toFixed(1)}
-          icon={<Scissors className="size-4 text-muted-foreground" />}
-          accent="success"
-        />
-
-        <MetricCard
-          label="Empleado"
-          value={selectedEmployee?.fullName || "No seleccionado"}
-          icon={<UserCog2 className="size-4 text-muted-foreground" />}
-          accent="warning"
-        />
+      {/* Summary Stats - Compact Info Bar */}
+      <div className="mb-4 flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+        {[
+          { label: "Total prendas", value: totalGarments },
+          { label: "Total yardas", value: totalYards.toFixed(1) },
+          { label: "Empleado", value: selectedEmployee?.fullName || "No seleccionado" },
+        ].map((item, i) => (
+          <div key={i} className={cn(
+            "flex flex-col items-center px-4 py-2 shrink-0",
+            i > 0 && "border-l border-border/60"
+          )}>
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{item.label}</span>
+            <span className="text-sm font-bold tabular-nums mt-0.5">{item.value}</span>
+          </div>
+        ))}
       </div>
 
       {/* Tabbed Form */}

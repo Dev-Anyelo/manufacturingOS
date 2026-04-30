@@ -317,14 +317,12 @@ export function ExpenseForm({ inventoryItems, onSuccess, onCancel }: ExpenseForm
       className="mx-auto w-full"
       noValidate
     >
-      {/* Total Summary */}
-      <div className="mb-4">
-        <StatCard
-          title="Total a registrar"
-          value={formatCurrency((watchedTotal as number) || 0)}
-          icon={<Wallet className="size-4 text-muted-foreground" />}
-          variant="default"
-        />
+      {/* Total Summary - Compact Info Bar */}
+      <div className="mb-4 flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+        <div className="flex flex-col items-center px-4 py-2 shrink-0">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Total a registrar</span>
+          <span className="text-sm font-bold tabular-nums mt-0.5">{formatCurrency((watchedTotal as number) || 0)}</span>
+        </div>
       </div>
 
       {/* Tabbed Form */}

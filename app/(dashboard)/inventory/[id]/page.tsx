@@ -1,22 +1,27 @@
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import { getInventoryItem } from "@/lib/data/inventory"
-import { StatCard } from "@/components/shared/stat-card"
-import { PageHeader } from "@/components/shared/page-header"
-import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MovementHistory } from "@/components/modules/inventory/movement-history"
 import { Badge } from "@/components/ui/badge"
+import { getInventoryItem } from "@/lib/data/inventory"
+import { PageHeader } from "@/components/shared/page-header"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { MovementHistory } from "@/components/modules/inventory/movement-history"
 import { InventoryDetailActions } from "@/components/modules/inventory/inventory-detail-actions"
 
 import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible"
+
+import {
   Building2Icon,
-  ClipboardListIcon,
-  DollarSignIcon,
   LayersIcon,
+  ChevronDown,
+  MessageCircleIcon,
+  ImageOff,
 } from "lucide-react"
 
 type InventoryDetailPageProps = {
@@ -101,128 +106,53 @@ export default async function InventoryDetailPage({
           <StatusBadge status={stockStatus} type="stock" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-6">
-          <StatCard
-            title="Cantidad disponible"
-            value={`${quantity} ${item.unit}`}
-            description="Cantidad actual en stock."
-            icon={<LayersIcon className="size-4" />}
-          />
-          <StatCard
-            title="Mínimo requerido"
-            value={`${minimumStock} ${item.unit}`}
-            description="Cantidad mínima para reordenar."
-            icon={<Building2Icon className="size-4" />}
-          />
-          <StatCard
-            title="Precio unitario"
-            value={<CurrencyDisplay amount={unitPrice} size="lg" />}
-            description="Costo por unidad."
-            icon={<ClipboardListIcon className="size-4" />}
-          />
-          <StatCard
-            title="Valor estimado"
-            value={<CurrencyDisplay amount={estimatedValue} size="lg" />}
-            description="Valor total del inventario."
-            icon={<DollarSignIcon className="size-4" />}
-          />
-        </div>
-
-        <Tabs defaultValue="info" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:w-auto">
-            <TabsTrigger value="info">Info</TabsTrigger>
-            <TabsTrigger value="movements">Movimientos</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="info" className="space-y-4">
-            <Card className="border border-border">
-              <CardHeader className="border-b border-border">
-                <CardTitle>Información general</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-6">
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_1fr]">
-                  <div className="overflow-hidden rounded-xl border border-border/50 bg-muted/20">
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.name}
-                        width={220}
-                        height={224}
-                        className="h-56 w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-56 items-center justify-center">
-                        <LayersIcon className="size-8 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div className="surface-1 rounded-lg border border-border p-3">
-                        <p className="text-xs text-muted-foreground">
-                          Categoría
-                        </p>
-                        <p className="text-sm font-medium">
-                          {getCategoryLabel(item.category)}
-                        </p>
-                      </div>
-                      <div className="surface-1 rounded-lg border border-border p-3">
-                        <p className="text-xs text-muted-foreground">
-                          Precio unitario
-                        </p>
-                        <p className="text-sm font-medium tabular-nums">
-                          <CurrencyDisplay amount={item.unitPrice} />
-                        </p>
-                      </div>
-                      <div className="surface-1 rounded-lg border border-border p-3">
-                        <p className="text-xs text-muted-foreground">Color</p>
-                        <p className="text-sm font-medium">
-                          {item.color ?? "-"}
-                        </p>
-                      </div>
-                      <div className="surface-1 rounded-lg border border-border p-3">
-                        <p className="text-xs text-muted-foreground">
-                          Tipo de tela
-                        </p>
-                        <p className="text-sm font-medium">
-                          {item.fabricType ?? "-"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <StockIndicator
-                      quantity={quantity}
-                      minimumStock={minimumStock}
-                      unit={item.unit}
-                    />
-
-                    <div className="surface-1 rounded-lg border border-border p-3">
-                      <p className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-                        <Building2Icon className="size-3.5" />
-                        Proveedor
-                      </p>
-                      <p className="text-sm font-medium">
-                        {item.supplier ?? "-"}
-                      </p>
-                    </div>
-
-                    <div className="surface-1 rounded-lg border border-border p-3">
-                      <p className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-                        <ClipboardListIcon className="size-3.5" />
-                        Notas
-                      </p>
-                      <p className="text-sm">
-                        {item.notes ?? "Sin notas registradas."}
-                      </p>
-                    </div>
-                  </div>
+        <Collapsible
+          defaultOpen
+          className="overflow-hidden rounded-xl border bg-card"
+        >
+          <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 hover:bg-muted/20 [&[data-state=open]>svg]:rotate-180">
+            <div className="flex items-center gap-2">
+              <LayersIcon className="size-4 text-primary" />
+              <span className="text-sm font-semibold">Resumen de métricas</span>
+            </div>
+            <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="grid grid-cols-2 divide-x divide-y border-t md:grid-cols-4 md:divide-y-0">
+              <div className="flex flex-col justify-center p-4">
+                <span className="mb-1 text-[10px] font-medium text-muted-foreground uppercase">
+                  Cantidad disponible
+                </span>
+                <span className="text-lg leading-none font-bold tabular-nums">{`${quantity} ${item.unit}`}</span>
+              </div>
+              <div className="flex flex-col justify-center p-4">
+                <span className="mb-1 text-[10px] font-medium text-muted-foreground uppercase">
+                  Mínimo requerido
+                </span>
+                <span className="text-lg leading-none font-bold tabular-nums">{`${minimumStock} ${item.unit}`}</span>
+              </div>
+              <div className="flex flex-col justify-center p-4">
+                <span className="mb-1 text-[10px] font-medium text-muted-foreground uppercase">
+                  Precio unitario
+                </span>
+                <div className="text-lg leading-none font-bold tabular-nums">
+                  <CurrencyDisplay amount={unitPrice} />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+              <div className="flex flex-col justify-center bg-muted/10 p-4">
+                <span className="mb-1 text-[10px] font-medium text-muted-foreground uppercase">
+                  Valor estimado
+                </span>
+                <div className="text-lg leading-none font-bold text-brand tabular-nums">
+                  <CurrencyDisplay amount={estimatedValue} />
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
-          <TabsContent value="movements">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
             <Card className="border border-border">
               <CardHeader className="border-b border-border">
                 <CardTitle>Historial de movimientos</CardTitle>
@@ -243,8 +173,83 @@ export default async function InventoryDetailPage({
                 />
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="border pt-0 shadow-sm">
+              <CardHeader className="border-b bg-muted/20 px-4 py-3">
+                <CardTitle className="text-sm font-semibold">
+                  Información General
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <dl className="divide-y text-sm">
+                  <div className="flex justify-between px-4 py-2.5">
+                    <dt className="text-muted-foreground">Categoría</dt>
+                    <dd className="font-medium">
+                      {getCategoryLabel(item.category)}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between px-4 py-2.5">
+                    <dt className="text-muted-foreground">Precio unitario</dt>
+                    <dd className="font-medium tabular-nums">
+                      <CurrencyDisplay amount={item.unitPrice} />
+                    </dd>
+                  </div>
+                  <div className="flex justify-between px-4 py-2.5">
+                    <dt className="text-muted-foreground">Color</dt>
+                    <dd className="font-medium">{item.color ?? "-"}</dd>
+                  </div>
+                  <div className="flex justify-between px-4 py-2.5">
+                    <dt className="text-muted-foreground">Tipo de tela</dt>
+                    <dd className="font-medium">{item.fabricType ?? "-"}</dd>
+                  </div>
+                  <div className="flex justify-between px-4 py-2.5">
+                    <dt className="flex items-center gap-1 text-muted-foreground">
+                      <Building2Icon className="size-3.5" /> Proveedor
+                    </dt>
+                    <dd className="font-medium">{item.supplier ?? "-"}</dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
+
+            <StockIndicator
+              quantity={quantity}
+              minimumStock={minimumStock}
+              unit={item.unit}
+            />
+
+            <div className="overflow-hidden rounded-xl border border-border/50 bg-muted/20">
+              {item.imageUrl ? (
+                <Image
+                  src={item.imageUrl}
+                  alt={item.name}
+                  width={220}
+                  height={224}
+                  className="h-56 w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-56 items-center justify-center bg-muted/20">
+                  <ImageOff className="size-5 text-muted-foreground" />
+                  <p className="ml-2 text-sm text-muted-foreground">Sin imagen</p>
+                </div>
+              )}
+            </div>
+
+            {item.notes && (
+              <Card className="border pt-0 shadow-sm">
+                <CardHeader className="border-b bg-muted/20 py-3 px-4">
+                  <CardTitle className="flex items-center gap-1 text-sm font-semibold">
+                    <MessageCircleIcon className="size-4" />
+                    Notas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 text-sm">{item.notes}</CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

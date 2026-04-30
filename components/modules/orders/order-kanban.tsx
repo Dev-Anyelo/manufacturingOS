@@ -260,7 +260,7 @@ export function OrderKanban({
     >
       <div className="-mx-4 overflow-x-auto pb-4 lg:mx-0">
         <div
-          className="flex min-w-max gap-3 px-4 lg:grid lg:min-w-0 lg:grid-cols-6 lg:gap-3 lg:px-0"
+          className="flex min-w-max gap-3 px-4 md:grid md:min-w-0 md:grid-cols-4 md:gap-3 md:px-0 2xl:grid-cols-5"
           role="list"
         >
           {statuses.map((s) => (

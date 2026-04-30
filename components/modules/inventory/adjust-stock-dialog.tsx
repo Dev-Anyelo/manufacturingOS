@@ -8,14 +8,24 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 import {
@@ -180,96 +190,103 @@ export function AdjustStockDialog({
     }
   }
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side={isMobile ? "bottom" : "right"}
-        className={cn(
-          "flex flex-col gap-0 border-border p-0 sm:max-w-xl",
-          isMobile ? "max-h-[92vh] rounded-t-2xl" : ""
-        )}
+  const content = (
+    <>
+      <div className="shrink-0 border-b border-border/70 bg-muted/10 px-4 py-4 text-left">
+        <h2 className="text-base font-semibold text-pretty">Ajustar stock</h2>
+        <p className="mt-1 text-sm text-pretty text-muted-foreground">
+          Registra un ajuste con trazabilidad para{" "}
+          <strong>{currentItem.name}</strong>.
+        </p>
+      </div>
+
+      <form
+        className="flex flex-1 flex-col overflow-y-auto"
+        onSubmit={handleSubmit}
       >
-        <SheetHeader className="border-b border-border/70 bg-muted/10 px-4 py-4 text-left">
-          <SheetTitle className="text-base text-pretty">Ajustar stock</SheetTitle>
-          <SheetDescription className="text-sm text-pretty">
-            Registra un ajuste con trazabilidad para{" "}
-            <strong>{currentItem.name}</strong>.
-          </SheetDescription>
-        </SheetHeader>
-
-        <form
-          className="flex flex-1 flex-col overflow-y-auto"
-          onSubmit={handleSubmit}
-        >
-          <div className="space-y-4 px-4 py-4">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <MetricBox
-                label="Stock actual"
-                value={`${currentItem.quantity.toFixed(2)} ${currentItem.unit}`}
-              />
-              <MetricBox
-                label="Ajuste"
-                value={
-                  <span className={cn("tabular-nums", deltaTone)}>
-                    {delta > 0 ? "+" : ""}
-                    {delta.toFixed(2)} {currentItem.unit}
-                  </span>
-                }
-              />
-              <MetricBox
-                label="Resultado"
-                value={`${nextQuantity.toFixed(2)} ${currentItem.unit}`}
-              />
+        <div className="space-y-4 px-4 py-4">
+          <dl className="flex items-center gap-1 border-b pb-4 text-sm">
+            <div className="flex items-center gap-1.5 border-r pr-3">
+              <dt className="text-xs text-muted-foreground">Stock:</dt>
+              <dd className="font-semibold text-pretty tabular-nums">
+                {currentItem.quantity.toFixed(2)} {currentItem.unit}
+              </dd>
             </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Tipo de ajuste</Label>
-              <RadioGroup
-                value={adjustmentType}
-                onValueChange={(value) =>
-                  setAdjustmentType(value as AdjustmentType)
-                }
-                className="grid grid-cols-1 gap-2 sm:grid-cols-3"
+            <div className="flex items-center gap-1.5 border-r px-3">
+              <dt className="text-xs text-muted-foreground">Ajuste:</dt>
+              <dd
+                className={cn(
+                  "font-medium text-pretty tabular-nums",
+                  deltaTone
+                )}
               >
-                {adjustmentOptions.map((option) => {
-                  const Icon = option.icon
-                  const active = adjustmentType === option.value
-
-                  return (
-                    <label
-                      key={option.value}
-                      className={cn(
-                        "flex cursor-pointer gap-2 rounded-lg border px-3 py-2.5 transition-colors",
-                        active
-                          ? "border-primary bg-primary/10"
-                          : "border-border/70 bg-card hover:bg-muted/20"
-                      )}
-                    >
-                      <RadioGroupItem
-                        value={option.value}
-                        className="mt-0.5"
-                      />
-                      <div className="space-y-0.5">
-                        <p className="text-sm font-semibold text-foreground">
-                          <span className="inline-flex items-center gap-1.5">
-                            <Icon className="size-3.5" />
-                            {option.label}
-                          </span>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {option.description}
-                        </p>
-                      </div>
-                    </label>
-                  )
-                })}
-              </RadioGroup>
+                {delta > 0 ? "+" : ""}
+                {delta.toFixed(2)}
+              </dd>
             </div>
+            <div className="flex items-center gap-1.5 pl-3">
+              <dt className="text-xs text-muted-foreground">Resultado:</dt>
+              <dd className="font-semibold text-pretty tabular-nums">
+                {nextQuantity.toFixed(2)}
+              </dd>
+            </div>
+          </dl>
 
-            <div className="grid grid-cols-1 gap-3">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Cantidad</Label>
-                <div className="relative">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Tipo de ajuste</Label>
+            <RadioGroup
+              value={adjustmentType}
+              onValueChange={(value) =>
+                setAdjustmentType(value as AdjustmentType)
+              }
+              className="grid grid-cols-1 gap-2"
+            >
+              {adjustmentOptions.map((option) => {
+                const Icon = option.icon
+                const active = adjustmentType === option.value
+
+                return (
+                  <label
+                    key={option.value}
+                    className={cn(
+                      "flex cursor-pointer gap-2 rounded-lg border px-3 py-2.5 transition-colors",
+                      active
+                        ? "border-primary bg-primary/10"
+                        : "border-border/70 bg-card hover:bg-muted/20"
+                    )}
+                  >
+                    <RadioGroupItem value={option.value} className="mt-0.5" />
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-semibold text-foreground">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Icon className="size-3.5" />
+                          {option.label}
+                        </span>
+                      </p>
+                      <p className="text-xs text-pretty text-muted-foreground">
+                        {option.description}
+                      </p>
+                    </div>
+                  </label>
+                )
+              })}
+            </RadioGroup>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Cantidad</Label>
+              <div className="flex items-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="rounded-r-none border-r-0"
+                  onClick={() => setQuantity(Math.max(0, quantity - 1))}
+                >
+                  -
+                </Button>
+                <div className="relative flex-1">
                   <Input
                     type="number"
                     min={0}
@@ -279,73 +296,82 @@ export function AdjustStockDialog({
                       setQuantity(Number(event.target.value))
                     }
                     placeholder="0.00"
-                    className="pr-14"
+                    className="rounded-none pr-14 text-center"
                   />
                   <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">
                     {currentItem.unit}
                   </span>
                 </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Motivo del ajuste</Label>
-              <Textarea
-                value={reason}
-                onChange={(event) => setReason(event.target.value)}
-                placeholder="Ejemplo: Correccion por conteo fisico de bodega"
-                className="min-h-24"
-              />
-              <div className="flex items-center justify-between text-xs">
-                <span
-                  className={
-                    reason.trim().length < 10
-                      ? "text-amber-600 dark:text-amber-400"
-                      : "text-emerald-600 dark:text-emerald-400"
-                  }
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="rounded-l-none border-l-0"
+                  onClick={() => setQuantity(quantity + 1)}
                 >
-                  {reason.trim().length}/10
-                </span>
+                  +
+                </Button>
               </div>
             </div>
           </div>
 
-          <SheetFooter className="border-t border-border/70 pb-[max(env(safe-area-inset-bottom),1rem)] sm:flex-row sm:justify-end sm:gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting} size="sm">
-              {isSubmitting ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : null}
-              Guardar ajuste
-            </Button>
-          </SheetFooter>
-        </form>
-      </SheetContent>
-    </Sheet>
-  )
-}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Motivo del ajuste</Label>
+            <Textarea
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              placeholder="Ejemplo: Correccion por conteo fisico de bodega"
+              className="min-h-[60px]"
+              rows={2}
+            />
+            <div className="flex items-center justify-between text-xs">
+              <span
+                className={
+                  reason.trim().length < 10
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-emerald-600 dark:text-emerald-400"
+                }
+              >
+                {reason.trim().length}/10
+              </span>
+            </div>
+          </div>
+        </div>
 
-function MetricBox({
-  label,
-  value,
-}: {
-  label: string
-  value: React.ReactNode
-}) {
+        <div className="grid shrink-0 grid-cols-2 gap-2 border-t border-border/70 bg-background p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isSubmitting} size="sm">
+            {isSubmitting ? (
+              <Loader2Icon className="mr-1.5 size-4 animate-spin" />
+            ) : null}
+            Guardar ajuste
+          </Button>
+        </div>
+      </form>
+    </>
+  )
+
+  if (!isMobile) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
+          {content}
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
-    <div className="rounded-lg border border-border/60 bg-card/80 px-3 py-2">
-      <p className="text-xs tracking-wide text-muted-foreground uppercase">
-        {label}
-      </p>
-      <p className="text-sm font-semibold">{value}</p>
-    </div>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="gap-0 p-0">{content}</DrawerContent>
+    </Drawer>
   )
 }

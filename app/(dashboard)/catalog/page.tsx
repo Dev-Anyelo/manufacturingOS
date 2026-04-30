@@ -19,28 +19,6 @@ export default async function CatalogPage() {
             { label: "Dashboard", href: "/" },
             { label: "Catálogo" },
           ]}
-          actions={
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="hidden min-h-10 px-4 sm:flex sm:min-h-9"
-              >
-                <Link href="#">Exportar</Link>
-              </Button>
-              <Button
-                asChild
-                size="default"
-                className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
-              >
-                <Link href="/catalog/new">
-                  <PlusIcon className="size-4 shrink-0" />
-                  Nuevo producto
-                </Link>
-              </Button>
-            </div>
-          }
         />
 
         <div>

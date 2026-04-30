@@ -11,13 +11,14 @@ import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 
 interface BulkPriceDialogProps {
   open: boolean
@@ -98,17 +99,17 @@ export function BulkPriceDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden border border-border/75 p-0 sm:max-w-lg">
-        <DialogHeader className="border-b border-border/70 bg-muted/10 px-4 py-4">
-          <DialogTitle className="text-base text-pretty">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="mx-auto flex max-h-[92vh] flex-col gap-0 border-border p-0 sm:max-w-lg">
+        <DrawerHeader className="shrink-0 border-b border-border/70 bg-muted/10 px-4 py-4 text-left">
+          <DrawerTitle className="text-base text-pretty">
             Ajuste masivo de precios
-          </DialogTitle>
+          </DrawerTitle>
 
-          <DialogDescription className="text-sm text-pretty">
+          <DrawerDescription className="mt-1 text-sm text-pretty">
             Incrementa o reduce precios en bloque segun el porcentaje indicado.
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <div className="space-y-4 px-4 py-4">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -170,19 +171,22 @@ export function BulkPriceDialog({
           </div>
         </div>
 
-        <DialogFooter className="grid grid-cols-1 gap-2 border-t border-border/70 bg-muted/10 px-4 py-4 sm:flex sm:justify-end">
+        <DrawerFooter className="shrink-0 border-t border-border/70 bg-background p-4 pb-[max(env(safe-area-inset-bottom),1rem)] sm:flex-row sm:justify-end sm:gap-2">
+          <DrawerClose asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Cancelar
+            </Button>
+          </DrawerClose>
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </Button>
-          <Button
             size="sm"
             type="button"
+            className="mt-2 w-full sm:mt-0 sm:w-auto"
             disabled={isSubmitting}
             onClick={() => void handleSubmit()}
           >
@@ -191,9 +195,9 @@ export function BulkPriceDialog({
             ) : null}
             Aplicar ajuste
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   )
 }
 

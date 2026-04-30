@@ -223,37 +223,24 @@ export function InventoryForm({
 
   return (
     <form className="mx-auto w-full" onSubmit={onSubmit} noValidate>
-      {/* Summary Stats */}
-      <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          title="Valor total en stock"
-          value={formatCurrency(totalValue)}
-          icon={<Tag className="size-5 text-muted-foreground" />}
-        />
-        <StatCard
-          title="Estado del stock"
-          value={
-            stockStatus === "ok"
-              ? "Óptimo"
-              : stockStatus === "warning"
-                ? "Moderado"
-                : stockStatus === "low"
-                  ? "Bajo"
-                  : "Sin stock"
-          }
-          icon={
-            stockStatus === "ok" ? (
-              <CheckCircle2 className="text-success size-5" />
-            ) : (
-              <AlertTriangle className="size-5 text-destructive" />
-            )
-          }
-        />
-        <StatCard
-          title="Unidad de medida"
-          value={unitWatch}
-          icon={<Layers className="size-5 text-muted-foreground" />}
-        />
+      {/* Summary Stats - Compact Info Bar */}
+      <div className="mb-4 flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+        {[
+          { label: "Valor", value: formatCurrency(totalValue) },
+          { 
+            label: "Estado", 
+            value: stockStatus === "ok" ? "Óptimo" : stockStatus === "warning" ? "Moderado" : stockStatus === "low" ? "Bajo" : "Sin stock" 
+          },
+          { label: "Unidad", value: unitWatch || "N/A" },
+        ].map((item, i) => (
+          <div key={i} className={cn(
+            "flex flex-col items-center px-4 py-2 shrink-0",
+            i > 0 && "border-l border-border/60"
+          )}>
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{item.label}</span>
+            <span className="text-sm font-bold tabular-nums mt-0.5">{item.value}</span>
+          </div>
+        ))}
       </div>
 
       {/* Tabbed Form */}

@@ -6,7 +6,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { RealtimeBootstrap } from "@/components/providers/realtime-bootstrap"
 
 const layoutStyle = {
-  "--sidebar-width": "16.5rem",
+  "--sidebar-width": "14rem",
   "--header-height": "60px",
 } as CSSProperties
 

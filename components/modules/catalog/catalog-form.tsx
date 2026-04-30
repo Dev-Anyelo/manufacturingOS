@@ -209,38 +209,21 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
       className="mx-auto w-full"
       noValidate
     >
-      {/* Quick Stats Bar */}
-      <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <MetricCard
-          icon={<Package className="size-4" />}
-          label="Precio de mercado"
-          value={
-            form.watch("market_price_unit")
-              ? formatCurrency(form.watch("market_price_unit") as number)
-              : "N/A"
-          }
-          accent="default"
-        />
-        <MetricCard
-          icon={<DollarSign className="size-4" />}
-          label="Nuestro precio"
-          value={
-            form.watch("our_price_unit")
-              ? formatCurrency(form.watch("our_price_unit") as number)
-              : "N/A"
-          }
-          accent="brand"
-        />
-        <MetricCard
-          label="Costo estimado"
-          value={
-            form.watch("estimated_cost")
-              ? formatCurrency(form.watch("estimated_cost") as number)
-              : "N/A"
-          }
-          accent="success"
-          icon={<Sparkles className="size-4" />}
-        />
+      {/* Quick Stats Bar - Compact Info Bar */}
+      <div className="mb-4 flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+        {[
+          { label: "Mercado", value: form.watch("market_price_unit") ? formatCurrency(form.watch("market_price_unit") as number) : "N/A" },
+          { label: "Nuestro precio", value: form.watch("our_price_unit") ? formatCurrency(form.watch("our_price_unit") as number) : "N/A" },
+          { label: "Costo est.", value: form.watch("estimated_cost") ? formatCurrency(form.watch("estimated_cost") as number) : "N/A" },
+        ].map((item, i) => (
+          <div key={i} className={cn(
+            "flex flex-col items-center px-4 py-2 shrink-0",
+            i > 0 && "border-l border-border/60"
+          )}>
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{item.label}</span>
+            <span className="text-sm font-bold tabular-nums mt-0.5">{item.value}</span>
+          </div>
+        ))}
       </div>
 
       {/* Tabbed Form */}
