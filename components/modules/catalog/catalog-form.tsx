@@ -47,6 +47,10 @@ interface CatalogFormProps {
   mode: "create" | "edit"
   itemId?: string
   defaultValues?: Partial<CatalogFormOutput> & { image_url?: string | null }
+  /** Called after successful submission — used when embedded in a Sheet */
+  onSuccess?: () => void
+  /** Called when the user cancels — used when embedded in a Sheet */
+  onCancel?: () => void
 }
 
 function normalizeOptional(value?: string | null) {
@@ -61,7 +65,7 @@ function formatCurrency(amount: number) {
   }).format(amount)
 }
 
-export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
+export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }: CatalogFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [imageFile, setImageFile] = React.useState<File | null>(null)
@@ -182,8 +186,12 @@ export function CatalogForm({ mode, itemId, defaultValues }: CatalogFormProps) {
           : "Producto actualizado correctamente"
       )
 
-      router.push(`/catalog/${result.data.id}`)
-      router.refresh()
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push(`/catalog/${result.data.id}`)
+        router.refresh()
+      }
     } catch (error) {
       const message =
         error instanceof Error

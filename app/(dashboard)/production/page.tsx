@@ -1,8 +1,9 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
-import { StatCard } from "@/components/shared/stat-card"
 import { PageHeader } from "@/components/shared/page-header"
+import { KpiSection } from "@/components/shared/kpi-section"
+import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { getProductionSessions } from "@/lib/data/production"
 import { ProductionTable } from "@/components/modules/production/production-table"
 
@@ -66,28 +67,34 @@ export default async function ProductionPage() {
           }
         />
 
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-3 xl:gap-6">
-          <StatCard
-            title="Sesiones hoy"
+        <KpiSection label="Resumen del día" gridClassName="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <CompactKpiCard
+            label="Sesiones hoy"
             value={stats.sessionCount}
-            description="Sesiones de producción del día"
-            icon={<CalendarCheckIcon className="size-5" />}
+            icon={<CalendarCheckIcon />}
+            iconClass="bg-muted text-muted-foreground"
           />
-          <StatCard
-            title="Prendas hoy"
+          <CompactKpiCard
+            label="Prendas hoy"
             value={stats.garmentCount}
-            description="Total de prendas confeccionadas hoy"
-            icon={<ScissorsIcon className="size-5" />}
-            variant={stats.garmentCount > 0 ? "success" : "default"}
+            icon={<ScissorsIcon />}
+            iconClass={
+              stats.garmentCount > 0
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                : "bg-muted text-muted-foreground"
+            }
           />
-          <StatCard
-            title="Yardas usadas"
+          <CompactKpiCard
+            label="Yardas usadas"
             value={`${stats.yardsUsed.toFixed(1)} yd`}
-            description="Tela consumida en sesiones de hoy"
-            icon={<LayersIcon className="size-5" />}
-            variant={stats.yardsUsed > 0 ? "warning" : "default"}
+            icon={<LayersIcon />}
+            iconClass={
+              stats.yardsUsed > 0
+                ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                : "bg-muted text-muted-foreground"
+            }
           />
-        </div>
+        </KpiSection>
 
         <ProductionTable sessions={rows} />
       </div>

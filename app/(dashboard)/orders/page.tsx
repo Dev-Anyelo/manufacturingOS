@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { WorkOrderStatus } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getWorkOrders } from "@/lib/data/orders"
-import { StatCard } from "@/components/shared/stat-card"
 import { PageHeader } from "@/components/shared/page-header"
+import { KpiSection } from "@/components/shared/kpi-section"
+import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { OrdersWorkspace } from "@/components/modules/orders/orders-workspace"
 
 import {
@@ -77,35 +78,44 @@ export default async function OrdersPage() {
           }
         />
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
-          <StatCard
-            title="Recibidos"
+        <KpiSection label="Resumen de órdenes">
+          <CompactKpiCard
+            label="Recibidos"
             value={stats.received}
-            description="Pendientes de confirmar"
-            icon={<ClipboardListIcon className="size-5" />}
+            icon={<ClipboardListIcon />}
+            iconClass="bg-muted text-muted-foreground"
           />
-          <StatCard
-            title="En producción"
+          <CompactKpiCard
+            label="En producción"
             value={stats.inProduction}
-            description="Actualmente en confección"
-            icon={<ScissorsIcon className="size-5" />}
-            variant={stats.inProduction > 0 ? "warning" : "default"}
+            icon={<ScissorsIcon />}
+            iconClass={
+              stats.inProduction > 0
+                ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                : "bg-muted text-muted-foreground"
+            }
           />
-          <StatCard
-            title="Listos"
+          <CompactKpiCard
+            label="Listos"
             value={stats.ready}
-            description="Listos para entrega"
-            icon={<PackageCheckIcon className="size-5" />}
-            variant={stats.ready > 0 ? "success" : "default"}
+            icon={<PackageCheckIcon />}
+            iconClass={
+              stats.ready > 0
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                : "bg-muted text-muted-foreground"
+            }
           />
-          <StatCard
-            title="Entregados hoy"
+          <CompactKpiCard
+            label="Entregados hoy"
             value={stats.deliveredToday}
-            description="Entregas del día de hoy"
-            icon={<TruckIcon className="size-5" />}
-            variant={stats.deliveredToday > 0 ? "info" : "default"}
+            icon={<TruckIcon />}
+            iconClass={
+              stats.deliveredToday > 0
+                ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                : "bg-muted text-muted-foreground"
+            }
           />
-        </div>
+        </KpiSection>
 
         {/* ── Workspace ── */}
         <OrdersWorkspace initialOrders={orderRows} />

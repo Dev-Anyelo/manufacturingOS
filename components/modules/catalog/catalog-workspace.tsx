@@ -11,11 +11,16 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+import { CatalogForm } from "@/components/modules/catalog/catalog-form"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 import {
   ArrowUpRight,
   LayoutGridIcon,
   ListIcon,
+  PlusIcon,
   ShoppingBagIcon,
   SlidersHorizontalIcon,
 } from "lucide-react"
@@ -41,9 +46,11 @@ type ViewMode = "grid" | "table"
 
 export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
   const router = useRouter()
+  const isMobile = useIsMobile()
   const [viewMode, setViewMode] = React.useState<ViewMode>("grid")
   const [garmentFilter, setGarmentFilter] = React.useState("all")
   const [bulkDialogOpen, setBulkDialogOpen] = React.useState(false)
+  const [createOpen, setCreateOpen] = React.useState(false)
 
   const filteredItems = React.useMemo(() => {
     return items.filter((item) => {
@@ -162,6 +169,15 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
               Ajuste masivo de precios
             </Button>
 
+            <Button
+              size="sm"
+              className="min-h-11 w-auto gap-2 px-3 text-xs sm:min-h-9"
+              onClick={() => setCreateOpen(true)}
+            >
+              <PlusIcon className="size-3.5" />
+              Nuevo producto
+            </Button>
+
             {/* View toggle */}
             <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/20 p-1">
               <Button
@@ -235,6 +251,43 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         onOpenChange={setBulkDialogOpen}
         onSuccess={() => router.refresh()}
       />
+
+      {/* Create product sheet */}
+      <Sheet open={createOpen} onOpenChange={setCreateOpen}>
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className={cn(
+            "flex flex-col gap-0 border-border p-0 sm:max-w-2xl",
+            isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
+          )}
+        >
+          <SheetHeader className="shrink-0 border-b border-border/70 px-6 py-4 text-left">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                <ShoppingBagIcon className="size-4 text-primary" />
+              </div>
+              <div>
+                <SheetTitle className="text-base">Nuevo producto</SheetTitle>
+                <SheetDescription className="text-sm">
+                  Agrega un nuevo producto al catálogo de prendas.
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+          <ScrollArea className="flex-1">
+            <div className="px-6 py-4">
+              <CatalogForm
+                mode="create"
+                onSuccess={() => {
+                  setCreateOpen(false)
+                  router.refresh()
+                }}
+                onCancel={() => setCreateOpen(false)}
+              />
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

@@ -1,12 +1,10 @@
-import Link from "next/link"
 import { UserRole } from "@/types"
-import { PlusIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { StatCard } from "@/components/shared/stat-card"
+import { BoxesIcon, AlertTriangleIcon, PackageXIcon, PackageIcon } from "lucide-react"
 import { getInventoryItems } from "@/lib/data/inventory"
 import { PageHeader } from "@/components/shared/page-header"
 import { requireCurrentUser } from "@/lib/auth/current-user"
-import { AlertTriangleIcon, BoxesIcon, PackageXIcon } from "lucide-react"
+import { KpiSection } from "@/components/shared/kpi-section"
+import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { InventoryTable } from "@/components/modules/inventory/inventory-table"
 
 function getStockStatus(quantity: number, minimumStock: number) {
@@ -57,59 +55,46 @@ export default async function InventoryPage() {
             { label: "Dashboard", href: "/" },
             { label: "Inventario" },
           ]}
-          actions={
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="min-h-10 w-full sm:w-auto sm:min-h-9"
-              >
-                <Link href="/inventory">Exportar</Link>
-              </Button>
-              <Button
-                asChild
-                size="default"
-                className="min-h-11 w-full gap-2 shadow-sm sm:min-h-10 sm:w-auto"
-              >
-                <Link href="/inventory/new">
-                  <PlusIcon className="size-4 shrink-0" />
-                  Nuevo material
-                </Link>
-              </Button>
-            </div>
-          }
         />
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-6">
-          <StatCard
-            title="Materiales activos"
+        <KpiSection label="Resumen de inventario">
+          <CompactKpiCard
+            label="Materiales activos"
             value={tableItems.length}
-            description="Registros disponibles para operaciones"
-            icon={<BoxesIcon className="size-5" />}
+            icon={<BoxesIcon />}
+            iconClass="bg-muted text-muted-foreground"
           />
-          <StatCard
-            title="Stock bajo"
+          <CompactKpiCard
+            label="Stock bajo"
             value={summary.low}
-            description="Por encima del minimo pero en vigilancia"
-            icon={<AlertTriangleIcon className="size-5" />}
-            variant={summary.low > 0 ? "warning" : "default"}
+            icon={<AlertTriangleIcon />}
+            iconClass={
+              summary.low > 0
+                ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                : "bg-muted text-muted-foreground"
+            }
           />
-          <StatCard
-            title="Stock critico"
+          <CompactKpiCard
+            label="Stock crítico"
             value={summary.critical}
-            description="Materiales en el limite minimo"
-            icon={<AlertTriangleIcon className="size-5" />}
-            variant={summary.critical > 0 ? "danger" : "default"}
+            icon={<AlertTriangleIcon />}
+            iconClass={
+              summary.critical > 0
+                ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                : "bg-muted text-muted-foreground"
+            }
           />
-          <StatCard
-            title="Agotados"
+          <CompactKpiCard
+            label="Agotados"
             value={summary.out}
-            description="Materiales sin existencia"
-            icon={<PackageXIcon className="size-5" />}
-            variant={summary.out > 0 ? "danger" : "default"}
+            icon={<PackageXIcon />}
+            iconClass={
+              summary.out > 0
+                ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                : "bg-muted text-muted-foreground"
+            }
           />
-        </div>
+        </KpiSection>
 
         <InventoryTable items={tableItems} canDeactivate={canDeactivate} />
       </div>

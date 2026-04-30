@@ -128,6 +128,10 @@ type InventoryOption = {
 
 interface ExpenseFormProps {
   inventoryItems: InventoryOption[]
+  /** Called after successful submission — used when embedded in a Sheet */
+  onSuccess?: () => void
+  /** Called when the user cancels — used when embedded in a Sheet */
+  onCancel?: () => void
 }
 
 function todayInputDate() {
@@ -164,7 +168,7 @@ function formatDateLabel(value: string) {
   }).format(parseInputDate(value))
 }
 
-export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
+export function ExpenseForm({ inventoryItems, onSuccess, onCancel }: ExpenseFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [receiptFile, setReceiptFile] = React.useState<File | null>(null)
@@ -290,8 +294,12 @@ export function ExpenseForm({ inventoryItems }: ExpenseFormProps) {
       }
 
       toast.success("Gasto registrado correctamente")
-      router.push("/expenses")
-      router.refresh()
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push("/expenses")
+        router.refresh()
+      }
     } catch (error) {
       const message =
         error instanceof Error

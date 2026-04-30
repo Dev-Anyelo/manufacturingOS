@@ -9,10 +9,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
-import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { AdjustStockDialog } from "@/components/modules/inventory/adjust-stock-dialog"
+import { InventoryForm } from "@/components/modules/inventory/inventory-form"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 
 import {
@@ -23,9 +24,11 @@ import {
   EyeIcon,
   PackageIcon,
   PencilIcon,
+  PlusIcon,
   ShirtIcon,
   Trash2Icon,
   WrenchIcon,
+  BoxesIcon,
 } from "lucide-react"
 
 import {
@@ -49,6 +52,27 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export interface InventoryTableRow {
   id: string
@@ -119,6 +143,7 @@ function getStockStatus(row: InventoryTableRow) {
 
 type TableActions = {
   onAdjust: (item: InventoryTableRow) => void
+  onEdit: (item: InventoryTableRow) => void
   onDeactivate: (item: InventoryTableRow) => void
   canDeactivate: boolean
 }
@@ -268,11 +293,9 @@ function createInventoryColumns(
                   Ver detalle
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/inventory/${item.id}/edit`}>
-                  <PencilIcon className="size-4" />
-                  Editar material
-                </Link>
+              <DropdownMenuItem onClick={() => actions.onEdit(item)}>
+                <PencilIcon className="size-4" />
+                Editar material
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => actions.onAdjust(item)}>
                 <ArrowUpDown className="size-4" />
@@ -298,15 +321,94 @@ function createInventoryColumns(
   ]
 }
 
+/** Sheet wrapper for InventoryForm (create or edit) */
+function InventoryFormSheet({
+  open,
+  onOpenChange,
+  mode,
+  item,
+  onSuccess,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  mode: "create" | "edit"
+  item?: InventoryTableRow | null
+  onSuccess: () => void
+}) {
+  const isMobile = useIsMobile()
+
+  const defaultValues =
+    mode === "edit" && item
+      ? {
+          name: item.name,
+          category: item.category,
+          quantity: item.quantity,
+          minimum_stock: item.minimumStock,
+          unit: item.unit,
+          unit_price: item.unitPrice,
+          supplier: item.supplier,
+          image_url: item.imageUrl,
+        }
+      : undefined
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side={isMobile ? "bottom" : "right"}
+        className={cn(
+          "flex flex-col gap-0 border-border p-0 sm:max-w-2xl",
+          isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
+        )}
+      >
+        <SheetHeader className="border-b border-border/70 px-6 py-4 text-left shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+              <BoxesIcon className="size-4 text-primary" />
+            </div>
+            <div>
+              <SheetTitle className="text-base">
+                {mode === "create" ? "Nuevo material" : "Editar material"}
+              </SheetTitle>
+              <SheetDescription className="text-sm">
+                {mode === "create"
+                  ? "Agrega un nuevo material al inventario."
+                  : `Edita los datos de "${item?.name}".`}
+              </SheetDescription>
+            </div>
+          </div>
+        </SheetHeader>
+
+        <ScrollArea className="flex-1">
+          <div className="px-6 py-4">
+            <InventoryForm
+              mode={mode}
+              itemId={mode === "edit" ? item?.id : undefined}
+              defaultValues={defaultValues}
+              onSuccess={() => {
+                onOpenChange(false)
+                onSuccess()
+              }}
+              onCancel={() => onOpenChange(false)}
+            />
+          </div>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
 export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
   const router = useRouter()
   const [categoryFilter, setCategoryFilter] = React.useState<string>("all")
   const [stockFilter, setStockFilter] = React.useState<string>("all")
   const [adjustingItem, setAdjustingItem] =
     React.useState<InventoryTableRow | null>(null)
+  const [editingItem, setEditingItem] =
+    React.useState<InventoryTableRow | null>(null)
   const [deletingItem, setDeletingItem] =
     React.useState<InventoryTableRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const [createOpen, setCreateOpen] = React.useState(false)
 
   const filteredItems = React.useMemo(() => {
     return items.filter((item) => {
@@ -324,21 +426,12 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
     () =>
       createInventoryColumns({
         onAdjust: (item) => setAdjustingItem(item),
+        onEdit: (item) => setEditingItem(item),
         onDeactivate: (item) => setDeletingItem(item),
         canDeactivate,
       }),
     [canDeactivate]
   )
-
-  const lowCount = filteredItems.filter(
-    (item) => getStockStatus(item) === "low"
-  ).length
-  const criticalCount = filteredItems.filter(
-    (item) => getStockStatus(item) === "critical"
-  ).length
-  const outCount = filteredItems.filter(
-    (item) => getStockStatus(item) === "out"
-  ).length
 
   async function handleDeactivate() {
     if (!deletingItem) return
@@ -382,12 +475,21 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         emptyMessage="No hay materiales registrados"
         emptyDescription="Busca otro termino o agrega el primer material al inventario."
         emptyAction={
-          <Button asChild size="sm">
-            <Link href="/inventory/new">Nuevo material</Link>
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <PlusIcon className="size-4" />
+            Nuevo material
           </Button>
         }
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              className="gap-2"
+              onClick={() => setCreateOpen(true)}
+            >
+              <PlusIcon className="size-4 shrink-0" />
+              Nuevo material
+            </Button>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Categoria" />
@@ -417,6 +519,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         }
       />
 
+      {/* Adjust stock sheet */}
       <AdjustStockDialog
         open={Boolean(adjustingItem)}
         onOpenChange={(open) => {
@@ -429,29 +532,66 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         }}
       />
 
-      <ConfirmDialog
+      {/* Create material sheet */}
+      <InventoryFormSheet
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        mode="create"
+        onSuccess={() => router.refresh()}
+      />
+
+      {/* Edit material sheet */}
+      <InventoryFormSheet
+        open={Boolean(editingItem)}
+        onOpenChange={(open) => {
+          if (!open) setEditingItem(null)
+        }}
+        mode="edit"
+        item={editingItem}
+        onSuccess={() => router.refresh()}
+      />
+
+      {/* Delete confirmation — professional AlertDialog */}
+      <AlertDialog
         open={Boolean(deletingItem)}
         onOpenChange={(open) => {
-          if (!open) setDeletingItem(null)
+          if (!open && !isDeleting) setDeletingItem(null)
         }}
-        title={
-          deletingItem
-            ? `Confirmar eliminar ${deletingItem.name}`
-            : "Confirmar eliminacion"
-        }
-        description="Esta accion desactivara el material en el catalogo operativo."
-        warningText={
-          deletingItem
-            ? `Eliminar ${deletingItem.name} es irreversible`
-            : "Eliminar material es irreversible"
-        }
-        highlightedText={deletingItem?.name}
-        variant="danger"
-        confirmLabel="Eliminar"
-        cancelLabel="Cancelar"
-        isLoading={isDeleting}
-        onConfirm={handleDeactivate}
-      />
+      >
+        <AlertDialogContent className="max-w-md border-destructive/30">
+          <AlertDialogHeader>
+            <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-destructive/10">
+              <Trash2Icon className="size-5 text-destructive" />
+            </div>
+            <AlertDialogTitle className="text-center">
+              Desactivar material
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-sm leading-relaxed">
+              Esta acción{" "}
+              <strong className="text-foreground">no se puede deshacer</strong>.
+              Se desactivará permanentemente{" "}
+              <strong className="text-foreground">
+                &quot;{deletingItem?.name}&quot;
+              </strong>{" "}
+              del catálogo operativo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"
+              disabled={isDeleting}
+              onClick={(e) => {
+                e.preventDefault()
+                handleDeactivate()
+              }}
+            >
+              <Trash2Icon className="size-4" />
+              {isDeleting ? "Desactivando..." : "Sí, desactivar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

@@ -5,13 +5,17 @@ import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { StatCard } from "@/components/shared/stat-card"
 import { EmptyState } from "@/components/shared/empty-state"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { PayrollForm } from "@/components/modules/payroll/payroll-form"
 import { MarkPaidDialog } from "@/components/modules/payroll/mark-paid-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { KpiSection } from "@/components/shared/kpi-section"
+import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { cn } from "@/lib/utils"
 
 import {
   CheckCircle2Icon,
@@ -19,6 +23,7 @@ import {
   ReceiptIcon,
   UsersRoundIcon,
   WalletCardsIcon,
+  ClipboardListIcon,
 } from "lucide-react"
 
 import {
@@ -30,12 +35,12 @@ import {
 } from "@/components/ui/card"
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 
 import {
   PayrollTable,
@@ -76,6 +81,7 @@ export function PayrollWorkspace({
   employees,
 }: PayrollWorkspaceProps) {
   const router = useRouter()
+  const isMobile = useIsMobile()
   const [createOpen, setCreateOpen] = React.useState(false)
   const [markPaidOpen, setMarkPaidOpen] = React.useState(false)
   const [selectedPayment, setSelectedPayment] =
@@ -120,28 +126,48 @@ export function PayrollWorkspace({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-3 xl:gap-6">
-        <StatCard
-          title="Pagos pendientes"
+      {/* Compact KPI cards in Collapsible */}
+      <KpiSection label="Resumen de planilla" gridClassName="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <CompactKpiCard
+          label="Pagos pendientes"
           value={pendingCount}
-          description={`Monto: ${formatCurrency(totalPendingAmount)}`}
-          icon={<WalletCardsIcon className="size-5" />}
-          variant={pendingCount > 0 ? "warning" : "default"}
+          icon={<WalletCardsIcon />}
+          iconClass={
+            pendingCount > 0
+              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+              : "bg-muted text-muted-foreground"
+          }
         />
-        <StatCard
-          title="Pagos realizados"
+        <CompactKpiCard
+          label="Pagos realizados"
           value={paidCount}
-          description="Pagos completados en el periodo"
-          icon={<CheckCircle2Icon className="size-5" />}
-          variant={paidCount > 0 ? "success" : "default"}
+          icon={<CheckCircle2Icon />}
+          iconClass={
+            paidCount > 0
+              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+              : "bg-muted text-muted-foreground"
+          }
         />
-        <StatCard
-          title="Empleados activos"
+        <CompactKpiCard
+          label="Empleados activos"
           value={employeeSummary.length}
-          description="Con pagos registrados en el periodo"
-          icon={<UsersRoundIcon className="size-5" />}
+          icon={<UsersRoundIcon />}
+          iconClass="bg-muted text-muted-foreground"
         />
-      </div>
+      </KpiSection>
+
+      {/* Pending amount banner */}
+      {pendingCount > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-200/60 bg-amber-50/50 px-4 py-3 text-sm dark:border-amber-900/40 dark:bg-amber-950/20">
+          <WalletCardsIcon className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <span className="text-amber-800 dark:text-amber-200">
+            Monto pendiente de pago:{" "}
+            <strong className="tabular-nums">
+              {formatCurrency(totalPendingAmount)}
+            </strong>
+          </span>
+        </div>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue="payments" className="space-y-4">
@@ -188,12 +214,15 @@ export function PayrollWorkspace({
 
         <TabsContent value="employees">
           <Card className="rounded-xl border border-border shadow-sm">
-            <CardHeader className="border-b border-border pb-3 px-4 pt-0">
-              <CardTitle className="text-base font-semibold">
-                Acumulado por empleado
-              </CardTitle>
+            <CardHeader className="border-b border-border px-4 pb-3 pt-4">
+              <div className="flex items-center gap-2">
+                <ClipboardListIcon className="size-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-semibold">
+                  Acumulado por empleado
+                </CardTitle>
+              </div>
               <CardDescription className="text-sm text-pretty">
-                Totales de planilla segun filtros y pagos registrados.
+                Totales de planilla según filtros y pagos registrados.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 sm:space-y-3">
@@ -210,7 +239,7 @@ export function PayrollWorkspace({
                 employeeSummary.map((row) => (
                   <div
                     key={row.employeeId}
-                    className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-3 py-2.5 transition-colors hover:bg-muted/20"
+                    className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-3 py-2.5 transition-colors hover:bg-muted/30"
                   >
                     <div className="flex items-center gap-2.5">
                       <Avatar className="size-7 shrink-0">
@@ -231,25 +260,43 @@ export function PayrollWorkspace({
         </TabsContent>
       </Tabs>
 
-      {/* Create payment dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-h-[90vh] bg-none  px-4 py-3">
-          <DialogHeader className="py-4 text-base text-pretty">
-            <DialogTitle>Nuevo pago de planilla</DialogTitle>
-            <DialogDescription className="text-pretty">
-              Registra un nuevo pago con el periodo y montos correspondientes.
-            </DialogDescription>
-          </DialogHeader>
-          <PayrollForm
-            employees={employees}
-            onSuccess={() => {
-              setCreateOpen(false)
-              handleRefresh()
-            }}
-            onCancel={() => setCreateOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Create payment sheet (replaces Dialog) */}
+      <Sheet open={createOpen} onOpenChange={setCreateOpen}>
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className={cn(
+            "flex flex-col gap-0 border-border p-0 sm:max-w-lg",
+            isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
+          )}
+        >
+          <SheetHeader className="shrink-0 border-b border-border/70 px-6 py-4 text-left">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                <WalletCardsIcon className="size-4 text-primary" />
+              </div>
+              <div>
+                <SheetTitle className="text-base">Nuevo pago de planilla</SheetTitle>
+                <SheetDescription className="text-sm">
+                  Registra un nuevo pago con el período y montos correspondientes.
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+
+          <ScrollArea className="flex-1">
+            <div className="px-6 py-4">
+              <PayrollForm
+                employees={employees}
+                onSuccess={() => {
+                  setCreateOpen(false)
+                  handleRefresh()
+                }}
+                onCancel={() => setCreateOpen(false)}
+              />
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
 
       <MarkPaidDialog
         open={markPaidOpen}
