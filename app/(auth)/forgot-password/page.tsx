@@ -1,5 +1,11 @@
-import { ForgotPasswordForm } from "@/app/(auth)/forgot-password/forgot-password-form"
+import { ForgotPasswordForm } from "./forgot-password-form"
 
 export default function ForgotPasswordPage() {
-  return <ForgotPasswordForm />
+  return (
+    <div className="w-full max-w-sm md:max-w-4xl p-6">
+      <ForgotPasswordForm />
+    </div>
+  )
 }
+
+
