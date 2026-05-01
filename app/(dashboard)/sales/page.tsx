@@ -23,8 +23,12 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
 export default async function SalesPage(props: { searchParams: SearchParams }) {
   const searchParams = await props.searchParams
-  const from = Array.isArray(searchParams.from) ? searchParams.from[0] : searchParams.from
-  const to = Array.isArray(searchParams.to) ? searchParams.to[0] : searchParams.to
+  const from = Array.isArray(searchParams.from)
+    ? searchParams.from[0]
+    : searchParams.from
+  const to = Array.isArray(searchParams.to)
+    ? searchParams.to[0]
+    : searchParams.to
 
   const dateFrom = parseDateParam(from)
   const dateTo = parseDateParam(to)
@@ -59,13 +63,9 @@ export default async function SalesPage(props: { searchParams: SearchParams }) {
           description="Punto de venta y seguimiento de cobros."
           breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Ventas" }]}
           actions={
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-row gap-3">
               <UrlDateFilter />
-              <Button
-                asChild
-                size="default"
-                className="min-h-11 w-full gap-2 shadow-sm sm:w-auto sm:min-h-10"
-              >
+              <Button asChild size="sm">
                 <Link href="/sales/new">
                   <PlusIcon className="size-4 shrink-0" />
                   Nueva venta

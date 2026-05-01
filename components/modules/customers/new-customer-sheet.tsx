@@ -25,8 +25,8 @@ export function NewCustomerSheet() {
   return (
     <>
       <Button
-        size="default"
-        className="min-h-11 w-full gap-2 shadow-sm sm:min-h-10 sm:w-auto"
+        size="sm"
+        className="max-w-fit"
         onClick={() => setOpen(true)}
       >
         <PlusIcon className="size-4 shrink-0" />

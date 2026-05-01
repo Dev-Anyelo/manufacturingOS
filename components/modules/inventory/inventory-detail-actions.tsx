@@ -23,8 +23,8 @@ export function InventoryDetailActions({ item }: InventoryDetailActionsProps) {
 
   return (
     <>
-      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
-        <Button asChild variant="outline" size="sm" className="min-h-10 sm:min-h-9">
+      <div className="flex w-full gap-2 sm:w-auto flex-row flex-wrap sm:justify-end">
+        <Button asChild variant="outline" size="sm" className="max-w-fit">
           <Link href="/inventory">
             <ChevronLeftIcon className="size-4" />
             Volver
@@ -33,7 +33,7 @@ export function InventoryDetailActions({ item }: InventoryDetailActionsProps) {
         <Button
           type="button"
           size="sm"
-          className="min-h-10 sm:min-h-9"
+          className="max-w-fit"
           onClick={() => setAdjustOpen(true)}
         >
           <SlidersHorizontalIcon className="size-4" />

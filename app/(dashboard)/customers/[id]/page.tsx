@@ -104,7 +104,7 @@ export default async function CustomerDetailPage({
             asChild
             variant="outline"
             size="sm"
-            className="min-h-10 sm:min-h-9"
+            className="max-w-fit"
           >
             <Link href="/customers">
               <ArrowLeftIcon className="size-4" />
@@ -393,12 +393,12 @@ export default async function CustomerDetailPage({
         </Tabs>
 
         {/* Inline Edit Form */}
-        <Card className="border border-border shadow-sm">
+        <Card>
           <CardHeader className="border-b border-border">
             <div className="flex items-center gap-2">
               <CardTitle>Editar información del cliente</CardTitle>
             </div>
-            <CardDescription>
+            <CardDescription className="text-pretty">
               Actualiza los datos básicos de contacto y notas del cliente.
             </CardDescription>
           </CardHeader>

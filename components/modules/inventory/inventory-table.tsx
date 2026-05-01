@@ -508,7 +508,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
               value={categoryFilter}
               onValueChange={(v) => updateFilters("category", v)}
             >
-              <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectTrigger>
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>

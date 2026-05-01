@@ -37,7 +37,7 @@ export default async function PayrollDetailPage({
             asChild
             variant="outline"
             size="sm"
-            className="min-h-10 sm:min-h-9"
+            className="max-w-fit"
           >
             <Link href="/payroll">
               <ArrowLeftIcon className="size-4" />
@@ -47,7 +47,7 @@ export default async function PayrollDetailPage({
         }
       />
 
-      <div className="page-content space-y-6">
+      <div className="page-content space-y-4">
         <PayslipPreview
           payment={{
             id: payment.id,
@@ -66,10 +66,10 @@ export default async function PayrollDetailPage({
         />
 
         <Card className="border border-border shadow-sm">
-          <CardHeader className="border-b border-border">
+          <CardHeader className="border-b border-border px-4">
             <CardTitle>Gastos asociados</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 px-4">
             {payment.expenses.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No hay gastos vinculados a este pago.

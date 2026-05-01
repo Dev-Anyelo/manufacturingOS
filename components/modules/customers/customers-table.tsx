@@ -65,7 +65,7 @@ const columns: ColumnDef<CustomerRow>[] = [
   },
   {
     accessorKey: "salesCount",
-    header: () => <div className="text-center">Ventas</div>,
+    header: "Ventas",
     cell: ({ row }) => (
       <div className="text-center">
         <Badge variant="outline" className="tabular-nums">
@@ -76,10 +76,10 @@ const columns: ColumnDef<CustomerRow>[] = [
   },
   {
     accessorKey: "workOrdersCount",
-    header: () => <div className="text-center">Pedidos</div>,
+    header: "Pedidos",
     cell: ({ row }) => (
       <div className="text-center">
-        <Badge variant="outline" className="tabular-nums">
+        <Badge variant="outline" className="tabular-nums text-sm">
           {row.original.workOrdersCount}
         </Badge>
       </div>
@@ -91,12 +91,12 @@ const columns: ColumnDef<CustomerRow>[] = [
   },
   {
     accessorKey: "totalPurchases",
-    header: () => <div className="text-right">Total Compras</div>,
+    header: "Total Compras",
     cell: ({ row }) => {
       const amount = row.original.totalPurchases
       return (
         <div className={cn(
-          "text-right font-medium tabular-nums",
+          "text-center font-medium tabular-nums",
           amount > 0 ? "text-foreground" : "text-muted-foreground"
         )}>
           {formatCurrency(amount)}

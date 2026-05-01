@@ -116,18 +116,12 @@ export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
       </div>
 
       <Tabs defaultValue="kanban" className="space-y-4">
-        <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl border border-border/60 bg-muted/20 p-1 sm:inline-flex sm:w-auto">
-          <TabsTrigger
-            value="kanban"
-            className="gap-2 rounded-lg px-4 py-2.5 text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm sm:py-2 sm:text-sm"
-          >
+        <TabsList>
+          <TabsTrigger value="kanban">
             <LayoutGridIcon className="size-4 shrink-0" />
             Kanban
           </TabsTrigger>
-          <TabsTrigger
-            value="table"
-            className="gap-2 rounded-lg px-4 py-2.5 text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm sm:py-2 sm:text-sm"
-          >
+          <TabsTrigger value="table">
             <TableIcon className="size-4 shrink-0" />
             Tabla
           </TabsTrigger>

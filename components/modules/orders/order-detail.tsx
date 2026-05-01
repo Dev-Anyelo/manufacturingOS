@@ -12,8 +12,13 @@ import { MetricCard } from "@/components/shared/metric-card"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { OrderDetailData } from "@/components/modules/orders/types"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { OrderStatusStepper } from "@/components/modules/orders/order-status-stepper"
 
 import {
@@ -57,7 +62,6 @@ import {
   measurementLabels,
   transitionMap,
 } from "@/lib/utils"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface OrderDetailProps {
   order: OrderDetailData
@@ -83,8 +87,11 @@ export function OrderDetail({ order }: OrderDetailProps) {
       <OrderStatusStepper status={currentStatus} />
 
       {/* ── Hero strip — métricas principales ── */}
-      <Collapsible defaultOpen className="border rounded-xl overflow-hidden bg-card">
-        <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/20 [&[data-state=open]>svg]:rotate-180">
+      <Collapsible
+        defaultOpen
+        className="overflow-hidden rounded-xl border bg-card"
+      >
+        <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 hover:bg-muted/20 [&[data-state=open]>svg]:rotate-180">
           <div className="flex items-center gap-2">
             <ReceiptIcon className="size-4 text-primary" />
             <span className="text-sm font-semibold">Resumen del pedido</span>
@@ -92,27 +99,48 @@ export function OrderDetail({ order }: OrderDetailProps) {
           <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200" />
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 border-t divide-x divide-y md:divide-y-0">
-            <div className="p-4 flex flex-col justify-center">
-              <span className="text-[10px] uppercase text-muted-foreground font-medium mb-1">Total pedido</span>
-              <span className="text-lg font-bold tabular-nums leading-none"><CurrencyDisplay amount={order.total} /></span>
+          <div className="grid grid-cols-2 divide-x divide-y border-t md:grid-cols-4 md:divide-y-0">
+            <div className="flex flex-col justify-center p-4">
+              <span className="mb-1 text-[10px] font-medium text-muted-foreground uppercase">
+                Total pedido
+              </span>
+              <span className="text-lg leading-none font-bold tabular-nums">
+                <CurrencyDisplay amount={order.total} />
+              </span>
             </div>
-            <div className="p-4 flex flex-col justify-center">
-              <span className="text-[10px] uppercase text-muted-foreground font-medium mb-1">Anticipo</span>
-              <span className="text-lg font-bold tabular-nums leading-none text-brand"><CurrencyDisplay amount={order.advancePaid} /></span>
+            <div className="flex flex-col justify-center p-4">
+              <span className="mb-1 text-[10px] font-medium text-muted-foreground uppercase">
+                Anticipo
+              </span>
+              <span className="text-lg leading-none font-bold text-brand tabular-nums">
+                <CurrencyDisplay amount={order.advancePaid} />
+              </span>
             </div>
-            <div className="p-4 flex flex-col justify-center">
-              <span className="text-[10px] uppercase text-muted-foreground font-medium mb-1">Saldo pendiente</span>
-              <span className={cn("text-lg font-bold tabular-nums leading-none", order.balanceDue > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400")}>
+            <div className="flex flex-col justify-center p-4">
+              <span className="mb-1 text-[10px] font-medium text-muted-foreground uppercase">
+                Saldo pendiente
+              </span>
+              <span
+                className={cn(
+                  "text-lg leading-none font-bold tabular-nums",
+                  order.balanceDue > 0
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-emerald-600 dark:text-emerald-400"
+                )}
+              >
                 <CurrencyDisplay amount={order.balanceDue} />
               </span>
               <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
                 <span>Cobrado {paymentProgress.toFixed(0)}%</span>
               </div>
             </div>
-            <div className="p-4 flex flex-col justify-center bg-muted/10">
-              <span className="text-[10px] uppercase text-muted-foreground font-medium mb-1">Entrega</span>
-              <span className="text-lg font-bold tabular-nums leading-none">{formatDate(order.deliveryDate)}</span>
+            <div className="flex flex-col justify-center bg-muted/10 p-4">
+              <span className="mb-1 text-[10px] font-medium text-muted-foreground uppercase">
+                Entrega
+              </span>
+              <span className="text-lg leading-none font-bold tabular-nums">
+                {formatDate(order.deliveryDate)}
+              </span>
               <div className="mt-1 text-[10px] text-muted-foreground">
                 {formatDateRelative(order.deliveryDate)} · {totalUnits} prendas
               </div>
@@ -186,7 +214,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
               icon={<HashIcon className="size-4" />}
               className="md:col-span-3"
             >
-              <div className="grid grid-cols-1 gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-4 text-sm">
                 <InfoRow
                   label="ID"
                   value={
@@ -314,7 +342,6 @@ export function OrderDetail({ order }: OrderDetailProps) {
             noPadding
           >
             <div className="space-y-4 p-3">
-
               <div className="hidden md:block">
                 <Table>
                   <TableHeader>

@@ -11,7 +11,7 @@ export default async function CatalogPage() {
 
   return (
     <section className="page-shell">
-      <div className="page-content space-y-6">
+      <div className="page-content space-y-4">
         <PageHeader
           title="Catálogo"
           description="Define prendas, precios base y estructura de costos para ventas y producción."

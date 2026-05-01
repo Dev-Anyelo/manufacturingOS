@@ -93,6 +93,7 @@ export function DateRangePicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          size="sm"
         >
           <CalendarDaysIcon className="size-4 shrink-0 text-muted-foreground" />
           <span className="truncate">

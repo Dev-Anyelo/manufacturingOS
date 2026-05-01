@@ -336,15 +336,15 @@ export function ExpenseForm({
       {/* Tabbed Form */}
       <Tabs defaultValue="basic" className="w-full">
         <TabsList className="mb-4 grid w-full grid-cols-3">
-          <TabsTrigger value="basic" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="basic">
             <Receipt className="size-3.5" />
             Detalles
           </TabsTrigger>
-          <TabsTrigger value="amounts" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="amounts">
             <Calculator className="size-3.5" />
             Cálculo
           </TabsTrigger>
-          <TabsTrigger value="extras" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="extras">
             <Package className="size-3.5" />
             Extras
           </TabsTrigger>

@@ -55,11 +55,7 @@ export function NewOrderSheet({
 
   return (
     <>
-      <Button
-        size="default"
-        className="min-h-11 w-full gap-2 shadow-sm sm:min-h-10 sm:w-auto"
-        onClick={() => setOpen(true)}
-      >
+      <Button size="sm" onClick={() => setOpen(true)} className="max-w-fit">
         <PlusIcon className="size-4 shrink-0" />
         Nueva orden
       </Button>

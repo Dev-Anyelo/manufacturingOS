@@ -52,7 +52,6 @@ type ColumnMeta = {
   headerClassName?: string
   mobileHidden?: boolean
   mobileLabel?: string
-  /** Include in mobile cards even when responsive `hidden` appears in className */
   mobileCardVisible?: boolean
 }
 
@@ -212,7 +211,7 @@ export function DataTable<TData, TValue>({
               <article
                 key={row.id}
                 className={cn(
-                  "rounded-xl border border-border/70 bg-card/95 p-4 shadow-card",
+                  "rounded-md px-4 py-3 border border-border/70 bg-card/95 shadow-card",
                   getRowClassName?.(row.original)
                 )}
               >
@@ -234,7 +233,7 @@ export function DataTable<TData, TValue>({
                 ) : null}
 
                 {secondaryCells.length > 0 ? (
-                  <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <dl className="mt-4 grid gap-3 grid-cols-2">
                     {secondaryCells.map((cell) => (
                       <div
                         key={cell.id}

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { EyeIcon } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { WorkOrderStatus } from "@prisma/client"
 import { type ColumnDef } from "@tanstack/react-table"
@@ -115,8 +115,8 @@ const columns: ColumnDef<OrderSummaryItem>[] = [
         className="min-h-10 justify-start px-3 sm:min-h-9"
       >
         <Link href={`/orders/${row.original.id}`}>
-          <EyeIcon className="size-4" />
           Ver
+          <ArrowUpRight className="size-4" />
         </Link>
       </Button>
     ),
@@ -207,7 +207,9 @@ export function OrdersTable({
       emptyDescription="Ajusta los filtros para ver resultados"
       toolbar={toolbar}
       getRowClassName={(order) =>
-        isOverdue(order) ? cn("tone-warning border-l-2 border-l-warning/50") : ""
+        isOverdue(order)
+          ? cn("tone-warning border-l-warning/50 border-l-2")
+          : ""
       }
     />
   )

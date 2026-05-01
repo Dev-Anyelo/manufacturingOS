@@ -125,8 +125,17 @@ export function PayrollWorkspace({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Compact KPI cards in Collapsible */}
+    <div className="space-y-4">
+      <Button
+        type="button"
+        size="sm"
+        onClick={() => setCreateOpen(true)}
+        className="max-w-fit"
+      >
+        <PlusIcon className="size-4" />
+        Nuevo pago
+      </Button>
+
       <KpiSection
         label="Resumen de planilla"
         gridClassName="grid grid-cols-2 sm:grid-cols-3 gap-3"
@@ -185,16 +194,6 @@ export function PayrollWorkspace({
               Empleados
             </TabsTrigger>
           </TabsList>
-
-          <Button
-            type="button"
-            size="default"
-            onClick={() => setCreateOpen(true)}
-            className="min-h-11 w-full gap-2 sm:min-h-10 sm:w-auto"
-          >
-            <PlusIcon className="size-4" />
-            Nuevo pago
-          </Button>
         </div>
 
         <TabsContent value="payments">
@@ -274,7 +273,6 @@ export function PayrollWorkspace({
                 </SheetTitle>
                 <SheetDescription className="text-sm text-pretty">
                   Registra un nuevo pago con el período y montos
-                  correspondientes.
                 </SheetDescription>
               </div>
             </div>

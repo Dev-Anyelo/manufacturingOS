@@ -1,11 +1,12 @@
-import { PageHeader } from "@/components/shared/page-header"
 import { decimalToNumber } from "@/lib/api/utils"
+import { PageHeader } from "@/components/shared/page-header"
+import { PayrollWorkspace } from "@/components/modules/payroll/payroll-workspace"
+
 import {
   getPayrollFormBootstrap,
   getPayrollPayments,
   getPayrollSummaryByEmployee,
 } from "@/lib/data/payroll"
-import { PayrollWorkspace } from "@/components/modules/payroll/payroll-workspace"
 
 export default async function PayrollPage() {
   const startOfMonth = new Date()

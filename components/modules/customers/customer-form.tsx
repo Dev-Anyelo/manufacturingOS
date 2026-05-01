@@ -20,7 +20,13 @@ interface CustomerFormProps {
   onCancel?: () => void
 }
 
-export function CustomerForm({ mode = "create", customerId, defaultValues, onSuccess, onCancel }: CustomerFormProps) {
+export function CustomerForm({
+  mode = "create",
+  customerId,
+  defaultValues,
+  onSuccess,
+  onCancel,
+}: CustomerFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -38,7 +44,8 @@ export function CustomerForm({ mode = "create", customerId, defaultValues, onSuc
   async function onSubmit(values: CustomerInput) {
     setIsSubmitting(true)
     try {
-      const endpoint = mode === "create" ? "/api/customers" : `/api/customers/${customerId}`
+      const endpoint =
+        mode === "create" ? "/api/customers" : `/api/customers/${customerId}`
       const method = mode === "create" ? "POST" : "PATCH"
 
       const response = await fetch(endpoint, {
@@ -50,34 +57,51 @@ export function CustomerForm({ mode = "create", customerId, defaultValues, onSuc
       const result = await response.json()
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error ?? `No se pudo ${mode === "create" ? "registrar" : "actualizar"} el cliente`)
+        throw new Error(
+          result.error ??
+            `No se pudo ${mode === "create" ? "registrar" : "actualizar"} el cliente`
+        )
       }
 
-      toast.success(`Cliente ${mode === "create" ? "registrado" : "actualizado"} con éxito`)
-      
+      toast.success(
+        `Cliente ${mode === "create" ? "registrado" : "actualizado"} con éxito`
+      )
+
       if (onSuccess) {
         onSuccess()
       } else {
         router.refresh()
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : `Error al ${mode === "create" ? "registrar" : "actualizar"} cliente`)
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : `Error al ${mode === "create" ? "registrar" : "actualizar"} cliente`
+      )
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="space-y-4"
+      noValidate
+    >
       <div className="space-y-2">
-        <Label htmlFor="full_name">Nombre Completo <span className="text-destructive">*</span></Label>
+        <Label htmlFor="full_name">
+          Nombre Completo <span className="text-destructive">*</span>
+        </Label>
         <Input
           id="full_name"
           placeholder="Ej: Juan Pérez"
           {...form.register("full_name")}
         />
         {form.formState.errors.full_name && (
-          <p className="text-xs text-destructive">{form.formState.errors.full_name.message}</p>
+          <p className="text-xs text-destructive">
+            {form.formState.errors.full_name.message}
+          </p>
         )}
       </div>
 
@@ -90,7 +114,9 @@ export function CustomerForm({ mode = "create", customerId, defaultValues, onSuc
             {...form.register("phone")}
           />
           {form.formState.errors.phone && (
-            <p className="text-xs text-destructive">{form.formState.errors.phone.message}</p>
+            <p className="text-xs text-destructive">
+              {form.formState.errors.phone.message}
+            </p>
           )}
         </div>
 
@@ -103,7 +129,9 @@ export function CustomerForm({ mode = "create", customerId, defaultValues, onSuc
             {...form.register("email")}
           />
           {form.formState.errors.email && (
-            <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+            <p className="text-xs text-destructive">
+              {form.formState.errors.email.message}
+            </p>
           )}
         </div>
       </div>
@@ -112,7 +140,7 @@ export function CustomerForm({ mode = "create", customerId, defaultValues, onSuc
         <Label htmlFor="address">Dirección</Label>
         <Input
           id="address"
-          placeholder="Ej: Ciudad de Panamá, Panamá"
+          placeholder="Ej: Ciudad de Managua, Nicaragua"
           {...form.register("address")}
         />
       </div>
@@ -128,9 +156,14 @@ export function CustomerForm({ mode = "create", customerId, defaultValues, onSuc
         />
       </div>
 
-      <div className="flex justify-end items-center gap-3 pt-2">
+      <div className="flex items-center justify-end gap-3 pt-2">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancelar
           </Button>
         )}
@@ -143,7 +176,7 @@ export function CustomerForm({ mode = "create", customerId, defaultValues, onSuc
           ) : (
             <div className="flex items-center gap-2">
               <SaveIcon className="size-4" />
-              Guardar Cliente
+              Guardar cambios
             </div>
           )}
         </Button>

@@ -51,7 +51,7 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
 
   return (
     <Card className="border border-border shadow-sm">
-      <CardHeader className="border-b border-border">
+      <CardHeader className="border-b border-border px-4">
         <CardTitle className="flex items-center justify-between gap-2">
           <span>Resumen de comprobante</span>
           <Badge
@@ -62,12 +62,12 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
             {payment.status === "paid" ? "Pagado" : "Pendiente"}
           </Badge>
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-sm text-pretty">
           {payment.employeeName} • {formatDate(payment.periodStart)} al{" "}
           {formatDate(payment.periodEnd)}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 px-4">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Devengado</p>

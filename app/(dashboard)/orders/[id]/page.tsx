@@ -38,7 +38,7 @@ export default async function OrderDetailPage({
             asChild
             variant="outline"
             size="sm"
-            className="min-h-10 sm:min-h-9"
+            className="max-w-fit"
           >
             <Link href="/orders">
               <ArrowLeftIcon className="size-3.5" />

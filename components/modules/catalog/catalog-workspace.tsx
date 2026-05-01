@@ -172,11 +172,11 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <Select value={garmentFilter} onValueChange={setGarmentFilter}>
-              <SelectTrigger className="h-11 min-h-11 w-auto min-w-36 px-3 text-xs sm:h-10 sm:min-h-10">
+              <SelectTrigger className="w-36 text-sm">
                 <SelectValue placeholder="Tipo de prenda" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los tipos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 {garmentTypes.map((value) => (
                   <SelectItem key={value} value={value}>
                     {value}
@@ -184,27 +184,8 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="min-h-11 w-auto px-3 text-xs sm:min-h-9"
-              onClick={() => setBulkDialogOpen(true)}
-            >
-              <SlidersHorizontalIcon className="size-3.5" />
-              Ajuste masivo de precios
-            </Button>
 
-            <Button
-              size="sm"
-              className="min-h-11 w-auto gap-2 px-3 text-xs sm:min-h-9"
-              onClick={() => setCreateOpen(true)}
-            >
-              <PlusIcon className="size-3.5" />
-              Nuevo producto
-            </Button>
-
-            {/* View toggle */}
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/20 p-1">
+            <div className="rounded-md bg-muted">
               <Button
                 type="button"
                 variant={viewMode === "grid" ? "outline" : "ghost"}
@@ -220,6 +201,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
               >
                 <LayoutGridIcon className="size-4" />
               </Button>
+
               <Button
                 type="button"
                 variant={viewMode === "table" ? "outline" : "ghost"}
@@ -236,6 +218,20 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
                 <ListIcon className="size-4" />
               </Button>
             </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setBulkDialogOpen(true)}
+            >
+              <SlidersHorizontalIcon className="size-3.5" />
+              <span className="hidden md:inline">Ajuste masivo de precios</span>
+            </Button>
+
+            <Button size="sm" onClick={() => setCreateOpen(true)}>
+              <PlusIcon className="size-3.5" />
+              <span className="hidden sm:inline">Nuevo producto</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -254,7 +250,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             }
           />
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredItems.map((item) => (
               <CatalogCard key={item.id} item={item} />
             ))}
