@@ -310,7 +310,7 @@ export function NotificationPanel({
               className="w-full text-xs"
               onClick={() => setVisibleCount((current) => current + 15)}
             >
-              Cargar más notificaciones
+              Cargar más
             </Button>
           </div>
         )}
@@ -319,7 +319,7 @@ export function NotificationPanel({
   }
 
   return (
-    <div className="flex h-[82vh] flex-col overflow-hidden bg-background sm:h-130 sm:max-h-[calc(100vh-6rem)]">
+    <div className="flex h-[88vh] flex-col overflow-hidden bg-background rounded-xl sm:max-h-[calc(100vh-6rem)]">
       <div className="shrink-0 space-y-3 px-4 py-4 sm:px-5 sm:py-5">
         <div className="flex items-start justify-between gap-4">
           <div>

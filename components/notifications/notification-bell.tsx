@@ -4,22 +4,29 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { BellIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useNotificationStore } from "@/stores/notificationStore"
-import { NotificationPanel } from "./notification-panel"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { NotificationPanel } from "./notification-panel"
+import { useNotificationStore } from "@/stores/notificationStore"
 import type { AppNotification } from "@/stores/notificationStore"
+
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-
-import { Sheet, SheetContent } from "@/components/ui/sheet"
 
 type NotificationBellProps = {
   unreadCount?: number
@@ -70,15 +77,24 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
       <Sheet open={open} onOpenChange={setOpen}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div role="button" onClick={() => setOpen(true)} className="inline-flex">
+            <div
+              role="button"
+              onClick={() => setOpen(true)}
+              className="inline-flex"
+            >
               {triggerButton}
             </div>
           </TooltipTrigger>
           <TooltipContent side="bottom">
-            {unread > 0 ? `Notificaciones (${unread} sin leer)` : "Notificaciones"}
+            {unread > 0
+              ? `Notificaciones (${unread} sin leer)`
+              : "Notificaciones"}
           </TooltipContent>
         </Tooltip>
         <SheetContent side="bottom" className="h-[82vh] rounded-t-3xl p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Notificaciones</SheetTitle>
+          </SheetHeader>
           <NotificationPanel
             items={notifications}
             onMarkAllAsRead={() => void markAllAsRead()}
@@ -99,7 +115,9 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
           <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom">
-          {unread > 0 ? `Notificaciones (${unread} sin leer)` : "Notificaciones"}
+          {unread > 0
+            ? `Notificaciones (${unread} sin leer)`
+            : "Notificaciones"}
         </TooltipContent>
       </Tooltip>
       <PopoverContent align="end" className="w-[24rem] p-0">
