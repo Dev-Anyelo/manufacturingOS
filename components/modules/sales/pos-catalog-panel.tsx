@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 
 interface PosCatalogPanelProps {
   items: PosCatalogItem[]
@@ -113,20 +114,20 @@ export function PosCatalogPanel({
   const hasActiveFilters = Boolean(search.trim()) || garmentType !== "all"
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
+    <div className="flex h-full min-h-0 flex-col bg-background shadow-none">
       {/* Header / Search Area */}
-      <div className="border-b border-border/40 bg-card/40 px-4 py-3 backdrop-blur-md">
+      <div className="border-b border-border/40 py-3 px-2">
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
             <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
+            <Input
               id="pos-catalog-search"
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar producto..."
               className={cn(
-                "h-11 w-full rounded-full border border-border/60 bg-background pr-4 pl-10 text-sm transition-all outline-none",
+                "h-11 w-full rounded-full bg-background pr-4 pl-10 text-sm transition-all outline-none",
                 "shadow-sm focus:border-brand focus:ring-2 focus:ring-brand/20"
               )}
               autoComplete="off"
@@ -158,7 +159,7 @@ export function PosCatalogPanel({
       </div>
 
       {/* Categories & Sorting */}
-      <div className="flex items-center justify-between border-b border-border/40 bg-card/30 px-4 py-2 backdrop-blur-md">
+      <div className="flex items-center justify-between border-b border-border/40 bg-card/30 py-2">
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex w-max items-center gap-2 p-1">
             <button
@@ -215,8 +216,8 @@ export function PosCatalogPanel({
       </div>
 
       {/* Results */}
-      <ScrollArea className="min-h-0 flex-1 bg-muted/10">
-        <div className="p-4 md:p-5">
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="py-2 md:px-2">
           {sortedItems.length === 0 ? (
             <EmptyState
               icon={<ShoppingCartIcon />}

@@ -572,7 +572,7 @@ export function PayrollForm({
           ) : (
             <Banknote className="size-4" />
           )}
-          Registrar pago
+          Registrar
         </Button>
       </div>
     </form>

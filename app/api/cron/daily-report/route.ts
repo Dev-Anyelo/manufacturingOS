@@ -1,4 +1,4 @@
-import { NotificationType, UserRole } from "@prisma/client"
+import { UserRole } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { requireCronAuth } from "@/lib/api/cron"
@@ -162,20 +162,6 @@ export async function POST(request: Request) {
         },
         pdfBuffer
       )
-    }
-
-    if (adminIds.length > 0) {
-      await prisma.notification.createMany({
-        data: adminIds.map((adminId) => ({
-          userId: adminId,
-          type: NotificationType.monthly_report,
-          title: "Reporte diario generado",
-          body: "El resumen diario se genero y envio por correo.",
-          metadata: {
-            generated_at: today.toISOString(),
-          },
-        })),
-      })
     }
 
     return apiSuccess({

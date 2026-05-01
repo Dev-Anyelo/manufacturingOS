@@ -1,6 +1,18 @@
 import { prisma } from "@/lib/prisma"
 import { saleSchema } from "@/lib/validations/sales"
-import { NotificationType, Prisma, SaleStatus, UserRole } from "@prisma/client"
+
+import {
+  InventoryMovementType,
+  NotificationType,
+  Prisma,
+  SaleStatus,
+  UserRole,
+} from "@prisma/client"
+
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
 
 import {
   apiSuccess,
@@ -125,6 +137,8 @@ export async function POST(request: Request) {
         },
       })
 
+      const affectedFinishedGoodIds = new Set<string>()
+
       // Deduct Finished Good Stock if catalog_item_id is present
       for (const item of payload.items) {
         if (!item.catalog_item_id) continue
@@ -132,49 +146,141 @@ export async function POST(request: Request) {
         const fgs = await tx.finishedGoodStock.findFirst({
           where: {
             catalogItemId: item.catalog_item_id,
-            ...(item.size ? { size: item.size } : {})
+            ...(item.size ? { size: item.size } : {}),
           },
-          orderBy: { stock: 'desc' }
+          orderBy: { stock: "desc" },
         })
 
         if (fgs) {
           const newStock = fgs.stock - item.quantity
           await tx.finishedGoodStock.update({
             where: { id: fgs.id },
-            data: { stock: newStock }
+            data: { stock: newStock },
           })
+          affectedFinishedGoodIds.add(fgs.id)
 
           await tx.catalogMovement.create({
             data: {
               finishedGoodStockId: fgs.id,
-              movementType: "out",
+              movementType: InventoryMovementType.out,
               quantity: item.quantity,
               previousQuantity: fgs.stock,
               newQuantity: newStock,
-              reason: `Venta: ${sale.id}`,
-              createdBy: profile.id
-            }
+              reason: `Venta: #${sale.id.slice(0, 8)}`,
+              createdBy: profile.id,
+            },
           })
         }
       }
 
-      await tx.notification.create({
-        data: {
-          userId: profile.id,
-          type: NotificationType.sale_completed,
-          title: "Venta registrada",
-          body: `Se registro la venta ${sale.id}.`,
-          metadata: {
-            sale_id: sale.id,
-            total: decimalToNumber(sale.total),
-          },
-        },
-      })
+      const affectedFinishedGoods = affectedFinishedGoodIds.size
+        ? await tx.finishedGoodStock.findMany({
+            where: {
+              id: { in: Array.from(affectedFinishedGoodIds) },
+            },
+            select: {
+              id: true,
+              garmentType: true,
+              size: true,
+              stock: true,
+              minimumStock: true,
+              catalogItem: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          })
+        : []
 
-      return sale
+      const lowFinishedGoods = affectedFinishedGoods.filter(
+        (item) => item.stock <= item.minimumStock
+      )
+
+      return { sale, lowFinishedGoods }
     })
 
-    return apiSuccess(result, 201)
+    await createNotifications({
+      type: NotificationType.sale_completed,
+      title: "Venta registrada",
+      body: `Se registro la venta #${result.sale.id.slice(0, 8)}.`,
+      metadata: {
+        saleId: result.sale.id,
+        total: decimalToNumber(result.sale.total),
+        actionUrl: `/sales/${result.sale.id}`,
+        actionLabel: "Ver venta",
+      },
+      userIds: [profile.id],
+      sendEmail: false,
+    })
+
+    const adminManagerIds = await getUserIdsByRoles([
+      UserRole.admin,
+      UserRole.manager,
+    ])
+
+    if (adminManagerIds.length > 0) {
+      const customer = payload.customer_id
+        ? await prisma.customer.findUnique({
+            where: { id: payload.customer_id },
+            select: {
+              fullName: true,
+            },
+          })
+        : null
+
+      const saleTotal = decimalToNumber(result.sale.total)
+      const body = [
+        `Venta por $${saleTotal.toFixed(2)} registrada`,
+        customer?.fullName ? `para ${customer.fullName}` : null,
+        balanceDue > 0 ? `saldo pendiente: $${balanceDue.toFixed(2)}` : null,
+      ]
+        .filter(Boolean)
+        .join(", ")
+
+      await createNotifications({
+        type: NotificationType.sale_completed,
+        title: "Nueva venta registrada",
+        body,
+        metadata: {
+          saleId: result.sale.id,
+          total: saleTotal,
+          customerId: payload.customer_id ?? null,
+          actionUrl: `/sales/${result.sale.id}`,
+          actionLabel: "Ver venta",
+        },
+        userIds: adminManagerIds,
+        sendEmail: result.sale.status === SaleStatus.paid,
+      })
+
+      if (result.lowFinishedGoods.length > 0) {
+        await createNotifications({
+          type: NotificationType.low_stock,
+          title: `${result.lowFinishedGoods.length} prenda${result.lowFinishedGoods.length > 1 ? "s" : ""} con stock bajo`,
+          body: result.lowFinishedGoods
+            .map(
+              (item) =>
+                `${item.catalogItem.name} ${item.size} (${item.stock}/${item.minimumStock})`
+            )
+            .join(", "),
+          metadata: {
+            items: result.lowFinishedGoods.map((item) => ({
+              id: item.id,
+              garmentType: item.garmentType,
+              size: item.size,
+              stock: item.stock,
+              minimumStock: item.minimumStock,
+            })),
+            actionUrl: "/catalog",
+            actionLabel: "Ver catalogo",
+          },
+          userIds: adminManagerIds,
+          sendEmail: false,
+        })
+      }
+    }
+
+    return apiSuccess(result.sale, 201)
   } catch (error) {
     return handleApiError(error)
   }

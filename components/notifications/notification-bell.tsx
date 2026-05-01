@@ -3,30 +3,37 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { BellIcon } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useNotificationStore } from "@/stores/notificationStore"
-import { NotificationPanel } from "@/components/notifications/notification-panel"
-
+import { NotificationPanel } from "./notification-panel"
+import { useIsMobile } from "@/hooks/use-mobile"
+import type { AppNotification } from "@/stores/notificationStore"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+
+import { Sheet, SheetContent } from "@/components/ui/sheet"
 
 type NotificationBellProps = {
   unreadCount?: number
 }
 
 export function NotificationBell({ unreadCount }: NotificationBellProps) {
+  const isMobile = useIsMobile()
   const notifications = useNotificationStore((state) => state.notifications)
   const storeUnreadCount = useNotificationStore((state) => state.unreadCount)
+  const markAsRead = useNotificationStore((state) => state.markAsRead)
   const markAllAsRead = useNotificationStore((state) => state.markAllAsRead)
 
   const unread = unreadCount ?? storeUnreadCount
-  const [pulse, setPulse] = React.useState(false)
+  const [open, setOpen] = React.useState(false)
   const previousUnreadRef = React.useRef(unread)
 
   React.useEffect(() => {
@@ -34,46 +41,77 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
     previousUnreadRef.current = unread
 
     if (unread > previous) {
-      setPulse(true)
-      const timeout = setTimeout(() => setPulse(false), 800)
-      return () => clearTimeout(timeout)
+      setOpen(true)
     }
   }, [unread])
 
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative size-10 min-h-10 min-w-10 rounded-lg border border-transparent bg-muted/30 transition-colors hover:border-border/60 hover:bg-muted/60"
-          aria-label="Abrir notificaciones"
-        >
-          <BellIcon className={cn("size-4", pulse && "animate-pulse")} />
-          {unread > 0 ? (
-            <span className="absolute top-1.5 right-1.5 inline-flex size-1.5 rounded-full bg-brand" />
-          ) : null}
-          {unread > 0 ? (
-            <Badge className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full border border-card px-1 text-[10px] shadow-sm">
-              {unread > 9 ? "9+" : unread}
-            </Badge>
-          ) : null}
-        </Button>
-      </SheetTrigger>
-      <SheetContent className="w-full bg-background/95 backdrop-blur-sm sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>Centro de notificaciones</SheetTitle>
-          <p className="text-xs text-muted-foreground">
-            Mantente al dia con inventario, ventas y operaciones del taller.
-          </p>
-        </SheetHeader>
-        <div className="mt-4 h-[calc(100%-3rem)]">
+  async function handleNotificationClick(notification: AppNotification) {
+    await markAsRead(notification.id)
+  }
+
+  const triggerButton = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="relative h-9 w-9 rounded-full border border-border/40 bg-background/70 text-foreground shadow-sm transition-colors hover:border-border hover:bg-background"
+      aria-label="Abrir notificaciones"
+    >
+      <BellIcon className={cn("h-4 w-4", unread > 0 && "animate-pulse")} />
+      {unread > 0 ? (
+        <span className="absolute -top-1 -right-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] leading-none font-bold text-white shadow-sm">
+          {unread > 99 ? "99+" : unread}
+        </span>
+      ) : null}
+    </Button>
+  )
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={setOpen}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div role="button" onClick={() => setOpen(true)} className="inline-flex">
+              {triggerButton}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {unread > 0 ? `Notificaciones (${unread} sin leer)` : "Notificaciones"}
+          </TooltipContent>
+        </Tooltip>
+        <SheetContent side="bottom" className="h-[82vh] rounded-t-3xl p-0">
           <NotificationPanel
             items={notifications}
             onMarkAllAsRead={() => void markAllAsRead()}
+            onNotificationClick={(notification: AppNotification) => {
+              void handleNotificationClick(notification)
+            }}
+            onClose={() => setOpen(false)}
           />
-        </div>
-      </SheetContent>
-    </Sheet>
+        </SheetContent>
+      </Sheet>
+    )
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          {unread > 0 ? `Notificaciones (${unread} sin leer)` : "Notificaciones"}
+        </TooltipContent>
+      </Tooltip>
+      <PopoverContent align="end" className="w-[24rem] p-0">
+        <NotificationPanel
+          items={notifications}
+          onMarkAllAsRead={() => void markAllAsRead()}
+          onNotificationClick={(notification: AppNotification) => {
+            void handleNotificationClick(notification)
+          }}
+          onClose={() => setOpen(false)}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }

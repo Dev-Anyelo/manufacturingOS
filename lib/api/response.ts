@@ -147,6 +147,7 @@ export function handleApiError(error: unknown) {
     return apiError(error.message, error.status)
   }
 
+  console.error("[API ERROR]:", error)
   return apiError("Ocurrio un error inesperado en el servidor.", 500)
 }
 

@@ -1,0 +1,113 @@
+import { z } from "zod"
+import { prisma } from "@/lib/prisma"
+import { NotificationType, SaleStatus, UserRole, PaymentMethod } from "@prisma/client"
+
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
+
+import {
+  apiSuccess,
+  handleApiError,
+  parseBodyWithSchema,
+  requireAuth,
+  requireRole,
+  resolveRouteParams,
+  ApiRouteError
+} from "@/lib/api/response"
+
+const registerPaymentSchema = z.object({
+  amount_paid: z.number().min(0, "El monto debe ser mayor o igual a 0"),
+  payment_method: z.nativeEnum(PaymentMethod, {
+    message: "Método de pago no válido"
+  }),
+  notes: z.string().optional().nullable(),
+})
+
+type RouteParams = {
+  id: string
+}
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<RouteParams> | RouteParams }
+) {
+  try {
+    const { profile } = await requireAuth()
+    requireRole(profile, [UserRole.admin, UserRole.manager])
+
+    const payload = await parseBodyWithSchema(request, registerPaymentSchema)
+    const { id } = await resolveRouteParams(context.params)
+
+    const sale = await prisma.sale.findUnique({
+      where: { id }
+    })
+
+    if (!sale) {
+      throw new ApiRouteError("Venta no encontrada", 404)
+    }
+
+    if (sale.status === SaleStatus.paid) {
+      throw new ApiRouteError("La venta ya se encuentra totalmente pagada", 400)
+    }
+
+    const currentAmountPaid = Number(sale.amountPaid)
+    const newAmountPaid = currentAmountPaid + payload.amount_paid
+    const netTotal = Number(sale.total) - Number(sale.discount)
+    
+    // Si paga de más, registramos el vuelto y topeamos amountPaid a netTotal
+    let changeGiven = Number(sale.changeGiven)
+    let finalAmountPaid = newAmountPaid
+    
+    if (newAmountPaid > netTotal) {
+      changeGiven += (newAmountPaid - netTotal)
+      finalAmountPaid = netTotal
+    }
+    
+    const balanceDue = Math.max(0, netTotal - finalAmountPaid)
+    const newStatus = balanceDue <= 0 ? SaleStatus.paid : SaleStatus.partial
+
+    const notesParts = [sale.notes, payload.notes].filter(Boolean)
+    const notes = notesParts.length > 0 ? notesParts.join("\n---\n") : null
+
+    const updatedSale = await prisma.sale.update({
+      where: { id },
+      data: {
+        amountPaid: finalAmountPaid,
+        changeGiven: changeGiven,
+        balanceDue: balanceDue,
+        status: newStatus,
+        paymentMethod: payload.payment_method,
+        notes: notes,
+      },
+    })
+
+    if (newStatus === SaleStatus.paid) {
+      const adminManagerIds = await getUserIdsByRoles([
+        UserRole.admin, 
+        UserRole.manager
+      ])
+
+      if (adminManagerIds.length > 0) {
+        await createNotifications({
+          type: NotificationType.sale_completed,
+          title: "Venta completada",
+          body: `La venta #${sale.id.slice(0, 8)} fue marcada como pagada.`,
+          metadata: {
+            saleId: sale.id,
+            total: Number(updatedSale.total),
+            actionUrl: `/sales/${sale.id}`,
+            actionLabel: "Ver venta",
+          },
+          userIds: adminManagerIds,
+          sendEmail: true,
+        })
+      }
+    }
+
+    return apiSuccess(updatedSale)
+  } catch (error) {
+    return handleApiError(error)
+  }
+}

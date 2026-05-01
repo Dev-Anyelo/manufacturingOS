@@ -1,11 +1,17 @@
-import { NotificationType, PayrollStatus, UserRole } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
-import { sendPayslipNotification } from "@/lib/email/send"
 import { PayslipPDF } from "@/lib/pdf/payslip"
+import { decimalToNumber } from "@/lib/api/utils"
 import { generatePDFBuffer } from "@/lib/pdf/utils"
+import { sendPayslipNotification } from "@/lib/email/send"
 import { uploadPayrollReceiptBuffer } from "@/lib/storage/upload"
 import { payrollMarkPaidSchema } from "@/lib/validations/payroll"
+import { NotificationType, PayrollStatus, UserRole } from "@prisma/client"
+
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
+
 import {
   ApiRouteError,
   apiSuccess,
@@ -15,7 +21,6 @@ import {
   requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
-import { decimalToNumber } from "@/lib/api/utils"
 
 type RouteParams = {
   id: string
@@ -88,6 +93,42 @@ export async function PATCH(
       },
     })
 
+    const adminManagerIds = await getUserIdsByRoles([
+      UserRole.admin,
+      UserRole.manager,
+    ])
+
+    if (adminManagerIds.length > 0) {
+      await createNotifications({
+        type: NotificationType.payment_due,
+        title: "Planilla pagada",
+        body: `Se registró el pago de ${decimalToNumber(updated.total)} para ${updated.employee.fullName}.`,
+        metadata: {
+          payrollPaymentId: updated.id,
+          employeeId: updated.employee.id,
+          actionUrl: `/payroll/${updated.id}`,
+          actionLabel: "Ver planilla",
+        },
+        userIds: adminManagerIds,
+        sendEmail: false,
+      })
+    }
+
+    if (updated.employee.profileId) {
+      await createNotifications({
+        type: NotificationType.payment_due,
+        title: "Recibiste tu pago de planilla",
+        body: `Tu pago de ${decimalToNumber(updated.total)} fue registrado correctamente.`,
+        metadata: {
+          payrollPaymentId: updated.id,
+          actionUrl: `/payroll/${updated.id}`,
+          actionLabel: "Ver detalle",
+        },
+        userIds: [updated.employee.profileId],
+        sendEmail: false,
+      })
+    }
+
     if (updated.employee.email) {
       await sendPayslipNotification(
         updated.employee.email,
@@ -105,16 +146,17 @@ export async function PATCH(
       )
     }
 
-    await prisma.notification.create({
-      data: {
-        userId: profile.id,
-        type: NotificationType.production_saved,
-        title: "Pago de planilla procesado",
-        body: `El pago ${updated.id} fue marcado como pagado.`,
-        metadata: {
-          payroll_payment_id: updated.id,
-        },
+    await createNotifications({
+      type: NotificationType.payment_due,
+      title: "Pago de planilla procesado",
+      body: `El pago ${updated.id.slice(0, 8)} fue marcado como pagado.`,
+      metadata: {
+        payrollPaymentId: updated.id,
+        actionUrl: `/payroll/${updated.id}`,
+        actionLabel: "Ver planilla",
       },
+      userIds: [profile.id],
+      sendEmail: false,
     })
 
     return apiSuccess({

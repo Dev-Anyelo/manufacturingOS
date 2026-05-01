@@ -37,28 +37,31 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
           { label: `#${sale.id.slice(0, 8)}` },
         ]}
         actions={
-          <>
+          <div className="flex items-center gap-2">
             <Button
               asChild
               variant="outline"
               size="sm"
-              className="min-h-10 sm:min-h-9"
+              className="max-w-fit"
             >
               <Link href="/sales">
-                <ArrowLeft className="mr-1.5 h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" />
                 Volver
               </Link>
             </Button>
             {sale.status !== "paid" ? (
-              <UpdateSalePaymentButton saleId={sale.id} />
+              <UpdateSalePaymentButton 
+                saleId={sale.id}
+                balanceDue={decimalToNumber(sale.balanceDue)}
+              />
             ) : null}
-            <Button asChild size="sm" className="min-h-10 sm:min-h-9">
+            <Button asChild size="sm" className="max-w-fit">
               <Link href="/sales/new">
-                <Plus className="mr-1.5 h-4 w-4" />
-                Nueva venta
+                <Plus className="h-4 w-4" />
+                <span className="hidden md:block">Nueva venta</span>
               </Link>
             </Button>
-          </>
+          </div>
         }
       />
 

@@ -3,13 +3,15 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { useIsMobile } from "@/hooks/use-mobile"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import type { PayrollTableRow } from "@/components/modules/payroll/payroll-table"
 
 import {
@@ -25,25 +27,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer"
 
 interface MarkPaidDialogProps {
   open: boolean
@@ -167,28 +150,32 @@ export function MarkPaidDialog({
 
   const content = (
     <>
-      <div className="shrink-0 space-y-1 border-b border-border/70 bg-muted/10 px-4 py-4 text-left">
+      <div className="shrink-0 space-y-1 border-b border-border/70 bg-card px-4 py-4 text-left">
         <h2 className="text-base font-semibold text-pretty">
           Marcar pago como pagado
         </h2>
         <p className="mt-1 text-sm text-pretty text-muted-foreground">
-          Confirma la fecha y metodo para procesar este pago de planilla.
+          Confirma la fecha y metodo para procesar este pago.
         </p>
       </div>
 
       <div className="flex flex-1 flex-col space-y-4 overflow-y-auto px-4 py-4">
-        <dl className="flex flex-wrap items-center gap-x-1 gap-y-2 border-b pb-4 text-sm sm:flex-nowrap">
-          <div className="flex items-center gap-1.5 pr-3 sm:border-r">
+        <dl className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 border-b pb-4 text-sm sm:flex-nowrap">
+          <div className="flex flex-col items-center gap-1.5 pr-3 sm:border-r">
             <dt className="text-xs text-muted-foreground">Empleado:</dt>
-            <dd className="font-semibold">{payment?.employeeName ?? "-"}</dd>
+            <dd className="text-center text-xs font-semibold">
+              {payment?.employeeName ?? "-"}
+            </dd>
           </div>
-          <div className="flex items-center gap-1.5 sm:border-r sm:px-3">
+          <div className="flex flex-col items-center gap-1.5 sm:border-r sm:px-3">
             <dt className="text-xs text-muted-foreground">Periodo:</dt>
-            <dd className="font-medium tabular-nums">{periodStr}</dd>
+            <dd className="text-center text-xs font-medium tabular-nums">
+              {periodStr}
+            </dd>
           </div>
-          <div className="flex items-center gap-1.5 sm:pl-3">
+          <div className="flex flex-col items-center gap-1.5 sm:pl-3">
             <dt className="text-xs text-muted-foreground">Total:</dt>
-            <dd className="font-bold text-brand tabular-nums">
+            <dd className="text-xs font-bold text-brand tabular-nums">
               <CurrencyDisplay amount={payment?.total ?? 0} size="sm" />
             </dd>
           </div>
@@ -271,7 +258,7 @@ export function MarkPaidDialog({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border/70 bg-background p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+      <div className="grid grid-cols-2 gap-2 border-t border-border/70 bg-background p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
         <Button
           type="button"
           variant="outline"
@@ -283,14 +270,14 @@ export function MarkPaidDialog({
         </Button>
         <Button
           type="button"
-          className="mt-2 w-full bg-brand text-brand-foreground sm:mt-0 sm:w-auto"
+          variant="default"
           disabled={isSubmitting}
           onClick={() => void handleSubmit()}
         >
           {isSubmitting ? (
-            <Loader2Icon className="mr-1.5 size-4 animate-spin" />
+            <Loader2Icon className="size-4 animate-spin" />
           ) : null}
-          Confirmar pago
+          Confirmar
         </Button>
       </div>
     </>
@@ -299,7 +286,8 @@ export function MarkPaidDialog({
   if (!isMobile) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-sm">
+        <DialogContent className="gap-0 overflow-hidden p-0">
+          <DialogTitle className="sr-only">Marcar pago como pagado</DialogTitle>
           {content}
         </DialogContent>
       </Dialog>
@@ -308,7 +296,10 @@ export function MarkPaidDialog({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="gap-0 p-0">{content}</DrawerContent>
+      <DrawerContent className="gap-0 overflow-hidden p-0">
+        <DrawerTitle className="sr-only">Marcar pago como pagado</DrawerTitle>
+        {content}
+      </DrawerContent>
     </Drawer>
   )
 }

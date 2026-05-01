@@ -1,8 +1,13 @@
-import { NotificationType, UserRole, WorkOrderStatus } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
 import { sendOrderReadyEmail } from "@/lib/email/send"
 import { workOrderStatusSchema } from "@/lib/validations/orders"
+import { NotificationType, UserRole, WorkOrderStatus } from "@prisma/client"
+
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
+
 import {
   ApiRouteError,
   apiSuccess,
@@ -78,33 +83,28 @@ export async function PATCH(
       },
     })
 
-    const admins = await prisma.profile.findMany({
-      where: {
-        role: UserRole.admin,
-        isActive: true,
-      },
-      select: {
-        id: true,
-      },
-    })
+    const adminManagerIds = await getUserIdsByRoles(["admin", "manager"])
 
-    if (nextStatus === WorkOrderStatus.ready && admins.length > 0) {
-      await prisma.notification.createMany({
-        data: admins.map((admin) => ({
-          userId: admin.id,
-          type: NotificationType.order_ready,
-          title: "Pedido listo para entrega",
-          body: `El pedido ${updated.id} esta listo para entregar.`,
-          metadata: {
-            order_id: updated.id,
-          },
-        })),
+    if (nextStatus === WorkOrderStatus.ready && adminManagerIds.length > 0) {
+      await createNotifications({
+        type: NotificationType.order_ready,
+        title: "Pedido listo para entrega",
+        body: `El pedido ${updated.id} esta listo para entregar.`,
+        metadata: {
+          orderId: updated.id,
+          customerId: updated.customer?.id ?? null,
+          customerName: updated.customer?.fullName ?? null,
+          actionUrl: `/orders/${updated.id}`,
+          actionLabel: "Ver pedido",
+        },
+        userIds: adminManagerIds,
+        sendEmail: true,
       })
 
       if (updated.customer?.email) {
         await sendOrderReadyEmail(updated.customer.email, {
           customerName: updated.customer.fullName,
-          orderDescription: `Pedido #${updated.id}`,
+          orderDescription: `Pedido #${updated.id.slice(0, 8)}`,
           pendingBalance: Number(updated.balanceDue),
           workshopContact:
             process.env.RESEND_FROM_EMAIL ?? "soporte@manufacturingos.app",
@@ -112,17 +112,23 @@ export async function PATCH(
       }
     }
 
-    if (nextStatus === WorkOrderStatus.delivered && admins.length > 0) {
-      await prisma.notification.createMany({
-        data: admins.map((admin) => ({
-          userId: admin.id,
-          type: NotificationType.sale_completed,
-          title: "Pedido entregado",
-          body: `El pedido ${updated.id} fue entregado y genero una venta automatica.`,
-          metadata: {
-            order_id: updated.id,
-          },
-        })),
+    if (
+      nextStatus === WorkOrderStatus.cancelled &&
+      adminManagerIds.length > 0
+    ) {
+      await createNotifications({
+        type: NotificationType.order_cancelled,
+        title: "Pedido cancelado",
+        body: `El pedido ${updated.id} fue cancelado${updated.cancelledReason ? `: ${updated.cancelledReason}` : ""}.`,
+        metadata: {
+          orderId: updated.id,
+          customerId: updated.customer?.id ?? null,
+          customerName: updated.customer?.fullName ?? null,
+          actionUrl: `/orders/${updated.id}`,
+          actionLabel: "Ver pedido",
+        },
+        userIds: adminManagerIds,
+        sendEmail: false,
       })
     }
 

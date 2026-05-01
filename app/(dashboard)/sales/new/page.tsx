@@ -19,7 +19,7 @@ export default async function NewSalePage() {
             asChild
             variant="outline"
             size="sm"
-            className="min-h-10 sm:min-h-9"
+            className="max-w-fit"
           >
             <Link href="/sales">
               <ArrowLeftIcon className="size-4" />

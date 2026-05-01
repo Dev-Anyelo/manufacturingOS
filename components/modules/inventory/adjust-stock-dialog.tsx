@@ -363,6 +363,7 @@ export function AdjustStockDialog({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
+          <DialogTitle className="sr-only">Ajustar stock</DialogTitle>
           {content}
         </DialogContent>
       </Dialog>
@@ -371,7 +372,10 @@ export function AdjustStockDialog({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="gap-0 p-0">{content}</DrawerContent>
+      <DrawerContent className="gap-0 overflow-hidden p-0">
+        <DrawerTitle className="sr-only">Ajustar stock</DrawerTitle>
+        {content}
+      </DrawerContent>
     </Drawer>
   )
 }

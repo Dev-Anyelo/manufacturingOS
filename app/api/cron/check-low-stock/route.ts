@@ -1,25 +1,12 @@
-import { NotificationType, UserRole } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
 import { requireCronAuth } from "@/lib/api/cron"
+import { NotificationType, UserRole } from "@prisma/client"
 import { apiSuccess, handleApiError } from "@/lib/api/response"
-import { createSupabaseAdminClient } from "@/lib/supabase/admin"
-import { sendLowStockAlert } from "@/lib/email/send"
 
-async function getAdminEmails(adminIds: string[]) {
-  const supabaseAdmin = createSupabaseAdminClient()
-  const emails: string[] = []
-
-  for (const adminId of adminIds) {
-    const { data } = await supabaseAdmin.auth.admin.getUserById(adminId)
-
-    if (data.user?.email) {
-      emails.push(data.user.email)
-    }
-  }
-
-  return emails
-}
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
 
 export async function POST(request: Request) {
   try {
@@ -45,60 +32,63 @@ export async function POST(request: Request) {
       })
     }
 
-    const admins = await prisma.profile.findMany({
-      where: {
-        role: UserRole.admin,
-        isActive: true,
-      },
-      select: {
-        id: true,
-      },
-    })
+    const adminManagerIds = await getUserIdsByRoles([
+      UserRole.admin,
+      UserRole.manager,
+    ])
 
-    const notifications = criticalItems.flatMap((item) =>
-      admins.map((admin) => ({
-        userId: admin.id,
-        type:
-          Number(item.quantity) === 0
-            ? NotificationType.out_of_stock
-            : NotificationType.low_stock,
-        title:
-          Number(item.quantity) === 0 ? "Material agotado" : "Stock critico",
-        body:
-          Number(item.quantity) === 0
-            ? `El material ${item.name} se ha agotado.`
-            : `El material ${item.name} esta por debajo del minimo.`,
-        metadata: {
-          inventory_item_id: item.id,
-          quantity: Number(item.quantity),
-          minimum_stock: Number(item.minimumStock),
-        },
-      }))
-    )
+    if (adminManagerIds.length > 0) {
+      const outOfStock = criticalItems.filter(
+        (item) => Number(item.quantity) === 0
+      )
+      const lowStock = criticalItems.filter((item) => Number(item.quantity) > 0)
 
-    if (notifications.length > 0) {
-      await prisma.notification.createMany({
-        data: notifications,
-      })
-    }
+      if (outOfStock.length > 0) {
+        await createNotifications({
+          type: NotificationType.out_of_stock,
+          title: `${outOfStock.length} material${outOfStock.length == 1 ? "" : "es"} agotado${outOfStock.length == 1 ? "" : "s"}`,
+          body: outOfStock.map((item) => item.name).join(", "),
+          metadata: {
+            items: outOfStock.map((item) => ({
+              id: item.id,
+              name: item.name,
+            })),
+            actionUrl: "/inventory",
+            actionLabel: "Ver inventario",
+          },
+          userIds: adminManagerIds,
+          sendEmail: true,
+        })
+      }
 
-    const adminEmails = await getAdminEmails(admins.map((admin) => admin.id))
-
-    for (const email of adminEmails) {
-      await sendLowStockAlert(email, {
-        items: criticalItems.map((item) => ({
-          name: item.name,
-          currentQuantity: Number(item.quantity),
-          minimumStock: Number(item.minimumStock),
-          supplier: item.supplier,
-        })),
-      })
+      if (lowStock.length > 0) {
+        await createNotifications({
+          type: NotificationType.low_stock,
+          title: `${lowStock.length} material${lowStock.length == 1 ? "" : "es"} con stock bajo`,
+          body: lowStock
+            .map(
+              (item) =>
+                `${item.name} (${Number(item.quantity)}/${Number(item.minimumStock)} ${item.unit})`
+            )
+            .join(", "),
+          metadata: {
+            items: lowStock.map((item) => ({
+              id: item.id,
+              name: item.name,
+            })),
+            actionUrl: "/inventory",
+            actionLabel: "Ver inventario",
+          },
+          userIds: adminManagerIds,
+          sendEmail: true,
+        })
+      }
     }
 
     return apiSuccess({
       critical_items: criticalItems.length,
-      notifications_created: notifications.length,
-      emails_sent: adminEmails.length,
+      notifications_created: criticalItems.length,
+      emails_sent: adminManagerIds.length,
     })
   } catch (error) {
     return handleApiError(error)

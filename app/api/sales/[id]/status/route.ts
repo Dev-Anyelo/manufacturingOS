@@ -1,6 +1,11 @@
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { SaleStatus, UserRole } from "@prisma/client"
+import { NotificationType, SaleStatus, UserRole } from "@prisma/client"
+
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
 
 import {
   apiSuccess,
@@ -36,6 +41,26 @@ export async function PATCH(
         status: payload.status,
       },
     })
+
+    if (payload.status === SaleStatus.paid) {
+      const adminManagerIds = await getUserIdsByRoles(["admin", "manager"])
+
+      if (adminManagerIds.length > 0) {
+        await createNotifications({
+          type: NotificationType.sale_completed,
+          title: "Venta completada",
+          body: `La venta #${sale.id.slice(0, 8)} fue marcada como pagada.`,
+          metadata: {
+            saleId: sale.id,
+            total: sale.total,
+            actionUrl: `/sales/${sale.id}`,
+            actionLabel: "Ver venta",
+          },
+          userIds: adminManagerIds,
+          sendEmail: true,
+        })
+      }
+    }
 
     return apiSuccess(sale)
   } catch (error) {

@@ -243,6 +243,7 @@ export function ChangeStatusDialog({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-sm">
+          <DialogTitle className="sr-only">Cambiar estado</DialogTitle>
           {content}
         </DialogContent>
       </Dialog>
@@ -251,7 +252,10 @@ export function ChangeStatusDialog({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="gap-0 p-0">{content}</DrawerContent>
+      <DrawerContent className="gap-0 overflow-hidden p-0">
+        <DrawerTitle className="sr-only">Cambiar estado</DrawerTitle>
+        {content}
+      </DrawerContent>
     </Drawer>
   )
 }

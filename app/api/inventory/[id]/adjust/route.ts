@@ -4,6 +4,11 @@ import { inventoryAdjustSchema } from "@/lib/validations/inventory"
 import { NotificationType, Prisma, UserRole } from "@prisma/client"
 
 import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
+
+import {
   ApiRouteError,
   apiSuccess,
   handleApiError,
@@ -115,46 +120,77 @@ export async function POST(
         },
       })
 
-      if (newQuantity <= Number(current.minimum_stock)) {
-        const admins = await tx.profile.findMany({
-          where: {
-            role: UserRole.admin,
-            isActive: true,
-          },
-          select: {
-            id: true,
-          },
-        })
-
-        if (admins.length > 0) {
-          const type =
-            newQuantity === 0
-              ? NotificationType.out_of_stock
-              : NotificationType.low_stock
-
-          await tx.notification.createMany({
-            data: admins.map((admin) => ({
-              userId: admin.id,
-              type,
-              title: newQuantity === 0 ? "Material agotado" : "Stock critico",
-              body:
-                newQuantity === 0
-                  ? `El material ${current.name} se ha agotado.`
-                  : `El material ${current.name} quedo por debajo del minimo.`,
-              metadata: {
-                inventory_item_id: id,
-                quantity: newQuantity,
-                minimum_stock: Number(current.minimum_stock),
-              },
-            })),
-          })
-        }
+      return {
+        item: updatedItem,
+        notificationState: {
+          itemId: id,
+          itemName: current.name,
+          previousQuantity: currentQuantity,
+          newQuantity,
+          minimumStock: Number(current.minimum_stock),
+          unit: updatedItem.unit,
+        },
       }
-
-      return updatedItem
     })
 
-    return apiSuccess(result)
+    const adminManagerIds = await getUserIdsByRoles([
+      UserRole.admin,
+      UserRole.manager,
+    ])
+
+    if (adminManagerIds.length > 0) {
+      const { item, notificationState } = result
+
+      await createNotifications({
+        type: NotificationType.inventory_updated,
+        title: "Inventario ajustado",
+        body: `${notificationState.itemName}: ${notificationState.previousQuantity} → ${notificationState.newQuantity} ${item.unit}.`,
+        metadata: {
+          inventoryItemId: notificationState.itemId,
+          itemName: notificationState.itemName,
+          previousQty: notificationState.previousQuantity,
+          newQty: notificationState.newQuantity,
+          actionUrl: `/inventory/${notificationState.itemId}`,
+          actionLabel: "Ver material",
+        },
+        userIds: adminManagerIds,
+        sendEmail: false,
+      })
+
+      if (notificationState.newQuantity <= 0) {
+        await createNotifications({
+          type: NotificationType.out_of_stock,
+          title: "Material agotado",
+          body: `El material ${notificationState.itemName} se ha agotado.`,
+          metadata: {
+            inventoryItemId: notificationState.itemId,
+            itemName: notificationState.itemName,
+            actionUrl: `/inventory/${notificationState.itemId}`,
+            actionLabel: "Ver material",
+          },
+          userIds: adminManagerIds,
+          sendEmail: true,
+        })
+      } else if (
+        notificationState.newQuantity <= notificationState.minimumStock
+      ) {
+        await createNotifications({
+          type: NotificationType.low_stock,
+          title: "Stock critico",
+          body: `El material ${notificationState.itemName} quedo por debajo del minimo.`,
+          metadata: {
+            inventoryItemId: notificationState.itemId,
+            itemName: notificationState.itemName,
+            actionUrl: `/inventory/${notificationState.itemId}`,
+            actionLabel: "Ajustar stock",
+          },
+          userIds: adminManagerIds,
+          sendEmail: true,
+        })
+      }
+    }
+
+    return apiSuccess(result.item)
   } catch (error) {
     return handleApiError(error)
   }

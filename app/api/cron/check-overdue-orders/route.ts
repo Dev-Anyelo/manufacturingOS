@@ -1,8 +1,12 @@
-import { NotificationType, UserRole, WorkOrderStatus } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
 import { requireCronAuth } from "@/lib/api/cron"
 import { apiSuccess, handleApiError } from "@/lib/api/response"
+import { NotificationType, UserRole, WorkOrderStatus } from "@prisma/client"
+
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
 
 export async function POST(request: Request) {
   try {
@@ -29,37 +33,34 @@ export async function POST(request: Request) {
       },
     })
 
-    const admins = await prisma.profile.findMany({
-      where: {
-        role: UserRole.admin,
-        isActive: true,
-      },
-      select: {
-        id: true,
-      },
-    })
+    const adminManagerIds = await getUserIdsByRoles([
+      UserRole.admin,
+      UserRole.manager,
+    ])
 
-    const notifications = overdueOrders.flatMap((order) =>
-      admins.map((admin) => ({
-        userId: admin.id,
+    if (adminManagerIds.length > 0 && overdueOrders.length > 0) {
+      await createNotifications({
         type: NotificationType.order_overdue,
-        title: "Pedido vencido",
-        body: `El pedido ${order.id} de ${order.customer.fullName} esta vencido.`,
+        title: `${overdueOrders.length} pedido${overdueOrders.length == 1 ? "" : "s"} atrasado${overdueOrders.length == 1 ? "" : "s"}`,
+        body: overdueOrders
+          .map(
+            (order) =>
+              `${order.customer.fullName} (vencía ${order.deliveryDate.toISOString().slice(0, 10)})`
+          )
+          .join(" · "),
         metadata: {
-          order_id: order.id,
+          orderIds: overdueOrders.map((order) => order.id),
+          actionUrl: "/orders",
+          actionLabel: "Ver pedidos",
         },
-      }))
-    )
-
-    if (notifications.length > 0) {
-      await prisma.notification.createMany({
-        data: notifications,
+        userIds: adminManagerIds,
+        sendEmail: true,
       })
     }
 
     return apiSuccess({
       overdue_orders: overdueOrders.length,
-      notifications_created: notifications.length,
+      notifications_created: overdueOrders.length,
     })
   } catch (error) {
     return handleApiError(error)

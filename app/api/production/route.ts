@@ -1,6 +1,17 @@
 import { prisma } from "@/lib/prisma"
-import { NotificationType, Prisma, UserRole } from "@prisma/client"
 import { productionSessionSchema } from "@/lib/validations/production"
+
+import {
+  InventoryMovementType,
+  NotificationType,
+  Prisma,
+  UserRole,
+} from "@prisma/client"
+
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
 
 import {
   ApiRouteError,
@@ -77,6 +88,9 @@ export async function POST(request: Request) {
 
     const payload = await parseBodyWithSchema(request, productionSessionSchema)
 
+    let createdSessionId: string | null = null
+    let totalGarments = 0
+
     const result = await prisma.$transaction(async (tx) => {
       const availableItems = await tx.$queryRaw<
         Array<{ id: string; name: string; quantity: Prisma.Decimal }>
@@ -142,15 +156,17 @@ export async function POST(request: Request) {
         },
       })
 
-      // Process inventory deduction and finished goods increment
+      createdSessionId = createdSession.id
+      totalGarments = createdSession.totalGarments
+
+      // Deduce raw material and log movement
       for (const item of createdSession.items) {
-        // 1. Deduct raw material & log movement
         const oldStock = stockMap.get(item.inventoryItemId) ?? 0
         const newStock = oldStock - Number(item.yardsUsed)
-        
+
         await tx.inventoryItem.update({
           where: { id: item.inventoryItemId },
-          data: { quantity: toPrismaDecimal(newStock) }
+          data: { quantity: toPrismaDecimal(newStock) },
         })
 
         await tx.inventoryMovement.create({
@@ -161,13 +177,13 @@ export async function POST(request: Request) {
             previousQuantity: toPrismaDecimal(oldStock),
             newQuantity: toPrismaDecimal(newStock),
             reason: `Consumo Producción: ${createdSession.id}`,
-            createdBy: profile.id
-          }
+            createdBy: profile.id,
+          },
         })
 
-        // 2. Increase finished goods & log movement
+        // Increase finished goods & log movement
         let catalogItem = await tx.catalogItem.findFirst({
-          where: { garmentType: item.garmentType }
+          where: { garmentType: item.garmentType },
         })
 
         if (!catalogItem) {
@@ -176,15 +192,15 @@ export async function POST(request: Request) {
               name: `Producto Terminado: ${item.garmentType}`,
               garmentType: item.garmentType,
               isActive: true,
-              salePrice: toPrismaDecimal(0)
-            }
+              salePrice: toPrismaDecimal(0),
+            },
           })
         }
 
         // Link the item to the catalog item
         await tx.productionSessionItem.update({
           where: { id: item.id },
-          data: { catalogItemId: catalogItem.id }
+          data: { catalogItemId: catalogItem.id },
         })
 
         // Upsert FinishedGoodStock
@@ -193,8 +209,8 @@ export async function POST(request: Request) {
             catalogItemId: catalogItem.id,
             garmentType: item.garmentType,
             size: item.size,
-            color: null
-          }
+            color: null,
+          },
         })
 
         let fgsId = ""
@@ -208,7 +224,7 @@ export async function POST(request: Request) {
 
           await tx.finishedGoodStock.update({
             where: { id: fgsId },
-            data: { stock: newFgsStock }
+            data: { stock: newFgsStock },
           })
         } else {
           const newFgs = await tx.finishedGoodStock.create({
@@ -217,8 +233,8 @@ export async function POST(request: Request) {
               garmentType: item.garmentType,
               size: item.size,
               color: null,
-              stock: item.quantity
-            }
+              stock: item.quantity,
+            },
           })
           fgsId = newFgs.id
         }
@@ -227,27 +243,15 @@ export async function POST(request: Request) {
         await tx.catalogMovement.create({
           data: {
             finishedGoodStockId: fgsId,
-            movementType: "in",
+            movementType: InventoryMovementType.in,
             quantity: item.quantity,
             previousQuantity: prevFgsStock,
             newQuantity: newFgsStock,
             reason: `Producción sesión: ${createdSession.id}`,
-            createdBy: profile.id
-          }
+            createdBy: profile.id,
+          },
         })
       }
-
-      await tx.notification.create({
-        data: {
-          userId: profile.id,
-          type: NotificationType.production_saved,
-          title: "Sesión de producción registrada",
-          body: "La sesión se guardó correctamente y el stock fue actualizado.",
-          metadata: {
-            production_session_id: createdSession.id,
-          },
-        },
-      })
 
       const refreshedItems = await tx.inventoryItem.findMany({
         where: {
@@ -257,51 +261,116 @@ export async function POST(request: Request) {
         },
       })
 
-      const admins = await tx.profile.findMany({
-        where: {
-          role: UserRole.admin,
-          isActive: true,
-        },
-        select: {
-          id: true,
-        },
-      })
-
-      if (admins.length > 0) {
-        const lowStockNotifications = refreshedItems
-          .filter((item) => Number(item.quantity) <= Number(item.minimumStock))
-          .flatMap((item) =>
-            admins.map((admin) => ({
-              userId: admin.id,
-              type:
-                Number(item.quantity) === 0
-                  ? NotificationType.out_of_stock
-                  : NotificationType.low_stock,
-              title:
-                Number(item.quantity) === 0
-                  ? "Material agotado"
-                  : "Stock critico",
-              body:
-                Number(item.quantity) === 0
-                  ? `El material ${item.name} se ha agotado.`
-                  : `El material ${item.name} quedo en nivel critico.`,
-              metadata: {
-                inventory_item_id: item.id,
-                quantity: Number(item.quantity),
-                minimum_stock: Number(item.minimumStock),
-              },
-            }))
-          )
-
-        if (lowStockNotifications.length > 0) {
-          await tx.notification.createMany({
-            data: lowStockNotifications,
-          })
-        }
-      }
-
       return createdSession
     })
+
+    if (createdSessionId) {
+      await createNotifications({
+        type: NotificationType.production_saved,
+        title: "Sesión de producción registrada",
+        body: "La sesión se guardó correctamente y el stock fue actualizado.",
+        metadata: {
+          productionSessionId: createdSessionId,
+          actionUrl: `/production/${createdSessionId}`,
+          actionLabel: "Ver sesión",
+        },
+        userIds: [profile.id],
+        sendEmail: false,
+      })
+    }
+
+    const adminManagerIds = await getUserIdsByRoles([
+      UserRole.admin,
+      UserRole.manager,
+    ])
+    const employee = await prisma.employee.findUnique({
+      where: {
+        id: payload.employee_id,
+      },
+      select: {
+        fullName: true,
+        profileId: true,
+      },
+    })
+
+    if (adminManagerIds.length > 0 && createdSessionId) {
+      await createNotifications({
+        type: NotificationType.production_saved,
+        title: "Sesión de producción registrada",
+        body: `${employee?.fullName ?? "El equipo"} registró ${totalGarments} prendas en la sesión ${createdSessionId}.`,
+        metadata: {
+          productionSessionId: createdSessionId,
+          employeeId: payload.employee_id,
+          actionUrl: `/production/${createdSessionId}`,
+          actionLabel: "Ver sesión",
+        },
+        userIds: adminManagerIds,
+        sendEmail: false,
+      })
+    }
+
+    if (
+      employee?.profileId &&
+      employee.profileId !== profile.id &&
+      createdSessionId
+    ) {
+      await createNotifications({
+        type: NotificationType.production_saved,
+        title: "Tu producción fue registrada",
+        body: `Se registró tu producción para la sesión ${createdSessionId}.`,
+        metadata: {
+          productionSessionId: createdSessionId,
+          actionUrl: `/production/${createdSessionId}`,
+          actionLabel: "Ver sesión",
+        },
+        userIds: [employee.profileId],
+        sendEmail: false,
+      })
+    }
+
+    const refreshedItems = await prisma.inventoryItem.findMany({
+      where: {
+        id: {
+          in: payload.items.map((item) => item.inventory_item_id),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        quantity: true,
+        minimumStock: true,
+      },
+    })
+
+    const lowStockItems = refreshedItems.filter(
+      (item) => Number(item.quantity) <= Number(item.minimumStock)
+    )
+
+    for (const item of lowStockItems) {
+      await createNotifications({
+        type:
+          Number(item.quantity) === 0
+            ? NotificationType.out_of_stock
+            : NotificationType.low_stock,
+        title:
+          Number(item.quantity) === 0 ? "Material agotado" : "Stock critico",
+        body:
+          Number(item.quantity) === 0
+            ? `El material ${item.name} se ha agotado.`
+            : `El material ${item.name} quedo en nivel critico.`,
+        metadata: {
+          inventoryItemId: item.id,
+          itemName: item.name,
+          quantity: Number(item.quantity),
+          minimumStock: Number(item.minimumStock),
+          actionUrl: `/inventory/${item.id}`,
+          actionLabel:
+            Number(item.quantity) === 0 ? "Ver material" : "Ajustar stock",
+        },
+        userIds: adminManagerIds,
+        sendEmail: true,
+      })
+    }
 
     return apiSuccess(result, 201)
   } catch (error) {

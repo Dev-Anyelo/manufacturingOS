@@ -1,8 +1,12 @@
-import { NotificationType, UserRole } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
 import { requireCronAuth } from "@/lib/api/cron"
+import { NotificationType, UserRole } from "@prisma/client"
 import { apiSuccess, handleApiError } from "@/lib/api/response"
+
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
 
 function getDaysUntilPayrollDay(today: Date, payrollDay: number) {
   const thisMonthTarget = new Date(
@@ -51,32 +55,28 @@ export async function POST(request: Request) {
       })
     }
 
-    const admins = await prisma.profile.findMany({
-      where: {
-        role: UserRole.admin,
-        isActive: true,
-      },
-      select: {
-        id: true,
-      },
-    })
+    const adminManagerIds = await getUserIdsByRoles([
+      UserRole.admin,
+      UserRole.manager,
+    ])
 
-    if (admins.length > 0) {
-      await prisma.notification.createMany({
-        data: admins.map((admin) => ({
-          userId: admin.id,
-          type: NotificationType.payment_due,
-          title: "Planilla proxima a vencer",
-          body: "Faltan 3 dias para la fecha configurada de pago de planilla.",
-          metadata: {
-            payroll_day: payrollDay,
-          },
-        })),
+    if (adminManagerIds.length > 0) {
+      await createNotifications({
+        type: NotificationType.payment_due,
+        title: "Planilla proxima a vencer",
+        body: "Faltan 3 dias para la fecha configurada de pago de planilla.",
+        metadata: {
+          payrollDay,
+          actionUrl: "/payroll",
+          actionLabel: "Ver planilla",
+        },
+        userIds: adminManagerIds,
+        sendEmail: true,
       })
     }
 
     return apiSuccess({
-      notified: admins.length,
+      notified: adminManagerIds.length,
       days_until_payroll: daysUntilPayroll,
     })
   } catch (error) {

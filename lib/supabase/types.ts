@@ -240,6 +240,8 @@ export type Database = {
             | "payment_due"
             | "monthly_report"
             | "inventory_updated"
+            | "expense_recorded"
+            | "order_cancelled"
           title: string
           body: string
           metadata: Json | null
@@ -260,6 +262,8 @@ export type Database = {
             | "payment_due"
             | "monthly_report"
             | "inventory_updated"
+            | "expense_recorded"
+            | "order_cancelled"
           title: string
           body: string
           metadata?: Json | null

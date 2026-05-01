@@ -452,7 +452,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
           className={cn(
             "grid min-h-0 flex-1 grid-cols-1 grid-rows-1 gap-3 overflow-hidden",
             "md:grid-rows-[minmax(0,1.35fr)_minmax(0,1fr)] md:gap-4",
-            "lg:grid-cols-[minmax(0,1fr)_420px] lg:grid-rows-1 lg:gap-6"
+            "lg:grid-cols-[minmax(0,1fr)_420px] lg:grid-rows-1"
           )}
         >
           <div className="min-h-0 overflow-hidden rounded-2xl bg-card/80 shadow-lg backdrop-blur-sm">

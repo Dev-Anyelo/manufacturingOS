@@ -1,7 +1,10 @@
 import type { Json } from "@/lib/supabase/types"
 import type { CatalogItemInput } from "@/lib/validations/catalog"
 import type { ExpenseInput } from "@/lib/validations/expenses"
-import type { WorkOrderInput, WorkOrderStatusInput } from "@/lib/validations/orders"
+import type {
+  WorkOrderInput,
+  WorkOrderStatusInput,
+} from "@/lib/validations/orders"
 import type {
   PayrollMarkPaidInput,
   PayrollPaymentInput,
@@ -64,6 +67,8 @@ export enum NotificationType {
   PaymentDue = "payment_due",
   MonthlyReport = "monthly_report",
   InventoryUpdated = "inventory_updated",
+  ExpenseRecorded = "expense_recorded",
+  OrderCancelled = "order_cancelled",
 }
 
 export const GARMENT_TYPES = {
@@ -225,7 +230,12 @@ export interface WorkOrder {
   receivedDate: string
   deliveryDate: string
   status: OrderStatus
-  channel: "in_person" | "referral" | "social_media" | "returning_customer" | "other"
+  channel:
+    | "in_person"
+    | "referral"
+    | "social_media"
+    | "returning_customer"
+    | "other"
   advancePaid: number
   total: number
   balanceDue: number

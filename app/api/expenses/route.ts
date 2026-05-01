@@ -5,6 +5,7 @@ import {
   ExpenseCategory,
   InventoryMovementType,
   Prisma,
+  NotificationType as PrismaNotificationType,
   UserRole,
 } from "@prisma/client"
 
@@ -16,6 +17,11 @@ import {
   requireAuth,
   requireRole,
 } from "@/lib/api/response"
+
+import {
+  createNotifications,
+  getUserIdsByRoles,
+} from "@/lib/services/notifications"
 
 import {
   getSearchParam,
@@ -151,6 +157,25 @@ export async function POST(request: Request) {
 
       return expense
     })
+
+    const adminManagerIds = await getUserIdsByRoles(["admin", "manager"])
+
+    if (adminManagerIds.length > 0) {
+      await createNotifications({
+        type: "expense_recorded" as PrismaNotificationType,
+        title: "Gasto registrado",
+        body: `Se registró el gasto ${created.concept} por ${created.total.toString()}.`,
+        metadata: {
+          expenseId: created.id,
+          category: created.category,
+          total: created.total.toString(),
+          actionUrl: "/expenses",
+          actionLabel: "Ver gastos",
+        },
+        userIds: adminManagerIds,
+        sendEmail: false,
+      })
+    }
 
     return apiSuccess(created, 201)
   } catch (error) {
