@@ -1,8 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { toast } from "sonner"
 import { es } from "date-fns/locale"
+import { UserForm } from "./user-form"
 import { UserRole } from "@prisma/client"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { formatDistanceToNow } from "date-fns"
@@ -10,6 +13,24 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { EmptyState } from "@/components/shared/empty-state"
 import { UserPermissionsForm } from "./user-permissions-form"
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 import {
   SearchIcon,
@@ -167,28 +188,18 @@ export function UsersTable({ users, currentUserId }: UserTableProps) {
           </div>
 
           {/* Desktop Table */}
-          <div className="hidden overflow-x-auto sm:block">
-            <table className="w-full text-sm">
-              <thead className="border-b border-border/70 bg-muted/30">
-                <tr>
-                  <th className="h-10 px-4 text-left font-medium text-muted-foreground">
-                    Usuario
-                  </th>
-                  <th className="h-10 px-4 text-left font-medium text-muted-foreground">
-                    Rol
-                  </th>
-                  <th className="h-10 px-4 text-left font-medium text-muted-foreground">
-                    Estado
-                  </th>
-                  <th className="h-10 px-4 text-left font-medium text-muted-foreground">
-                    Último acceso
-                  </th>
-                  <th className="h-10 px-4 text-right font-medium text-muted-foreground">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/70">
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead className="w-[300px]">Usuario</TableHead>
+                  <TableHead>Rol</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Último acceso</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredUsers.map((user) => (
                   <UserTableRow
                     key={user.id}
@@ -196,8 +207,8 @@ export function UsersTable({ users, currentUserId }: UserTableProps) {
                     isCurrentUser={user.id === currentUserId}
                   />
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}
@@ -300,18 +311,18 @@ function UserTableRow({
     : "Nunca"
 
   return (
-    <tr
+    <TableRow
       className={`transition-colors hover:bg-muted/10 ${!user.isActive ? "opacity-50" : ""}`}
     >
-      <td className="px-4 py-3">
+      <TableCell className="font-medium">
         <UserInfo user={user} isCurrentUser={isCurrentUser} />
-      </td>
-      <td className="px-4 py-3">
+      </TableCell>
+      <TableCell>
         <Badge variant="outline" className={`text-[11px] ${roleData.color}`}>
           {roleData.label}
         </Badge>
-      </td>
-      <td className="px-4 py-3">
+      </TableCell>
+      <TableCell>
         {user.isActive ? (
           <Badge
             variant="outline"
@@ -329,9 +340,11 @@ function UserTableRow({
             Inactivo
           </Badge>
         )}
-      </td>
-      <td className="px-4 py-3 text-xs text-muted-foreground">{lastAccess}</td>
-      <td className="px-4 py-3 text-right">
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground">
+        {lastAccess}
+      </TableCell>
+      <TableCell className="text-right">
         <div className="flex items-center justify-end gap-2">
           <UserPermissionsForm
             userId={user.id}
@@ -344,8 +357,8 @@ function UserTableRow({
           />
           <UserActionsMenu user={user} isCurrentUser={isCurrentUser} />
         </div>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   )
 }
 
@@ -410,32 +423,75 @@ function UserActionsMenu({
   user: any
   isCurrentUser: boolean
 }) {
+  const router = useRouter()
+  const [isEditOpen, setIsEditOpen] = React.useState(false)
+  const [isToggling, setIsToggling] = React.useState(false)
+
+  const handleToggleStatus = async () => {
+    try {
+      setIsToggling(true)
+      const res = await fetch(`/api/settings/users/${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: !user.isActive }),
+      })
+
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error)
+
+      toast.success(
+        `Usuario ${!user.isActive ? "reactivado" : "desactivado"} exitosamente`
+      )
+      router.refresh()
+    } catch (err: any) {
+      toast.error(err.message || "Error al actualizar estado")
+    } finally {
+      setIsToggling(false)
+    }
+  }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-8">
-          <MoreHorizontalIcon className="size-4" />
-          <span className="sr-only">Abrir menú</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Acciones de usuario</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem disabled={isCurrentUser}>
-          Cambiar rol
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <ActivityIcon className="mr-2 size-4" />
-          Ver actividad
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          disabled={isCurrentUser}
-          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-        >
-          {user.isActive ? "Desactivar acceso" : "Reactivar acceso"}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="size-8">
+            <MoreHorizontalIcon className="size-4" />
+            <span className="sr-only">Abrir menú</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuLabel>Acciones de usuario</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DialogTrigger asChild>
+            <DropdownMenuItem disabled={isCurrentUser}>
+              Cambiar rol o nombre
+            </DropdownMenuItem>
+          </DialogTrigger>
+          <DropdownMenuItem>
+            <ActivityIcon className="mr-2 size-4" />
+            Ver actividad
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={isCurrentUser || isToggling}
+            className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+            onClick={handleToggleStatus}
+          >
+            {user.isActive ? "Desactivar acceso" : "Reactivar acceso"}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Editar información del usuario</DialogTitle>
+          <DialogDescription>
+            Si cambias el rol, asegúrate de revisar sus permisos específicos si
+            los tuviera.
+          </DialogDescription>
+        </DialogHeader>
+        <UserForm initialData={user} onSuccess={() => setIsEditOpen(false)} />
+      </DialogContent>
+    </Dialog>
   )
 }
