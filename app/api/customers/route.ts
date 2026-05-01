@@ -1,39 +1,59 @@
-import { Prisma, UserRole } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
+import { getSearchParam } from "@/lib/api/utils"
 import { customerSchema } from "@/lib/validations/sales"
+import { requirePermission } from "@/lib/api/require-permission"
+
 import {
   apiSuccess,
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
 } from "@/lib/api/response"
-import { getSearchParam } from "@/lib/api/utils"
 
 export async function GET(request: Request) {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
 
     const { searchParams } = new URL(request.url)
     const search = getSearchParam(searchParams, "search")
+    const forSale = getSearchParam(searchParams, "for_sale")
+
+    // Employee can only access the narrow POS endpoint (?for_sale=true)
+    // which returns minimal data (id + name) for the customer selector.
+    // Full customer list requires customers.view permission.
+    if (forSale === "true") {
+      const where: Prisma.CustomerWhereInput = {}
+
+      if (search) {
+        where.OR = [
+          { fullName: { contains: search, mode: "insensitive" } },
+          { phone: { contains: search, mode: "insensitive" } },
+        ]
+      }
+
+      const customers = await prisma.customer.findMany({
+        where,
+        select: {
+          id: true,
+          fullName: true,
+        },
+        orderBy: { fullName: "asc" },
+        take: 50,
+      })
+
+      return apiSuccess(customers)
+    }
+
+    // Full customer list — requires customers.view permission
+    await requirePermission(profile, "customers", "view")
 
     const where: Prisma.CustomerWhereInput = {}
 
     if (search) {
       where.OR = [
-        {
-          fullName: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
-        {
-          phone: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
+        { fullName: { contains: search, mode: "insensitive" } },
+        { phone: { contains: search, mode: "insensitive" } },
       ]
     }
 
@@ -60,7 +80,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager, UserRole.employee])
+    await requirePermission(profile, "customers", "create")
 
     const payload = await parseBodyWithSchema(request, customerSchema)
 

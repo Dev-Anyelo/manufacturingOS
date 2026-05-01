@@ -7,13 +7,14 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
-} from "@/lib/api/response"
+  } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 export async function GET() {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "settings", "view")
 
     let settings = await prisma.systemSetting.findFirst({
       orderBy: {
@@ -36,7 +37,7 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "settings", "edit")
 
     const payload = await parseBodyWithSchema(request, systemSettingsSchema)
 

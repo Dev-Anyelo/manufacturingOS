@@ -2,11 +2,13 @@ import { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { apiSuccess, handleApiError, requireAuth } from "@/lib/api/response"
+import { requirePermission } from "@/lib/api/require-permission"
 import { getSearchParam, parseDateParam } from "@/lib/api/utils"
 
 export async function GET(request: Request) {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "reports", "view")
 
     const { searchParams } = new URL(request.url)
     const dateFrom = parseDateParam(getSearchParam(searchParams, "date_from"))

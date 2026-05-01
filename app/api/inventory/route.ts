@@ -8,12 +8,14 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
-} from "@/lib/api/response"
+  } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 export async function GET(request: Request) {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "inventory", "view")
 
     const { searchParams } = new URL(request.url)
     const category = getSearchParam(searchParams, "category")
@@ -87,7 +89,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "inventory", "create")
 
     const payload = await parseBodyWithSchema(request, inventoryItemSchema)
 

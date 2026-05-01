@@ -1,13 +1,13 @@
 import { prisma } from "@/lib/prisma"
+import { Prisma, WorkOrderStatus } from "@prisma/client"
 import { workOrderSchema } from "@/lib/validations/orders"
-import { Prisma, UserRole, WorkOrderStatus } from "@prisma/client"
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   apiSuccess,
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
 } from "@/lib/api/response"
 
 import {
@@ -18,7 +18,8 @@ import {
 
 export async function GET(request: Request) {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "orders", "view")
 
     const { searchParams } = new URL(request.url)
     const status = getSearchParam(searchParams, "status")
@@ -77,7 +78,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "orders", "create")
 
     const payload = await parseBodyWithSchema(request, workOrderSchema)
 

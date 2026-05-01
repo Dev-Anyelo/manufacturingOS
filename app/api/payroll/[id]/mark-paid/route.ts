@@ -18,9 +18,10 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 type RouteParams = {
   id: string
@@ -32,7 +33,7 @@ export async function PATCH(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "payroll", "edit")
 
     const { id } = await resolveRouteParams(context.params)
     const payload = await parseBodyWithSchema(request, payrollMarkPaidSchema)

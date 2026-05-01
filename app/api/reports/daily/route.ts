@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/prisma"
-import { apiSuccess, handleApiError, requireAuth } from "@/lib/api/response"
 import { decimalToNumber } from "@/lib/api/utils"
+import { requirePermission } from "@/lib/api/require-permission"
+import { apiSuccess, handleApiError, requireAuth } from "@/lib/api/response"
 
 export async function GET() {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "reports", "view")
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)

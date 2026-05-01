@@ -1,13 +1,13 @@
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { Prisma, UserRole } from "@prisma/client"
+import { Prisma } from "@prisma/client"
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   apiSuccess,
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
 } from "@/lib/api/response"
 
 const bulkPriceSchema = z.object({
@@ -24,7 +24,7 @@ const bulkPriceSchema = z.object({
 export async function PATCH(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "catalog", "edit")
 
     const payload = await parseBodyWithSchema(request, bulkPriceSchema)
 

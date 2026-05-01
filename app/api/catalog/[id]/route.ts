@@ -1,14 +1,13 @@
 import { prisma } from "@/lib/prisma"
-import { UserRole } from "@prisma/client"
 import { toPrismaDecimal } from "@/lib/api/utils"
 import { catalogItemSchema } from "@/lib/validations/catalog"
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   apiSuccess,
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
 
@@ -21,7 +20,8 @@ export async function GET(
   context: { params: Promise<RouteParams> | RouteParams }
 ) {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "catalog", "view")
     const { id } = await resolveRouteParams(context.params)
 
     const item = await prisma.catalogItem.findUnique({
@@ -40,7 +40,7 @@ export async function PATCH(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "catalog", "edit")
 
     const payload = await parseBodyWithSchema(request, catalogItemSchema)
     const { id } = await resolveRouteParams(context.params)
@@ -86,7 +86,7 @@ export async function DELETE(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "catalog", "delete")
 
     const { id } = await resolveRouteParams(context.params)
 

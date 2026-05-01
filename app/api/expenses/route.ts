@@ -15,8 +15,9 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
-} from "@/lib/api/response"
+  } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   createNotifications,
@@ -32,7 +33,7 @@ import {
 export async function GET(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "expenses", "view")
 
     const { searchParams } = new URL(request.url)
     const dateFrom = parseDateParam(getSearchParam(searchParams, "date_from"))
@@ -76,7 +77,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "expenses", "create")
 
     const payload = await parseBodyWithSchema(request, expenseSchema)
 

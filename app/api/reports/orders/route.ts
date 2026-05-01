@@ -2,10 +2,12 @@ import { WorkOrderStatus } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { apiSuccess, handleApiError, requireAuth } from "@/lib/api/response"
+import { requirePermission } from "@/lib/api/require-permission"
 
 export async function GET() {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "reports", "view")
 
     const orders = await prisma.workOrder.findMany({
       select: {

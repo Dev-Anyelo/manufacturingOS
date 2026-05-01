@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import { sendOrderReadyEmail } from "@/lib/email/send"
 import { workOrderStatusSchema } from "@/lib/validations/orders"
-import { NotificationType, UserRole, WorkOrderStatus } from "@prisma/client"
+import { requirePermission } from "@/lib/api/require-permission"
+import { NotificationType, WorkOrderStatus } from "@prisma/client"
 
 import {
   createNotifications,
@@ -14,9 +15,9 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
+
 
 const validTransitions: Record<WorkOrderStatus, WorkOrderStatus[]> = {
   [WorkOrderStatus.received]: [
@@ -46,7 +47,7 @@ export async function PATCH(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "orders", "edit")
 
     const { id } = await resolveRouteParams(context.params)
     const payload = await parseBodyWithSchema(request, workOrderStatusSchema)

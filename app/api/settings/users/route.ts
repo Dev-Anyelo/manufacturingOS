@@ -10,8 +10,9 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
-} from "@/lib/api/response"
+  } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 const createUserSchema = z.object({
   email: z.string().trim().email("El correo electronico no es valido"),
@@ -76,7 +77,7 @@ function getAccessUrl() {
 export async function GET() {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "settings", "view")
 
     const users = await prisma.profile.findMany({
       orderBy: {
@@ -101,7 +102,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "settings", "create")
 
     const payload = await parseBodyWithSchema(request, createUserSchema)
 

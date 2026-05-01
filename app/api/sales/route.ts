@@ -21,6 +21,8 @@ import {
   requireAuth,
 } from "@/lib/api/response"
 
+import { requirePermission } from "@/lib/api/require-permission"
+
 import {
   decimalToNumber,
   getSearchParam,
@@ -31,6 +33,7 @@ import {
 export async function GET(request: Request) {
   try {
     const { profile } = await requireAuth()
+    await requirePermission(profile, "sales", "view")
 
     const { searchParams } = new URL(request.url)
     const dateFrom = parseDateParam(getSearchParam(searchParams, "date_from"))
@@ -88,6 +91,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { profile } = await requireAuth()
+    await requirePermission(profile, "sales", "create")
     const payload = await parseBodyWithSchema(request, saleSchema)
 
     const itemsTotal = payload.items.reduce(

@@ -1,20 +1,20 @@
-import { UserRole } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { customerSchema } from "@/lib/validations/sales"
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   apiSuccess,
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
 } from "@/lib/api/response"
 
 type RouteParams = { params: Promise<{ id: string }> }
 
 export async function GET(request: Request, { params }: RouteParams) {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "customers", "view")
     const { id } = await params
 
     const customer = await prisma.customer.findUnique({
@@ -34,7 +34,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager, UserRole.employee])
+    await requirePermission(profile, "customers", "edit")
     const { id } = await params
 
     const payload = await parseBodyWithSchema(request, customerSchema)

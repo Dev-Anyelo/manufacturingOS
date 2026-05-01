@@ -5,8 +5,9 @@ import {
   apiSuccess,
   handleApiError,
   requireAuth,
-  requireRole,
-} from "@/lib/api/response"
+  } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 import {
   decimalToNumber,
   getSearchParam,
@@ -16,7 +17,7 @@ import {
 export async function GET(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "payroll", "view")
 
     const { searchParams } = new URL(request.url)
     const dateFrom = parseDateParam(getSearchParam(searchParams, "date_from"))

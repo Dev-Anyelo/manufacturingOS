@@ -178,6 +178,8 @@ model Profile {
   payrollPaymentsCreated    PayrollPayment[]    @relation("PayrollPaymentCreatedBy")
   auditLogsCreated          AuditLog[]          @relation("AuditLogCreatedBy")
   catalogMovementsCreated   CatalogMovement[]   @relation("CatalogMovementCreatedBy")
+  permissionsOwned          UserModulePermission[] @relation("PermissionOwner")
+  permissionsGranted        UserModulePermission[] @relation("PermissionGrantedBy")
 
   @@map("profiles")
 }
@@ -526,4 +528,24 @@ model CatalogMovement {
   createdByProfile  Profile?          @relation("CatalogMovementCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
 
   @@map("catalog_movements")
+}
+
+model UserModulePermission {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  module    String
+  canView   Boolean  @default(false) @map("can_view")
+  canCreate Boolean  @default(false) @map("can_create")
+  canEdit   Boolean  @default(false) @map("can_edit")
+  canDelete Boolean  @default(false) @map("can_delete")
+  canExport Boolean  @default(false) @map("can_export")
+  grantedBy String?  @map("granted_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile          Profile  @relation("PermissionOwner", fields: [userId], references: [id], onDelete: Cascade)
+  grantedByProfile Profile? @relation("PermissionGrantedBy", fields: [grantedBy], references: [id], onDelete: SetNull)
+
+  @@unique([userId, module])
+  @@map("user_module_permissions")
 }

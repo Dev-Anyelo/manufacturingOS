@@ -6,10 +6,8 @@ import { UserRole } from "@/types"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import type { CurrentUser } from "@/lib/auth/current-user"
-import {
-  dashboardNavSections,
-  filterDashboardNavForRole,
-} from "@/lib/nav/dashboard-links"
+
+import type { DashboardNavSection } from "@/lib/nav/dashboard-links"
 
 import {
   Sidebar,
@@ -52,26 +50,16 @@ const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   user: CurrentUser
+  sections: DashboardNavSection[]
 }
 
-export function AppSidebar({ user, ...props }: AppSidebarProps) {
+export function AppSidebar({ user, sections, ...props }: AppSidebarProps) {
   const roleLabel = {
     [UserRole.Admin]: "Administrador",
     [UserRole.Manager]: "Gerente",
     [UserRole.Employee]: "Empleado",
     [UserRole.Readonly]: "Solo lectura",
   }[user.role]
-
-  const filteredSections = filterDashboardNavForRole(
-    dashboardNavSections,
-    user.role
-  ).map((section) => ({
-    ...section,
-    items: section.items.map((item) => ({
-      ...item,
-      icon: navIcons[item.url] ?? LayoutDashboardIcon,
-    })),
-  }))
 
   return (
     <Sidebar collapsible="offcanvas" variant="floating" {...props}>
@@ -100,11 +88,14 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="py-2.5">
-        {filteredSections.map((section) => (
+        {sections.map((section) => (
           <NavMain
             key={section.label}
             label={section.label}
-            items={section.items}
+            items={section.items.map(item => ({
+              ...item,
+              icon: navIcons[item.url] ?? LayoutDashboardIcon
+            }))}
           />
         ))}
       </SidebarContent>

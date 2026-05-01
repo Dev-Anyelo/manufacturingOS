@@ -7,13 +7,14 @@ import {
   apiSuccess,
   handleApiError,
   requireAuth,
-  requireRole,
-} from "@/lib/api/response"
+  } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 export async function GET() {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.Admin, UserRole.Manager])
+    await requirePermission(profile, "expenses", "view")
 
     const startOfMonth = new Date()
     startOfMonth.setDate(1)

@@ -12,9 +12,10 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 const updateStatusSchema = z.object({
   status: z.nativeEnum(SaleStatus),
@@ -30,7 +31,7 @@ export async function PATCH(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "sales", "edit")
 
     const payload = await parseBodyWithSchema(request, updateStatusSchema)
     const { id } = await resolveRouteParams(context.params)

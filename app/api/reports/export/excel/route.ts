@@ -2,10 +2,12 @@ import * as XLSX from "xlsx"
 
 import { prisma } from "@/lib/prisma"
 import { handleApiError, requireAuth } from "@/lib/api/response"
+import { requirePermission } from "@/lib/api/require-permission"
 
 export async function GET() {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "reports", "export")
 
     const [sales, orders, expenses, inventory] = await Promise.all([
       prisma.sale.findMany({

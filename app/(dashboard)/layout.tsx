@@ -1,9 +1,15 @@
 import type { CSSProperties } from "react"
-import { AppSidebar } from "@/components/app-sidebar"
+import { hasPermission } from "@/lib/permissions"
 import { SiteHeader } from "@/components/site-header"
+import { AppSidebar } from "@/components/app-sidebar"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { RealtimeBootstrap } from "@/components/providers/realtime-bootstrap"
+
+import {
+  dashboardNavSections,
+  DashboardNavSection,
+} from "@/lib/nav/dashboard-links"
 
 const layoutStyle = {
   "--sidebar-width": "14rem",
@@ -17,10 +23,34 @@ export default async function DashboardLayout({
 }>) {
   const user = await requireCurrentUser()
 
+  const filteredSections: DashboardNavSection[] = []
+
+  for (const section of dashboardNavSections) {
+    const validItems = []
+    for (const item of section.items) {
+      if (!item.module) {
+        validItems.push(item)
+        continue
+      }
+
+      const hasAccess = await hasPermission(user.id, item.module, "view")
+      if (hasAccess) {
+        validItems.push(item)
+      }
+    }
+
+    if (validItems.length > 0) {
+      filteredSections.push({
+        ...section,
+        items: validItems,
+      })
+    }
+  }
+
   return (
     <SidebarProvider style={layoutStyle}>
       <RealtimeBootstrap />
-      <AppSidebar variant="inset" user={user} />
+      <AppSidebar variant="inset" user={user} sections={filteredSections} />
       <SidebarInset>
         <SiteHeader user={user} />
         <div className="relative flex w-full flex-1 flex-col overflow-hidden">

@@ -8,9 +8,10 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 type RouteParams = {
   id: string
@@ -22,7 +23,7 @@ export async function GET(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "expenses", "view")
 
     const { id } = await resolveRouteParams(context.params)
 
@@ -46,7 +47,7 @@ export async function PATCH(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "expenses", "edit")
 
     const payload = await parseBodyWithSchema(request, expenseSchema)
     const { id } = await resolveRouteParams(context.params)
@@ -91,7 +92,7 @@ export async function DELETE(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "expenses", "delete")
 
     const { id } = await resolveRouteParams(context.params)
 

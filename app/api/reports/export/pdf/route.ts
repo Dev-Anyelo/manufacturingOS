@@ -2,10 +2,12 @@ import { prisma } from "@/lib/prisma"
 import { InventoryReportPDF } from "@/lib/pdf/inventory-report"
 import { generatePDFBuffer } from "@/lib/pdf/utils"
 import { handleApiError, requireAuth } from "@/lib/api/response"
+import { requirePermission } from "@/lib/api/require-permission"
 
 export async function GET() {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "reports", "export")
 
     const items = await prisma.inventoryItem.findMany({
       where: {

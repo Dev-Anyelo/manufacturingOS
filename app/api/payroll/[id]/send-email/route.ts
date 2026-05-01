@@ -9,9 +9,10 @@ import {
   apiSuccess,
   handleApiError,
   requireAuth,
-  requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 import { decimalToNumber } from "@/lib/api/utils"
 
 type RouteParams = {
@@ -24,7 +25,7 @@ export async function POST(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "payroll", "create")
 
     const { id } = await resolveRouteParams(context.params)
 

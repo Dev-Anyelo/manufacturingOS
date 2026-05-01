@@ -3,20 +3,16 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { SearchIcon } from "lucide-react"
-
-import { UserRole } from "@/types"
-import {
-  dashboardNavSections,
-  filterDashboardNavForRole,
-} from "@/lib/nav/dashboard-links"
-
 import { Button } from "@/components/ui/button"
+import type { DashboardNavSection } from "@/lib/nav/dashboard-links"
+
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+
 import {
   Command,
   CommandEmpty,
@@ -28,17 +24,13 @@ import {
 } from "@/components/ui/command"
 
 type GlobalCommandMenuProps = {
-  userRole: UserRole
+  sections: DashboardNavSection[]
 }
 
-export function GlobalCommandMenu({ userRole }: GlobalCommandMenuProps) {
+export function GlobalCommandMenu({ sections }: GlobalCommandMenuProps) {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
-  const sections = React.useMemo(
-    () => filterDashboardNavForRole(dashboardNavSections, userRole),
-    [userRole]
-  )
 
   const normalizedQuery = query.trim().toLowerCase()
 

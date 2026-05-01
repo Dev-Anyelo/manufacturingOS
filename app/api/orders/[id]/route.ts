@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import { toPrismaDecimal } from "@/lib/api/utils"
+import { Prisma, WorkOrderStatus } from "@prisma/client"
 import { workOrderSchema } from "@/lib/validations/orders"
-import { Prisma, UserRole, WorkOrderStatus } from "@prisma/client"
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   ApiRouteError,
@@ -9,7 +10,6 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
 
@@ -22,7 +22,8 @@ export async function GET(
   context: { params: Promise<RouteParams> | RouteParams }
 ) {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "orders", "view")
     const { id } = await resolveRouteParams(context.params)
 
     const [order, statusHistory] = await Promise.all([
@@ -59,7 +60,7 @@ export async function PATCH(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "orders", "edit")
 
     const payload = await parseBodyWithSchema(request, workOrderSchema)
     const { id } = await resolveRouteParams(context.params)
@@ -139,7 +140,7 @@ export async function DELETE(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "orders", "delete")
 
     const { id } = await resolveRouteParams(context.params)
 

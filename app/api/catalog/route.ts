@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
-import { Prisma, UserRole } from "@prisma/client"
+import { Prisma } from "@prisma/client"
 import { catalogItemSchema } from "@/lib/validations/catalog"
+import { requirePermission } from "@/lib/api/require-permission"
 import { getSearchParam, toPrismaDecimal } from "@/lib/api/utils"
 
 import {
@@ -8,12 +9,13 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
-} from "@/lib/api/response"
+  } from "@/lib/api/response"
+
 
 export async function GET(request: Request) {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "catalog", "view")
 
     const { searchParams } = new URL(request.url)
     const search = getSearchParam(searchParams, "search")
@@ -60,7 +62,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin, UserRole.manager])
+    await requirePermission(profile, "catalog", "create")
 
     const payload = await parseBodyWithSchema(request, catalogItemSchema)
 

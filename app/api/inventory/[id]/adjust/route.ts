@@ -14,9 +14,10 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
   resolveRouteParams,
 } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 type RouteParams = {
   id: string
@@ -28,7 +29,7 @@ export async function POST(
 ) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.admin])
+    await requirePermission(profile, "inventory", "create")
 
     const payload = await parseBodyWithSchema(request, inventoryAdjustSchema)
     const { id } = await resolveRouteParams(context.params)

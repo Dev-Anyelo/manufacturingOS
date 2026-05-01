@@ -19,8 +19,9 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  requireRole,
 } from "@/lib/api/response"
+
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   decimalToNumber,
@@ -31,7 +32,8 @@ import {
 
 export async function GET(request: Request) {
   try {
-    await requireAuth()
+    const { profile } = await requireAuth()
+    await requirePermission(profile, "production", "view")
 
     const { searchParams } = new URL(request.url)
     const employeeId = getSearchParam(searchParams, "employee_id")
@@ -41,7 +43,10 @@ export async function GET(request: Request) {
 
     const where: Prisma.ProductionSessionWhereInput = {}
 
-    if (employeeId) {
+    // Scope employee to their own sessions
+    if (profile.role === UserRole.employee) {
+      where.createdBy = profile.id
+    } else if (employeeId) {
       where.employeeId = employeeId
     }
 
@@ -84,7 +89,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { profile } = await requireAuth()
-    requireRole(profile, [UserRole.employee, UserRole.manager, UserRole.admin])
+    await requirePermission(profile, "production", "create")
 
     const payload = await parseBodyWithSchema(request, productionSessionSchema)
 

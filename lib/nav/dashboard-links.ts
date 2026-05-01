@@ -1,9 +1,9 @@
-import { UserRole } from "@/types"
+import type { ModuleKey } from "../permissions"
 
 export type DashboardNavItem = {
   title: string
   url: string
-  adminOnly?: boolean
+  module?: ModuleKey
 }
 
 export type DashboardNavSection = {
@@ -14,47 +14,32 @@ export type DashboardNavSection = {
 export const dashboardNavSections: DashboardNavSection[] = [
   {
     label: "Principal",
-    items: [{ title: "Dashboard", url: "/" }],
+    items: [{ title: "Dashboard", url: "/", module: "dashboard" }],
   },
   {
     label: "Operaciones",
     items: [
-      { title: "Ventas", url: "/sales" },
-      { title: "Pedidos", url: "/orders" },
-      { title: "Producción", url: "/production" },
+      { title: "Ventas", url: "/sales", module: "sales" },
+      { title: "Pedidos", url: "/orders", module: "orders" },
+      { title: "Producción", url: "/production", module: "production" },
     ],
   },
   {
     label: "Gestión",
     items: [
-      { title: "Inventario", url: "/inventory" },
-      { title: "Catálogo", url: "/catalog" },
-      { title: "Gastos", url: "/expenses" },
-      { title: "Clientes", url: "/customers" },
-      { title: "Planilla", url: "/payroll" },
+      { title: "Inventario", url: "/inventory", module: "inventory" },
+      { title: "Catálogo", url: "/catalog", module: "catalog" },
+      { title: "Gastos", url: "/expenses", module: "expenses" },
+      { title: "Clientes", url: "/customers", module: "customers" },
+      { title: "Planilla", url: "/payroll", module: "payroll" },
     ],
   },
   {
     label: "Análisis",
-    items: [{ title: "Reportes", url: "/reports" }],
+    items: [{ title: "Reportes", url: "/reports", module: "reports" }],
   },
   {
     label: "Sistema",
-    items: [{ title: "Configuración", url: "/settings", adminOnly: true }],
+    items: [{ title: "Configuración", url: "/settings", module: "settings" }],
   },
 ]
-
-export function filterDashboardNavForRole(
-  sections: DashboardNavSection[],
-  role: UserRole
-): DashboardNavSection[] {
-  return sections
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => {
-        if (!item.adminOnly) return true
-        return role === UserRole.Admin
-      }),
-    }))
-    .filter((section) => section.items.length > 0)
-}
