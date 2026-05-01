@@ -40,6 +40,7 @@ import {
   CheckCircle2Icon,
   XCircleIcon,
   ActivityIcon,
+  PencilLineIcon,
 } from "lucide-react"
 
 import {
@@ -464,7 +465,8 @@ function UserActionsMenu({
           <DropdownMenuSeparator />
           <DialogTrigger asChild>
             <DropdownMenuItem disabled={isCurrentUser}>
-              Cambiar rol o nombre
+              <PencilLineIcon className="mr-2 size-4" />
+              Editar
             </DropdownMenuItem>
           </DialogTrigger>
           <DropdownMenuItem>
@@ -482,9 +484,11 @@ function UserActionsMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="p-4 sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Editar información del usuario</DialogTitle>
+          <DialogTitle className="text-sm text-pretty">
+            Editar información del usuario
+          </DialogTitle>
           <DialogDescription>
             Si cambias el rol, asegúrate de revisar sus permisos específicos si
             los tuviera.
