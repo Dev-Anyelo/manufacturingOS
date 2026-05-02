@@ -4,13 +4,13 @@ import * as React from "react"
 import { toast } from "sonner"
 import { es } from "date-fns/locale"
 import { UserForm } from "./user-form"
-import { Prisma, UserRole } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { formatDistanceToNow } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
+import { Prisma, UserRole } from "@prisma/client"
 import { EmptyState } from "@/components/shared/empty-state"
 import { UserPermissionsForm } from "./user-permissions-form"
 
@@ -294,7 +294,6 @@ function UserInfo({
             </Badge>
           )}
         </div>
-        <p className="text-xs text-muted-foreground">{user.email || "—"}</p>
       </div>
     </div>
   )
