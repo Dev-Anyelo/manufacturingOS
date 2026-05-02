@@ -46,7 +46,7 @@ export default async function UsersSettingsPage() {
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
-                <UserPlusIcon className="mr-2 size-4" />
+                <UserPlusIcon className="size-4" />
                 Nuevo usuario
               </Button>
             </DialogTrigger>
