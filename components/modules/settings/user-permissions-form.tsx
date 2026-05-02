@@ -133,7 +133,6 @@ export function UserPermissionsForm({
     DEFAULT_PERMISSIONS[currentRole] || DEFAULT_PERMISSIONS["readonly"]
   const isAdmin = currentRole === UserRole.admin
 
-  const avatarFallback = userName ? userName.charAt(0).toUpperCase() : "U"
 
   const hasPendingChanges = React.useMemo(() => {
     if (currentRole !== originalRole) return true

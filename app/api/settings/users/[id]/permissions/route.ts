@@ -71,7 +71,7 @@ export async function PUT(
             canEdit: override.canEdit,
             canDelete: override.canDelete,
             canExport: override.canExport,
-            grantedById: profile.id, // Audit trail
+            grantedBy: profile.id, // Audit trail
           })),
         })
       }

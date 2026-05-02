@@ -77,17 +77,29 @@ export async function PATCH(
     const notesParts = [sale.notes, payload.notes].filter(Boolean)
     const notes = notesParts.length > 0 ? notesParts.join("\n---\n") : null
 
-    const updatedSale = await prisma.sale.update({
+    // Update sale using raw SQL to avoid issues with generated balance_due column
+    // Prisma sometimes tries to include it in the SET clause even if omitted from data
+    await prisma.$executeRaw`
+      UPDATE public.sales 
+      SET amount_paid = ${finalAmountPaid},
+          change_given = ${changeGiven},
+          status = CAST(${newStatus} AS public.sale_status),
+          payment_method = CAST(${payload.payment_method} AS public.payment_method),
+          notes = ${notes}
+      WHERE id = CAST(${id} AS uuid)
+    `
+
+    const updatedSale = await prisma.sale.findUnique({
       where: { id },
-      data: {
-        amountPaid: finalAmountPaid,
-        changeGiven: changeGiven,
-        balanceDue: balanceDue,
-        status: newStatus,
-        paymentMethod: payload.payment_method,
-        notes: notes,
+      include: {
+        customer: true,
+        items: true,
       },
     })
+
+    if (!updatedSale) {
+      throw new ApiRouteError("Error al recuperar la venta actualizada", 500)
+    }
 
     if (newStatus === SaleStatus.paid) {
       const adminManagerIds = await getUserIdsByRoles([

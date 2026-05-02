@@ -309,6 +309,7 @@ model ProductionSessionItem {
   size            String
   quantity        Int
   yardsUsed       Decimal           @map("yards_used") @db.Decimal(12, 2)
+  isReuse         Boolean           @default(false) @map("is_reuse")
   notes           String?
   catalogItemId   String?           @map("catalog_item_id") @db.Uuid
   session         ProductionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)

@@ -8,18 +8,21 @@ import {
   getPayrollSummaryByEmployee,
 } from "@/lib/data/payroll"
 
+import { requireCurrentUser } from "@/lib/auth/current-user"
+
 export default async function PayrollPage() {
   const startOfMonth = new Date()
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
-
   const now = new Date()
 
-  const [payments, summary, bootstrap] = await Promise.all([
+  const [payments, summary, bootstrap, currentUser] = await Promise.all([
     getPayrollPayments(),
     getPayrollSummaryByEmployee(startOfMonth, now),
     getPayrollFormBootstrap(),
+    requireCurrentUser(),
   ])
+
 
   return (
     <section className="page-shell">
@@ -34,6 +37,7 @@ export default async function PayrollPage() {
         />
 
         <PayrollWorkspace
+          canDelete={currentUser.role === "admin" || currentUser.role === "manager"}
           payments={payments.map((payment) => ({
             id: payment.id,
             employeeId: payment.employeeId,

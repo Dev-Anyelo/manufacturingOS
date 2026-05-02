@@ -2,32 +2,39 @@ import { decimalToNumber } from "@/lib/api/utils"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
-import { getProductionSessions, getProductionFormBootstrap } from "@/lib/data/production"
+import { requireCurrentUser } from "@/lib/auth/current-user"
+import {
+  getProductionSessions,
+  getProductionFormBootstrap,
+} from "@/lib/data/production"
 import { ProductionTable } from "@/components/modules/production/production-table"
 import { NewProductionSheet } from "@/components/modules/production/new-production-sheet"
 
-import {
-  ScissorsIcon,
-  LayersIcon,
-  CalendarCheckIcon,
-} from "lucide-react"
+import { ScissorsIcon, LayersIcon, CalendarCheckIcon } from "lucide-react"
 
 import { UrlDateFilter } from "@/components/shared/url-date-filter"
 import { parseDateParam } from "@/lib/api/utils"
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
-export default async function ProductionPage(props: { searchParams: SearchParams }) {
+export default async function ProductionPage(props: {
+  searchParams: SearchParams
+}) {
   const searchParams = await props.searchParams
-  const from = Array.isArray(searchParams.from) ? searchParams.from[0] : searchParams.from
-  const to = Array.isArray(searchParams.to) ? searchParams.to[0] : searchParams.to
+  const from = Array.isArray(searchParams.from)
+    ? searchParams.from[0]
+    : searchParams.from
+  const to = Array.isArray(searchParams.to)
+    ? searchParams.to[0]
+    : searchParams.to
 
   const dateFrom = parseDateParam(from)
   const dateTo = parseDateParam(to)
 
-  const [sessions, bootstrap] = await Promise.all([
+  const [sessions, bootstrap, currentUser] = await Promise.all([
     getProductionSessions({ dateFrom, dateTo }),
-    getProductionFormBootstrap()
+    getProductionFormBootstrap(),
+    requireCurrentUser(),
   ])
 
   const rows = sessions.map((session) => ({
@@ -69,7 +76,7 @@ export default async function ProductionPage(props: { searchParams: SearchParams
           actions={
             <div className="flex flex-row gap-3">
               <UrlDateFilter />
-              <NewProductionSheet 
+              <NewProductionSheet
                 employees={bootstrap.employees}
                 inventoryItems={bootstrap.inventoryItems.map((i) => ({
                   id: i.id,
@@ -77,12 +84,17 @@ export default async function ProductionPage(props: { searchParams: SearchParams
                   unit: i.unit,
                   quantity: decimalToNumber(i.quantity),
                 }))}
+                currentUserId={currentUser.id}
+                currentUserRole={currentUser.role}
               />
             </div>
           }
         />
 
-        <KpiSection label="Resumen del día" gridClassName="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <KpiSection
+          label="Resumen del día"
+          gridClassName="grid grid-cols-2 sm:grid-cols-3 gap-3"
+        >
           <CompactKpiCard
             label="Sesiones hoy"
             value={stats.sessionCount}
@@ -111,7 +123,10 @@ export default async function ProductionPage(props: { searchParams: SearchParams
           />
         </KpiSection>
 
-        <ProductionTable sessions={rows} />
+        <ProductionTable 
+          sessions={rows} 
+          canDelete={currentUser.role === "admin" || currentUser.role === "manager"} 
+        />
       </div>
     </section>
   )

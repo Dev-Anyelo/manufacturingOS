@@ -4,14 +4,17 @@ import { z } from "zod"
 import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { UserRole } from "@/types"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray } from "react-hook-form"
+import { EntitySelector } from "@/components/shared/entity-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -29,21 +32,10 @@ import {
 } from "@/components/ui/select"
 
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-
-import {
   Calendar as CalendarIcon,
   Plus,
   Trash2,
   Scissors,
-  Check,
-  ChevronsUpDown,
   Ruler,
   Factory,
   UserCog2,
@@ -98,6 +90,7 @@ const productionFormSchema = z.object({
         ]),
         quantity: z.coerce.number().int().min(1),
         yards_used: z.coerce.number().min(0),
+        is_reuse: z.boolean().default(false),
         notes: z.string().trim().max(500).optional().nullable(),
       })
     )
@@ -111,6 +104,7 @@ type ProductionFormValues = ProductionFormOutput
 type EmployeeOption = {
   id: string
   fullName: string
+  profileId?: string | null
 }
 
 type InventoryOption = {
@@ -123,6 +117,8 @@ type InventoryOption = {
 interface ProductionFormProps {
   employees: EmployeeOption[]
   inventoryItems: InventoryOption[]
+  currentUserId?: string
+  currentUserRole?: UserRole | string
   /** Called after successful submission — used when embedded in a Sheet */
   onSuccess?: () => void
   /** Called when the user cancels — used when embedded in a Sheet */
@@ -161,6 +157,7 @@ function emptyItem(): ProductionFormValues["items"][number] {
     size: "M",
     quantity: 1,
     yards_used: 0,
+    is_reuse: false,
     notes: "",
   }
 }
@@ -197,6 +194,8 @@ function parseInputDate(value: string) {
 export function ProductionForm({
   employees,
   inventoryItems,
+  currentUserId,
+  currentUserRole,
   onSuccess,
   onCancel,
 }: ProductionFormProps) {
@@ -222,6 +221,33 @@ export function ProductionForm({
   const watchedItems = form.watch("items")
   const selectedEmployeeId = form.watch("employee_id")
   const selectedSessionDate = form.watch("session_date")
+  const isEmployeeRole = currentUserRole === UserRole.Employee
+
+  const linkedEmployee = React.useMemo(() => {
+    if (!currentUserId) {
+      return null
+    }
+
+    return (
+      employees.find((employee) => employee.profileId === currentUserId) ?? null
+    )
+  }, [currentUserId, employees])
+
+  const employeeLinkError =
+    isEmployeeRole && !linkedEmployee
+      ? "Tu perfil no está vinculado a un empleado. Contacta al administrador."
+      : null
+
+  React.useEffect(() => {
+    if (!linkedEmployee) {
+      return
+    }
+
+    form.setValue("employee_id", linkedEmployee.id, {
+      shouldDirty: false,
+      shouldValidate: true,
+    })
+  }, [form, linkedEmployee])
 
   const today = React.useMemo(() => {
     const now = new Date()
@@ -261,6 +287,7 @@ export function ProductionForm({
           size: item.size,
           quantity: Number(item.quantity),
           yards_used: Number(item.yards_used),
+          is_reuse: item.is_reuse,
           notes: normalizeOptional(item.notes),
         })),
       }
@@ -352,73 +379,30 @@ export function ProductionForm({
               {/* Employee + Date Row */}
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Empleado <span className="text-destructive">*</span>
-                  </Label>
-                  <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={employeeOpen}
-                        className="h-10 w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {selectedEmployee?.fullName ?? "Seleccionar"}
-                        </span>
-                        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Buscar..." />
-                        <CommandList>
-                          {employees.length === 0 && (
-                            <CommandEmpty>
-                              No hay empleados disponibles
-                            </CommandEmpty>
-                          )}
-                          <CommandGroup>
-                            {employees.map((employee) => (
-                              <CommandItem
-                                key={employee.id}
-                                onSelect={() => {
-                                  form.setValue("employee_id", employee.id, {
-                                    shouldDirty: true,
-                                    shouldValidate: true,
-                                  })
-                                  setEmployeeOpen(false)
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "size-4",
-                                    employee.id === selectedEmployeeId
-                                      ? "opacity-100"
-                                      : ""
-                                  )}
-                                />
-                                <div className="flex items-center gap-2">
-                                  <div className="flex size-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                                    {employee.fullName.charAt(0)}
-                                  </div>
-                                  <span className="truncate">
-                                    {employee.fullName}
-                                  </span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <EntitySelector
+                    entities={employees}
+                    value={selectedEmployeeId}
+                    onChange={(id: string | null) => {
+                      form.setValue("employee_id", id || "", {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }}
+                    label="Empleado"
+                    placeholder="Seleccionar empleado..."
+                    emptyMessage="No se encontraron empleados."
+                    disabled={isEmployeeRole}
+                  />
                   {form.formState.errors.employee_id && (
                     <p className="text-xs text-destructive">
                       {form.formState.errors.employee_id.message}
                     </p>
                   )}
+                  {employeeLinkError ? (
+                    <p className="text-xs text-destructive">
+                      {employeeLinkError}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="space-y-2">
@@ -511,6 +495,9 @@ export function ProductionForm({
                 )
                 const itemYards = Number(
                   form.watch(`items.${index}.yards_used`) || 0
+                )
+                const itemIsReuse = Boolean(
+                  form.watch(`items.${index}.is_reuse`) || false
                 )
 
                 return (
@@ -673,6 +660,36 @@ export function ProductionForm({
                           className="h-9 text-xs"
                         />
                       </div>
+
+                      <div className="sm:col-span-2 lg:col-span-6">
+                        <div className="flex items-center gap-2 pt-1">
+                          <Checkbox
+                            id={`reuse-${field.id}`}
+                            checked={itemIsReuse}
+                            onCheckedChange={(checked) =>
+                              form.setValue(
+                                `items.${index}.is_reuse`,
+                                checked === true,
+                                {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                }
+                              )
+                            }
+                          />
+                          <Label
+                            htmlFor={`reuse-${field.id}`}
+                            className="cursor-pointer text-xs text-muted-foreground"
+                          >
+                            Reutilizando material de sesión anterior
+                          </Label>
+                        </div>
+                        {itemIsReuse ? (
+                          <p className="text-warning mt-1 text-xs">
+                            No se descontará del inventario
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 )
@@ -692,7 +709,7 @@ export function ProductionForm({
         <Button
           type="submit"
           size="sm"
-          disabled={isSubmitting}
+          disabled={isSubmitting || Boolean(employeeLinkError)}
           className="w-full"
         >
           {isSubmitting ? (

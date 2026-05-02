@@ -1,4 +1,4 @@
-import { PayrollStatus, UserRole } from "@prisma/client"
+import { PayrollStatus, UserRole, Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { payrollPaymentSchema } from "@/lib/validations/payroll"
@@ -12,7 +12,7 @@ import {
 } from "@/lib/api/response"
 
 import { requirePermission } from "@/lib/api/require-permission"
-import { toPrismaDecimal } from "@/lib/api/utils"
+import { toLocalDate, toPrismaDecimal } from "@/lib/api/utils"
 
 type RouteParams = {
   id: string
@@ -76,8 +76,8 @@ export async function PATCH(
       where: { id },
       data: {
         employeeId: payload.employee_id,
-        periodStart: payload.period_start,
-        periodEnd: payload.period_end,
+        periodStart: toLocalDate(payload.period_start),
+        periodEnd: toLocalDate(payload.period_end),
         piecesProduced: payload.pieces_produced,
         hoursWorked:
           payload.hours_worked === null || payload.hours_worked === undefined
@@ -109,25 +109,47 @@ export async function DELETE(
 
     const payment = await prisma.payrollPayment.findUnique({
       where: { id },
-      select: {
-        status: true,
-      },
+      include: { expenses: true },
     })
 
     if (!payment) {
-      throw new ApiRouteError("No se encontro el pago solicitado.", 404)
+      throw new ApiRouteError("No se encontró el pago solicitado.", 404)
     }
 
     if (payment.status !== PayrollStatus.pending) {
       throw new ApiRouteError("Solo se pueden eliminar pagos pendientes.", 422)
     }
 
-    await prisma.payrollPayment.delete({
-      where: { id },
+    await prisma.$transaction(async (tx) => {
+      // Log deletion
+      await tx.auditLog.create({
+        data: {
+          tableName: "payroll_payments",
+          recordId: id,
+          action: "delete",
+          oldValues: JSON.parse(JSON.stringify(payment)),
+          createdBy: profile.id,
+        },
+      })
+
+      // If there are expenses linked, we need to handle them (schema says SetNull)
+      await tx.payrollPayment.delete({
+        where: { id },
+      })
     })
 
     return apiSuccess({ id, deleted: true })
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2003"
+    ) {
+      return handleApiError(
+        new Error(
+          "No se puede eliminar este registro porque tiene otros registros asociados."
+        )
+      )
+    }
     return handleApiError(error)
   }
 }

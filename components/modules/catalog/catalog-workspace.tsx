@@ -3,9 +3,11 @@
 import Link from "next/link"
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DataTable } from "@/components/shared/data-table"
@@ -27,10 +29,21 @@ import {
   ArrowUpRight,
   LayoutGridIcon,
   ListIcon,
+  PencilIcon,
   PlusIcon,
   ShoppingBagIcon,
   SlidersHorizontalIcon,
+  Trash2,
+  AlertTriangle,
+  MoreHorizontal,
 } from "lucide-react"
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 import {
   Select,
@@ -41,23 +54,45 @@ import {
 } from "@/components/ui/select"
 
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
+import {
   CatalogCard,
   type CatalogCardItem,
 } from "@/components/modules/catalog/catalog-card"
 
 interface CatalogWorkspaceProps {
   items: CatalogCardItem[]
+  canDelete?: boolean
 }
 
 type ViewMode = "grid" | "table"
 
-export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
+export function CatalogWorkspace({
+  items,
+  canDelete = false,
+}: CatalogWorkspaceProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const isMobile = useIsMobile()
   const [viewMode, setViewMode] = React.useState<ViewMode>("grid")
   const [garmentFilter, setGarmentFilter] = React.useState("all")
   const [bulkDialogOpen, setBulkDialogOpen] = React.useState(false)
   const [createOpen, setCreateOpen] = React.useState(false)
+  const [editingItem, setEditingItem] = React.useState<CatalogCardItem | null>(
+    null
+  )
+  const [itemToDeactivate, setItemToDeactivate] =
+    React.useState<CatalogCardItem | null>(null)
+  const [isDeactivating, setIsDeactivating] = React.useState(false)
 
   const filteredItems = React.useMemo(() => {
     return items.filter((item) => {
@@ -73,6 +108,32 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
     }
     return [...values].sort()
   }, [items])
+
+  async function handleDeactivate() {
+    if (!itemToDeactivate) return
+    setIsDeactivating(true)
+
+    try {
+      const response = await fetch(`/api/catalog/${itemToDeactivate.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error("No se pudo desactivar el producto.")
+      }
+
+      toast.success("Producto desactivado correctamente.")
+      setItemToDeactivate(null)
+      await queryClient.invalidateQueries({ queryKey: ["catalog"] })
+      router.refresh()
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Error al desactivar."
+      )
+    } finally {
+      setIsDeactivating(false)
+    }
+  }
 
   const columns = React.useMemo<ColumnDef<CatalogCardItem>[]>(
     () => [
@@ -148,21 +209,44 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
         id: "actions",
         header: "",
         cell: ({ row }) => (
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="min-h-10 px-3 text-xs sm:h-8 sm:min-h-8"
-          >
-            <Link href={`/catalog/${row.original.id}`}>
-              Detalle
-              <ArrowUpRight className="size-3.5" />
-            </Link>
-          </Button>
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="min-h-10 px-3 text-xs sm:h-8 sm:min-h-8"
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setEditingItem(row.original)}>
+                  <PencilIcon className="size-3.5" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/catalog/${row.original.id}`}>
+                    <ArrowUpRight className="size-3.5" />
+                    Detalle
+                  </Link>
+                </DropdownMenuItem>
+                {canDelete && (
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 text-destructive focus:text-destructive"
+                    onClick={() => setItemToDeactivate(row.original)}
+                  >
+                    <Trash2 className="size-4" />
+                    Desactivar
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         ),
       },
     ],
-    []
+    [canDelete]
   )
 
   return (
@@ -250,7 +334,7 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             }
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
             {filteredItems.map((item) => (
               <CatalogCard key={item.id} item={item} />
             ))}
@@ -299,8 +383,9 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
             <div className="px-4 py-4">
               <CatalogForm
                 mode="create"
-                onSuccess={() => {
+                onSuccess={async () => {
                   setCreateOpen(false)
+                  await queryClient.invalidateQueries({ queryKey: ["catalog"] })
                   router.refresh()
                 }}
                 onCancel={() => setCreateOpen(false)}
@@ -309,6 +394,98 @@ export function CatalogWorkspace({ items }: CatalogWorkspaceProps) {
           </ScrollArea>
         </SheetContent>
       </Sheet>
+
+      {/* Edit product sheet */}
+      <Sheet
+        open={Boolean(editingItem)}
+        onOpenChange={(open) => !open && setEditingItem(null)}
+      >
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className={cn(
+            "flex flex-col gap-0 border-border p-0 sm:max-w-2xl",
+            isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
+          )}
+        >
+          <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                <PencilIcon className="size-4 text-primary" />
+              </div>
+              <div>
+                <SheetTitle className="text-base">Editar producto</SheetTitle>
+                <SheetDescription className="text-sm text-pretty">
+                  Actualiza la información del producto seleccionado.
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+          <ScrollArea className="flex-1">
+            <div className="px-4 py-4">
+              {editingItem ? (
+                <CatalogForm
+                  mode="edit"
+                  itemId={editingItem.id}
+                  defaultValues={{
+                    name: editingItem.name,
+                    description: null,
+                    garment_type: editingItem.garmentType ?? "",
+                    market_price_unit: editingItem.marketPriceUnit ?? 0,
+                    market_price_dozen: null,
+                    our_price_unit: editingItem.ourPriceUnit ?? 0,
+                    our_price_dozen: editingItem.ourPriceDozen,
+                    estimated_cost: editingItem.estimatedCost,
+                    notes: editingItem.notes,
+                    image_url: editingItem.imageUrl,
+                  }}
+                  onSuccess={async () => {
+                    setEditingItem(null)
+                    await queryClient.invalidateQueries({
+                      queryKey: ["catalog"],
+                    })
+                    router.refresh()
+                  }}
+                  onCancel={() => setEditingItem(null)}
+                />
+              ) : null}
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog
+        open={Boolean(itemToDeactivate)}
+        onOpenChange={(open) =>
+          !open && !isDeactivating && setItemToDeactivate(null)
+        }
+      >
+        <AlertDialogContent className="px-4 py-4 sm:px-6 sm:py-6">
+          <AlertDialogHeader>
+            <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive">
+              <AlertTriangle className="size-5" />
+            </div>
+            <AlertDialogTitle className="text-center">
+              ¿Desactivar producto?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-pretty">
+              El producto ya no aparecerá en el catálogo activo para ventas o
+              pedidos. Puedes reactivarlo después si es necesario.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeactivating}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeactivating}
+              onClick={handleDeactivate}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeactivating ? "Desactivando..." : "Desactivar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

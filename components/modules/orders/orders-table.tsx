@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { ArrowUpRight } from "lucide-react"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { WorkOrderStatus } from "@prisma/client"
 import { type ColumnDef } from "@tanstack/react-table"
@@ -28,117 +29,188 @@ import {
 } from "@/components/ui/select"
 
 const statusOptions: WorkOrderStatus[] = [
-  WorkOrderStatus.received,
-  WorkOrderStatus.confirmed,
-  WorkOrderStatus.in_production,
-  WorkOrderStatus.ready,
   WorkOrderStatus.delivered,
   WorkOrderStatus.cancelled,
 ]
 
-const columns: ColumnDef<OrderSummaryItem>[] = [
-  {
-    accessorKey: "deliveryDate",
-    header: "Entrega",
-    cell: ({ row }) => (
-      <span className="text-sm">{formatDate(row.original.deliveryDate)}</span>
-    ),
-  },
-  {
-    accessorKey: "customerName",
-    header: "Cliente",
-    cell: ({ row }) => (
-      <div className="space-y-0.5">
-        <p className="max-w-56 truncate text-sm font-medium">
-          {row.original.customerName}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          #{row.original.id.slice(0, 8)}
-        </p>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "channel",
-    header: "Canal",
-    cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">
-        {channelLabelMap[row.original.channel]}
-      </span>
-    ),
-    meta: {
-      className: "hidden md:table-cell",
-      headerClassName: "hidden md:table-cell",
-    },
-  },
-  {
-    accessorKey: "garmentCount",
-    header: "Prendas",
-    cell: ({ row }) => (
-      <span className="text-sm">{row.original.garmentCount}</span>
-    ),
-    meta: {
-      className: "hidden sm:table-cell",
-      headerClassName: "hidden sm:table-cell",
-      mobileCardVisible: true,
-      mobileLabel: "Prendas",
-    },
-  },
-  {
-    accessorKey: "balanceDue",
-    header: () => <div className="text-right">Saldo</div>,
-    cell: ({ row }) => (
-      <div className="text-right">
-        <CurrencyDisplay amount={row.original.balanceDue} colored size="sm" />
-      </div>
-    ),
-    meta: {
-      mobileCardVisible: true,
-      mobileLabel: "Saldo",
-    },
-  },
-  {
-    accessorKey: "status",
-    header: "Estado",
-    cell: ({ row }) => (
-      <StatusBadge status={row.original.status} type="work-order" />
-    ),
-  },
-  {
-    id: "actions",
-    header: "",
-    cell: ({ row }) => (
-      <Button
-        asChild
-        variant="ghost"
-        size="sm"
-        className="min-h-10 justify-start px-3 sm:min-h-9"
-      >
-        <Link href={`/orders/${row.original.id}`}>
-          Ver
-          <ArrowUpRight className="size-4" />
-        </Link>
-      </Button>
-    ),
-  },
-]
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
+import {
+  AlertTriangle,
+  MoreHorizontal,
+  Trash2,
+  Eye,
+} from "lucide-react"
+
+// Columns will be defined inside the component to access state
 
 interface OrdersTableProps {
   orders: OrderSummaryItem[]
   /** Hide estado filter when parent workspace applies pipeline tabs */
   suppressStatusFilter?: boolean
+  canDelete?: boolean
 }
 
 export function OrdersTable({
   orders,
   suppressStatusFilter = false,
+  canDelete = false,
 }: OrdersTableProps) {
+  const router = useRouter()
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | WorkOrderStatus
   >("all")
   const [channelFilter, setChannelFilter] = React.useState<
     "all" | OrderSummaryItem["channel"]
   >("all")
+  const [orderToDelete, setOrderToDelete] = React.useState<OrderSummaryItem | null>(null)
+  const [isDeleting, setIsDeleting] = React.useState(false)
+
+  async function handleDelete() {
+    if (!orderToDelete) return
+    setIsDeleting(true)
+
+    try {
+      const response = await fetch(`/api/orders/${orderToDelete.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "No se pudo eliminar el pedido.")
+      }
+
+      toast.success("Pedido eliminado correctamente.")
+      setOrderToDelete(null)
+      router.refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al eliminar.")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const columns = React.useMemo<ColumnDef<OrderSummaryItem>[]>(
+    () => [
+      {
+        accessorKey: "deliveryDate",
+        header: "Entrega",
+        cell: ({ row }) => (
+          <span className="text-sm">{formatDate(row.original.deliveryDate)}</span>
+        ),
+      },
+      {
+        accessorKey: "customerName",
+        header: "Cliente",
+        cell: ({ row }) => (
+          <div className="space-y-0.5">
+            <p className="max-w-56 truncate text-sm font-medium">
+              {row.original.customerName}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              #{row.original.id.slice(0, 8)}
+            </p>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "channel",
+        header: "Canal",
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">
+            {channelLabelMap[row.original.channel]}
+          </span>
+        ),
+        meta: {
+          className: "hidden md:table-cell",
+          headerClassName: "hidden md:table-cell",
+        },
+      },
+      {
+        accessorKey: "garmentCount",
+        header: "Prendas",
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.garmentCount}</span>
+        ),
+        meta: {
+          className: "hidden sm:table-cell",
+          headerClassName: "hidden sm:table-cell",
+          mobileCardVisible: true,
+          mobileLabel: "Prendas",
+        },
+      },
+      {
+        accessorKey: "balanceDue",
+        header: () => <div className="text-right">Saldo</div>,
+        cell: ({ row }) => (
+          <div className="text-right">
+            <CurrencyDisplay amount={row.original.balanceDue} colored size="sm" />
+          </div>
+        ),
+        meta: {
+          mobileCardVisible: true,
+          mobileLabel: "Saldo",
+        },
+      },
+      {
+        accessorKey: "status",
+        header: "Estado",
+        cell: ({ row }) => (
+          <StatusBadge status={row.original.status} type="work-order" />
+        ),
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="size-8">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem asChild>
+                  <Link href={`/orders/${row.original.id}`} className="flex items-center gap-2">
+                    <Eye className="size-4" />
+                    Ver detalles
+                  </Link>
+                </DropdownMenuItem>
+                
+                {canDelete && (row.original.status === WorkOrderStatus.received || row.original.status === WorkOrderStatus.cancelled) && (
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive flex items-center gap-2"
+                    onClick={() => setOrderToDelete(row.original)}
+                  >
+                    <Trash2 className="size-4" />
+                    Eliminar pedido
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ),
+      },
+    ],
+    [canDelete]
+  )
 
   const filtered = React.useMemo(() => {
     return orders.filter((o) => {
@@ -198,19 +270,54 @@ export function OrdersTable({
   )
 
   return (
-    <DataTable
-      columns={columns}
-      data={filtered}
-      searchKey="customerName"
-      searchPlaceholder="Buscar por cliente..."
-      emptyMessage="Sin pedidos"
-      emptyDescription="Ajusta los filtros para ver resultados"
-      toolbar={toolbar}
-      getRowClassName={(order) =>
-        isOverdue(order)
-          ? cn("tone-warning border-l-warning/50 border-l-2")
-          : ""
-      }
-    />
+    <div className="space-y-3">
+      <DataTable
+        columns={columns}
+        data={filtered}
+        searchKey="customerName"
+        searchPlaceholder="Buscar por cliente..."
+        emptyMessage="Sin pedidos"
+        emptyDescription="Ajusta los filtros para ver resultados"
+        toolbar={toolbar}
+        getRowClassName={(order) =>
+          isOverdue(order)
+            ? cn("tone-warning border-l-warning/50 border-l-2")
+            : ""
+        }
+      />
+
+      <AlertDialog
+        open={Boolean(orderToDelete)}
+        onOpenChange={(open) => !open && !isDeleting && setOrderToDelete(null)}
+      >
+        <AlertDialogContent className="px-4 py-4 sm:px-6 sm:py-6 sm:max-w-md">
+          <AlertDialogHeader>
+            <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive">
+              <AlertTriangle className="size-5" />
+            </div>
+            <AlertDialogTitle className="text-center text-pretty">
+              ¿Eliminar este pedido?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-pretty">
+              Esta acción no se puede deshacer. Se eliminará el registro del
+              pedido permanentemente. 
+              <span className="mt-2 block text-xs font-medium text-muted-foreground">
+                Solo se pueden eliminar pedidos en estado Recibido o Cancelado.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }

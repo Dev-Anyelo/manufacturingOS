@@ -18,13 +18,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { CustomerSelector } from "@/components/modules/sales/customer-selector"
+import type { PosCustomer } from "@/components/modules/sales/types"
 
 import {
   Loader2,
@@ -167,6 +162,26 @@ export function PayrollForm({
     [employees, selectedEmployeeId]
   )
 
+  const customerList = React.useMemo<PosCustomer[]>(
+    () =>
+      employees.map((e) => ({
+        id: e.id,
+        fullName: e.fullName,
+      })),
+    [employees]
+  )
+
+  const selectedCustomer = React.useMemo<PosCustomer | null>(
+    () =>
+      selectedEmployee
+        ? {
+            id: selectedEmployee.id,
+            fullName: selectedEmployee.fullName,
+          }
+        : null,
+    [selectedEmployee]
+  )
+
   React.useEffect(() => {
     const selected = employees.find((e) => e.id === selectedEmployeeId)
     if (!selected) return
@@ -261,31 +276,19 @@ export function PayrollForm({
                 <Label className="text-sm font-medium">
                   Empleado <span className="text-destructive">*</span>
                 </Label>
-                <Select
-                  value={form.watch("employee_id")}
-                  onValueChange={(value) =>
-                    form.setValue("employee_id", value, {
+                <CustomerSelector
+                  customers={customerList}
+                  value={selectedCustomer}
+                  onChange={(customer) =>
+                    form.setValue("employee_id", customer?.id || "", {
                       shouldDirty: true,
                       shouldValidate: true,
                     })
                   }
-                >
-                  <SelectTrigger className="h-11 w-full">
-                    <SelectValue placeholder="Selecciona un empleado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        <div className="flex items-center gap-2">
-                          <div className="flex size-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                            {employee.fullName.charAt(0)}
-                          </div>
-                          <span>{employee.fullName}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  label=""
+                  placeholder="Selecciona un empleado"
+                  disabled={isSubmitting}
+                />
                 {form.formState.errors.employee_id && (
                   <p className="text-xs text-destructive">
                     {form.formState.errors.employee_id.message}
@@ -460,34 +463,26 @@ export function PayrollForm({
               </div>
 
               {/* Payment Method */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1 text-sm font-medium">
-                  <CreditCard className="size-3.5" />
-                  Método de pago
-                </Label>
-                <Select
-                  value={form.watch("payment_method") ?? "none"}
-                  onValueChange={(value) =>
-                    form.setValue(
-                      "payment_method",
-                      value === "none"
-                        ? null
-                        : (value as "cash" | "transfer" | "other"),
-                      { shouldDirty: true }
-                    )
-                  }
-                >
-                  <SelectTrigger className="h-10 w-full">
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sin definir</SelectItem>
-                    <SelectItem value="cash">Efectivo</SelectItem>
-                    <SelectItem value="transfer">Transferencia</SelectItem>
-                    <SelectItem value="other">Otro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1 text-sm font-medium">
+                    <CreditCard className="size-3.5" />
+                    Método de pago
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {["cash", "transfer", "other"].map((method) => (
+                      <Button
+                        key={method}
+                        type="button"
+                        variant={form.watch("payment_method") === method ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => form.setValue("payment_method", method as "cash" | "transfer" | "other", { shouldDirty: true })}
+                        className="flex-1 min-w-[100px] h-10"
+                      >
+                        {method === "cash" ? "Efectivo" : method === "transfer" ? "Transferencia" : "Otro"}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
             </div>
           </div>
         </TabsContent>

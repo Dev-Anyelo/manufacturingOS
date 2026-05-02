@@ -1,6 +1,7 @@
 import { formatCurrency } from "@/lib/utils"
 import { ExpenseCategory } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
+import { requireAuth } from "@/lib/api/response"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
@@ -21,7 +22,10 @@ import {
   BarChart2Icon,
 } from "lucide-react"
 
+
+
 export default async function ExpensesPage() {
+  const { profile } = await requireAuth()
   const [expenses, overview, bootstrap] = await Promise.all([
     getExpenses(),
     getMonthlyExpenseOverview(),
@@ -120,7 +124,7 @@ export default async function ExpensesPage() {
           byCategory={overview.byCategory}
         />
 
-        <ExpensesTable expenses={rows} />
+        <ExpensesTable expenses={rows} currentUserRole={profile.role} />
       </div>
     </section>
   )

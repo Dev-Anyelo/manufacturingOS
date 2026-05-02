@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { OrderForm } from "@/components/modules/orders/order-form"
+import type { PosCustomer } from "@/components/modules/sales/types"
 
 import {
   Sheet,
@@ -17,12 +18,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 
-type PosCustomer = {
-  id: string
-  name: string
-  phone?: string | null
-  email?: string | null
-}
+// Using PosCustomer from sales/types
 
 type CatalogChoice = {
   id: string

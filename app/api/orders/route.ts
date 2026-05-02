@@ -13,6 +13,7 @@ import {
 import {
   getSearchParam,
   parseDateParam,
+  toLocalDate,
   toPrismaDecimal,
 } from "@/lib/api/utils"
 
@@ -85,7 +86,8 @@ export async function POST(request: Request) {
     const order = await prisma.workOrder.create({
       data: {
         customerId: payload.customer_id,
-        deliveryDate: payload.delivery_date,
+        receivedDate: toLocalDate(new Date()),
+        deliveryDate: toLocalDate(payload.delivery_date),
         channel: payload.channel,
         advancePaid: toPrismaDecimal(payload.advance_paid),
         total: toPrismaDecimal(payload.total),

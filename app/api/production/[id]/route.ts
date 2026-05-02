@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { Prisma, UserRole } from "@prisma/client"
-import { toPrismaDecimal } from "@/lib/api/utils"
+import { toLocalDate, toPrismaDecimal } from "@/lib/api/utils"
 import { productionSessionSchema } from "@/lib/validations/production"
 
 import {
@@ -153,7 +153,7 @@ export async function PATCH(
         where: { id },
         data: {
           employeeId: payload.employee_id,
-          sessionDate: payload.session_date,
+          sessionDate: toLocalDate(payload.session_date),
           notes: payload.notes,
           items: {
             create: payload.items.map((item) => ({
@@ -200,6 +200,17 @@ export async function DELETE(
     }
 
     await prisma.$transaction(async (tx) => {
+      // Log deletion before removing
+      await tx.auditLog.create({
+        data: {
+          tableName: "production_sessions",
+          recordId: id,
+          action: "delete",
+          oldValues: JSON.parse(JSON.stringify(session)),
+          createdBy: profile.id,
+        },
+      })
+
       for (const item of session.items) {
         await tx.inventoryItem.update({
           where: { id: item.inventoryItemId },

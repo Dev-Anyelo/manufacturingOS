@@ -50,7 +50,7 @@ export default async function UsersSettingsPage() {
                 Nuevo usuario
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[90vw] px-4 py-4 sm:max-w-[425px]">
+            <DialogContent className="max-w-[90vw] px-4 py-4 sm:max-w-106.25">
               <DialogHeader>
                 <DialogTitle>Agregar nuevo usuario</DialogTitle>
                 <DialogDescription className="text-sm text-pretty">

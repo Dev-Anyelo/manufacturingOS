@@ -6,8 +6,13 @@ import { UsersIcon, ShoppingBagIcon, FileTextIcon } from "lucide-react"
 import { CustomersTable } from "@/components/modules/customers/customers-table"
 import { NewCustomerSheet } from "@/components/modules/customers/new-customer-sheet"
 
+import { requireCurrentUser } from "@/lib/auth/current-user"
+
 export default async function CustomersPage() {
-  const customers = await getCustomers()
+  const [customers, currentUser] = await Promise.all([
+    getCustomers(),
+    requireCurrentUser()
+  ])
 
   const rows = customers.map((c) => ({
     id: c.id,
@@ -62,7 +67,10 @@ export default async function CustomersPage() {
           />
         </KpiSection>
 
-        <CustomersTable data={rows} />
+        <CustomersTable 
+          data={rows} 
+          canDelete={currentUser.role === "admin" || currentUser.role === "manager"} 
+        />
       </div>
     </section>
   )

@@ -64,6 +64,7 @@ interface PayrollWorkspaceProps {
   payments: PayrollTableRow[]
   employeeSummary: EmployeeSummaryRow[]
   employees: EmployeeOption[]
+  canDelete?: boolean
 }
 
 function getInitials(name: string) {
@@ -79,6 +80,7 @@ export function PayrollWorkspace({
   payments,
   employeeSummary,
   employees,
+  canDelete = false,
 }: PayrollWorkspaceProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
@@ -205,11 +207,12 @@ export function PayrollWorkspace({
             }}
             onSendEmail={handleSendEmail}
             busyId={busyId}
+            canDelete={canDelete}
           />
         </TabsContent>
 
         <TabsContent value="employees">
-          <Card className="rounded-xl border border-border shadow-sm">
+          <Card className="rounded-xl border border-border shadow-sm pt-0">
             <CardHeader className="border-b border-border px-4 pt-4 pb-3">
               <div className="flex items-center gap-2">
                 <ClipboardListIcon className="size-4 text-muted-foreground" />

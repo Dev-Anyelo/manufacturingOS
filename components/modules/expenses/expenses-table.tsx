@@ -2,13 +2,24 @@
 
 import Link from "next/link"
 import * as React from "react"
-import { type ColumnDef } from "@tanstack/react-table"
-import { ExternalLinkIcon, ReceiptIcon } from "lucide-react"
-
-import { DataTable } from "@/components/shared/data-table"
-import { DateRangePicker } from "@/components/shared/date-range-picker"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { toast } from "sonner"
+import { UserRole } from "@prisma/client"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { type ColumnDef } from "@tanstack/react-table"
+import { DataTable } from "@/components/shared/data-table"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { DateRangePicker } from "@/components/shared/date-range-picker"
+import { ExpenseCategoryBadge } from "@/components/modules/expenses/expense-category-badge"
+
+import {
+  ReceiptIcon,
+  MoreHorizontal,
+  Trash2Icon,
+  AlertTriangleIcon,
+  ArrowUpRight,
+} from "lucide-react"
+
 import {
   Select,
   SelectContent,
@@ -16,7 +27,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ExpenseCategoryBadge } from "@/components/modules/expenses/expense-category-badge"
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export interface ExpenseTableRow {
   id: string
@@ -32,6 +60,7 @@ export interface ExpenseTableRow {
 
 interface ExpensesTableProps {
   expenses: ExpenseTableRow[]
+  currentUserRole: string
 }
 
 function formatDate(value: string) {
@@ -40,84 +69,21 @@ function formatDate(value: string) {
   }).format(new Date(value))
 }
 
-const columns: ColumnDef<ExpenseTableRow>[] = [
-  {
-    accessorKey: "expenseDate",
-    header: "Fecha",
-    cell: ({ row }) => (
-      <span className="text-sm">{formatDate(row.original.expenseDate)}</span>
-    ),
-  },
-  {
-    accessorKey: "concept",
-    header: "Concepto",
-    cell: ({ row }) => (
-      <div className="space-y-0.5">
-        <p className="max-w-56 truncate text-sm font-medium">
-          {row.original.concept}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {row.original.supplier ?? "Sin proveedor"}
-        </p>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "category",
-    header: "Categoria",
-    cell: ({ row }) => (
-      <ExpenseCategoryBadge category={row.original.category} />
-    ),
-  },
-  {
-    accessorKey: "updatesInventory",
-    header: "Inventario",
-    cell: ({ row }) => (
-      <span className="text-xs text-muted-foreground">
-        {row.original.updatesInventory
-          ? `+ ${row.original.inventoryItemName ?? "material"}`
-          : "No aplica"}
-      </span>
-    ),
-    meta: {
-      className: "hidden md:table-cell",
-      headerClassName: "hidden md:table-cell",
-    },
-  },
-  {
-    accessorKey: "total",
-    header: () => <div className="text-right">Total</div>,
-    cell: ({ row }) => (
-      <div className="text-right">
-        <CurrencyDisplay amount={row.original.total} size="sm" />
-      </div>
-    ),
-  },
-  {
-    id: "actions",
-    header: "",
-    cell: ({ row }) =>
-      row.original.receiptUrl ? (
-        <Button asChild variant="ghost" size="sm" className="justify-start">
-          <Link href={row.original.receiptUrl} target="_blank" rel="noreferrer">
-            <ExternalLinkIcon className="size-4" />
-            Recibo
-          </Link>
-        </Button>
-      ) : (
-        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-          <ReceiptIcon className="size-3.5" />
-          Sin archivo
-        </span>
-      ),
-  },
-]
-
-export function ExpensesTable({ expenses }: ExpensesTableProps) {
+export function ExpensesTable({
+  expenses,
+  currentUserRole,
+}: ExpensesTableProps) {
+  const router = useRouter()
   const [categoryFilter, setCategoryFilter] = React.useState("all")
   const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>(
     {}
   )
+  const [expenseToDelete, setExpenseToDelete] =
+    React.useState<ExpenseTableRow | null>(null)
+  const [isDeleting, setIsDeleting] = React.useState(false)
+
+  const canDelete =
+    currentUserRole === UserRole.admin || currentUserRole === UserRole.manager
 
   const categories = React.useMemo(() => {
     return [...new Set(expenses.map((expense) => expense.category))].sort()
@@ -152,6 +118,128 @@ export function ExpensesTable({ expenses }: ExpensesTableProps) {
     () => filtered.reduce((acc, expense) => acc + expense.total, 0),
     [filtered]
   )
+
+  const handleDelete = async () => {
+    if (!expenseToDelete) return
+    setIsDeleting(true)
+
+    try {
+      const response = await fetch(`/api/expenses/${expenseToDelete.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error("No se pudo eliminar el gasto.")
+      }
+
+      toast.success("Gasto eliminado correctamente.")
+      setExpenseToDelete(null)
+      router.refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al eliminar.")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const columns: ColumnDef<ExpenseTableRow>[] = [
+    {
+      accessorKey: "expenseDate",
+      header: "Fecha",
+      cell: ({ row }) => (
+        <span className="text-sm">{formatDate(row.original.expenseDate)}</span>
+      ),
+    },
+    {
+      accessorKey: "concept",
+      header: "Concepto",
+      cell: ({ row }) => (
+        <div className="space-y-0.5">
+          <p className="max-w-56 truncate text-sm font-medium">
+            {row.original.concept}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {row.original.supplier ?? "Sin proveedor"}
+          </p>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "category",
+      header: "Categoria",
+      cell: ({ row }) => (
+        <ExpenseCategoryBadge category={row.original.category} />
+      ),
+    },
+    {
+      accessorKey: "updatesInventory",
+      header: "Inventario",
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {row.original.updatesInventory
+            ? `+ ${row.original.inventoryItemName ?? "material"}`
+            : "No aplica"}
+        </span>
+      ),
+      meta: {
+        className: "hidden md:table-cell",
+        headerClassName: "hidden md:table-cell",
+      },
+    },
+    {
+      accessorKey: "total",
+      header: () => <div className="text-right">Total</div>,
+      cell: ({ row }) => (
+        <div className="text-right">
+          <CurrencyDisplay amount={row.original.total} size="sm" />
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1">
+          {row.original.receiptUrl && (
+            <Button asChild variant="ghost" size="icon" className="size-7">
+              <Link
+                href={row.original.receiptUrl}
+                target="_blank"
+                rel="noreferrer"
+                title="Ver recibo"
+              >
+                <ReceiptIcon className="size-3.5" />
+              </Link>
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-7">
+                <MoreHorizontal className="size-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href={`/expenses/${row.original.id}`}>
+                  <ArrowUpRight className="size-3.5" />
+                  Detalles
+                </Link>
+              </DropdownMenuItem>
+              {canDelete && (
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => setExpenseToDelete(row.original)}
+                >
+                  <Trash2Icon className="size-3.5" />
+                  Eliminar
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ]
 
   return (
     <div className="space-y-3">
@@ -196,6 +284,40 @@ export function ExpensesTable({ expenses }: ExpensesTableProps) {
           </div>
         }
       />
+
+      <AlertDialog
+        open={Boolean(expenseToDelete)}
+        onOpenChange={(open) =>
+          !open && !isDeleting && setExpenseToDelete(null)
+        }
+      >
+        <AlertDialogContent className="px-4 py-4 sm:px-6 sm:py-6 sm:max-w-md">
+          <AlertDialogHeader>
+            <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+              <AlertTriangleIcon className="size-5" />
+            </div>
+            <AlertDialogTitle className="text-center text-pretty">
+              ¿Eliminar este gasto?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-pretty">
+              Esta acción no se puede deshacer. Se eliminará el registro del
+              gasto permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -27,6 +27,7 @@ import {
   decimalToNumber,
   getSearchParam,
   parseDateParam,
+  toLocalDate,
   toPrismaDecimal,
 } from "@/lib/api/utils"
 
@@ -113,7 +114,7 @@ export async function POST(request: Request) {
       const sale = await tx.sale.create({
         data: {
           customerId: payload.customer_id,
-          saleDate: payload.sale_date,
+          saleDate: toLocalDate(payload.sale_date),
           channel: payload.channel,
           paymentMethod: payload.payment_method,
           total: toPrismaDecimal(itemsTotal),

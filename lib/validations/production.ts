@@ -40,6 +40,8 @@ const productionItemSchema = z
     yards_used: z.coerce
       .number({ message: "Las yardas usadas son obligatorias" })
       .min(0, "Las yardas usadas no pueden ser negativas"),
+    is_reuse: z.boolean().default(false),
+    catalog_item_id: z.string().uuid().optional().nullable(),
     notes: z
       .string()
       .trim()

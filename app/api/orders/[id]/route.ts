@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma"
-import { toPrismaDecimal } from "@/lib/api/utils"
 import { Prisma, WorkOrderStatus } from "@prisma/client"
 import { workOrderSchema } from "@/lib/validations/orders"
 import { requirePermission } from "@/lib/api/require-permission"
+import { toLocalDate, toPrismaDecimal } from "@/lib/api/utils"
 
 import {
   ApiRouteError,
@@ -98,7 +98,7 @@ export async function PATCH(
         where: { id },
         data: {
           customerId: payload.customer_id,
-          deliveryDate: payload.delivery_date,
+          deliveryDate: toLocalDate(payload.delivery_date),
           channel: payload.channel,
           advancePaid: toPrismaDecimal(payload.advance_paid),
           total: toPrismaDecimal(payload.total),
@@ -146,14 +146,11 @@ export async function DELETE(
 
     const order = await prisma.workOrder.findUnique({
       where: { id },
-      select: {
-        id: true,
-        status: true,
-      },
+      include: { items: true },
     })
 
     if (!order) {
-      throw new ApiRouteError("No se encontro el pedido solicitado.", 404)
+      throw new ApiRouteError("No se encontró el pedido solicitado.", 404)
     }
 
     if (
@@ -166,8 +163,21 @@ export async function DELETE(
       )
     }
 
-    await prisma.workOrder.delete({
-      where: { id },
+    await prisma.$transaction(async (tx) => {
+      // Log deletion
+      await tx.auditLog.create({
+        data: {
+          tableName: "work_orders",
+          recordId: id,
+          action: "delete",
+          oldValues: JSON.parse(JSON.stringify(order)),
+          createdBy: profile.id,
+        },
+      })
+
+      await tx.workOrder.delete({
+        where: { id },
+      })
     })
 
     return apiSuccess({ id, deleted: true })

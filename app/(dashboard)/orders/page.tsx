@@ -1,14 +1,12 @@
-import Link from "next/link"
-import { PlusIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { WorkOrderStatus } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
-import { getWorkOrders, getOrderFormBootstrap } from "@/lib/data/orders"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
+import { requireCurrentUser } from "@/lib/auth/current-user"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
-import { OrdersWorkspace } from "@/components/modules/orders/orders-workspace"
+import { getWorkOrders, getOrderFormBootstrap } from "@/lib/data/orders"
 import { NewOrderSheet } from "@/components/modules/orders/new-order-sheet"
+import { OrdersWorkspace } from "@/components/modules/orders/orders-workspace"
 
 import {
   ClipboardListIcon,
@@ -18,9 +16,10 @@ import {
 } from "lucide-react"
 
 export default async function OrdersPage() {
-  const [orders, bootstrap] = await Promise.all([
+  const [orders, bootstrap, currentUser] = await Promise.all([
     getWorkOrders(),
     getOrderFormBootstrap(),
+    requireCurrentUser(),
   ])
 
   const orderRows = orders.map((order) => ({
@@ -69,10 +68,10 @@ export default async function OrdersPage() {
             { label: "Órdenes" },
           ]}
           actions={
-            <NewOrderSheet 
+            <NewOrderSheet
               customers={bootstrap.customers.map((c) => ({
                 id: c.id,
-                name: c.fullName,
+                fullName: c.fullName,
                 phone: c.phone,
                 email: c.email,
               }))}
@@ -132,7 +131,12 @@ export default async function OrdersPage() {
         </KpiSection>
 
         {/* ── Workspace ── */}
-        <OrdersWorkspace initialOrders={orderRows} />
+        <OrdersWorkspace
+          initialOrders={orderRows}
+          canDelete={
+            currentUser.role === "admin" || currentUser.role === "manager"
+          }
+        />
       </div>
     </section>
   )

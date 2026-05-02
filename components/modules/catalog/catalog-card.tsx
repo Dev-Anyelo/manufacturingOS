@@ -7,6 +7,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { ArrowUpRight, EditIcon, EyeIcon, ShirtIcon } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+import { GarmentType } from "@prisma/client"
 
 export interface CatalogCardItem {
   id: string
@@ -55,7 +56,23 @@ export function CatalogCard({ item }: CatalogCardProps) {
               variant="secondary"
               className="border border-border/50 bg-background/80 px-2 py-0.5 text-xs font-medium shadow-sm backdrop-blur-md"
             >
-              {item.garmentType}
+              {item.garmentType === GarmentType.shirt
+                ? "Camisa"
+                : item.garmentType === GarmentType.skirt
+                  ? "Falda"
+                  : item.garmentType === GarmentType.shorts
+                    ? "Pantalones cortos"
+                    : item.garmentType === GarmentType.leggings
+                      ? "Leggings"
+                      : item.garmentType === GarmentType.pajamas
+                        ? "Pijamas"
+                        : item.garmentType === GarmentType.suit
+                          ? "Traje"
+                          : item.garmentType === GarmentType.sheets
+                            ? "Sábanas"
+                            : item.garmentType === GarmentType.blankets
+                              ? "Mantas"
+                              : "Otro"}
             </Badge>
           </div>
         ) : null}

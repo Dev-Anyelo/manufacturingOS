@@ -4,6 +4,7 @@ import { catalogItemSchema } from "@/lib/validations/catalog"
 import { requirePermission } from "@/lib/api/require-permission"
 
 import {
+  ApiRouteError,
   apiSuccess,
   handleApiError,
   parseBodyWithSchema,
@@ -90,14 +91,35 @@ export async function DELETE(
 
     const { id } = await resolveRouteParams(context.params)
 
-    const item = await prisma.catalogItem.update({
+    const item = await prisma.catalogItem.findUnique({
       where: { id },
-      data: {
-        isActive: false,
-      },
     })
 
-    return apiSuccess(item)
+    if (!item) {
+      throw new ApiRouteError("Producto no encontrado", 404)
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Log de desactivación
+      await tx.auditLog.create({
+        data: {
+          tableName: "catalog_items",
+          recordId: id,
+          action: "delete",
+          oldValues: JSON.parse(JSON.stringify(item)),
+          createdBy: profile.id,
+        },
+      })
+
+      await tx.catalogItem.update({
+        where: { id },
+        data: {
+          isActive: false,
+        },
+      })
+    })
+
+    return apiSuccess({ id, deactivated: true })
   } catch (error) {
     return handleApiError(error)
   }

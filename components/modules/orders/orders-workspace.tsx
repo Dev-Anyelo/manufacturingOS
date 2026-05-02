@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils"
 
 interface OrdersWorkspaceProps {
   initialOrders: OrderSummaryItem[]
+  canDelete?: boolean
 }
 
 type PipelineFilter =
@@ -50,7 +51,10 @@ function matchesPipeline(order: OrderSummaryItem, filter: PipelineFilter) {
   }
 }
 
-export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
+export function OrdersWorkspace({
+  initialOrders,
+  canDelete = false,
+}: OrdersWorkspaceProps) {
   const router = useRouter()
   const [orders, setOrders] = React.useState(initialOrders)
   const [pipelineFilter, setPipelineFilter] =
@@ -137,7 +141,11 @@ export function OrdersWorkspace({ initialOrders }: OrdersWorkspaceProps) {
         </TabsContent>
 
         <TabsContent value="table" className="mt-0 focus-visible:outline-none">
-          <OrdersTable orders={filteredOrders} suppressStatusFilter />
+          <OrdersTable 
+            orders={filteredOrders} 
+            suppressStatusFilter 
+            canDelete={canDelete}
+          />
         </TabsContent>
       </Tabs>
 

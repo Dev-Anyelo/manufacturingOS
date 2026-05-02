@@ -1,13 +1,15 @@
-import Link from "next/link"
-import { PlusIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCatalogItems } from "@/lib/data/catalog"
 import { PageHeader } from "@/components/shared/page-header"
 import { CatalogWorkspace } from "@/components/modules/catalog/catalog-workspace"
 
+import { requireCurrentUser } from "@/lib/auth/current-user"
+
 export default async function CatalogPage() {
-  const items = await getCatalogItems()
+  const [items, currentUser] = await Promise.all([
+    getCatalogItems(),
+    requireCurrentUser()
+  ])
 
   return (
     <section className="page-shell">
@@ -23,6 +25,7 @@ export default async function CatalogPage() {
 
         <div>
           <CatalogWorkspace
+            canDelete={currentUser.role === "admin" || currentUser.role === "manager"}
             items={items.map((item) => ({
               id: item.id,
               name: item.name,
@@ -45,7 +48,8 @@ export default async function CatalogPage() {
                   : decimalToNumber(item.estimatedCost),
               imageUrl: item.imageUrl,
               notes: item.notes,
-              totalStock: item.finishedGoods?.reduce((sum, fg) => sum + fg.stock, 0) ?? 0,
+              totalStock:
+                item.finishedGoods?.reduce((sum, fg) => sum + fg.stock, 0) ?? 0,
             }))}
           />
         </div>

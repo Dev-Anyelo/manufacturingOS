@@ -6,13 +6,20 @@ import { PlusIcon, FactoryIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProductionForm } from "@/components/modules/production/production-form"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
 type EmployeeOption = {
   id: string
   fullName: string
+  profileId?: string | null
 }
 
 type InventoryOption = {
@@ -25,20 +32,23 @@ type InventoryOption = {
 interface NewProductionSheetProps {
   employees: EmployeeOption[]
   inventoryItems: InventoryOption[]
+  currentUserId: string
+  currentUserRole: string
 }
 
-export function NewProductionSheet({ employees, inventoryItems }: NewProductionSheetProps) {
+export function NewProductionSheet({
+  employees,
+  inventoryItems,
+  currentUserId,
+  currentUserRole,
+}: NewProductionSheetProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
   const [open, setOpen] = React.useState(false)
 
   return (
     <>
-      <Button
-        size="sm"
-        className="max-w-fit"
-        onClick={() => setOpen(true)}
-      >
+      <Button size="sm" className="max-w-fit" onClick={() => setOpen(true)}>
         <PlusIcon className="size-4 shrink-0" />
         Nueva sesión
       </Button>
@@ -57,7 +67,9 @@ export function NewProductionSheet({ employees, inventoryItems }: NewProductionS
                 <FactoryIcon className="size-4 text-primary" />
               </div>
               <div>
-                <SheetTitle className="text-base text-pretty">Nueva sesión de producción</SheetTitle>
+                <SheetTitle className="text-base text-pretty">
+                  Nueva sesión de producción
+                </SheetTitle>
                 <SheetDescription className="text-sm text-pretty">
                   Registra la producción del día y el uso de materiales.
                 </SheetDescription>
@@ -70,6 +82,8 @@ export function NewProductionSheet({ employees, inventoryItems }: NewProductionS
               <ProductionForm
                 employees={employees}
                 inventoryItems={inventoryItems}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
                 onSuccess={() => {
                   setOpen(false)
                   router.refresh()

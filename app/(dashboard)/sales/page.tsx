@@ -6,6 +6,7 @@ import { StatCard } from "@/components/shared/stat-card"
 import { PageHeader } from "@/components/shared/page-header"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { SalesTable } from "@/components/modules/sales/sales-table"
+import { requireCurrentUser } from "@/lib/auth/current-user"
 import { getSales, getTodaySalesSummary } from "@/lib/data/sales"
 
 import {
@@ -33,9 +34,10 @@ export default async function SalesPage(props: { searchParams: SearchParams }) {
   const dateFrom = parseDateParam(from)
   const dateTo = parseDateParam(to)
 
-  const [sales, todaySummary] = await Promise.all([
+  const [sales, todaySummary, currentUser] = await Promise.all([
     getSales({ dateFrom, dateTo }),
     getTodaySalesSummary(),
+    requireCurrentUser(),
   ])
 
   const tableRows = sales.map((sale) => ({
@@ -108,7 +110,7 @@ export default async function SalesPage(props: { searchParams: SearchParams }) {
           />
         </div>
 
-        <SalesTable sales={tableRows} />
+        <SalesTable sales={tableRows} currentUserRole={currentUser.role} />
       </div>
     </section>
   )

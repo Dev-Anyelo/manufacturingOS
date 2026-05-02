@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma"
-import { UserRole } from "@prisma/client"
 import { inventoryItemSchema } from "@/lib/validations/inventory"
 
 import {
@@ -98,11 +97,32 @@ export async function DELETE(
 
     const { id } = await resolveRouteParams(context.params)
 
-    await prisma.inventoryItem.update({
+    const item = await prisma.inventoryItem.findUnique({
       where: { id },
-      data: {
-        isActive: false,
-      },
+    })
+
+    if (!item) {
+      return apiSuccess({ id, deleted: true })
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Create audit log for soft delete
+      await tx.auditLog.create({
+        data: {
+          tableName: "inventory_items",
+          recordId: id,
+          action: "delete",
+          oldValues: JSON.parse(JSON.stringify(item)),
+          createdBy: profile.id,
+        },
+      })
+
+      await tx.inventoryItem.update({
+        where: { id },
+        data: {
+          isActive: false,
+        },
+      })
     })
 
     return apiSuccess({ id, deleted: true })

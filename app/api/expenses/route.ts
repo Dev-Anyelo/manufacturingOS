@@ -15,7 +15,7 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  } from "@/lib/api/response"
+} from "@/lib/api/response"
 
 import { requirePermission } from "@/lib/api/require-permission"
 
@@ -27,6 +27,7 @@ import {
 import {
   getSearchParam,
   parseDateParam,
+  toLocalDate,
   toPrismaDecimal,
 } from "@/lib/api/utils"
 
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
     const created = await prisma.$transaction(async (tx) => {
       const expense = await tx.expense.create({
         data: {
-          expenseDate: payload.expense_date,
+          expenseDate: toLocalDate(payload.expense_date),
           category: payload.category,
           concept: payload.concept,
           supplier: payload.supplier,

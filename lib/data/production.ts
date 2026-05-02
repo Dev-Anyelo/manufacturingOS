@@ -61,6 +61,7 @@ export async function getProductionSession(id: string) {
       items: {
         include: {
           inventoryItem: true,
+          catalogItem: true,
         },
       },
     },
@@ -112,6 +113,7 @@ export async function getProductionFormBootstrap() {
       select: {
         id: true,
         fullName: true,
+        profileId: true,
       },
     }),
     prisma.inventoryItem.findMany({

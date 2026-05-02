@@ -39,7 +39,7 @@ export default async function NewOrderPage() {
         <OrderForm
           customers={customers.map((customer) => ({
             id: customer.id,
-            name: customer.fullName,
+            fullName: customer.fullName,
             phone: customer.phone,
             email: customer.email,
           }))}

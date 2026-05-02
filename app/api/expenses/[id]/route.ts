@@ -1,89 +1,16 @@
 import { prisma } from "@/lib/prisma"
-import { UserRole } from "@prisma/client"
-import { toPrismaDecimal } from "@/lib/api/utils"
-import { expenseSchema } from "@/lib/validations/expenses"
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   apiSuccess,
   handleApiError,
-  parseBodyWithSchema,
   requireAuth,
   resolveRouteParams,
+  ApiRouteError,
 } from "@/lib/api/response"
-
-import { requirePermission } from "@/lib/api/require-permission"
 
 type RouteParams = {
   id: string
-}
-
-export async function GET(
-  _request: Request,
-  context: { params: Promise<RouteParams> | RouteParams }
-) {
-  try {
-    const { profile } = await requireAuth()
-    await requirePermission(profile, "expenses", "view")
-
-    const { id } = await resolveRouteParams(context.params)
-
-    const expense = await prisma.expense.findUnique({
-      where: { id },
-      include: {
-        inventoryItem: true,
-        payrollPayment: true,
-      },
-    })
-
-    return apiSuccess(expense)
-  } catch (error) {
-    return handleApiError(error)
-  }
-}
-
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<RouteParams> | RouteParams }
-) {
-  try {
-    const { profile } = await requireAuth()
-    await requirePermission(profile, "expenses", "edit")
-
-    const payload = await parseBodyWithSchema(request, expenseSchema)
-    const { id } = await resolveRouteParams(context.params)
-
-    const expense = await prisma.expense.update({
-      where: { id },
-      data: {
-        expenseDate: payload.expense_date,
-        category: payload.category,
-        concept: payload.concept,
-        supplier: payload.supplier,
-        quantity:
-          payload.quantity === undefined || payload.quantity === null
-            ? null
-            : toPrismaDecimal(payload.quantity),
-        unitPrice:
-          payload.unit_price === undefined || payload.unit_price === null
-            ? null
-            : toPrismaDecimal(payload.unit_price),
-        total: toPrismaDecimal(payload.total),
-        updatesInventory: payload.updates_inventory,
-        inventoryItemId: payload.inventory_item_id,
-        inventoryQuantityAdded:
-          payload.inventory_quantity_added === undefined ||
-          payload.inventory_quantity_added === null
-            ? null
-            : toPrismaDecimal(payload.inventory_quantity_added),
-        receiptUrl: payload.receipt_url,
-        notes: payload.notes,
-      },
-    })
-
-    return apiSuccess(expense)
-  } catch (error) {
-    return handleApiError(error)
-  }
 }
 
 export async function DELETE(
@@ -96,8 +23,29 @@ export async function DELETE(
 
     const { id } = await resolveRouteParams(context.params)
 
-    await prisma.expense.delete({
+    const expense = await prisma.expense.findUnique({
       where: { id },
+    })
+
+    if (!expense) {
+      throw new ApiRouteError("Gasto no encontrado", 404)
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Log deletion
+      await tx.auditLog.create({
+        data: {
+          tableName: "expenses",
+          recordId: id,
+          action: "delete",
+          oldValues: JSON.parse(JSON.stringify(expense)),
+          createdBy: profile.id,
+        },
+      })
+
+      await tx.expense.delete({
+        where: { id },
+      })
     })
 
     return apiSuccess({ id, deleted: true })

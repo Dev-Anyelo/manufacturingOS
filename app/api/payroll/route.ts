@@ -7,12 +7,13 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  } from "@/lib/api/response"
+} from "@/lib/api/response"
 
 import { requirePermission } from "@/lib/api/require-permission"
 import {
   getSearchParam,
   parseDateParam,
+  toLocalDate,
   toPrismaDecimal,
 } from "@/lib/api/utils"
 
@@ -73,8 +74,8 @@ export async function POST(request: Request) {
     const payment = await prisma.payrollPayment.create({
       data: {
         employeeId: payload.employee_id,
-        periodStart: payload.period_start,
-        periodEnd: payload.period_end,
+        periodStart: toLocalDate(payload.period_start),
+        periodEnd: toLocalDate(payload.period_end),
         piecesProduced: payload.pieces_produced,
         hoursWorked:
           payload.hours_worked === null || payload.hours_worked === undefined

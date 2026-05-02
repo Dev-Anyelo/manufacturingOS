@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma"
 import { productionSessionSchema } from "@/lib/validations/production"
 
 import {
+  AuditAction,
+  GarmentType,
   InventoryMovementType,
   NotificationType,
   Prisma,
@@ -27,6 +29,7 @@ import {
   decimalToNumber,
   getSearchParam,
   parseDateParam,
+  toLocalDate,
   toPrismaDecimal,
 } from "@/lib/api/utils"
 
@@ -124,6 +127,11 @@ export async function POST(request: Request) {
       for (const item of payload.items) {
         totalGarments += item.quantity
         totalYardsUsed += item.yards_used
+
+        if (item.is_reuse) {
+          continue
+        }
+
         const available = stockMap.get(item.inventory_item_id) ?? 0
 
         if (available < item.yards_used) {
@@ -140,7 +148,7 @@ export async function POST(request: Request) {
       const createdSession = await tx.productionSession.create({
         data: {
           employeeId: payload.employee_id,
-          sessionDate: payload.session_date,
+          sessionDate: toLocalDate(payload.session_date),
           totalGarments,
           totalYardsUsed: toPrismaDecimal(totalYardsUsed),
           notes: payload.notes,
@@ -152,7 +160,11 @@ export async function POST(request: Request) {
               size: item.size,
               quantity: item.quantity,
               yardsUsed: toPrismaDecimal(item.yards_used),
-              notes: item.notes,
+              notes: item.notes
+                ? `${item.notes} | ${item.is_reuse ? "Reutilizado" : "Uso Nuevo"}`
+                : item.is_reuse
+                  ? "Reutilizado"
+                  : "Uso Nuevo",
             })),
           },
         },
@@ -161,30 +173,52 @@ export async function POST(request: Request) {
         },
       })
 
-      createdSessionId = createdSession.id
+      createdSessionId = createdSession.id.slice(0, 8)
       totalGarments = createdSession.totalGarments
 
-      // Deduce raw material and log movement
-      for (const item of createdSession.items) {
-        const oldStock = stockMap.get(item.inventoryItemId) ?? 0
-        const newStock = oldStock - Number(item.yardsUsed)
+      // Deduce raw material and log movement (skip deduction on explicit reuse)
+      for (let index = 0; index < createdSession.items.length; index += 1) {
+        const item = createdSession.items[index]
+        const sourceItem = payload.items[index]
+        const isReuse = sourceItem?.is_reuse === true
 
-        await tx.inventoryItem.update({
-          where: { id: item.inventoryItemId },
-          data: { quantity: toPrismaDecimal(newStock) },
-        })
+        if (!isReuse) {
+          const oldStock = stockMap.get(item.inventoryItemId) ?? 0
+          const newStock = oldStock - Number(item.yardsUsed)
 
-        await tx.inventoryMovement.create({
-          data: {
-            inventoryItemId: item.inventoryItemId,
-            movementType: "out",
-            quantity: item.yardsUsed,
-            previousQuantity: toPrismaDecimal(oldStock),
-            newQuantity: toPrismaDecimal(newStock),
-            reason: `Consumo Producción: ${createdSession.id}`,
-            createdBy: profile.id,
-          },
-        })
+          await tx.inventoryItem.update({
+            where: { id: item.inventoryItemId },
+            data: { quantity: toPrismaDecimal(newStock) },
+          })
+
+          await tx.inventoryMovement.create({
+            data: {
+              inventoryItemId: item.inventoryItemId,
+              movementType: "out",
+              quantity: item.yardsUsed,
+              previousQuantity: toPrismaDecimal(oldStock),
+              newQuantity: toPrismaDecimal(newStock),
+              reason: `Consumo Producción: ${createdSession.id}`,
+              createdBy: profile.id,
+            },
+          })
+
+          stockMap.set(item.inventoryItemId, newStock)
+        } else {
+          await tx.auditLog.create({
+            data: {
+              tableName: "production_session_items",
+              recordId: item.id,
+              action: AuditAction.insert,
+              newValues: {
+                sessionId: createdSession.id,
+                inventoryItemId: item.inventoryItemId,
+                isReuse: true,
+              },
+              createdBy: profile.id,
+            },
+          })
+        }
 
         // Increase finished goods & log movement
         let catalogItem = await tx.catalogItem.findFirst({
@@ -194,7 +228,25 @@ export async function POST(request: Request) {
         if (!catalogItem) {
           catalogItem = await tx.catalogItem.create({
             data: {
-              name: `Producto Terminado: ${item.garmentType}`,
+              name: `Producto Terminado: ${
+                item.garmentType === GarmentType.shirt
+                  ? "Camisa"
+                  : item.garmentType === GarmentType.skirt
+                    ? "Falda"
+                    : item.garmentType === GarmentType.shorts
+                      ? "Pantalones cortos"
+                      : item.garmentType === GarmentType.leggings
+                        ? "Leggings"
+                        : item.garmentType === GarmentType.pajamas
+                          ? "Pijamas"
+                          : item.garmentType === GarmentType.suit
+                            ? "Traje"
+                            : item.garmentType === GarmentType.sheets
+                              ? "Sábanas"
+                              : item.garmentType === GarmentType.blankets
+                                ? "Mantas"
+                                : "Otro"
+              }`,
               garmentType: item.garmentType,
               isActive: true,
               salePrice: toPrismaDecimal(0),
@@ -302,7 +354,7 @@ export async function POST(request: Request) {
       await createNotifications({
         type: NotificationType.production_saved,
         title: "Sesión de producción registrada",
-        body: `${employee?.fullName ?? "El equipo"} registró ${totalGarments} prendas en la sesión ${createdSessionId}.`,
+        body: `${employee?.fullName ?? "El equipo"} registró ${totalGarments} prendas en la sesión #${createdSessionId}.`,
         metadata: {
           productionSessionId: createdSessionId,
           employeeId: payload.employee_id,

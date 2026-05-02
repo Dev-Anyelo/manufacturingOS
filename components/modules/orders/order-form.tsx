@@ -6,7 +6,6 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn, formatCurrency } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
@@ -14,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray } from "react-hook-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CustomerSelector } from "@/components/modules/sales/customer-selector"
+import type { PosCustomer } from "@/components/modules/sales/types"
 
 import {
   Popover,
@@ -30,15 +31,6 @@ import {
 } from "@/components/ui/select"
 
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -51,8 +43,6 @@ import {
   Plus,
   Trash2,
   Package,
-  Check,
-  ChevronsUpDown,
   DollarSign,
   Store,
   Share2,
@@ -61,18 +51,10 @@ import {
   MoreHorizontal,
   ChevronDown,
   Ruler,
-  ShoppingCart,
   Save,
-  ArrowLeft,
 } from "lucide-react"
-import { StatCard } from "@/components/shared/stat-card"
 
-type PosCustomer = {
-  id: string
-  name: string
-  phone?: string | null
-  email?: string | null
-}
+// Using PosCustomer from @/components/modules/sales/types
 
 type CatalogChoice = {
   id: string
@@ -222,7 +204,6 @@ export function OrderForm({
   const [measurementModes, setMeasurementModes] = React.useState<
     Record<string, MeasurementMode>
   >({})
-  const [customerOpen, setCustomerOpen] = React.useState(false)
   const [expandedItems, setExpandedItems] = React.useState<
     Record<string, boolean>
   >({})
@@ -410,86 +391,20 @@ export function OrderForm({
             <div className="space-y-4">
               {/* Customer Selector */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Cliente <span className="text-destructive">*</span>
-                </Label>
-                <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={customerOpen}
-                      className="h-10 w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {selectedCustomer?.name ?? "Seleccionar cliente"}
-                      </span>
-                      <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Buscar..." />
-                      <CommandList>
-                        {customers.length === 0 && (
-                          <CommandEmpty>
-                            No se encontraron clientes.
-                          </CommandEmpty>
-                        )}
-                        <CommandGroup>
-                          {customers.map((customer) => (
-                            <CommandItem
-                              key={customer.id}
-                              onSelect={() => {
-                                form.setValue("customer_id", customer.id, {
-                                  shouldValidate: true,
-                                  shouldDirty: true,
-                                })
-                                setCustomerOpen(false)
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 size-4",
-                                  customer.id === watchedCustomerId
-                                    ? "opacity-100"
-                                    : ""
-                                )}
-                              />
-                              <div className="flex flex-col">
-                                <span className="font-medium">
-                                  {customer.name}
-                                </span>
-                                {customer.phone && (
-                                  <span className="text-xs text-muted-foreground">
-                                    {customer.phone}
-                                  </span>
-                                )}
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <CustomerSelector
+                  customers={customers}
+                  value={selectedCustomer || null}
+                  onChange={(customer) => {
+                    form.setValue("customer_id", customer?.id || "", {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }}
+                />
                 {form.formState.errors.customer_id && (
                   <p className="text-xs text-destructive">
                     {form.formState.errors.customer_id.message}
                   </p>
-                )}
-                {selectedCustomer && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    <Badge variant="secondary" className="text-xs">
-                      {selectedCustomer.name}
-                    </Badge>
-                    {selectedCustomer.phone && (
-                      <Badge variant="outline" className="text-xs">
-                        {selectedCustomer.phone}
-                      </Badge>
-                    )}
-                  </div>
                 )}
               </div>
 

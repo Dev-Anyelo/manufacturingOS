@@ -27,7 +27,7 @@ export function AppProviders({
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         {children}
-        <Toaster richColors closeButton position="top-right" />
+        <Toaster richColors closeButton position="top-center" />
       </TooltipProvider>
     </QueryClientProvider>
   )

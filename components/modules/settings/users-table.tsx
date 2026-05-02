@@ -4,7 +4,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import { es } from "date-fns/locale"
 import { UserForm } from "./user-form"
-import { UserRole } from "@prisma/client"
+import { Prisma, UserRole } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -52,10 +52,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-// We use any for the user type to avoid tight coupling to the prisma include structure
-// but it expects id, fullName, role, isActive, updatedAt, permissionsOwned (array)
+type UsersTableUser = Prisma.ProfileGetPayload<{
+  include: { permissionsOwned: true }
+}> & {
+  email?: string | null
+}
+
 type UserTableProps = {
-  users: any[]
+  users: UsersTableUser[]
   currentUserId: string
 }
 
@@ -122,7 +126,7 @@ export function UsersTable({ users, currentUserId }: UserTableProps) {
       {/* Filters Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="relative w-full sm:w-[280px]">
+          <div className="relative w-full sm:w-70">
             <SearchIcon className="absolute top-2.5 left-2.5 size-4 text-muted-foreground" />
             <Input
               placeholder="Buscar usuarios..."
@@ -193,7 +197,7 @@ export function UsersTable({ users, currentUserId }: UserTableProps) {
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow>
-                  <TableHead className="w-[300px]">Usuario</TableHead>
+                  <TableHead className="w-75">Usuario</TableHead>
                   <TableHead>Rol</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Último acceso</TableHead>
@@ -253,7 +257,7 @@ function UserInfo({
   user,
   isCurrentUser,
 }: {
-  user: any
+  user: UsersTableUser
   isCurrentUser: boolean
 }) {
   const hasOverrides = user.permissionsOwned && user.permissionsOwned.length > 0
@@ -300,7 +304,7 @@ function UserTableRow({
   user,
   isCurrentUser,
 }: {
-  user: any
+  user: UsersTableUser
   isCurrentUser: boolean
 }) {
   const roleData = roleMap[user.role]
@@ -367,7 +371,7 @@ function UserCardRow({
   user,
   isCurrentUser,
 }: {
-  user: any
+  user: UsersTableUser
   isCurrentUser: boolean
 }) {
   const roleData = roleMap[user.role]
@@ -421,7 +425,7 @@ function UserActionsMenu({
   user,
   isCurrentUser,
 }: {
-  user: any
+  user: UsersTableUser
   isCurrentUser: boolean
 }) {
   const router = useRouter()
@@ -444,8 +448,10 @@ function UserActionsMenu({
         `Usuario ${!user.isActive ? "reactivado" : "desactivado"} exitosamente`
       )
       router.refresh()
-    } catch (err: any) {
-      toast.error(err.message || "Error al actualizar estado")
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Error al actualizar estado"
+      toast.error(message)
     } finally {
       setIsToggling(false)
     }
@@ -484,7 +490,7 @@ function UserActionsMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DialogContent className="p-4 sm:max-w-[425px]">
+      <DialogContent className="p-4 sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle className="text-sm text-pretty">
             Editar información del usuario

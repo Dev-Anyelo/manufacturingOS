@@ -3,11 +3,15 @@ import { ArrowLeftIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { PageHeader } from "@/components/shared/page-header"
+import { requireCurrentUser } from "@/lib/auth/current-user"
 import { getProductionFormBootstrap } from "@/lib/data/production"
 import { ProductionForm } from "@/components/modules/production/production-form"
 
 export default async function NewProductionSessionPage() {
-  const bootstrap = await getProductionFormBootstrap()
+  const [bootstrap, currentUser] = await Promise.all([
+    getProductionFormBootstrap(),
+    requireCurrentUser(),
+  ])
 
   const inventoryOptions = bootstrap.inventoryItems.map((item) => ({
     id: item.id,
@@ -45,6 +49,8 @@ export default async function NewProductionSessionPage() {
         <ProductionForm
           employees={bootstrap.employees}
           inventoryItems={inventoryOptions}
+          currentUserId={currentUser.id}
+          currentUserRole={currentUser.role}
         />
       </div>
     </div>

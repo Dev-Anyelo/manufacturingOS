@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { PayslipPDF } from "@/lib/pdf/payslip"
-import { decimalToNumber } from "@/lib/api/utils"
+import { decimalToNumber, toLocalDate } from "@/lib/api/utils"
 import { generatePDFBuffer } from "@/lib/pdf/utils"
 import { sendPayslipNotification } from "@/lib/email/send"
 import { uploadPayrollReceiptBuffer } from "@/lib/storage/upload"
@@ -57,7 +57,7 @@ export async function PATCH(
       where: { id },
       data: {
         status: PayrollStatus.paid,
-        paymentDate: payload.payment_date,
+        paymentDate: toLocalDate(payload.payment_date),
         paymentMethod: payload.payment_method,
         notes: payload.notes,
       },
