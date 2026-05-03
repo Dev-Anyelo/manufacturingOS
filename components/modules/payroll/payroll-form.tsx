@@ -3,6 +3,7 @@
 import { z } from "zod"
 import * as React from "react"
 import { toast } from "sonner"
+import { Currency } from "@prisma/client"
 import { useForm } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +11,10 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import type { PosCustomer } from "@/components/modules/sales/types"
+import { CurrencySelector } from "@/components/shared/currency-selector"
+import { formatCurrencyNI, getCurrencySymbol } from "@/lib/currency/exchange"
+import { CustomerSelector } from "@/components/modules/sales/customer-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -17,9 +22,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-
-import { CustomerSelector } from "@/components/modules/sales/customer-selector"
-import type { PosCustomer } from "@/components/modules/sales/types"
 
 import {
   Loader2,
@@ -32,10 +34,6 @@ import {
   Clock,
   Scissors,
 } from "lucide-react"
-
-import { Currency } from "@prisma/client"
-import { CurrencySelector } from "@/components/shared/currency-selector"
-import { formatCurrencyNI, getCurrencySymbol } from "@/lib/currency/exchange"
 
 const payrollFormSchema = z
   .object({

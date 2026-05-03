@@ -420,7 +420,7 @@ export function InventoryForm({
           <div className="m-0 border-none bg-none p-0">
             <div className="space-y-4">
               {/* Quantity Grid */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="quantity" className="text-sm font-medium">
                     Cantidad
