@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/shared/empty-state"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import type { PosCatalogItem } from "@/components/modules/sales/types"
+import { Currency } from "@prisma/client"
+import { Input } from "@/components/ui/input"
+import { convertAmount } from "@/lib/currency/exchange"
+import { PosCatalogItem } from "./types"
 
 import {
   LayoutGridIcon,
@@ -27,12 +30,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
+
+
 
 interface PosCatalogPanelProps {
   items: PosCatalogItem[]
   onAddItem: (item: PosCatalogItem) => void
   addCounts?: Record<string, number>
+  currency: Currency
+  exchangeRate: number
 }
 
 type CatalogView = "grid" | "list"
@@ -56,6 +62,8 @@ export function PosCatalogPanel({
   items,
   onAddItem,
   addCounts,
+  currency,
+  exchangeRate,
 }: PosCatalogPanelProps) {
   const [search, setSearch] = React.useState("")
   const [garmentType, setGarmentType] = React.useState("all")
@@ -245,13 +253,15 @@ export function PosCatalogPanel({
             />
           ) : view === "list" ? (
             <div className="space-y-3">
-              {sortedItems.map((item) => (
-                <CatalogProductRow
-                  key={item.id}
-                  item={item}
-                  onAdd={onAddItem}
-                />
-              ))}
+                  {sortedItems.map((item) => (
+                    <CatalogProductRow
+                      key={item.id}
+                      item={item}
+                      onAdd={onAddItem}
+                      currency={currency}
+                      exchangeRate={exchangeRate}
+                    />
+                  ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
@@ -260,6 +270,8 @@ export function PosCatalogPanel({
                   key={item.id}
                   item={item}
                   onAdd={onAddItem}
+                  currency={currency}
+                  exchangeRate={exchangeRate}
                 />
               ))}
             </div>
@@ -273,11 +285,22 @@ export function PosCatalogPanel({
 function CatalogProductCard({
   item,
   onAdd,
+  currency,
+  exchangeRate,
 }: {
   item: PosCatalogItem
   onAdd: (item: PosCatalogItem) => void
+  currency: Currency
+  exchangeRate: number
 }) {
   const stockStatus = getStockStatus(item.stock)
+
+  const displayPrice = convertAmount(
+    item.salePrice,
+    item.salePriceCurrency,
+    currency,
+    exchangeRate
+  )
 
   return (
     <button
@@ -320,7 +343,7 @@ function CatalogProductCard({
         <div className="mt-auto flex items-end justify-between">
           <div className="flex flex-col gap-1.5">
             <span className="text-lg font-bold tracking-tight text-brand tabular-nums">
-              <CurrencyDisplay amount={item.salePrice} />
+              <CurrencyDisplay amount={displayPrice} currency={currency} />
             </span>
             {stockStatus ? (
               <div className="flex items-center gap-1.5">
@@ -346,11 +369,22 @@ function CatalogProductCard({
 function CatalogProductRow({
   item,
   onAdd,
+  currency,
+  exchangeRate,
 }: {
   item: PosCatalogItem
   onAdd: (item: PosCatalogItem) => void
+  currency: Currency
+  exchangeRate: number
 }) {
   const stockStatus = getStockStatus(item.stock)
+
+  const displayPrice = convertAmount(
+    item.salePrice,
+    item.salePriceCurrency,
+    currency,
+    exchangeRate
+  )
 
   return (
     <div
@@ -397,7 +431,7 @@ function CatalogProductRow({
 
       <div className="flex items-center gap-4 pr-2">
         <span className="text-lg font-bold text-brand tabular-nums">
-          <CurrencyDisplay amount={item.salePrice} />
+          <CurrencyDisplay amount={displayPrice} currency={currency} />
         </span>
         <Button
           type="button"
@@ -405,7 +439,7 @@ function CatalogProductRow({
           className="size-10 shrink-0 rounded-full bg-brand/10 text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
           aria-label={`Agregar ${item.name} al carrito`}
         >
-          <PlusIcon className="size-5" />
+          <PlusIcon className="size-4" />
         </Button>
       </div>
     </div>

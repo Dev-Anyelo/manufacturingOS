@@ -3,13 +3,17 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useSettingsStore } from "@/stores/settingsStore"
+import { KeyboardIcon, ShoppingCartIcon } from "lucide-react"
 import { PosCart } from "@/components/modules/sales/pos-cart"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { SaleReceipt } from "@/components/modules/sales/sale-receipt"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { PosCatalogPanel } from "@/components/modules/sales/pos-catalog-panel"
+import { convertAmount, getCurrencySymbol } from "@/lib/currency/exchange"
 
 import {
   Drawer,
@@ -18,13 +22,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
-
-import {
-  KeyboardIcon,
-  ShoppingCartIcon,
-  SparklesIcon,
-  Trash2Icon,
-} from "lucide-react"
 
 import type {
   PosCatalogItem,
@@ -56,6 +53,8 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [customerOptions, setCustomerOptions] = React.useState(customers)
   const [selectedCustomer, setSelectedCustomer] =
     React.useState<PosCustomer | null>(null)
+  const { exchangeRate } = useSettingsStore()
+
   const [cartItems, setCartItems] = React.useState<PosCartItem[]>([])
   const [cartDrawerOpen, setCartDrawerOpen] = React.useState(false)
   const [confirmClearOpen, setConfirmClearOpen] = React.useState(false)
@@ -72,6 +71,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [notes, setNotes] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [receiptOpen, setReceiptOpen] = React.useState(false)
+  const [currency, setCurrency] = React.useState<Currency>(Currency.USD)
   const [receiptData, setReceiptData] = React.useState<SaleReceiptData | null>(
     null
   )
@@ -119,13 +119,24 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       [catalogItem.id]: (previous[catalogItem.id] ?? 0) + 1,
     }))
 
+    // Convert price if catalog item currency differs from current POS currency
+    const itemUnitPrice = convertAmount(
+      catalogItem.salePrice,
+      catalogItem.salePriceCurrency,
+      currency,
+      exchangeRate
+    )
+
     setCartItems((previous) => {
       const existingIndex = previous.findIndex(
         (item) => item.catalogItemId === catalogItem.id && item.size === ""
       )
 
       if (existingIndex === -1) {
-        const created = createCartItem(catalogItem)
+        const created = {
+          ...createCartItem(catalogItem),
+          unitPrice: itemUnitPrice,
+        }
         setHighlightRowId(created.rowId)
         return [created, ...previous]
       }
@@ -181,10 +192,32 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     setAmountPaid(0)
     setDueDate("")
     setNotes("")
+    setCurrency(Currency.USD)
     setReceiptOpen(false)
     setReceiptData(null)
     setCartDrawerOpen(false)
   }
+
+  const previousCurrencyRef = React.useRef<Currency>(currency)
+
+  React.useEffect(() => {
+    const previousCurrency = previousCurrencyRef.current
+    if (previousCurrency === currency) return
+
+    // Convert cart items unit prices
+    setCartItems((prev) =>
+      prev.map((item) => ({
+        ...item,
+        unitPrice: convertAmount(item.unitPrice, previousCurrency, currency),
+      }))
+    )
+
+    // Convert payment amounts
+    setReceivedAmount((prev) => convertAmount(prev, previousCurrency, currency))
+    setAmountPaid((prev) => convertAmount(prev, previousCurrency, currency))
+
+    previousCurrencyRef.current = currency
+  }, [currency])
 
   React.useEffect(() => {
     if (!highlightRowId) return
@@ -236,7 +269,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     try {
       const paymentBreakdownNote =
         paymentMethod === "mixed"
-          ? `Pago mixto: Efectivo $${receivedAmount.toFixed(2)} + Transferencia $${amountPaid.toFixed(2)}`
+          ? `Pago mixto: Efectivo ${getCurrencySymbol(currency)}${receivedAmount.toFixed(2)} + Transferencia ${getCurrencySymbol(currency)}${amountPaid.toFixed(2)}`
           : ""
 
       const saleNotes = [
@@ -258,7 +291,13 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
           channel,
           payment_method: paymentMethod,
           discount: discountAmount,
+          discount_currency: currency,
           amount_paid: computedAmountPaid,
+          amount_paid_currency: currency,
+          total: total,
+          total_currency: currency,
+          change_given: changeGiven,
+          change_given_currency: currency,
           notes: saleNotes || null,
           items: cartItems.map((item) => ({
             catalog_item_id: item.catalogItemId,
@@ -266,7 +305,9 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
             size: item.size || null,
             quantity: item.quantity,
             unit_price: item.unitPrice,
+            unit_price_currency: currency,
             discount: item.discount,
+            discount_currency: currency,
           })),
         }),
       })
@@ -290,6 +331,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
         subtotal,
         discount: discountAmount,
         total,
+        totalCurrency: currency,
         amountPaid: computedAmountPaid,
         changeGiven,
         items: cartItems.map((item) => ({
@@ -297,6 +339,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
           name: item.name,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
+          unitPriceCurrency: currency, // En POS, los items se convierten a la moneda de la transaccion
           size: item.size,
           subtotal: item.unitPrice * item.quantity,
         })),
@@ -442,6 +485,8 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     canSubmit,
     highlightRowId,
     onRequestClear: requestClearCart,
+    currency,
+    onCurrencyChange: setCurrency,
   }
 
   return (
@@ -460,6 +505,8 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
               items={catalogItems}
               onAddItem={handleAddItem}
               addCounts={addCounts}
+              currency={currency}
+              exchangeRate={exchangeRate}
             />
           </div>
 
@@ -488,7 +535,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
                 ) : null}
               </span>
               <span className="text-lg font-bold tracking-tight tabular-nums">
-                <CurrencyDisplay amount={total} />
+                <CurrencyDisplay amount={total} currency={currency} />
               </span>
             </Button>
 
@@ -522,7 +569,11 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
                   : "Agrega productos desde el catálogo."}
                 {cartItems.length > 0 && (
                   <span className="font-bold text-foreground">
-                    <CurrencyDisplay amount={total} size="sm" />
+                    <CurrencyDisplay
+                      amount={total}
+                      currency={currency}
+                      size="sm"
+                    />
                   </span>
                 )}
               </DrawerDescription>

@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma"
-import { UserRole } from "@prisma/client"
 import { systemSettingsSchema } from "@/lib/validations/settings"
 
 import {
@@ -7,7 +6,7 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  } from "@/lib/api/response"
+} from "@/lib/api/response"
 
 import { requirePermission } from "@/lib/api/require-permission"
 
@@ -69,7 +68,8 @@ export async function PATCH(request: Request) {
         companyEmail: payload.company_email,
         companyAddress: payload.company_address,
         lowStockThreshold: payload.low_stock_threshold,
-        currency: payload.currency,
+        baseCurrency: payload.base_currency,
+        displayCurrency: payload.display_currency,
         timezone: payload.timezone,
       },
     })

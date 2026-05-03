@@ -1,8 +1,11 @@
+import { Currency } from "@prisma/client"
+
 export interface PosCatalogItem {
   id: string
   name: string
   garmentType: string | null
   salePrice: number
+  salePriceCurrency: Currency
   imageUrl: string | null
   /** Optional stock indicator (if/when the backend provides it). */
   stock?: number | null
@@ -36,6 +39,7 @@ export interface SaleReceiptData {
   subtotal: number
   discount: number
   total: number
+  totalCurrency: string
   amountPaid: number
   changeGiven: number
   items: Array<{
@@ -43,6 +47,7 @@ export interface SaleReceiptData {
     name: string
     quantity: number
     unitPrice: number
+    unitPriceCurrency: string
     size: string
     subtotal: number
   }>

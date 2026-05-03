@@ -17,7 +17,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
     [UserRole.Readonly]: "Solo lectura",
   }[user.role]
 
-  const todayLabel = new Intl.DateTimeFormat("es-PA", {
+  const todayLabel = new Intl.DateTimeFormat("es-NI", {
     weekday: "short",
     day: "2-digit",
     month: "short",
@@ -57,3 +57,4 @@ export function SiteHeader({ user }: SiteHeaderProps) {
     </header>
   )
 }
+

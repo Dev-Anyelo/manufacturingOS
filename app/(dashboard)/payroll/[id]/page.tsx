@@ -84,7 +84,7 @@ export default async function PayrollDetailPage({
                     <p className="text-sm font-medium">{expense.concept}</p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(expense.expenseDate).toLocaleDateString(
-                        "es-PA"
+                        "es-NI"
                       )}
                     </p>
                   </div>

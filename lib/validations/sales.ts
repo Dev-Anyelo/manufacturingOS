@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { Currency } from "@prisma/client"
 
 export const saleItemSchema = z.object({
   catalog_item_id: z
@@ -23,10 +24,12 @@ export const saleItemSchema = z.object({
   unit_price: z.coerce
     .number({ message: "El precio unitario es obligatorio" })
     .min(0, "El precio unitario no puede ser negativo"),
+  unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
   discount: z.coerce
     .number({ message: "El descuento no es valido" })
     .min(0, "El descuento no puede ser negativo")
     .default(0),
+  discount_currency: z.nativeEnum(Currency).default(Currency.USD),
 })
 
 export const saleSchema = z
@@ -50,9 +53,17 @@ export const saleSchema = z
       .number({ message: "El descuento no es valido" })
       .min(0, "El descuento no puede ser negativo")
       .default(0),
+    discount_currency: z.nativeEnum(Currency).default(Currency.USD),
     amount_paid: z.coerce
       .number({ message: "El monto pagado no es valido" })
       .min(0, "El monto pagado no puede ser negativo"),
+    amount_paid_currency: z.nativeEnum(Currency).default(Currency.USD),
+    total: z.coerce.number().min(0).optional(),
+    total_currency: z.nativeEnum(Currency).default(Currency.USD),
+    change_given: z.coerce.number().min(0).optional(),
+    change_given_currency: z.nativeEnum(Currency).default(Currency.USD),
+    balance_due: z.coerce.number().min(0).optional(),
+    balance_due_currency: z.nativeEnum(Currency).default(Currency.USD),
     notes: z
       .string()
       .trim()
@@ -62,12 +73,30 @@ export const saleSchema = z
     items: z.array(saleItemSchema).min(1, "Debes agregar al menos un item"),
   })
   .superRefine((value, context) => {
-    const itemsTotal = value.items.reduce(
-      (acc, item) => acc + item.unit_price * item.quantity - item.discount,
-      0
+    // Para validación síncrona usamos la tasa aproximada de lib/currency/exchange.ts
+    const { convertAmount } = require("@/lib/currency/exchange")
+
+    const itemsTotal = value.items.reduce((acc, item) => {
+      const priceInTotalCurrency = convertAmount(
+        item.unit_price,
+        item.unit_price_currency,
+        value.total_currency
+      )
+      const discountInTotalCurrency = convertAmount(
+        item.discount,
+        item.discount_currency,
+        value.total_currency
+      )
+      return acc + priceInTotalCurrency * item.quantity - discountInTotalCurrency
+    }, 0)
+
+    const discountInTotalCurrency = convertAmount(
+      value.discount,
+      value.discount_currency,
+      value.total_currency
     )
 
-    if (value.discount >= itemsTotal && itemsTotal > 0) {
+    if (discountInTotalCurrency >= itemsTotal && itemsTotal > 0) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["discount"],

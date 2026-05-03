@@ -93,10 +93,12 @@ export async function POST(request: Request) {
             payload.quantity === undefined || payload.quantity === null
               ? null
               : toPrismaDecimal(payload.quantity),
+          unitPriceCurrency: payload.unit_price_currency,
           unitPrice:
             payload.unit_price === undefined || payload.unit_price === null
               ? null
               : toPrismaDecimal(payload.unit_price),
+          totalCurrency: payload.total_currency,
           total: toPrismaDecimal(payload.total),
           updatesInventory: payload.updates_inventory,
           inventoryItemId: payload.inventory_item_id,
@@ -170,6 +172,7 @@ export async function POST(request: Request) {
         metadata: {
           expenseId: created.id,
           category: created.category,
+          totalCurrency: payload.total_currency,
           total: created.total.toString(),
           actionUrl: "/expenses",
           actionLabel: "Ver gastos",

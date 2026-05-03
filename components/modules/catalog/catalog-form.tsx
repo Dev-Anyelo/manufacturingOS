@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { MetricCard } from "@/components/shared/metric-card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -28,15 +27,34 @@ import {
   ArrowUpDown,
 } from "lucide-react"
 
+import { Currency } from "@prisma/client"
+import { CurrencySelector } from "@/components/shared/currency-selector"
+import { formatCurrencyNI, getCurrencySymbol, convertAmount } from "@/lib/currency/exchange"
+import { useSettingsStore } from "@/stores/settingsStore"
+
 const catalogFormSchema = z.object({
   name: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres"),
   description: z.string().trim().max(1000).optional().nullable(),
   garment_type: z.string().trim().min(2, "El tipo de prenda es obligatorio"),
-  market_price_unit: z.coerce.number().gt(0),
-  market_price_dozen: z.coerce.number().gt(0).optional().nullable(),
-  our_price_unit: z.coerce.number().gt(0),
-  our_price_dozen: z.coerce.number().gt(0).optional().nullable(),
+
+  market_price_unit: z.coerce.number().min(0),
+  market_price_unit_currency: z.nativeEnum(Currency).default(Currency.USD),
+
+  market_price_dozen: z.coerce.number().min(0).optional().nullable(),
+  market_price_dozen_currency: z.nativeEnum(Currency).default(Currency.USD),
+
+  our_price_unit: z.coerce.number().min(0),
+  our_price_unit_currency: z.nativeEnum(Currency).default(Currency.USD),
+
+  our_price_dozen: z.coerce.number().min(0).optional().nullable(),
+  our_price_dozen_currency: z.nativeEnum(Currency).default(Currency.USD),
+
   estimated_cost: z.coerce.number().min(0).optional().nullable(),
+  estimated_cost_currency: z.nativeEnum(Currency).default(Currency.USD),
+
+  sale_price: z.coerce.number().min(0).default(0),
+  sale_price_currency: z.nativeEnum(Currency).default(Currency.USD),
+
   notes: z.string().trim().max(1000).optional().nullable(),
 })
 
@@ -46,7 +64,7 @@ type CatalogFormOutput = z.output<typeof catalogFormSchema>
 interface CatalogFormProps {
   mode: "create" | "edit"
   itemId?: string
-  defaultValues?: Partial<CatalogFormOutput> & { image_url?: string | null }
+  defaultValues?: Partial<CatalogFormInput> & { image_url?: string | null }
   /** Called after successful submission — used when embedded in a Sheet */
   onSuccess?: () => void
   /** Called when the user cancels — used when embedded in a Sheet */
@@ -58,15 +76,17 @@ function normalizeOptional(value?: string | null) {
   return normalized ? normalized : null
 }
 
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("es-PA", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount)
-}
+// Eliminado formatCurrency interno, se usa exchange.ts
 
-export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }: CatalogFormProps) {
+export function CatalogForm({
+  mode,
+  itemId,
+  defaultValues,
+  onSuccess,
+  onCancel,
+}: CatalogFormProps) {
   const router = useRouter()
+  const { exchangeRate } = useSettingsStore()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [imageFile, setImageFile] = React.useState<File | null>(null)
   const [isDragging, setIsDragging] = React.useState(false)
@@ -81,19 +101,38 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
       description: defaultValues?.description ?? "",
       garment_type: defaultValues?.garment_type ?? "",
       market_price_unit: defaultValues?.market_price_unit ?? 0,
+      market_price_unit_currency:
+        defaultValues?.market_price_unit_currency ?? Currency.USD,
       market_price_dozen: defaultValues?.market_price_dozen ?? null,
+      market_price_dozen_currency:
+        defaultValues?.market_price_dozen_currency ?? Currency.USD,
       our_price_unit: defaultValues?.our_price_unit ?? 0,
+      our_price_unit_currency:
+        defaultValues?.our_price_unit_currency ?? Currency.USD,
       our_price_dozen: defaultValues?.our_price_dozen ?? null,
+      our_price_dozen_currency:
+        defaultValues?.our_price_dozen_currency ?? Currency.USD,
       estimated_cost: defaultValues?.estimated_cost ?? null,
+      estimated_cost_currency:
+        defaultValues?.estimated_cost_currency ?? Currency.USD,
       notes: defaultValues?.notes ?? "",
+      sale_price: defaultValues?.sale_price ?? 0,
+      sale_price_currency:
+        defaultValues?.sale_price_currency ?? Currency.USD,
     },
   })
 
   const watchedCost = (form.watch("estimated_cost") as number) ?? 0
+  const watchedCostCurrency = form.watch("estimated_cost_currency") || Currency.USD
   const watchedOurPrice = (form.watch("our_price_unit") as number) ?? 0
+  const watchedOurPriceCurrency = form.watch("our_price_unit_currency") || Currency.USD
+
+  // Convert cost to price currency for accurate margin calculation
+  const normalizedCost = convertAmount(watchedCost, watchedCostCurrency, watchedOurPriceCurrency, exchangeRate)
+
   const profitMargin =
     watchedOurPrice > 0 && watchedCost > 0
-      ? (((watchedOurPrice - watchedCost) / watchedOurPrice) * 100).toFixed(1)
+      ? (((watchedOurPrice - normalizedCost) / watchedOurPrice) * 100).toFixed(1)
       : null
 
   React.useEffect(() => {
@@ -157,10 +196,17 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
           description: normalizeOptional(values.description),
           garment_type: values.garment_type.trim(),
           market_price_unit: values.market_price_unit,
+          market_price_unit_currency: values.market_price_unit_currency,
           market_price_dozen: values.market_price_dozen,
+          market_price_dozen_currency: values.market_price_dozen_currency,
           our_price_unit: values.our_price_unit,
+          our_price_unit_currency: values.our_price_unit_currency,
           our_price_dozen: values.our_price_dozen,
+          our_price_dozen_currency: values.our_price_dozen_currency,
           estimated_cost: values.estimated_cost,
+          estimated_cost_currency: values.estimated_cost_currency,
+          sale_price: values.our_price_unit, // Por defecto el unitario es el de venta
+          sale_price_currency: values.our_price_unit_currency,
           image_url: defaultValues?.image_url ?? null,
           notes: normalizeOptional(values.notes),
         }),
@@ -210,18 +256,49 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
       noValidate
     >
       {/* Quick Stats Bar - Compact Info Bar */}
-      <div className="mb-4 flex items-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
+      <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
-          { label: "Mercado", value: form.watch("market_price_unit") ? formatCurrency(form.watch("market_price_unit") as number) : "N/A" },
-          { label: "Nuestro precio", value: form.watch("our_price_unit") ? formatCurrency(form.watch("our_price_unit") as number) : "N/A" },
-          { label: "Costo est.", value: form.watch("estimated_cost") ? formatCurrency(form.watch("estimated_cost") as number) : "N/A" },
+          {
+            label: "Mercado",
+            value: form.watch("market_price_unit")
+              ? formatCurrencyNI(
+                  form.watch("market_price_unit") as number,
+                  form.watch("market_price_unit_currency") || Currency.USD
+                )
+              : "N/A",
+          },
+          {
+            label: "Nuestro precio",
+            value: form.watch("our_price_unit")
+              ? formatCurrencyNI(
+                  form.watch("our_price_unit") as number,
+                  form.watch("our_price_unit_currency") || Currency.USD
+                )
+              : "N/A",
+          },
+          {
+            label: "Costo est.",
+            value: form.watch("estimated_cost")
+              ? formatCurrencyNI(
+                  form.watch("estimated_cost") as number,
+                  form.watch("estimated_cost_currency") || Currency.USD
+                )
+              : "N/A",
+          },
         ].map((item, i) => (
-          <div key={i} className={cn(
-            "flex flex-col items-center px-4 py-2 shrink-0",
-            i > 0 && "border-l border-border/60"
-          )}>
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{item.label}</span>
-            <span className="text-sm font-bold tabular-nums mt-0.5">{item.value}</span>
+          <div
+            key={i}
+            className={cn(
+              "flex shrink-0 flex-col items-center px-4 py-2",
+              i > 0 && "border-l border-border/60"
+            )}
+          >
+            <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+              {item.label}
+            </span>
+            <span className="mt-0.5 text-sm font-bold tabular-nums">
+              {item.value}
+            </span>
           </div>
         ))}
       </div>
@@ -245,7 +322,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
 
         {/* Info Tab */}
         <TabsContent value="info" className="space-y-4">
-          <div className="border-none bg-none p-0 m-0">
+          <div className="m-0 border-none bg-none p-0">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="name" className="text-sm font-medium">
@@ -286,10 +363,15 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                 <Label htmlFor="estimated_cost" className="text-sm font-medium">
                   Costo estimado
                 </Label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                    $
-                  </span>
+                <div className="flex gap-2">
+                  <CurrencySelector
+                    value={
+                      form.watch("estimated_cost_currency") || Currency.USD
+                    }
+                    onChange={(val) =>
+                      form.setValue("estimated_cost_currency", val)
+                    }
+                  />
                   <Input
                     id="estimated_cost"
                     type="number"
@@ -299,7 +381,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                     {...form.register("estimated_cost", {
                       valueAsNumber: true,
                     })}
-                    className="h-11 pl-7"
+                    className="h-11"
                   />
                 </div>
               </div>
@@ -339,7 +421,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
 
         {/* Pricing Tab */}
         <TabsContent value="pricing" className="space-y-4">
-          <div className="border-none bg-none p-0 m-0">
+          <div className="m-0 border-none bg-none p-0">
             <div className="space-y-6">
               {/* Market Prices */}
               <div>
@@ -357,10 +439,16 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                     >
                       Unitario <span className="text-destructive">*</span>
                     </Label>
-                    <div className="relative">
-                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                        $
-                      </span>
+                    <div className="flex gap-2">
+                      <CurrencySelector
+                        value={
+                          form.watch("market_price_unit_currency") ||
+                          Currency.USD
+                        }
+                        onChange={(val) =>
+                          form.setValue("market_price_unit_currency", val)
+                        }
+                      />
                       <Input
                         id="market_price_unit"
                         type="number"
@@ -370,7 +458,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                         {...form.register("market_price_unit", {
                           valueAsNumber: true,
                         })}
-                        className="h-11 pl-7"
+                        className="h-11"
                       />
                     </div>
                   </div>
@@ -381,10 +469,16 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                     >
                       Por docena
                     </Label>
-                    <div className="relative">
-                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                        $
-                      </span>
+                    <div className="flex gap-2">
+                      <CurrencySelector
+                        value={
+                          form.watch("market_price_dozen_currency") ||
+                          Currency.USD
+                        }
+                        onChange={(val) =>
+                          form.setValue("market_price_dozen_currency", val)
+                        }
+                      />
                       <Input
                         id="market_price_dozen"
                         type="number"
@@ -394,7 +488,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                         {...form.register("market_price_dozen", {
                           valueAsNumber: true,
                         })}
-                        className="h-11 pl-7"
+                        className="h-11"
                       />
                     </div>
                   </div>
@@ -419,10 +513,15 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                     >
                       Unitario <span className="text-destructive">*</span>
                     </Label>
-                    <div className="relative">
-                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                        $
-                      </span>
+                    <div className="flex gap-2">
+                      <CurrencySelector
+                        value={
+                          form.watch("our_price_unit_currency") || Currency.USD
+                        }
+                        onChange={(val) =>
+                          form.setValue("our_price_unit_currency", val)
+                        }
+                      />
                       <Input
                         id="our_price_unit"
                         type="number"
@@ -432,7 +531,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                         {...form.register("our_price_unit", {
                           valueAsNumber: true,
                         })}
-                        className="h-11 pl-7"
+                        className="h-11"
                       />
                     </div>
                   </div>
@@ -443,10 +542,15 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                     >
                       Por docena
                     </Label>
-                    <div className="relative">
-                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                        $
-                      </span>
+                    <div className="flex gap-2">
+                      <CurrencySelector
+                        value={
+                          form.watch("our_price_dozen_currency") || Currency.USD
+                        }
+                        onChange={(val) =>
+                          form.setValue("our_price_dozen_currency", val)
+                        }
+                      />
                       <Input
                         id="our_price_dozen"
                         type="number"
@@ -456,7 +560,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                         {...form.register("our_price_dozen", {
                           valueAsNumber: true,
                         })}
-                        className="h-11 pl-7"
+                        className="h-11"
                       />
                     </div>
                   </div>
@@ -476,7 +580,11 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
                 </p>
                 {profitMargin && (
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Ganancia: {formatCurrency(watchedOurPrice - watchedCost)}{" "}
+                    Ganancia:{" "}
+                    {formatCurrencyNI(
+                      watchedOurPrice - watchedCost,
+                      form.watch("our_price_unit_currency") || Currency.USD
+                    )}{" "}
                     por unidad
                   </p>
                 )}
@@ -487,7 +595,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
 
         {/* Media Tab */}
         <TabsContent value="media" className="space-y-4">
-          <div className="border-none bg-none p-0 m-0">
+          <div className="m-0 border-none bg-none p-0">
             <Label
               onDrop={(e) => {
                 e.preventDefault()
@@ -559,7 +667,7 @@ export function CatalogForm({ mode, itemId, defaultValues, onSuccess, onCancel }
       </Tabs>
 
       <div className="mt-3 flex w-full items-center justify-center gap-2 md:mt-5">
-        <Button type="submit" disabled={isSubmitting} className="gap-2 w-full">
+        <Button type="submit" disabled={isSubmitting} className="w-full gap-2">
           {isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (

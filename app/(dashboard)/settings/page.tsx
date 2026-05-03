@@ -106,7 +106,7 @@ export default async function SettingsPage() {
                     </p>
                     {settings && (
                       <p className="text-xs text-muted-foreground">
-                        Moneda: {settings.currency}
+                        Moneda: {settings.baseCurrency}
                       </p>
                     )}
                   </div>

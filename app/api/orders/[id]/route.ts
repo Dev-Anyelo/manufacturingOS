@@ -101,7 +101,9 @@ export async function PATCH(
           deliveryDate: toLocalDate(payload.delivery_date),
           channel: payload.channel,
           advancePaid: toPrismaDecimal(payload.advance_paid),
+          advancePaidCurrency: payload.advance_paid_currency,
           total: toPrismaDecimal(payload.total),
+          totalCurrency: payload.total_currency,
           notes: payload.notes,
           items: {
             create: payload.items.map((item) => ({
@@ -119,6 +121,7 @@ export async function PATCH(
               designNotes: item.design_notes,
               quantity: item.quantity,
               unitPrice: toPrismaDecimal(item.unit_price),
+              unitPriceCurrency: item.unit_price_currency,
             })),
           },
         },

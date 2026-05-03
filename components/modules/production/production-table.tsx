@@ -67,13 +67,13 @@ interface ProductionTableProps {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     dateStyle: "short",
   }).format(new Date(value))
 }
 
 function formatDateFull(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     dateStyle: "full",
   }).format(new Date(value))
 }
@@ -355,3 +355,4 @@ export function ProductionTable({
     </div>
   )
 }
+

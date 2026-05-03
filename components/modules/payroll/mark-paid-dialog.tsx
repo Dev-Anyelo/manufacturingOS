@@ -60,7 +60,7 @@ function formatDateLabel(value: string) {
     return "Fecha de pago"
   }
 
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -145,7 +145,7 @@ export function MarkPaidDialog({
   }
 
   const periodStr = payment
-    ? `${new Date(payment.periodStart).toLocaleDateString("es-PA")} - ${new Date(payment.periodEnd).toLocaleDateString("es-PA")}`
+    ? `${new Date(payment.periodStart).toLocaleDateString("es-NI")} - ${new Date(payment.periodEnd).toLocaleDateString("es-NI")}`
     : "-"
 
   const content = (
@@ -303,3 +303,4 @@ export function MarkPaidDialog({
     </Drawer>
   )
 }
+

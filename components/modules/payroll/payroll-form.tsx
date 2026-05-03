@@ -31,10 +31,11 @@ import {
   CreditCard,
   Clock,
   Scissors,
-  TrendingUp,
-  X,
 } from "lucide-react"
-import { MetricCard } from "@/components/shared/metric-card"
+
+import { Currency } from "@prisma/client"
+import { CurrencySelector } from "@/components/shared/currency-selector"
+import { formatCurrencyNI, getCurrencySymbol } from "@/lib/currency/exchange"
 
 const payrollFormSchema = z
   .object({
@@ -44,8 +45,11 @@ const payrollFormSchema = z
     pieces_produced: z.coerce.number().int().min(0).optional().nullable(),
     hours_worked: z.coerce.number().min(0).optional().nullable(),
     base_amount: z.coerce.number().min(0),
+    base_amount_currency: z.nativeEnum(Currency).default(Currency.USD),
     bonuses: z.coerce.number().min(0).default(0),
+    bonuses_currency: z.nativeEnum(Currency).default(Currency.USD),
     deductions: z.coerce.number().min(0).default(0),
+    deductions_currency: z.nativeEnum(Currency).default(Currency.USD),
     payment_method: z.enum(["cash", "transfer", "other"]).optional().nullable(),
     notes: z.string().trim().max(1000).optional().nullable(),
   })
@@ -106,18 +110,13 @@ function parseInputDate(value: string) {
 function formatDateLabel(value: string) {
   if (!value) return "Seleccionar"
 
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     day: "2-digit",
     month: "short",
   }).format(parseInputDate(value))
 }
 
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("es-PA", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount)
-}
+// formatCurrency eliminado, se usa exchange.ts
 
 const contractTypeLabels = {
   fixed_salary: "Salario fijo",
@@ -141,8 +140,11 @@ export function PayrollForm({
       pieces_produced: null,
       hours_worked: null,
       base_amount: 0,
+      base_amount_currency: Currency.USD,
       bonuses: 0,
+      bonuses_currency: Currency.USD,
       deductions: 0,
+      deductions_currency: Currency.USD,
       payment_method: null,
       notes: "",
     },
@@ -204,8 +206,13 @@ export function PayrollForm({
         pieces_produced: values.pieces_produced,
         hours_worked: values.hours_worked,
         base_amount: values.base_amount,
+        base_amount_currency: values.base_amount_currency,
         bonuses: values.bonuses,
+        bonuses_currency: values.bonuses_currency,
         deductions: values.deductions,
+        deductions_currency: values.deductions_currency,
+        total_amount: total,
+        total_amount_currency: values.base_amount_currency,
         payment_method: values.payment_method,
         notes: normalizeOptional(values.notes),
       }
@@ -246,7 +253,7 @@ export function PayrollForm({
       <div className="flex items-center justify-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
         <div className="flex flex-col items-center px-4 py-2 shrink-0">
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total a pagar</span>
-          <span className="text-sm font-bold tabular-nums mt-0.5 text-brand">{formatCurrency(total)}</span>
+          <span className="text-sm font-bold tabular-nums mt-0.5 text-brand">{formatCurrencyNI(total, form.watch("base_amount_currency") || Currency.USD)}</span>
         </div>
       </div>
 
@@ -303,7 +310,7 @@ export function PayrollForm({
                     </span>
                     {selectedEmployee.baseSalary && (
                       <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium">
-                        Base: {formatCurrency(selectedEmployee.baseSalary)}
+                        Base: {formatCurrencyNI(selectedEmployee.baseSalary, Currency.USD)}
                       </span>
                     )}
                   </div>
@@ -393,7 +400,7 @@ export function PayrollForm({
           <div>
             <div className="space-y-4">
               {/* Base + Bonuses + Deductions in grid */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label
                     htmlFor="base_amount"
@@ -402,17 +409,22 @@ export function PayrollForm({
                     <Banknote className="size-3.5" />
                     Base
                   </Label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
-                      $
-                    </span>
+                  <div className="flex gap-2">
+                    <CurrencySelector
+                      value={form.watch("base_amount_currency") || Currency.USD}
+                      onChange={(val) => {
+                        form.setValue("base_amount_currency", val)
+                        form.setValue("bonuses_currency", val)
+                        form.setValue("deductions_currency", val)
+                      }}
+                    />
                     <Input
                       id="base_amount"
                       type="number"
                       min={0}
                       step="0.01"
                       {...form.register("base_amount", { valueAsNumber: true })}
-                      className="h-10 pl-6 text-sm"
+                      className="h-10 text-sm"
                     />
                   </div>
                 </div>
@@ -424,9 +436,9 @@ export function PayrollForm({
                     <Plus className="text-success size-3.5" />
                     Bonos
                   </Label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
-                      $
+                  <div className="relative flex items-center">
+                    <span className="absolute left-2.5 text-xs text-muted-foreground font-medium">
+                      {getCurrencySymbol(form.watch("base_amount_currency") || Currency.USD)}
                     </span>
                     <Input
                       id="bonuses"
@@ -434,7 +446,7 @@ export function PayrollForm({
                       min={0}
                       step="0.01"
                       {...form.register("bonuses", { valueAsNumber: true })}
-                      className="h-10 pl-6 text-sm"
+                      className="h-10 pl-8 text-sm"
                     />
                   </div>
                 </div>
@@ -446,9 +458,9 @@ export function PayrollForm({
                     <Minus className="size-3.5 text-destructive" />
                     Deducciones
                   </Label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
-                      $
+                  <div className="relative flex items-center">
+                    <span className="absolute left-2.5 text-xs text-muted-foreground font-medium">
+                      {getCurrencySymbol(form.watch("base_amount_currency") || Currency.USD)}
                     </span>
                     <Input
                       id="deductions"
@@ -456,7 +468,7 @@ export function PayrollForm({
                       min={0}
                       step="0.01"
                       {...form.register("deductions", { valueAsNumber: true })}
-                      className="h-10 pl-6 text-sm"
+                      className="h-10 pl-8 text-sm"
                     />
                   </div>
                 </div>

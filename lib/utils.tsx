@@ -55,7 +55,7 @@ export function getMovementMeta(type: InventoryMovementEntry["movementType"]) {
 }
 
 export function formatDateTime(value: Date | string) {
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value))
@@ -139,18 +139,44 @@ export const statusConfig: Record<
 }
 
 export function formatDate(value: string | Date) {
-  return new Intl.DateTimeFormat("es-PA", { dateStyle: "short" }).format(
+  return new Intl.DateTimeFormat("es-NI", { dateStyle: "short" }).format(
     new Date(value)
   )
 }
 
-export function formatCurrency(amount: number) {
-  // forzar a nicaragua
-  return new Intl.NumberFormat("es-PA", {
+export function formatCurrency(amount: number, currency = "USD") {
+  return new Intl.NumberFormat("es-NI", {
     style: "currency",
-    currency: "USD",
+    currency: currency,
     minimumFractionDigits: 2,
   }).format(amount)
+}
+
+/**
+ * Formatea la hora en locale es-NI (12h con AM/PM)
+ */
+export function formatTimeNI(date: Date | string) {
+  const parsed = typeof date === "string" ? new Date(date) : date
+  return new Intl.DateTimeFormat("es-NI", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(parsed)
+}
+
+/**
+ * Formatea fecha y hora completa en locale es-NI
+ */
+export function formatDateTimeNI(date: Date | string) {
+  const parsed = typeof date === "string" ? new Date(date) : date
+  return new Intl.DateTimeFormat("es-NI", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(parsed)
 }
 
 export function getSpanishGreeting() {

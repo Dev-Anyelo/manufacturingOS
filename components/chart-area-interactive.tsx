@@ -160,7 +160,7 @@ export function ChartAreaInteractive({ data }: { data: FinancialChartData[] }) {
               minTickGap={32}
               tickFormatter={(value) => {
                 const date = new Date(value)
-                return date.toLocaleDateString("es-PA", {
+                return date.toLocaleDateString("es-NI", {
                   month: "short",
                   day: "numeric",
                 })
@@ -171,7 +171,7 @@ export function ChartAreaInteractive({ data }: { data: FinancialChartData[] }) {
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("es-PA", {
+                    return new Date(value).toLocaleDateString("es-NI", {
                       month: "short",
                       day: "numeric",
                     })
@@ -209,3 +209,4 @@ export function ChartAreaInteractive({ data }: { data: FinancialChartData[] }) {
     </Card>
   )
 }
+

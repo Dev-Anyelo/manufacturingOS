@@ -40,6 +40,7 @@ export default async function NewSalePage() {
             name: item.name,
             garmentType: item.garmentType,
             salePrice: decimalToNumber(item.salePrice),
+            salePriceCurrency: item.salePriceCurrency,
             imageUrl: item.imageUrl,
           }))}
           customers={customers.map((customer) => ({

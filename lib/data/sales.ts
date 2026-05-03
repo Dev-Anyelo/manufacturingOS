@@ -85,6 +85,7 @@ export async function getSalesPosBootstrap() {
         name: true,
         garmentType: true,
         salePrice: true,
+        salePriceCurrency: true,
         imageUrl: true,
       },
     }),

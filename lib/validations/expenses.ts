@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { Currency } from "@prisma/client"
 
 export const expenseSchema = z
   .object({
@@ -24,9 +25,11 @@ export const expenseSchema = z
     supplier: z.string().trim().max(120).optional().nullable(),
     quantity: z.coerce.number().min(0).optional().nullable(),
     unit_price: z.coerce.number().min(0).optional().nullable(),
+    unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
     total: z.coerce
       .number({ message: "El total es obligatorio" })
       .min(0, "El total no puede ser negativo"),
+    total_currency: z.nativeEnum(Currency).default(Currency.USD),
     updates_inventory: z.boolean().default(false),
     inventory_item_id: z.string().uuid().optional().nullable(),
     inventory_quantity_added: z.coerce.number().optional().nullable(),

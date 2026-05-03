@@ -71,7 +71,7 @@ function formatDate(value: string | null) {
     return "-"
   }
 
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     dateStyle: "short",
   }).format(new Date(value))
 }
@@ -354,3 +354,4 @@ export function PayrollTable({
     </div>
   )
 }
+

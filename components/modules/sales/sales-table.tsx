@@ -87,7 +87,7 @@ const paymentMethodLabelMap: Record<string, string> = {
 }
 
 function formatDate(value: Date) {
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     dateStyle: "short",
   }).format(value)
 }
@@ -380,3 +380,4 @@ export function SalesTable({ sales, currentUserRole }: SalesTableProps) {
     </>
   )
 }
+

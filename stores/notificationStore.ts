@@ -1,7 +1,6 @@
 "use client"
 
 import { create } from "zustand"
-
 import { NotificationType } from "@/types"
 import { createClient } from "@/lib/supabase/client"
 import type { Database, Json } from "@/lib/supabase/types"

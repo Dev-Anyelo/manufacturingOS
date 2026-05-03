@@ -41,7 +41,7 @@ function formatDate(value: string | null) {
     return "-"
   }
 
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     dateStyle: "medium",
   }).format(new Date(value))
 }
@@ -163,3 +163,4 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
     </Card>
   )
 }
+

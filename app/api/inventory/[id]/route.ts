@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { requirePermission } from "@/lib/api/require-permission"
 import { inventoryItemSchema } from "@/lib/validations/inventory"
 
 import {
@@ -9,7 +10,6 @@ import {
   resolveRouteParams,
 } from "@/lib/api/response"
 
-import { requirePermission } from "@/lib/api/require-permission"
 
 type RouteParams = {
   id: string
@@ -73,6 +73,7 @@ export async function PATCH(
         quantity: payload.quantity,
         unit: payload.unit,
         unitPrice: payload.unit_price,
+        unitPriceCurrency: payload.unit_price_currency,
         minimumStock: payload.minimum_stock,
         supplier: payload.supplier,
         notes: payload.notes,

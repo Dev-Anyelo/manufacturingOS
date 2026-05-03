@@ -87,7 +87,7 @@ export function SaleReceipt({
                 },
                 {
                   label: "Fecha",
-                  value: receipt.createdAt.toLocaleString("es-PA", {
+                  value: receipt.createdAt.toLocaleString("es-NI", {
                     dateStyle: "medium",
                     timeStyle: "short",
                   }),
@@ -218,3 +218,4 @@ export function SaleReceipt({
     </Dialog>
   )
 }
+

@@ -1,10 +1,9 @@
-import { Prisma } from "@prisma/client"
-
 import { cn } from "@/lib/utils"
+import { Currency, Prisma } from "@prisma/client"
 
 interface CurrencyDisplayProps {
   amount: number | string | Prisma.Decimal
-  currency?: string
+  currency?: Currency
   size?: "sm" | "md" | "lg" | "kpi"
   colored?: boolean
   className?: string
@@ -30,9 +29,9 @@ export function CurrencyDisplay({
   const numericAmount = Number(amount)
 
   const value = Number.isFinite(numericAmount) ? numericAmount : 0
-  const formatter = new Intl.NumberFormat("en-US", {
+  const formatter = new Intl.NumberFormat("es-NI", {
     style: "currency",
-    currency,
+    currency: currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })

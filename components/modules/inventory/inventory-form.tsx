@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button"
 import { MaterialCategory } from "@prisma/client"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { StatCard } from "@/components/shared/stat-card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -22,6 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+
+import { Currency } from "@prisma/client"
+import { CurrencySelector } from "@/components/shared/currency-selector"
+import { formatCurrencyNI } from "@/lib/currency/exchange"
 
 import {
   Loader2,
@@ -49,6 +52,7 @@ const inventoryFormSchema = z.object({
   quantity: z.number().min(0),
   unit: z.string().trim().min(1).max(20),
   unit_price: z.number().min(0),
+  unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
   minimum_stock: z.number().min(0),
   supplier: z.string().trim().max(120).optional().nullable(),
   notes: z.string().trim().max(1000).optional().nullable(),
@@ -56,7 +60,10 @@ const inventoryFormSchema = z.object({
   is_active: z.boolean().optional(),
 })
 
-export type InventoryFormValues = z.infer<typeof inventoryFormSchema>
+type InventoryFormInput = z.input<typeof inventoryFormSchema>
+type InventoryFormOutput = z.output<typeof inventoryFormSchema>
+
+export type InventoryFormValues = InventoryFormOutput
 
 interface InventoryFormProps {
   mode: "create" | "edit"
@@ -95,12 +102,7 @@ const categoryOptions = [
 
 const unitOptions = ["yd", "metros", "unidades", "rollos"] as const
 
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("es-PA", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount)
-}
+// formatCurrency eliminado, se usa exchange.ts
 
 export function InventoryForm({
   mode,
@@ -116,7 +118,7 @@ export function InventoryForm({
   )
   const [isDragging, setIsDragging] = React.useState(false)
 
-  const form = useForm<InventoryFormValues>({
+  const form = useForm<InventoryFormInput, unknown, InventoryFormOutput>({
     resolver: zodResolver(inventoryFormSchema),
     defaultValues: {
       name: defaultValues?.name ?? "",
@@ -126,6 +128,7 @@ export function InventoryForm({
       quantity: defaultValues?.quantity ?? 0,
       unit: defaultValues?.unit ?? "yd",
       unit_price: defaultValues?.unit_price ?? 0,
+      unit_price_currency: defaultValues?.unit_price_currency ?? Currency.USD,
       minimum_stock: defaultValues?.minimum_stock ?? 0,
       supplier: defaultValues?.supplier ?? "",
       notes: defaultValues?.notes ?? "",
@@ -226,7 +229,7 @@ export function InventoryForm({
       {/* Summary Stats - Compact Info Bar */}
       <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
-          { label: "Valor", value: formatCurrency(totalValue) },
+          { label: "Valor", value: formatCurrencyNI(totalValue, form.watch("unit_price_currency") || Currency.USD) },
           {
             label: "Estado",
             value:
@@ -472,17 +475,18 @@ export function InventoryForm({
                   <Label htmlFor="unit_price" className="text-sm font-medium">
                     Precio
                   </Label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
-                      $
-                    </span>
+                  <div className="flex gap-2">
+                    <CurrencySelector
+                      value={form.watch("unit_price_currency") || Currency.USD}
+                      onChange={(val) => form.setValue("unit_price_currency", val)}
+                    />
                     <Input
                       id="unit_price"
                       type="number"
                       min={0}
                       step="0.01"
                       {...form.register("unit_price", { valueAsNumber: true })}
-                      className="h-10 pl-6"
+                      className="h-10"
                     />
                   </div>
                 </div>

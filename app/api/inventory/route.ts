@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { getSearchParam } from "@/lib/api/utils"
 import { Prisma, UserRole } from "@prisma/client"
+import { requirePermission } from "@/lib/api/require-permission"
 import { inventoryItemSchema } from "@/lib/validations/inventory"
 
 import {
@@ -10,7 +11,6 @@ import {
   requireAuth,
   } from "@/lib/api/response"
 
-import { requirePermission } from "@/lib/api/require-permission"
 
 export async function GET(request: Request) {
   try {
@@ -102,6 +102,7 @@ export async function POST(request: Request) {
         quantity: payload.quantity,
         unit: payload.unit,
         unitPrice: payload.unit_price,
+        unitPriceCurrency: payload.unit_price_currency,
         minimumStock: payload.minimum_stock,
         supplier: payload.supplier,
         notes: payload.notes,

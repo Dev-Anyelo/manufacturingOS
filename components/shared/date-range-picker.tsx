@@ -25,7 +25,7 @@ function toDateOnly(value: Date) {
 
 function formatLabel(from?: Date, to?: Date) {
   if (!from) return ""
-  const fmt = new Intl.DateTimeFormat("es-PA", {
+  const fmt = new Intl.DateTimeFormat("es-NI", {
     day: "2-digit",
     month: "short",
   })
@@ -205,3 +205,4 @@ export function DateRangePicker({
     </Popover>
   )
 }
+

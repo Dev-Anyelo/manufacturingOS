@@ -94,7 +94,7 @@ function getSpanishGreeting() {
 }
 
 function getFormattedDate() {
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -545,3 +545,4 @@ export default async function DashboardPage(props: {
     </section>
   )
 }
+

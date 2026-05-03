@@ -8,7 +8,10 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { cn, formatCurrency } from "@/lib/utils"
+import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
+import { CurrencySelector } from "@/components/shared/currency-selector"
+import { formatCurrencyNI, getCurrencySymbol } from "@/lib/currency/exchange"
 import { Switch } from "@/components/ui/switch"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
@@ -88,7 +91,9 @@ const expenseFormSchema = z
     supplier: z.string().trim().max(120).optional().nullable(),
     quantity: z.coerce.number().min(0).optional().nullable(),
     unit_price: z.coerce.number().min(0).optional().nullable(),
+    unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
     total: z.coerce.number().min(0, "El total no puede ser negativo"),
+    total_currency: z.nativeEnum(Currency).default(Currency.USD),
     updates_inventory: z.boolean().default(false),
     inventory_item_id: z.string().uuid().optional().nullable(),
     inventory_quantity_added: z.coerce.number().optional().nullable(),
@@ -162,7 +167,7 @@ function parseInputDate(value: string) {
 function formatDateLabel(value: string) {
   if (!value) return "Seleccionar"
 
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     day: "2-digit",
     month: "short",
   }).format(parseInputDate(value))
@@ -188,7 +193,9 @@ export function ExpenseForm({
       supplier: "",
       quantity: 0,
       unit_price: 0,
+      unit_price_currency: Currency.USD,
       total: 0,
+      total_currency: Currency.USD,
       updates_inventory: false,
       inventory_item_id: null,
       inventory_quantity_added: null,
@@ -202,6 +209,8 @@ export function ExpenseForm({
   const selectedExpenseDate = form.watch("expense_date")
   const selectedInventoryItemId = form.watch("inventory_item_id")
   const watchedTotal = (form.watch("total") as number | null | undefined) ?? 0
+  const totalCurrency = form.watch("total_currency")
+  const unitPriceCurrency = form.watch("unit_price_currency")
   const calculatedTotal = Number(quantity ?? 0) * Number(unitPrice ?? 0)
 
   const selectedInventoryItem = React.useMemo(
@@ -261,7 +270,9 @@ export function ExpenseForm({
         supplier: normalizeOptional(values.supplier),
         quantity: values.quantity ?? null,
         unit_price: values.unit_price ?? null,
+        unit_price_currency: values.unit_price_currency,
         total: Number(values.total),
+        total_currency: values.total_currency,
         updates_inventory: values.updates_inventory,
         inventory_item_id: values.updates_inventory
           ? values.inventory_item_id
@@ -328,7 +339,7 @@ export function ExpenseForm({
             Total a registrar
           </span>
           <span className="mt-0.5 text-sm font-bold tabular-nums">
-            {formatCurrency((watchedTotal as number) || 0)}
+            {formatCurrencyNI((watchedTotal as number) || 0, form.watch("total_currency") || Currency.USD)}
           </span>
         </div>
       </div>
@@ -465,7 +476,7 @@ export function ExpenseForm({
           <div className="dborder-none m-0 bg-none p-0">
             <div className="space-y-4">
               {/* Quantity + Unit Price + Total */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="quantity" className="text-sm font-medium">
                     Cantidad
@@ -484,10 +495,14 @@ export function ExpenseForm({
                   <Label htmlFor="unit_price" className="text-sm font-medium">
                     Precio unit.
                   </Label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
-                      $
-                    </span>
+                  <div className="flex gap-2">
+                    <CurrencySelector
+                      value={form.watch("unit_price_currency") || Currency.USD}
+                      onChange={(val) => {
+                        form.setValue("unit_price_currency", val)
+                        form.setValue("total_currency", val) // Sincronizar por defecto
+                      }}
+                    />
                     <Input
                       id="unit_price"
                       type="number"
@@ -495,7 +510,7 @@ export function ExpenseForm({
                       step="0.01"
                       placeholder="0.00"
                       {...form.register("unit_price", { valueAsNumber: true })}
-                      className="h-10 pl-6"
+                      className="h-10"
                     />
                   </div>
                 </div>
@@ -503,17 +518,18 @@ export function ExpenseForm({
                   <Label htmlFor="total" className="text-sm font-medium">
                     Total
                   </Label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs text-muted-foreground">
-                      $
-                    </span>
+                  <div className="flex gap-2">
+                    <CurrencySelector
+                      value={form.watch("total_currency") || Currency.USD}
+                      onChange={(val) => form.setValue("total_currency", val)}
+                    />
                     <Input
                       id="total"
                       type="number"
                       min={0}
                       step="0.01"
                       {...form.register("total", { valueAsNumber: true })}
-                      className="h-10 pl-6"
+                      className="h-10"
                     />
                   </div>
                 </div>
@@ -523,8 +539,9 @@ export function ExpenseForm({
               <div className="rounded-lg bg-muted/50 p-3 text-center">
                 <p className="text-xs text-muted-foreground">Total calculado</p>
                 <p className="text-base font-bold">
-                  {formatCurrency(
-                    Number.isFinite(calculatedTotal) ? calculatedTotal : 0
+                  {formatCurrencyNI(
+                    Number.isFinite(calculatedTotal) ? calculatedTotal : 0,
+                    form.watch("total_currency") || Currency.USD
                   )}
                 </p>
               </div>

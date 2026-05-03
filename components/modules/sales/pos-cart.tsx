@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
@@ -11,8 +12,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { CustomerSelector } from "./customer-selector"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { getCurrencySymbol } from "@/lib/currency/exchange"
 import { EmptyState } from "@/components/shared/empty-state"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { CurrencySelector } from "@/components/shared/currency-selector"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { PosCartItem, PosCustomer } from "@/components/modules/sales/types"
 
@@ -82,6 +85,8 @@ export interface PosCartProps {
   canSubmit?: boolean
   highlightRowId?: string | null
   onRequestClear?: () => void
+  currency: Currency
+  onCurrencyChange: (value: Currency) => void
 }
 
 const paymentMethods = [
@@ -133,47 +138,51 @@ function parseInputDate(value: string) {
 
 function formatDateLabel(value: string) {
   if (!value) return "Seleccionar fecha"
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   }).format(parseInputDate(value))
 }
 
-export function PosCart({
-  className,
-  variant = "panel",
-  items,
-  customers,
-  selectedCustomer,
-  onCustomerChange,
-  onCustomerCreated,
-  onIncreaseQuantity,
-  onDecreaseQuantity,
-  onRemoveItem,
-  onSizeChange,
-  channel,
-  onChannelChange,
-  paymentMethod,
-  onPaymentMethodChange,
-  subtotal,
-  discountPercent,
-  onDiscountPercentChange,
-  total,
-  receivedAmount,
-  onReceivedAmountChange,
-  amountPaid,
-  onAmountPaidChange,
-  dueDate,
-  onDueDateChange,
-  notes,
-  onNotesChange,
-  onSubmit,
-  isSubmitting = false,
-  canSubmit,
-  highlightRowId,
-  onRequestClear,
-}: PosCartProps) {
+export function PosCart(props: PosCartProps) {
+  const {
+    className,
+    variant = "panel",
+    items,
+    customers,
+    selectedCustomer,
+    onCustomerChange,
+    onCustomerCreated,
+    onIncreaseQuantity,
+    onDecreaseQuantity,
+    onRemoveItem,
+    onSizeChange,
+    channel,
+    onChannelChange,
+    paymentMethod,
+    onPaymentMethodChange,
+    subtotal,
+    discountPercent,
+    onDiscountPercentChange,
+    total,
+    receivedAmount,
+    onReceivedAmountChange,
+    amountPaid,
+    onAmountPaidChange,
+    dueDate,
+    onDueDateChange,
+    notes,
+    onNotesChange,
+    onSubmit,
+    isSubmitting,
+    canSubmit,
+    highlightRowId,
+    onRequestClear,
+    currency,
+    onCurrencyChange,
+  } = props
+
   const discountAmount = subtotal * (discountPercent / 100)
   const taxAmount = 0
 
@@ -207,24 +216,31 @@ export function PosCart({
             </Badge>
           )}
         </div>
-        {items.length > 0 && (
-          <Button
-            type="button"
+        <div className="flex items-center gap-2">
+          <CurrencySelector
+            value={currency}
+            onChange={onCurrencyChange}
             variant="ghost"
-            size="sm"
-            className="h-8 px-2.5 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => {
-              if (onRequestClear) {
-                onRequestClear()
-                return
-              }
-              items.forEach((item) => onRemoveItem(item.rowId))
-            }}
-          >
-            <Trash2Icon className="mr-1.5 size-3.5" />
-            Limpiar
-          </Button>
-        )}
+          />
+          {items.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2.5 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => {
+                if (onRequestClear) {
+                  onRequestClear()
+                  return
+                }
+                items.forEach((item) => onRemoveItem(item.rowId))
+              }}
+            >
+              <Trash2Icon className="mr-1.5 size-3.5" />
+              Limpiar
+            </Button>
+          )}
+        </div>
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
@@ -262,6 +278,7 @@ export function PosCart({
                     onDecrease={() => onDecreaseQuantity(item.rowId)}
                     onRemove={() => onRemoveItem(item.rowId)}
                     onSizeChange={(size) => onSizeChange(item.rowId, size)}
+                    currency={currency}
                   />
                 ))}
               </div>
@@ -389,7 +406,7 @@ export function PosCart({
                   </Label>
                   <div className="relative">
                     <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center font-medium text-muted-foreground">
-                      $
+                      {getCurrencySymbol(currency)}
                     </span>
                     <Input
                       type="number"
@@ -423,7 +440,7 @@ export function PosCart({
                 </Label>
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center font-medium text-muted-foreground">
-                    $
+                    {getCurrencySymbol(currency)}
                   </span>
                   <Input
                     type="number"
@@ -449,7 +466,7 @@ export function PosCart({
                   </Label>
                   <div className="relative">
                     <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center font-medium text-muted-foreground">
-                      $
+                      {getCurrencySymbol(currency)}
                     </span>
                     <Input
                       type="number"
@@ -514,7 +531,7 @@ export function PosCart({
                     </Label>
                     <div className="relative">
                       <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center font-medium text-muted-foreground">
-                        $
+                        {getCurrencySymbol(currency)}
                       </span>
                       <Input
                         type="number"
@@ -537,7 +554,7 @@ export function PosCart({
                     </Label>
                     <div className="relative">
                       <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center font-medium text-muted-foreground">
-                        $
+                        {getCurrencySymbol(currency)}
                       </span>
                       <Input
                         type="number"
@@ -587,7 +604,7 @@ export function PosCart({
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Subtotal</span>
             <span className="font-medium text-foreground tabular-nums">
-              <CurrencyDisplay amount={subtotal} />
+              <CurrencyDisplay amount={subtotal} currency={currency} />
             </span>
           </div>
           {discountAmount > 0 && (
@@ -596,14 +613,14 @@ export function PosCart({
                 Descuento ({discountPercent}%)
               </span>
               <span className="text-danger font-medium tabular-nums">
-                -<CurrencyDisplay amount={discountAmount} />
+                -<CurrencyDisplay amount={discountAmount} currency={currency} />
               </span>
             </div>
           )}
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Impuesto</span>
             <span className="font-medium text-foreground tabular-nums">
-              <CurrencyDisplay amount={taxAmount} />
+              <CurrencyDisplay amount={taxAmount} currency={currency} />
             </span>
           </div>
 
@@ -612,7 +629,7 @@ export function PosCart({
           <div className="flex items-center justify-between">
             <span className="text-base font-bold text-foreground">Total</span>
             <span className="text-2xl font-black tracking-tight text-brand tabular-nums">
-              <CurrencyDisplay amount={total} />
+              <CurrencyDisplay amount={total} currency={currency} />
             </span>
           </div>
 
@@ -621,12 +638,16 @@ export function PosCart({
               <span className="text-muted-foreground">
                 Pagado:{" "}
                 <span className="font-medium text-foreground">
-                  <CurrencyDisplay amount={computedAmountPaid} />
+                  <CurrencyDisplay
+                    amount={computedAmountPaid}
+                    currency={currency}
+                  />
                 </span>
               </span>
               {pendingAmount > 0 && (
                 <span className="text-warning font-medium">
-                  Pendiente: <CurrencyDisplay amount={pendingAmount} />
+                  Pendiente:{" "}
+                  <CurrencyDisplay amount={pendingAmount} currency={currency} />
                 </span>
               )}
             </div>
@@ -659,6 +680,7 @@ function CartItemRow({
   onDecrease,
   onRemove,
   onSizeChange,
+  currency,
 }: {
   item: PosCartItem
   highlighted: boolean
@@ -666,6 +688,7 @@ function CartItemRow({
   onDecrease: () => void
   onRemove: () => void
   onSizeChange: (size: string) => void
+  currency: Currency
 }) {
   return (
     <div
@@ -697,7 +720,7 @@ function CartItemRow({
             {item.name}
           </p>
           <p className="mt-1 text-sm font-bold tracking-tight text-brand tabular-nums">
-            <CurrencyDisplay amount={item.unitPrice} />
+            <CurrencyDisplay amount={item.unitPrice} currency={currency} />
           </p>
         </div>
 

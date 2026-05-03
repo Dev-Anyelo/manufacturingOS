@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { RealtimeBootstrap } from "@/components/providers/realtime-bootstrap"
+import { SettingsInitializer } from "@/components/providers/settings-initializer"
 
 import {
   dashboardNavSections,
@@ -50,6 +51,7 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider style={layoutStyle}>
       <RealtimeBootstrap />
+      <SettingsInitializer />
       <AppSidebar variant="inset" user={user} sections={filteredSections} />
       <SidebarInset>
         <SiteHeader user={user} />

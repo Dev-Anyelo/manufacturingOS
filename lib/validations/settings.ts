@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { Currency } from "@prisma/client"
 
 export const systemSettingsSchema = z.object({
   company_name: z
@@ -19,7 +20,8 @@ export const systemSettingsSchema = z.object({
     .int("El umbral debe ser un numero entero")
     .min(1, "El umbral minimo es 1")
     .max(1000, "El umbral maximo es 1000"),
-  currency: z.string().trim().min(3, "La moneda es obligatoria").max(10),
+  base_currency: z.nativeEnum(Currency).default(Currency.USD),
+  display_currency: z.nativeEnum(Currency).default(Currency.USD),
   timezone: z.string().trim().min(3, "La zona horaria es obligatoria").max(100),
 })
 

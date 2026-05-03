@@ -173,7 +173,7 @@ function formatDateLabel(value: string) {
   const [year, month, day] = value.split("-").map(Number)
   const date = new Date(year, (month || 1) - 1, day || 1)
 
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     day: "2-digit",
     month: "short",
   }).format(date)
@@ -728,3 +728,4 @@ export function ProductionForm({
     </form>
   )
 }
+

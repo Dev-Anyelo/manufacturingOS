@@ -64,7 +64,7 @@ interface ExpensesTableProps {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     dateStyle: "short",
   }).format(new Date(value))
 }
@@ -346,3 +346,4 @@ function SummaryTile({
     </div>
   )
 }
+

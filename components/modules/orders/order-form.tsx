@@ -7,14 +7,18 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { cn, formatCurrency } from "@/lib/utils"
-import { Calendar } from "@/components/ui/calendar"
-import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray } from "react-hook-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
 import type { PosCustomer } from "@/components/modules/sales/types"
+import { Currency } from "@prisma/client"
+import { CurrencySelector } from "@/components/shared/currency-selector"
+import { cn } from "@/lib/utils"
+import { formatCurrencyNI, getCurrencySymbol, calculateBalanceDue } from "@/lib/currency/exchange"
+import { useSettingsStore } from "@/stores/settingsStore"
+import { Calendar } from "@/components/ui/calendar"
+import { Textarea } from "@/components/ui/textarea"
 
 import {
   Popover,
@@ -95,6 +99,7 @@ const lineSchema = z.object({
   unit_price: z.coerce
     .number()
     .min(0, "El precio unitario no puede ser negativo"),
+  unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
   measurements: z
     .object({
       bust: z.coerce.number().positive().optional(),
@@ -118,7 +123,10 @@ const orderFormSchema = z.object({
     "other",
   ]),
   advance_paid: z.coerce.number().min(0, "El adelanto no puede ser negativo"),
+  advance_paid_currency: z.nativeEnum(Currency).default(Currency.USD),
   total: z.coerce.number().min(0, "El total no puede ser negativo"),
+  total_currency: z.nativeEnum(Currency).default(Currency.USD),
+  balance_due_currency: z.nativeEnum(Currency).default(Currency.USD),
   notes: z.string().trim().max(1000).optional().nullable(),
   items: z.array(lineSchema).min(1, "Debes agregar al menos un item"),
 })
@@ -148,6 +156,7 @@ function getEmptyLine(): OrderFormValues["items"][number] {
     design_notes: "",
     quantity: 1,
     unit_price: 0,
+    unit_price_currency: Currency.USD,
     measurements: null,
   }
 }
@@ -172,7 +181,7 @@ function parseInputDate(value: string) {
 function formatDateLabel(value: string) {
   if (!value) return "Seleccionar"
 
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat("es-NI", {
     day: "2-digit",
     month: "short",
   }).format(parseInputDate(value))
@@ -200,6 +209,7 @@ export function OrderForm({
   onCancel,
 }: OrderFormProps) {
   const router = useRouter()
+  const { exchangeRate } = useSettingsStore()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [measurementModes, setMeasurementModes] = React.useState<
     Record<string, MeasurementMode>
@@ -215,7 +225,10 @@ export function OrderForm({
       delivery_date: "",
       channel: "in_person",
       advance_paid: 0,
+      advance_paid_currency: Currency.USD,
       total: 0,
+      total_currency: Currency.USD,
+      balance_due_currency: Currency.USD,
       notes: "",
       items: [getEmptyLine()],
     },
@@ -243,6 +256,8 @@ export function OrderForm({
     }, 0)
   }, [watchedItems])
 
+  const orderCurrency = form.watch("total_currency")
+
   const totalUnits = React.useMemo(() => {
     return watchedItems.reduce(
       (acc, item) => acc + Number(item.quantity || 0),
@@ -250,10 +265,22 @@ export function OrderForm({
     )
   }, [watchedItems])
 
-  const pendingBalance = Math.max(
-    Number(watchedTotal || 0) - Number(watchedAdvance || 0),
-    0
+  const pendingBalance = calculateBalanceDue(
+    Number(watchedTotal || 0),
+    form.watch("total_currency") || Currency.USD,
+    Number(watchedAdvance || 0),
+    form.watch("advance_paid_currency") || Currency.USD,
+    exchangeRate
   )
+
+  // Sync item and advance currencies when order currency changes
+  React.useEffect(() => {
+    form.setValue("advance_paid_currency", orderCurrency)
+    form.setValue("balance_due_currency", orderCurrency)
+    watchedItems.forEach((_, index) => {
+      form.setValue(`items.${index}.unit_price_currency`, orderCurrency)
+    })
+  }, [orderCurrency, watchedItems.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleCatalogChange(index: number, catalogItemId: string) {
     form.setValue(`items.${index}.catalog_item_id`, catalogItemId, {
@@ -282,7 +309,10 @@ export function OrderForm({
         delivery_date: parseInputDate(values.delivery_date),
         channel: values.channel,
         advance_paid: Number(values.advance_paid),
+        advance_paid_currency: values.advance_paid_currency,
         total: Number(values.total),
+        total_currency: values.total_currency,
+        balance_due_currency: values.balance_due_currency,
         notes: toNullableString(values.notes),
         items: values.items.map((item, index) => ({
           catalog_item_id: toNullableString(item.catalog_item_id),
@@ -293,6 +323,7 @@ export function OrderForm({
           design_notes: toNullableString(item.design_notes),
           quantity: Number(item.quantity),
           unit_price: Number(item.unit_price),
+          unit_price_currency: item.unit_price_currency,
           measurements: normalizeMeasurements(
             measurementModes[fields[index].id] ?? "standard",
             item.measurements
@@ -341,9 +372,9 @@ export function OrderForm({
       {/* Summary Stats - Compact Info Bar */}
       <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
-          { label: "Total", value: formatCurrency(estimatedTotal) },
+          { label: "Total", value: formatCurrencyNI(estimatedTotal, orderCurrency || Currency.USD) },
           { label: "Unidades", value: totalUnits.toString() },
-          { label: "Saldo", value: formatCurrency(pendingBalance) },
+          { label: "Saldo", value: formatCurrencyNI(pendingBalance, orderCurrency || Currency.USD) },
           {
             label: "Entrega",
             value: watchedDeliveryDate
@@ -433,7 +464,7 @@ export function OrderForm({
                             ? parseInputDate(watchedDeliveryDate)
                             : undefined
                         }
-                        onSelect={(date) => {
+                        onSelect={(date: Date | undefined) => {
                           if (!date) return
                           form.setValue("delivery_date", toInputDate(date), {
                             shouldDirty: true,
@@ -558,7 +589,7 @@ export function OrderForm({
                                 "Sin descripción"}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {formatCurrency(itemSubtotal)}
+                              {formatCurrencyNI(itemSubtotal, orderCurrency || Currency.USD)}
                             </p>
                           </div>
                         </div>
@@ -622,7 +653,7 @@ export function OrderForm({
                               </SelectItem>
                               {catalogItems.map((item) => (
                                 <SelectItem key={item.id} value={item.id}>
-                                  {item.name} - {formatCurrency(item.salePrice)}
+                                  {item.name} - {formatCurrencyNI(item.salePrice, Currency.USD)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -646,9 +677,9 @@ export function OrderForm({
                           <Label className="text-xs text-muted-foreground">
                             Precio
                           </Label>
-                          <div className="relative">
-                            <span className="pointer-events-none absolute top-1/2 left-2 -translate-y-1/2 text-xs text-muted-foreground">
-                              $
+                          <div className="relative flex items-center">
+                            <span className="absolute left-2 text-[10px] font-bold text-muted-foreground">
+                              {getCurrencySymbol(orderCurrency || Currency.USD)}
                             </span>
                             <Input
                               type="number"
@@ -657,7 +688,7 @@ export function OrderForm({
                               {...form.register(`items.${index}.unit_price`, {
                                 valueAsNumber: true,
                               })}
-                              className="h-9 pl-5 text-xs"
+                              className="h-9 pl-6 text-xs"
                             />
                           </div>
                         </div>
@@ -818,14 +849,27 @@ export function OrderForm({
         <TabsContent value="payment" className="space-y-4">
           <div className="m-0 border-none bg-none p-0">
             <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Moneda del pedido</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Define la divisa para el total y los pagos
+                  </p>
+                </div>
+                <CurrencySelector
+                  value={orderCurrency || Currency.USD}
+                  onChange={(val) => form.setValue("total_currency", val)}
+                />
+              </div>
+
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="total" className="text-sm font-medium">
                     Total del pedido
                   </Label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                      $
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-sm font-bold text-muted-foreground">
+                      {orderCurrency === Currency.USD ? "$" : "C$"}
                     </span>
                     <Input
                       id="total"
@@ -833,11 +877,11 @@ export function OrderForm({
                       min={0}
                       step="0.01"
                       {...form.register("total", { valueAsNumber: true })}
-                      className="h-10 pl-7"
+                      className="h-10 pl-8"
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Calculado: {formatCurrency(estimatedTotal)}
+                    Calculado: {formatCurrencyNI(estimatedTotal, orderCurrency || Currency.USD)}
                   </p>
                 </div>
 
@@ -845,9 +889,9 @@ export function OrderForm({
                   <Label htmlFor="advance_paid" className="text-sm font-medium">
                     Adelanto recibido
                   </Label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                      $
+                  <div className="relative flex items-center">
+                    <span className="absolute left-3 text-sm font-bold text-muted-foreground">
+                      {orderCurrency === Currency.USD ? "$" : "C$"}
                     </span>
                     <Input
                       id="advance_paid"
@@ -857,7 +901,7 @@ export function OrderForm({
                       {...form.register("advance_paid", {
                         valueAsNumber: true,
                       })}
-                      className="h-10 pl-7"
+                      className="h-10 pl-8"
                     />
                   </div>
                 </div>
@@ -869,13 +913,13 @@ export function OrderForm({
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Total</span>
                     <span className="font-medium">
-                      {formatCurrency(Number(watchedTotal || 0))}
+                      {formatCurrencyNI(Number(watchedTotal || 0), orderCurrency || Currency.USD)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Adelanto</span>
                     <span className="text-success font-medium">
-                      -{formatCurrency(Number(watchedAdvance || 0))}
+                      -{formatCurrencyNI(Number(watchedAdvance || 0), orderCurrency || Currency.USD)}
                     </span>
                   </div>
                   <div className="h-px bg-border" />
@@ -887,7 +931,7 @@ export function OrderForm({
                         pendingBalance > 0 ? "text-warning" : "text-success"
                       )}
                     >
-                      {formatCurrency(pendingBalance)}
+                      {formatCurrencyNI(pendingBalance, orderCurrency || Currency.USD)}
                     </span>
                   </div>
                 </div>

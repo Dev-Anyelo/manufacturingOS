@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { Currency } from "@prisma/client"
 
 const measurementSchema = z.object({
   bust: z.coerce.number().positive("El busto debe ser mayor a 0").optional(),
@@ -26,6 +27,7 @@ const workOrderItemSchema = z.object({
   unit_price: z.coerce
     .number({ message: "El precio unitario es obligatorio" })
     .min(0, "El precio unitario no puede ser negativo"),
+  unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
 })
 
 export const workOrderSchema = z
@@ -44,9 +46,12 @@ export const workOrderSchema = z
       .number({ message: "El adelanto no es valido" })
       .min(0, "El adelanto no puede ser negativo")
       .default(0),
+    advance_paid_currency: z.nativeEnum(Currency).default(Currency.USD),
     total: z.coerce
       .number({ message: "El total es obligatorio" })
       .min(0, "El total no puede ser negativo"),
+    total_currency: z.nativeEnum(Currency).default(Currency.USD),
+    balance_due_currency: z.nativeEnum(Currency).default(Currency.USD),
     notes: z.string().trim().max(1000).optional().nullable(),
     items: z
       .array(workOrderItemSchema)
@@ -55,6 +60,7 @@ export const workOrderSchema = z
   .superRefine((value, context) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
+    const { convertAmount } = require("@/lib/currency/exchange")
 
     if (value.delivery_date <= today) {
       context.addIssue({
@@ -64,7 +70,13 @@ export const workOrderSchema = z
       })
     }
 
-    if (value.advance_paid > value.total) {
+    const advanceInTotalCurrency = convertAmount(
+      value.advance_paid,
+      value.advance_paid_currency,
+      value.total_currency
+    )
+
+    if (advanceInTotalCurrency > value.total) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["advance_paid"],

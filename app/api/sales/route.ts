@@ -14,6 +14,8 @@ import {
   getUserIdsByRoles,
 } from "@/lib/services/notifications"
 
+import { convertCurrency } from "@/lib/currency/exchange"
+
 import {
   apiSuccess,
   handleApiError,
@@ -95,18 +97,50 @@ export async function POST(request: Request) {
     await requirePermission(profile, "sales", "create")
     const payload = await parseBodyWithSchema(request, saleSchema)
 
-    const itemsTotal = payload.items.reduce(
-      (acc, item) => acc + item.unit_price * item.quantity - item.discount,
-      0
+    const saleDate = toLocalDate(payload.sale_date)
+
+    // Calculate totals correctly with currency conversion
+    let itemsTotal = new Prisma.Decimal(0)
+    for (const item of payload.items) {
+      const unitPriceInSaleCurrency = await convertCurrency(
+        item.unit_price,
+        item.unit_price_currency,
+        payload.total_currency,
+        saleDate
+      )
+      const discountInSaleCurrency = await convertCurrency(
+        item.discount,
+        item.discount_currency,
+        payload.total_currency,
+        saleDate
+      )
+      itemsTotal = itemsTotal.add(
+        unitPriceInSaleCurrency.mul(item.quantity).sub(discountInSaleCurrency)
+      )
+    }
+
+    const discountInSaleCurrency = await convertCurrency(
+      payload.discount,
+      payload.discount_currency,
+      payload.total_currency,
+      saleDate
     )
 
-    const netTotal = Math.max(itemsTotal - payload.discount, 0)
-    const balanceDue = netTotal - payload.amount_paid
+    const netTotal = Prisma.Decimal.max(itemsTotal.sub(discountInSaleCurrency), 0)
+
+    const amountPaidInSaleCurrency = await convertCurrency(
+      payload.amount_paid,
+      payload.amount_paid_currency,
+      payload.total_currency,
+      saleDate
+    )
+
+    const balanceDue = netTotal.sub(amountPaidInSaleCurrency)
 
     const status: SaleStatus =
-      balanceDue <= 0
+      balanceDue.lte(0)
         ? SaleStatus.paid
-        : payload.amount_paid > 0
+        : amountPaidInSaleCurrency.gt(0)
           ? SaleStatus.partial
           : SaleStatus.pending
 
@@ -114,15 +148,17 @@ export async function POST(request: Request) {
       const sale = await tx.sale.create({
         data: {
           customerId: payload.customer_id,
-          saleDate: toLocalDate(payload.sale_date),
+          saleDate,
           channel: payload.channel,
           paymentMethod: payload.payment_method,
-          total: toPrismaDecimal(itemsTotal),
+          totalCurrency: payload.total_currency,
+          total: netTotal,
+          discountCurrency: payload.discount_currency,
           discount: toPrismaDecimal(payload.discount),
+          amountPaidCurrency: payload.amount_paid_currency,
           amountPaid: toPrismaDecimal(payload.amount_paid),
-          changeGiven: toPrismaDecimal(
-            balanceDue < 0 ? Math.abs(balanceDue) : 0
-          ),
+          changeGivenCurrency: payload.change_given_currency || payload.total_currency,
+          changeGiven: balanceDue.lt(0) ? balanceDue.abs() : new Prisma.Decimal(0),
           status,
           notes: payload.notes,
           createdBy: profile.id,
@@ -132,7 +168,9 @@ export async function POST(request: Request) {
               description: item.description,
               size: item.size,
               quantity: item.quantity,
+              unitPriceCurrency: item.unit_price_currency,
               unitPrice: toPrismaDecimal(item.unit_price),
+              discountCurrency: item.discount_currency,
               discount: toPrismaDecimal(item.discount),
             })),
           },
@@ -202,13 +240,37 @@ export async function POST(request: Request) {
         (item) => item.stock <= item.minimumStock
       )
 
+      // Update customer total purchases if applicable
+      if (payload.customer_id) {
+        const customer = await tx.customer.findUnique({
+          where: { id: payload.customer_id },
+          select: { totalPurchases: true, totalPurchasesCurrency: true },
+        })
+
+        if (customer) {
+          const saleTotalInCustomerCurrency = await convertCurrency(
+            netTotal,
+            payload.total_currency,
+            customer.totalPurchasesCurrency,
+            saleDate
+          )
+
+          await tx.customer.update({
+            where: { id: payload.customer_id },
+            data: {
+              totalPurchases: customer.totalPurchases.add(saleTotalInCustomerCurrency),
+            },
+          })
+        }
+      }
+
       return { sale, lowFinishedGoods }
     })
 
     await createNotifications({
       type: NotificationType.sale_completed,
       title: "Venta registrada",
-      body: `Se registro la venta #${result.sale.id.slice(0, 8)}.`,
+      body: `Se registró la venta #${result.sale.id.slice(0, 8)}.`,
       metadata: {
         saleId: result.sale.id,
         total: decimalToNumber(result.sale.total),
@@ -238,7 +300,7 @@ export async function POST(request: Request) {
       const body = [
         `Venta por $${saleTotal.toFixed(2)} registrada`,
         customer?.fullName ? `para ${customer.fullName}` : null,
-        balanceDue > 0 ? `saldo pendiente: $${balanceDue.toFixed(2)}` : null,
+        balanceDue.gt(0) ? `saldo pendiente: $${decimalToNumber(balanceDue).toFixed(2)}` : null,
       ]
         .filter(Boolean)
         .join(", ")
@@ -277,7 +339,7 @@ export async function POST(request: Request) {
               minimumStock: item.minimumStock,
             })),
             actionUrl: "/catalog",
-            actionLabel: "Ver catalogo",
+            actionLabel: "Ver catálogo",
           },
           userIds: adminManagerIds,
           sendEmail: false,

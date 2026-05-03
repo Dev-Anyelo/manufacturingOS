@@ -52,24 +52,37 @@ export async function PATCH(
         name: payload.name,
         description: payload.description,
         garmentType: payload.garment_type,
+        
         marketPriceUnit: toPrismaDecimal(payload.market_price_unit),
+        marketPriceUnitCurrency: payload.market_price_unit_currency,
+        
         marketPriceDozen:
           payload.market_price_dozen === null ||
           payload.market_price_dozen === undefined
             ? null
             : toPrismaDecimal(payload.market_price_dozen),
+        marketPriceDozenCurrency: payload.market_price_dozen_currency,
+        
         ourPriceUnit: toPrismaDecimal(payload.our_price_unit),
+        ourPriceUnitCurrency: payload.our_price_unit_currency,
+        
         ourPriceDozen:
           payload.our_price_dozen === null ||
           payload.our_price_dozen === undefined
             ? null
             : toPrismaDecimal(payload.our_price_dozen),
+        ourPriceDozenCurrency: payload.our_price_dozen_currency,
+        
         salePrice: toPrismaDecimal(payload.our_price_unit),
+        salePriceCurrency: payload.our_price_unit_currency,
+        
         estimatedCost:
           payload.estimated_cost === null ||
           payload.estimated_cost === undefined
             ? null
             : toPrismaDecimal(payload.estimated_cost),
+        estimatedCostCurrency: payload.estimated_cost_currency,
+        
         imageUrl: payload.image_url,
         notes: payload.notes,
       },

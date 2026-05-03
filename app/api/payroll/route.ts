@@ -81,9 +81,13 @@ export async function POST(request: Request) {
           payload.hours_worked === null || payload.hours_worked === undefined
             ? null
             : toPrismaDecimal(payload.hours_worked),
+        baseAmountCurrency: payload.base_amount_currency,
         baseAmount: toPrismaDecimal(payload.base_amount),
+        bonusesCurrency: payload.bonuses_currency,
         bonuses: toPrismaDecimal(payload.bonuses),
+        deductionsCurrency: payload.deductions_currency,
         deductions: toPrismaDecimal(payload.deductions),
+        total: toPrismaDecimal(payload.total_amount || 0),
         paymentMethod: payload.payment_method ?? null,
         notes: payload.notes,
         createdBy: profile.id,
