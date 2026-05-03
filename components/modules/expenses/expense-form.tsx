@@ -11,13 +11,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
+import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { StatCard } from "@/components/shared/stat-card"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CurrencySelector } from "@/components/shared/currency-selector"
-import { formatCurrencyNI, getCurrencySymbol } from "@/lib/currency/exchange"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
 import {
   Popover,
   PopoverContent,
@@ -43,19 +42,14 @@ import {
   Calendar as CalendarIcon,
   Receipt,
   Package,
-  Upload,
   ArrowUpRight,
   Calculator,
-  Wallet,
   Building2,
   ChevronDown,
   X,
   Save,
-  ArrowLeft,
   ImagePlusIcon,
 } from "lucide-react"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { Calendar } from "@/components/ui/calendar"
 
 const EXPENSE_CATEGORIES = {
   fabrics: "Telas",
@@ -340,9 +334,9 @@ export function ExpenseForm({
             Total a registrar
           </span>
           <div className="mt-0.5">
-            <CurrencyDisplay 
-              amount={watchedTotal} 
-              currency={form.watch("total_currency") as any} 
+            <CurrencyDisplay
+              amount={watchedTotal}
+              currency={form.watch("total_currency") as any}
               size="md"
             />
           </div>
@@ -542,10 +536,14 @@ export function ExpenseForm({
 
               {/* Calculated Display */}
               <div className="rounded-lg bg-muted/50 p-3 text-center">
-                <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Total calculado</p>
+                <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+                  Total calculado
+                </p>
                 <div className="mt-1 flex justify-center">
-                  <CurrencyDisplay 
-                    amount={Number.isFinite(calculatedTotal) ? calculatedTotal : 0} 
+                  <CurrencyDisplay
+                    amount={
+                      Number.isFinite(calculatedTotal) ? calculatedTotal : 0
+                    }
                     currency={form.watch("total_currency") as Currency}
                   />
                 </div>
@@ -752,7 +750,7 @@ export function ExpenseForm({
         </TabsContent>
       </Tabs>
       <div className="mt-3 flex w-full items-center justify-center gap-2 md:mt-5">
-        <Button type="submit" disabled={isSubmitting} className="gap-2 w-full">
+        <Button type="submit" disabled={isSubmitting} className="w-full gap-2">
           {isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
