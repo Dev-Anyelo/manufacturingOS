@@ -160,7 +160,12 @@ export function OrdersTable({
         header: () => <div className="text-right">Saldo</div>,
         cell: ({ row }) => (
           <div className="text-right">
-            <CurrencyDisplay amount={row.original.balanceDue} colored size="sm" />
+            <CurrencyDisplay 
+              amount={row.original.balanceDue} 
+              currency={row.original.balanceDueCurrency}
+              colored 
+              size="sm" 
+            />
           </div>
         ),
         meta: {

@@ -87,7 +87,6 @@ export async function POST(request: Request) {
         bonuses: toPrismaDecimal(payload.bonuses),
         deductionsCurrency: payload.deductions_currency,
         deductions: toPrismaDecimal(payload.deductions),
-        total: toPrismaDecimal(payload.total_amount || 0),
         paymentMethod: payload.payment_method ?? null,
         notes: payload.notes,
         createdBy: profile.id,

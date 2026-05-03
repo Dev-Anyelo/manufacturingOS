@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import type { PosCustomer } from "@/components/modules/sales/types"
 import { CurrencySelector } from "@/components/shared/currency-selector"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { formatCurrencyNI, getCurrencySymbol } from "@/lib/currency/exchange"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -248,10 +249,20 @@ export function PayrollForm({
       noValidate
     >
       {/* Total Summary - Compact Info Bar */}
-      <div className="flex items-center justify-center gap-0 border-b border-t bg-muted/20 overflow-x-auto py-1">
-        <div className="flex flex-col items-center px-4 py-2 shrink-0">
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total a pagar</span>
-          <span className="text-sm font-bold tabular-nums mt-0.5 text-brand">{formatCurrencyNI(total, form.watch("base_amount_currency") || Currency.USD)}</span>
+      <div className="flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
+        <div className="flex shrink-0 flex-col items-center px-4 py-2">
+          <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+            Total a pagar
+          </span>
+          <div className="mt-0.5">
+            <CurrencyDisplay
+              amount={Number(total || 0)}
+              currency={
+                (form.watch("base_amount_currency") as Currency) || Currency.USD
+              }
+              size="md"
+            />
+          </div>
         </div>
       </div>
 
@@ -307,8 +318,13 @@ export function PayrollForm({
                       {contractTypeLabels[selectedEmployee.contractType]}
                     </span>
                     {selectedEmployee.baseSalary && (
-                      <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium">
-                        Base: {formatCurrencyNI(selectedEmployee.baseSalary, Currency.USD)}
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-1 text-[10px] font-medium">
+                        Base:
+                        <CurrencyDisplay
+                          amount={selectedEmployee.baseSalary}
+                          size="sm"
+                          showDual={true}
+                        />
                       </span>
                     )}
                   </div>
@@ -435,8 +451,10 @@ export function PayrollForm({
                     Bonos
                   </Label>
                   <div className="relative flex items-center">
-                    <span className="absolute left-2.5 text-xs text-muted-foreground font-medium">
-                      {getCurrencySymbol(form.watch("base_amount_currency") || Currency.USD)}
+                    <span className="absolute left-2.5 text-xs font-medium text-muted-foreground">
+                      {getCurrencySymbol(
+                        form.watch("base_amount_currency") || Currency.USD
+                      )}
                     </span>
                     <Input
                       id="bonuses"
@@ -457,8 +475,10 @@ export function PayrollForm({
                     Deducciones
                   </Label>
                   <div className="relative flex items-center">
-                    <span className="absolute left-2.5 text-xs text-muted-foreground font-medium">
-                      {getCurrencySymbol(form.watch("base_amount_currency") || Currency.USD)}
+                    <span className="absolute left-2.5 text-xs font-medium text-muted-foreground">
+                      {getCurrencySymbol(
+                        form.watch("base_amount_currency") || Currency.USD
+                      )}
                     </span>
                     <Input
                       id="deductions"
@@ -473,26 +493,40 @@ export function PayrollForm({
               </div>
 
               {/* Payment Method */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1 text-sm font-medium">
-                    <CreditCard className="size-3.5" />
-                    Método de pago
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {["cash", "transfer", "other"].map((method) => (
-                      <Button
-                        key={method}
-                        type="button"
-                        variant={form.watch("payment_method") === method ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => form.setValue("payment_method", method as "cash" | "transfer" | "other", { shouldDirty: true })}
-                        className="flex-1 min-w-[100px] h-10"
-                      >
-                        {method === "cash" ? "Efectivo" : method === "transfer" ? "Transferencia" : "Otro"}
-                      </Button>
-                    ))}
-                  </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1 text-sm font-medium">
+                  <CreditCard className="size-3.5" />
+                  Método de pago
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {["cash", "transfer", "other"].map((method) => (
+                    <Button
+                      key={method}
+                      type="button"
+                      variant={
+                        form.watch("payment_method") === method
+                          ? "default"
+                          : "outline"
+                      }
+                      size="sm"
+                      onClick={() =>
+                        form.setValue(
+                          "payment_method",
+                          method as "cash" | "transfer" | "other",
+                          { shouldDirty: true }
+                        )
+                      }
+                      className="h-10 min-w-[100px] flex-1"
+                    >
+                      {method === "cash"
+                        ? "Efectivo"
+                        : method === "transfer"
+                          ? "Transferencia"
+                          : "Otro"}
+                    </Button>
+                  ))}
                 </div>
+              </div>
             </div>
           </div>
         </TabsContent>

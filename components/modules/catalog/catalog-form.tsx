@@ -29,7 +29,12 @@ import {
 
 import { Currency } from "@prisma/client"
 import { CurrencySelector } from "@/components/shared/currency-selector"
-import { formatCurrencyNI, getCurrencySymbol, convertAmount } from "@/lib/currency/exchange"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import {
+  formatCurrencyNI,
+  getCurrencySymbol,
+  convertAmount,
+} from "@/lib/currency/exchange"
 import { useSettingsStore } from "@/stores/settingsStore"
 
 const catalogFormSchema = z.object({
@@ -117,22 +122,30 @@ export function CatalogForm({
         defaultValues?.estimated_cost_currency ?? Currency.USD,
       notes: defaultValues?.notes ?? "",
       sale_price: defaultValues?.sale_price ?? 0,
-      sale_price_currency:
-        defaultValues?.sale_price_currency ?? Currency.USD,
+      sale_price_currency: defaultValues?.sale_price_currency ?? Currency.USD,
     },
   })
 
   const watchedCost = (form.watch("estimated_cost") as number) ?? 0
-  const watchedCostCurrency = form.watch("estimated_cost_currency") || Currency.USD
+  const watchedCostCurrency =
+    form.watch("estimated_cost_currency") || Currency.USD
   const watchedOurPrice = (form.watch("our_price_unit") as number) ?? 0
-  const watchedOurPriceCurrency = form.watch("our_price_unit_currency") || Currency.USD
+  const watchedOurPriceCurrency =
+    form.watch("our_price_unit_currency") || Currency.USD
 
   // Convert cost to price currency for accurate margin calculation
-  const normalizedCost = convertAmount(watchedCost, watchedCostCurrency, watchedOurPriceCurrency, exchangeRate)
+  const normalizedCost = convertAmount(
+    watchedCost,
+    watchedCostCurrency,
+    watchedOurPriceCurrency,
+    exchangeRate
+  )
 
   const profitMargin =
     watchedOurPrice > 0 && watchedCost > 0
-      ? (((watchedOurPrice - normalizedCost) / watchedOurPrice) * 100).toFixed(1)
+      ? (((watchedOurPrice - normalizedCost) / watchedOurPrice) * 100).toFixed(
+          1
+        )
       : null
 
   React.useEffect(() => {
@@ -260,30 +273,24 @@ export function CatalogForm({
         {[
           {
             label: "Mercado",
-            value: form.watch("market_price_unit")
-              ? formatCurrencyNI(
-                  form.watch("market_price_unit") as number,
-                  form.watch("market_price_unit_currency") || Currency.USD
-                )
-              : "N/A",
+            amount: Number(form.watch("market_price_unit") || 0),
+            currency:
+              (form.watch("market_price_unit_currency") as Currency) ||
+              Currency.USD,
           },
           {
             label: "Nuestro precio",
-            value: form.watch("our_price_unit")
-              ? formatCurrencyNI(
-                  form.watch("our_price_unit") as number,
-                  form.watch("our_price_unit_currency") || Currency.USD
-                )
-              : "N/A",
+            amount: Number(form.watch("our_price_unit") || 0),
+            currency:
+              (form.watch("our_price_unit_currency") as Currency) ||
+              Currency.USD,
           },
           {
             label: "Costo est.",
-            value: form.watch("estimated_cost")
-              ? formatCurrencyNI(
-                  form.watch("estimated_cost") as number,
-                  form.watch("estimated_cost_currency") || Currency.USD
-                )
-              : "N/A",
+            amount: Number(form.watch("estimated_cost") || 0),
+            currency:
+              (form.watch("estimated_cost_currency") as Currency) ||
+              Currency.USD,
           },
         ].map((item, i) => (
           <div
@@ -296,9 +303,13 @@ export function CatalogForm({
             <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
               {item.label}
             </span>
-            <span className="mt-0.5 text-sm font-bold tabular-nums">
-              {item.value}
-            </span>
+            <div className="mt-0.5">
+              <CurrencyDisplay
+                amount={item.amount}
+                currency={item.currency}
+                size="sm"
+              />
+            </div>
           </div>
         ))}
       </div>
@@ -579,14 +590,18 @@ export function CatalogForm({
                   {profitMargin ? `${profitMargin}%` : "Ingresa precios"}
                 </p>
                 {profitMargin && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Ganancia:{" "}
-                    {formatCurrencyNI(
-                      watchedOurPrice - watchedCost,
-                      form.watch("our_price_unit_currency") || Currency.USD
-                    )}{" "}
-                    por unidad
-                  </p>
+                  <div className="mt-1 flex flex-col items-center">
+                    <span className="text-[10px] font-medium tracking-tight text-muted-foreground uppercase">
+                      Ganancia por unidad:
+                    </span>
+                    <CurrencyDisplay
+                      amount={watchedOurPrice - normalizedCost}
+                      currency={
+                        form.watch("our_price_unit_currency") || Currency.USD
+                      }
+                      size="sm"
+                    />
+                  </div>
                 )}
               </div>
             </div>

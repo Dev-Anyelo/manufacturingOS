@@ -197,8 +197,8 @@ export function PayrollWorkspace({
             <strong className="tabular-nums">
               <CurrencyDisplay 
                 amount={totalPendingInUSD} 
-                currency={Currency.USD}
                 className="inline-block"
+                showDual={true}
               />
             </strong>
           </span>
@@ -271,7 +271,7 @@ export function PayrollWorkspace({
                       <p className="text-sm font-medium">{row.employeeName}</p>
                     </div>
                     <div className="text-sm font-bold tabular-nums">
-                      <CurrencyDisplay amount={row.total} />
+                      <CurrencyDisplay amount={row.total} currency={Currency.USD} />
                     </div>
                   </div>
                 ))

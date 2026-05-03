@@ -257,7 +257,7 @@ export function ExpensesTable({
         <SummaryTile label="Registros" value={filtered.length} accent />
         <SummaryTile
           label="Total filtrado"
-          value={<CurrencyDisplay amount={filteredTotal} size="sm" />}
+          value={<CurrencyDisplay amount={filteredTotal} currency={Currency.NIO} />} // Defaulting to NIO for sum since that's the local display
           accent
         />
         <SummaryTile label="Categorias" value={categories.length} />
@@ -343,16 +343,16 @@ function SummaryTile({
 }) {
   return (
     <div className="rounded-lg border border-border/70 bg-card/80 px-3 py-2">
-      <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
+      <div className="text-[11px] tracking-wide text-muted-foreground uppercase">
         {label}
-      </p>
-      <p
+      </div>
+      <div
         className={
           accent ? "text-sm font-semibold text-brand" : "text-sm font-semibold"
         }
       >
         {value}
-      </p>
+      </div>
     </div>
   )
 }

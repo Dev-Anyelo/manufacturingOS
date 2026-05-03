@@ -156,6 +156,7 @@ export function CatalogWorkspace({
           <div className="text-right font-bold text-primary tabular-nums">
             <CurrencyDisplay
               amount={row.original.ourPriceUnit ?? 0}
+              currency={row.original.ourPriceUnitCurrency as any}
               size="sm"
             />
           </div>
@@ -168,6 +169,7 @@ export function CatalogWorkspace({
           <div className="text-right text-muted-foreground tabular-nums">
             <CurrencyDisplay
               amount={row.original.ourPriceDozen ?? 0}
+              currency={row.original.ourPriceDozenCurrency as any}
               size="sm"
             />
           </div>

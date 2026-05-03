@@ -60,8 +60,11 @@ export default async function OrderDetailPage({
             status: order.status,
             channel: order.channel,
             advancePaid: decimalToNumber(order.advancePaid),
+            advancePaidCurrency: order.advancePaidCurrency,
             total: decimalToNumber(order.total),
+            totalCurrency: order.totalCurrency,
             balanceDue: decimalToNumber(order.balanceDue),
+            balanceDueCurrency: order.totalCurrency,
             notes: order.notes,
             cancelledReason: order.cancelledReason,
             referenceImages: order.referenceImages,
@@ -73,7 +76,9 @@ export default async function OrderDetailPage({
               designNotes: item.designNotes,
               quantity: item.quantity,
               unitPrice: decimalToNumber(item.unitPrice),
+              unitPriceCurrency: item.unitPriceCurrency,
               subtotal: decimalToNumber(item.subtotal),
+              subtotalCurrency: item.unitPriceCurrency, // Items usually share the order/unit currency
               measurements:
                 item.measurements && typeof item.measurements === "object"
                   ? (item.measurements as Record<string, unknown>)

@@ -41,7 +41,7 @@ const sizeClassMap: Record<
 
 export function CurrencyDisplay({
   amount,
-  currency: recordCurrency = Currency.USD,
+  currency: propCurrency,
   displayCurrency: propDisplayCurrency,
   showDual = true,
   size = "md",
@@ -53,6 +53,7 @@ export function CurrencyDisplay({
   const { getRate } = useExchangeRates()
 
   const displayCurrency = propDisplayCurrency || globalDisplayCurrency
+  const recordCurrency = propCurrency || displayCurrency
 
   const numericAmount = Number(amount)
   const value = Number.isFinite(numericAmount) ? numericAmount : 0
@@ -77,21 +78,12 @@ export function CurrencyDisplay({
 
   const sizeClasses = sizeClassMap[size]
 
-  // If no dual display needed or currencies match
-  if (!showDual || recordCurrency === displayCurrency) {
-    // If showDual is false, we might want to convert to displayCurrency anyway?
-    // The prompt says: "If showDual=false: Convert amount to displayCurrency and show only that"
-    const amountToShow = showDual ? value : (convertedAmount ?? value)
-    const currencyToShow = showDual ? recordCurrency : displayCurrency
+  // Determine the "other" currency for dual display
+  const otherCurrency = displayCurrency === Currency.USD ? Currency.NIO : Currency.USD
+  const otherRate = getRate(displayCurrency, otherCurrency)
+  const otherAmount = (convertedAmount ?? value) * (otherRate ?? 1)
 
-    return (
-      <span className={cn(sizeClasses.main, toneClass, className)}>
-        {formatter(currencyToShow).format(amountToShow)}
-      </span>
-    )
-  }
-
-  // Dual Display: Main (Converted/Display) + Secondary (Original/Record)
+  // Dual Display: Main (Converted/Display) + Secondary (Alternate)
   return (
     <div className={cn("flex flex-col leading-none", className)}>
       <span className={cn(sizeClasses.main, toneClass)}>
@@ -99,9 +91,11 @@ export function CurrencyDisplay({
           ? formatter(displayCurrency).format(convertedAmount)
           : formatter(recordCurrency).format(value)}
       </span>
-      <span className={cn(sizeClasses.secondary, secondaryClassName)}>
-        {recordCurrency !== displayCurrency && formatter(recordCurrency).format(value)}
-      </span>
+      {showDual && (
+        <span className={cn(sizeClasses.secondary, secondaryClassName)}>
+          {formatter(otherCurrency).format(otherAmount)}
+        </span>
+      )}
     </div>
   )
 }

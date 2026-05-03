@@ -6,9 +6,8 @@ import { ContactRow } from "./contact-row"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { InfoRow } from "@/components/shared/info-row"
-import { WorkOrderStatus as WOS } from "@prisma/client"
+import { Currency, WorkOrderStatus as WOS } from "@prisma/client"
 import { SectionCard } from "@/components/section-cards"
-import { MetricCard } from "@/components/shared/metric-card"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { OrderDetailData } from "@/components/modules/orders/types"
@@ -105,7 +104,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 Total pedido
               </span>
               <span className="text-lg leading-none font-bold tabular-nums">
-                <CurrencyDisplay amount={order.total} />
+                <CurrencyDisplay amount={order.total} currency={order.totalCurrency} />
               </span>
             </div>
             <div className="flex flex-col justify-center p-4">
@@ -113,7 +112,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 Anticipo
               </span>
               <span className="text-lg leading-none font-bold text-brand tabular-nums">
-                <CurrencyDisplay amount={order.advancePaid} />
+                <CurrencyDisplay amount={order.advancePaid} currency={order.advancePaidCurrency} />
               </span>
             </div>
             <div className="flex flex-col justify-center p-4">
@@ -128,7 +127,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                     : "text-emerald-600 dark:text-emerald-400"
                 )}
               >
-                <CurrencyDisplay amount={order.balanceDue} />
+                <CurrencyDisplay amount={order.balanceDue} currency={order.balanceDueCurrency} />
               </span>
               <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
                 <span>Cobrado {paymentProgress.toFixed(0)}%</span>
@@ -310,6 +309,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                     </span>
                     <CurrencyDisplay
                       amount={paidAmount}
+                      currency={order.totalCurrency}
                       size="sm"
                       className="font-semibold"
                     />
@@ -320,6 +320,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                     </span>
                     <CurrencyDisplay
                       amount={order.balanceDue}
+                      currency={order.balanceDueCurrency}
                       size="sm"
                       colored={order.balanceDue > 0}
                       className="font-semibold"
@@ -445,12 +446,14 @@ export function OrderDetail({ order }: OrderDetailProps) {
                           <TableCell className="py-3 pr-5 text-right">
                             <CurrencyDisplay
                               amount={item.subtotal}
+                              currency={item.subtotalCurrency}
                               size="sm"
                               className="font-bold"
                             />
                             <p className="text-xs text-muted-foreground">
                               <CurrencyDisplay
                                 amount={item.unitPrice}
+                                currency={item.unitPriceCurrency}
                                 size="sm"
                               />
                               /u
@@ -470,6 +473,7 @@ export function OrderDetail({ order }: OrderDetailProps) {
                 </span>
                 <CurrencyDisplay
                   amount={order.total}
+                  currency={order.totalCurrency}
                   size="sm"
                   className="font-bold"
                 />
@@ -597,21 +601,24 @@ export function OrderDetail({ order }: OrderDetailProps) {
             icon={<ReceiptIcon className="size-4" />}
           >
             <div className="space-y-2.5">
-              <FinanceRow label="Total del pedido" value={order.total} bold />
+              <FinanceRow label="Total del pedido" value={order.total} currency={order.totalCurrency} bold />
               <FinanceRow
                 label="Anticipo aplicado"
                 value={order.advancePaid}
+                currency={order.advancePaidCurrency}
                 accent="brand"
               />
               <FinanceRow
                 label="Pagado acumulado"
                 value={paidAmount}
+                currency={order.totalCurrency}
                 accent="brand"
               />
               <div className="border-t border-border pt-2.5">
                 <FinanceRow
                   label="Saldo pendiente"
                   value={order.balanceDue}
+                  currency={order.balanceDueCurrency}
                   accent={order.balanceDue > 0 ? "warning" : "success"}
                   bold
                 />

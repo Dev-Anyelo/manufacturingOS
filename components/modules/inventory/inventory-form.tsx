@@ -24,6 +24,7 @@ import {
 
 import { Currency } from "@prisma/client"
 import { CurrencySelector } from "@/components/shared/currency-selector"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { formatCurrencyNI } from "@/lib/currency/exchange"
 
 import {
@@ -229,7 +230,11 @@ export function InventoryForm({
       {/* Summary Stats - Compact Info Bar */}
       <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
-          { label: "Valor", value: formatCurrencyNI(totalValue, form.watch("unit_price_currency") || Currency.USD) },
+          { 
+            label: "Valor", 
+            amount: Number(totalValue || 0),
+            currency: (form.watch("unit_price_currency") as Currency) || Currency.USD
+          },
           {
             label: "Estado",
             value:
@@ -253,9 +258,19 @@ export function InventoryForm({
             <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
               {item.label}
             </span>
-            <span className="mt-0.5 text-sm font-bold tabular-nums">
-              {item.value}
-            </span>
+            <div className="mt-0.5">
+              {"amount" in item ? (
+                <CurrencyDisplay 
+                  amount={item.amount ?? 0} 
+                  currency={item.currency}
+                  size="sm"
+                />
+              ) : (
+                <span className="text-sm font-bold tabular-nums">
+                  {item.value}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>

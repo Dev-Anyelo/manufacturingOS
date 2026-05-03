@@ -14,9 +14,13 @@ export interface CatalogCardItem {
   name: string
   garmentType: string | null
   ourPriceUnit: number | null
+  ourPriceUnitCurrency: string | null
   ourPriceDozen: number | null
+  ourPriceDozenCurrency: string | null
   marketPriceUnit: number | null
+  marketPriceUnitCurrency: string | null
   estimatedCost: number | null
+  estimatedCostCurrency: string | null
   imageUrl: string | null
   notes: string | null
   totalStock: number
@@ -115,7 +119,11 @@ export function CatalogCard({ item }: CatalogCardProps) {
               Unitario
             </span>
             <span className="text-sm font-bold text-brand tabular-nums">
-              <CurrencyDisplay amount={item.ourPriceUnit ?? 0} size="sm" />
+              <CurrencyDisplay 
+                amount={item.ourPriceUnit ?? 0} 
+                currency={item.ourPriceUnitCurrency as any}
+                size="sm" 
+              />
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -123,7 +131,11 @@ export function CatalogCard({ item }: CatalogCardProps) {
               Docena
             </span>
             <span className="text-[13px] font-medium text-muted-foreground/80 tabular-nums">
-              <CurrencyDisplay amount={item.ourPriceDozen ?? 0} size="sm" />
+              <CurrencyDisplay 
+                amount={item.ourPriceDozen ?? 0} 
+                currency={item.ourPriceDozenCurrency as any}
+                size="sm" 
+              />
             </span>
           </div>
         </div>

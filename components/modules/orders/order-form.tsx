@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, useFieldArray } from "react-hook-form"
+import { useForm, useFieldArray, type FieldPath } from "react-hook-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
 import type { PosCustomer } from "@/components/modules/sales/types"
 import { Currency } from "@prisma/client"
 import { CurrencySelector } from "@/components/shared/currency-selector"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { cn } from "@/lib/utils"
 import { formatCurrencyNI, getCurrencySymbol, calculateBalanceDue } from "@/lib/currency/exchange"
 import { useSettingsStore } from "@/stores/settingsStore"
@@ -372,9 +373,9 @@ export function OrderForm({
       {/* Summary Stats - Compact Info Bar */}
       <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
-          { label: "Total", value: formatCurrencyNI(estimatedTotal, orderCurrency || Currency.USD) },
+          { label: "Total", amount: estimatedTotal },
           { label: "Unidades", value: totalUnits.toString() },
-          { label: "Saldo", value: formatCurrencyNI(pendingBalance, orderCurrency || Currency.USD) },
+          { label: "Saldo", amount: pendingBalance },
           {
             label: "Entrega",
             value: watchedDeliveryDate
@@ -392,9 +393,19 @@ export function OrderForm({
             <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
               {item.label}
             </span>
-            <span className="mt-0.5 text-sm font-bold tabular-nums">
-              {item.value}
-            </span>
+            <div className="mt-0.5">
+              {"amount" in item ? (
+                <CurrencyDisplay 
+                  amount={Number(item.amount || 0)} 
+                  currency={(orderCurrency as Currency) || Currency.USD}
+                  size="sm"
+                />
+              ) : (
+                <span className="text-sm font-bold tabular-nums">
+                  {item.value}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -588,9 +599,13 @@ export function OrderForm({
                               {form.watch(`items.${index}.description`) ||
                                 "Sin descripción"}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatCurrencyNI(itemSubtotal, orderCurrency || Currency.USD)}
-                            </p>
+                            <div className="mt-0.5">
+                              <CurrencyDisplay 
+                                amount={Number(itemSubtotal || 0)} 
+                                currency={(orderCurrency as Currency) || Currency.USD}
+                                size="sm"
+                              />
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -653,7 +668,7 @@ export function OrderForm({
                               </SelectItem>
                               {catalogItems.map((item) => (
                                 <SelectItem key={item.id} value={item.id}>
-                                  {item.name} - {formatCurrencyNI(item.salePrice, Currency.USD)}
+                                  {item.name} - {getCurrencySymbol(Currency.USD)}{item.salePrice}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -820,7 +835,7 @@ export function OrderForm({
                                     step="0.1"
                                     placeholder="0.00"
                                     {...form.register(
-                                      `items.${index}.measurements.${measure}` as any,
+                                      `items.${index}.measurements.${measure}` as FieldPath<OrderFormValues>,
                                       { valueAsNumber: true }
                                     )}
                                     className="h-8 text-xs"
@@ -881,10 +896,15 @@ export function OrderForm({
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Calculado: {formatCurrencyNI(estimatedTotal, orderCurrency || Currency.USD)}
+                    Calculado: 
+                    <CurrencyDisplay 
+                      amount={estimatedTotal} 
+                      currency={orderCurrency || Currency.USD}
+                      size="sm"
+                    />
                   </p>
                 </div>
-
+ 
                 <div className="space-y-2">
                   <Label htmlFor="advance_paid" className="text-sm font-medium">
                     Adelanto recibido
@@ -906,33 +926,43 @@ export function OrderForm({
                   </div>
                 </div>
               </div>
-
+ 
               {/* Payment Summary */}
               <div className="rounded-lg border border-border bg-muted/30 p-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Total</span>
-                    <span className="font-medium">
-                      {formatCurrencyNI(Number(watchedTotal || 0), orderCurrency || Currency.USD)}
-                    </span>
+                    <CurrencyDisplay 
+                      amount={Number(watchedTotal || 0)} 
+                      currency={orderCurrency || Currency.USD}
+                      size="sm"
+                    />
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Adelanto</span>
-                    <span className="text-success font-medium">
-                      -{formatCurrencyNI(Number(watchedAdvance || 0), orderCurrency || Currency.USD)}
-                    </span>
+                    <div className="text-success">
+                      <CurrencyDisplay 
+                        amount={-Number(watchedAdvance || 0)} 
+                        currency={orderCurrency || Currency.USD}
+                        size="sm"
+                      />
+                    </div>
                   </div>
                   <div className="h-px bg-border" />
                   <div className="flex items-center justify-between">
                     <span className="font-medium">Saldo pendiente</span>
-                    <span
+                    <div
                       className={cn(
                         "text-lg font-bold",
                         pendingBalance > 0 ? "text-warning" : "text-success"
                       )}
                     >
-                      {formatCurrencyNI(pendingBalance, orderCurrency || Currency.USD)}
-                    </span>
+                      <CurrencyDisplay 
+                        amount={pendingBalance} 
+                        currency={orderCurrency || Currency.USD}
+                        size="md"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

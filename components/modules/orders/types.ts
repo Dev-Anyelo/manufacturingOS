@@ -1,4 +1,4 @@
-import { WorkOrderStatus } from "@prisma/client"
+import { Currency, WorkOrderStatus } from "@prisma/client"
 
 export type WorkOrderChannel =
   | "in_person"
@@ -16,8 +16,11 @@ export interface OrderSummaryItem {
   status: WorkOrderStatus
   channel: WorkOrderChannel
   advancePaid: number
+  advancePaidCurrency: Currency
   total: number
+  totalCurrency: Currency
   balanceDue: number
+  balanceDueCurrency: Currency
   notes: string | null
   cancelledReason: string | null
   garmentCount: number
@@ -31,7 +34,9 @@ export interface OrderDetailLine {
   designNotes: string | null
   quantity: number
   unitPrice: number
+  unitPriceCurrency: Currency
   subtotal: number
+  subtotalCurrency: Currency
   measurements: Record<string, unknown> | null
   catalogItemName: string | null
   inventoryItemName: string | null
@@ -55,8 +60,11 @@ export interface OrderDetailData {
   status: WorkOrderStatus
   channel: WorkOrderChannel
   advancePaid: number
+  advancePaidCurrency: Currency
   total: number
+  totalCurrency: Currency
   balanceDue: number
+  balanceDueCurrency: Currency
   notes: string | null
   cancelledReason: string | null
   referenceImages: string[]

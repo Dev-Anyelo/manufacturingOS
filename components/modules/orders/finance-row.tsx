@@ -1,16 +1,19 @@
 import { cn } from "@/lib/utils"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { Currency } from "@prisma/client"
 
 export function FinanceRow({
   label,
   value,
   accent,
   bold,
+  currency,
 }: {
   label: string
   value: number
   accent?: "brand" | "warning" | "success"
   bold?: boolean
+  currency?: Currency
 }) {
   const colorMap = {
     brand: "text-brand",
@@ -35,7 +38,7 @@ export function FinanceRow({
           accent ? colorMap[accent] : "text-foreground"
         )}
       >
-        <CurrencyDisplay amount={value} size="sm" />
+        <CurrencyDisplay amount={value} currency={currency} size="sm" />
       </span>
     </div>
   )

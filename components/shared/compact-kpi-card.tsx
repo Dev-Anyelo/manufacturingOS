@@ -31,8 +31,8 @@ export function CompactKpiCard({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-xs text-muted-foreground">{label}</p>
-        <p className="text-lg font-bold tabular-nums leading-tight">{value}</p>
+        <div className="truncate text-xs text-muted-foreground">{label}</div>
+        <div className="text-lg font-bold tabular-nums leading-tight">{value}</div>
       </div>
     </div>
   )

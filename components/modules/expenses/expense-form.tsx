@@ -335,12 +335,16 @@ export function ExpenseForm({
       {/* Total Summary - Compact Info Bar */}
       <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         <div className="flex shrink-0 flex-col items-center px-4 py-2">
-          <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
             Total a registrar
           </span>
-          <span className="mt-0.5 text-sm font-bold tabular-nums">
-            {formatCurrencyNI((watchedTotal as number) || 0, form.watch("total_currency") || Currency.USD)}
-          </span>
+          <div className="mt-0.5">
+            <CurrencyDisplay 
+              amount={watchedTotal} 
+              currency={form.watch("total_currency") as any} 
+              size="md"
+            />
+          </div>
         </div>
       </div>
 
@@ -537,13 +541,13 @@ export function ExpenseForm({
 
               {/* Calculated Display */}
               <div className="rounded-lg bg-muted/50 p-3 text-center">
-                <p className="text-xs text-muted-foreground">Total calculado</p>
-                <p className="text-base font-bold">
-                  {formatCurrencyNI(
-                    Number.isFinite(calculatedTotal) ? calculatedTotal : 0,
-                    form.watch("total_currency") || Currency.USD
-                  )}
-                </p>
+                <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Total calculado</p>
+                <div className="mt-1 flex justify-center">
+                  <CurrencyDisplay 
+                    amount={Number.isFinite(calculatedTotal) ? calculatedTotal : 0} 
+                    currency={form.watch("total_currency") as any}
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -34,18 +34,22 @@ export default async function CatalogPage() {
                 item.ourPriceUnit === null
                   ? null
                   : decimalToNumber(item.ourPriceUnit),
+              ourPriceUnitCurrency: item.ourPriceUnitCurrency,
               ourPriceDozen:
                 item.ourPriceDozen === null
                   ? null
                   : decimalToNumber(item.ourPriceDozen),
+              ourPriceDozenCurrency: item.ourPriceDozenCurrency,
               marketPriceUnit:
                 item.marketPriceUnit === null
                   ? null
                   : decimalToNumber(item.marketPriceUnit),
+              marketPriceUnitCurrency: item.marketPriceUnitCurrency,
               estimatedCost:
                 item.estimatedCost === null
                   ? null
                   : decimalToNumber(item.estimatedCost),
+              estimatedCostCurrency: item.estimatedCostCurrency,
               imageUrl: item.imageUrl,
               notes: item.notes,
               totalStock:

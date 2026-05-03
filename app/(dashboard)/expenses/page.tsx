@@ -22,8 +22,6 @@ import {
   BarChart2Icon,
 } from "lucide-react"
 
-
-
 export default async function ExpensesPage() {
   const { profile } = await requireAuth()
   const [expenses, overview, bootstrap] = await Promise.all([
@@ -91,12 +89,7 @@ export default async function ExpensesPage() {
         <KpiSection label="Resumen de gastos">
           <CompactKpiCard
             label="Total del mes"
-            value={
-              <CurrencyDisplay 
-                amount={totalThisMonth} 
-                currency={Currency.USD}
-              />
-            }
+            value={<CurrencyDisplay amount={totalThisMonth} />}
             icon={<TrendingDownIcon />}
             iconClass={
               totalThisMonth > 0
@@ -118,12 +111,7 @@ export default async function ExpensesPage() {
           />
           <CompactKpiCard
             label="Top monto"
-            value={
-              <CurrencyDisplay 
-                amount={topCategoryAmount} 
-                currency={Currency.USD}
-              />
-            }
+            value={<CurrencyDisplay amount={topCategoryAmount} />}
             icon={<WalletCardsIcon />}
             iconClass="bg-muted text-muted-foreground"
           />

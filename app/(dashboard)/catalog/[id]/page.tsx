@@ -1,18 +1,26 @@
 import Link from "next/link"
 import Image from "next/image"
-import { notFound } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Currency } from "@prisma/client"
+import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCatalogItem } from "@/lib/data/catalog"
-import { ArrowLeftIcon, BoxesIcon, LayersIcon } from "lucide-react"
-import { PageHeader } from "@/components/shared/page-header"
 import { EmptyState } from "@/components/shared/empty-state"
+import { PageHeader } from "@/components/shared/page-header"
+import { ArrowLeftIcon, BoxesIcon, LayersIcon } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CatalogForm } from "@/components/modules/catalog/catalog-form"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 type CatalogDetailPageProps = {
   params: Promise<{ id: string }> | { id: string }
@@ -96,6 +104,7 @@ export default async function CatalogDetailPage({
                           ? decimalToNumber(item.estimatedCost)
                           : 0
                       }
+                      currency={item.estimatedCostCurrency as Currency}
                       size="lg"
                     />
                   </div>
@@ -111,6 +120,7 @@ export default async function CatalogDetailPage({
                           ? decimalToNumber(item.marketPriceUnit)
                           : 0
                       }
+                      currency={item.marketPriceUnitCurrency as Currency}
                       size="lg"
                     />
                   </div>
@@ -126,6 +136,7 @@ export default async function CatalogDetailPage({
                           ? decimalToNumber(item.ourPriceUnit)
                           : 0
                       }
+                      currency={item.ourPriceUnitCurrency as Currency}
                       size="lg"
                     />
                   </div>
@@ -176,7 +187,8 @@ export default async function CatalogDetailPage({
               <CardTitle>Inventario de producto terminado</CardTitle>
             </div>
             <CardDescription>
-              Stock disponible por talla. Se actualiza automáticamente con producción y ventas.
+              Stock disponible por talla. Se actualiza automáticamente con
+              producción y ventas.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
@@ -206,7 +218,7 @@ export default async function CatalogDetailPage({
                     >
                       <Badge
                         variant="outline"
-                        className="mb-2 text-xs font-mono uppercase"
+                        className="mb-2 font-mono text-xs uppercase"
                       >
                         {fg.size}
                       </Badge>
@@ -226,7 +238,7 @@ export default async function CatalogDetailPage({
                         mín: {fg.minimumStock}
                       </p>
                       {fg.color ? (
-                        <p className="mt-0.5 text-[10px] text-muted-foreground truncate">
+                        <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
                           {fg.color}
                         </p>
                       ) : null}
@@ -248,18 +260,25 @@ export default async function CatalogDetailPage({
             market_price_unit: item.marketPriceUnit
               ? decimalToNumber(item.marketPriceUnit)
               : 0,
+            market_price_unit_currency:
+              item.marketPriceUnitCurrency as Currency,
             market_price_dozen: item.marketPriceDozen
               ? decimalToNumber(item.marketPriceDozen)
               : null,
+            market_price_dozen_currency:
+              item.marketPriceDozenCurrency as Currency,
             our_price_unit: item.ourPriceUnit
               ? decimalToNumber(item.ourPriceUnit)
               : 0,
+            our_price_unit_currency: item.ourPriceUnitCurrency as Currency,
             our_price_dozen: item.ourPriceDozen
               ? decimalToNumber(item.ourPriceDozen)
               : null,
+            our_price_dozen_currency: item.ourPriceDozenCurrency as Currency,
             estimated_cost: item.estimatedCost
               ? decimalToNumber(item.estimatedCost)
               : null,
+            estimated_cost_currency: item.estimatedCostCurrency as Currency,
             notes: item.notes,
             image_url: item.imageUrl,
           }}
