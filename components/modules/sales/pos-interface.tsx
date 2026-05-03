@@ -3,17 +3,17 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { Currency } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useSettingsStore } from "@/stores/settingsStore"
 import { KeyboardIcon, ShoppingCartIcon } from "lucide-react"
 import { PosCart } from "@/components/modules/sales/pos-cart"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { Currency, SaleChannel, PaymentMethod } from "@prisma/client"
 import { SaleReceipt } from "@/components/modules/sales/sale-receipt"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { PosCatalogPanel } from "@/components/modules/sales/pos-catalog-panel"
 import { convertAmount, getCurrencySymbol } from "@/lib/currency/exchange"
+import { PosCatalogPanel } from "@/components/modules/sales/pos-catalog-panel"
 
 import {
   Drawer,
@@ -62,8 +62,12 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [highlightRowId, setHighlightRowId] = React.useState<string | null>(
     null
   )
-  const [channel, setChannel] = React.useState("in_person")
-  const [paymentMethod, setPaymentMethod] = React.useState("cash")
+  const [channel, setChannel] = React.useState<SaleChannel>(
+    SaleChannel.in_person
+  )
+  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>(
+    PaymentMethod.cash
+  )
   const [discountPercent, setDiscountPercent] = React.useState(0)
   const [receivedAmount, setReceivedAmount] = React.useState(0)
   const [amountPaid, setAmountPaid] = React.useState(0)

@@ -1,5 +1,6 @@
-import * as React from "react"
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import { formatCurrencyNI } from "@/lib/currency/exchange"
+import { Currency } from "@prisma/client"
 
 const styles = StyleSheet.create({
   page: { padding: 24, fontSize: 10, fontFamily: "Helvetica" },
@@ -20,12 +21,14 @@ export type SaleReceiptPDFProps = {
     subtotal: number
     discount: number
     total: number
+    totalCurrency: string
     changeGiven: number
   }
   items: Array<{
     description: string
     quantity: number
     unitPrice: number
+    unitPriceCurrency: string
     subtotal: number
   }>
   customer?: {
@@ -58,7 +61,9 @@ export function SaleReceiptPDF({
               <Text>
                 {item.description} x{item.quantity}
               </Text>
-              <Text>${item.subtotal.toFixed(2)}</Text>
+              <Text>
+                {formatCurrencyNI(item.subtotal, item.unitPriceCurrency as Currency)}
+              </Text>
             </View>
           ))}
         </View>
@@ -66,15 +71,21 @@ export function SaleReceiptPDF({
         <View style={styles.section}>
           <View style={styles.row}>
             <Text>Subtotal</Text>
-            <Text>${sale.subtotal.toFixed(2)}</Text>
+            <Text>
+              {formatCurrencyNI(sale.subtotal, sale.totalCurrency as Currency)}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text>Descuento</Text>
-            <Text>${sale.discount.toFixed(2)}</Text>
+            <Text>
+              {formatCurrencyNI(sale.discount, sale.totalCurrency as Currency)}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text>Total</Text>
-            <Text>${sale.total.toFixed(2)}</Text>
+            <Text>
+              {formatCurrencyNI(sale.total, sale.totalCurrency as Currency)}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text>Metodo de pago</Text>
@@ -82,7 +93,9 @@ export function SaleReceiptPDF({
           </View>
           <View style={styles.row}>
             <Text>Cambio</Text>
-            <Text>${sale.changeGiven.toFixed(2)}</Text>
+            <Text>
+              {formatCurrencyNI(sale.changeGiven, sale.totalCurrency as Currency)}
+            </Text>
           </View>
         </View>
       </Page>

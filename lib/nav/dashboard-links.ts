@@ -4,6 +4,7 @@ export type DashboardNavItem = {
   title: string
   url: string
   module?: ModuleKey
+  items?: { title: string; url: string; module?: ModuleKey }[]
 }
 
 export type DashboardNavSection = {
@@ -40,6 +41,24 @@ export const dashboardNavSections: DashboardNavSection[] = [
   },
   {
     label: "Sistema",
-    items: [{ title: "Configuración", url: "/settings", module: "settings" }],
+    items: [
+      {
+        title: "Configuración",
+        url: "/settings",
+        module: "settings",
+        items: [
+          {
+            title: "Seguridad y Acceso",
+            url: "/settings/users",
+            module: "settings",
+          },
+          {
+            title: "Moneda y Tasas",
+            url: "/settings/currencies",
+            module: "settings",
+          },
+        ],
+      },
+    ],
   },
 ]

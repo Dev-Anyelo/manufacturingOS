@@ -1,4 +1,4 @@
-import { Currency } from "@prisma/client"
+import { Currency, SaleChannel, PaymentMethod } from "@prisma/client"
 
 export interface PosCatalogItem {
   id: string
@@ -7,7 +7,6 @@ export interface PosCatalogItem {
   salePrice: number
   salePriceCurrency: Currency
   imageUrl: string | null
-  /** Optional stock indicator (if/when the backend provides it). */
   stock?: number | null
 }
 
@@ -34,12 +33,12 @@ export interface SaleReceiptData {
   id: string
   createdAt: Date
   customerName: string
-  paymentMethod: string
-  channel: string
+  paymentMethod: PaymentMethod
+  channel: SaleChannel
   subtotal: number
   discount: number
   total: number
-  totalCurrency: string
+  totalCurrency: Currency
   amountPaid: number
   changeGiven: number
   items: Array<{
@@ -47,7 +46,7 @@ export interface SaleReceiptData {
     name: string
     quantity: number
     unitPrice: number
-    unitPriceCurrency: string
+    unitPriceCurrency: Currency
     size: string
     subtotal: number
   }>

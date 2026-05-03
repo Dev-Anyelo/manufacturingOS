@@ -2,7 +2,6 @@
 
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { Currency } from "@prisma/client"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
@@ -14,6 +13,7 @@ import { CustomerSelector } from "./customer-selector"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { getCurrencySymbol } from "@/lib/currency/exchange"
 import { EmptyState } from "@/components/shared/empty-state"
+import { Currency, SaleChannel, PaymentMethod } from "@prisma/client"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CurrencySelector } from "@/components/shared/currency-selector"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -64,10 +64,10 @@ export interface PosCartProps {
   onDecreaseQuantity: (rowId: string) => void
   onRemoveItem: (rowId: string) => void
   onSizeChange: (rowId: string, size: string) => void
-  channel: string
-  onChannelChange: (value: string) => void
-  paymentMethod: string
-  onPaymentMethodChange: (value: string) => void
+  channel: SaleChannel
+  onChannelChange: (value: SaleChannel) => void
+  paymentMethod: PaymentMethod
+  onPaymentMethodChange: (value: PaymentMethod) => void
   subtotal: number
   discountPercent: number
   onDiscountPercentChange: (value: number) => void
@@ -291,7 +291,7 @@ export function PosCart(props: PosCartProps) {
               <Label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 Canal
               </Label>
-              <Select value={channel} onValueChange={onChannelChange}>
+              <Select value={channel} onValueChange={(v) => onChannelChange(v as SaleChannel)}>
                 <SelectTrigger className="h-10 w-full rounded-xl border-border/60 bg-background shadow-sm">
                   <SelectValue placeholder="Canal" />
                 </SelectTrigger>
@@ -340,7 +340,7 @@ export function PosCart(props: PosCartProps) {
             </Label>
             <RadioGroup
               value={paymentMethod}
-              onValueChange={onPaymentMethodChange}
+              onValueChange={(v) => onPaymentMethodChange(v as PaymentMethod)}
               className="grid grid-cols-1 gap-3 sm:grid-cols-2"
             >
               {paymentMethods.map((method) => (
@@ -719,9 +719,9 @@ function CartItemRow({
           <p className="line-clamp-2 text-sm leading-tight font-semibold text-foreground">
             {item.name}
           </p>
-          <p className="mt-1 text-sm font-bold tracking-tight text-brand tabular-nums">
+          <div className="mt-1 text-sm font-bold tracking-tight text-brand tabular-nums">
             <CurrencyDisplay amount={item.unitPrice} currency={currency} />
-          </p>
+          </div>
         </div>
 
         {/* Remove Button */}

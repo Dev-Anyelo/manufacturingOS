@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils"
-import { SaleStatus } from "@prisma/client"
+import { SaleStatus, Currency } from "@prisma/client"
 import { StatCard } from "@/components/shared/stat-card"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
@@ -45,6 +45,7 @@ export interface SaleDetailData {
   channel: string
   paymentMethod: string
   total: number
+  totalCurrency: Currency
   discount: number
   amountPaid: number
   changeGiven: number
@@ -59,6 +60,7 @@ export interface SaleDetailData {
     size: string | null
     quantity: number
     unitPrice: number
+    unitPriceCurrency: Currency
     discount: number
     subtotal: number
   }>
@@ -107,12 +109,14 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
         <StatCard
           title="Total de la Venta"
           value={sale.total}
+          currency={sale.totalCurrency}
           description={`${totalItems} unidades`}
           icon={<ReceiptIcon className="size-4" />}
         />
         <StatCard
           title="Monto Pagado"
           value={sale.amountPaid}
+          currency={sale.totalCurrency}
           description={`${paidProgress.toFixed(0)}% pagado`}
           icon={<WalletIcon className="size-4" />}
           variant="success"
@@ -120,6 +124,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
         <StatCard
           title="Saldo Pendiente"
           value={sale.balanceDue}
+          currency={sale.totalCurrency}
           description={
             sale.balanceDue > 0
               ? "Pago pendiente"
@@ -268,7 +273,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                         </span>
                       )}
                     </div>
-                    <CurrencyDisplay amount={item.subtotal} size="sm" />
+                    <CurrencyDisplay amount={item.subtotal} currency={item.unitPriceCurrency} size="sm" />
                   </div>
 
                   <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -280,9 +285,9 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                     </div>
                     <div className="rounded-lg border border-border/60 bg-muted/10 p-2.5">
                       <p className="label-overline">Unitario</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">
-                        <CurrencyDisplay amount={item.unitPrice} size="sm" />
-                      </p>
+                      <div className="mt-1 text-sm font-medium text-foreground">
+                        <CurrencyDisplay amount={item.unitPrice} currency={item.unitPriceCurrency} size="sm" />
+                      </div>
                     </div>
                   </div>
                 </article>
@@ -323,10 +328,10 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                         {item.quantity}
                       </TableCell>
                       <TableCell className="py-4 text-right text-muted-foreground">
-                        <CurrencyDisplay amount={item.unitPrice} size="sm" />
+                        <CurrencyDisplay amount={item.unitPrice} currency={item.unitPriceCurrency} size="sm" />
                       </TableCell>
                       <TableCell className="py-4 pr-6 text-right font-bold text-foreground">
-                        <CurrencyDisplay amount={item.subtotal} size="sm" />
+                        <CurrencyDisplay amount={item.subtotal} currency={item.unitPriceCurrency} size="sm" />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -349,7 +354,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                 Subtotal
               </span>
               <span className="font-semibold tabular-nums">
-                <CurrencyDisplay amount={sale.total + sale.discount} />
+                <CurrencyDisplay amount={sale.total + sale.discount} currency={sale.totalCurrency} />
               </span>
             </div>
 
@@ -359,7 +364,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                   Descuento
                 </span>
                 <span className="text-danger font-semibold tabular-nums">
-                  -<CurrencyDisplay amount={sale.discount} />
+                  -<CurrencyDisplay amount={sale.discount} currency={sale.totalCurrency} />
                 </span>
               </div>
             )}
@@ -367,7 +372,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
             <div className="-mx-6 flex items-center justify-between border-y border-border/40 bg-background/50 px-6 py-2 text-base shadow-sm">
               <span className="font-bold text-foreground">Total Final</span>
               <span className="font-black tracking-tight text-brand tabular-nums">
-                <CurrencyDisplay amount={sale.total} />
+                <CurrencyDisplay amount={sale.total} currency={sale.totalCurrency} />
               </span>
             </div>
 
@@ -379,6 +384,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                 <span className="font-semibold tabular-nums">
                   <CurrencyDisplay
                     amount={sale.amountPaid + sale.changeGiven}
+                    currency={sale.totalCurrency}
                   />
                 </span>
               </div>
@@ -389,7 +395,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                     Cambio Devuelto
                   </span>
                   <span className="font-semibold tabular-nums">
-                    <CurrencyDisplay amount={sale.changeGiven} />
+                    <CurrencyDisplay amount={sale.changeGiven} currency={sale.totalCurrency} />
                   </span>
                 </div>
               )}
@@ -399,7 +405,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                   Pagado
                 </span>
                 <span className="text-success font-bold tabular-nums">
-                  <CurrencyDisplay amount={sale.amountPaid} />
+                  <CurrencyDisplay amount={sale.amountPaid} currency={sale.totalCurrency} />
                 </span>
               </div>
 
@@ -409,7 +415,7 @@ export function SaleDetail({ sale }: { sale: SaleDetailData }) {
                     Saldo Pendiente
                   </span>
                   <span className="text-warning-dark dark:text-warning font-bold tabular-nums">
-                    <CurrencyDisplay amount={sale.balanceDue} />
+                    <CurrencyDisplay amount={sale.balanceDue} currency={sale.totalCurrency} />
                   </span>
                 </div>
               )}

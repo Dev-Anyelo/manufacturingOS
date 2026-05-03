@@ -257,7 +257,7 @@ export function ExpensesTable({
         <SummaryTile label="Registros" value={filtered.length} accent />
         <SummaryTile
           label="Total filtrado"
-          value={<CurrencyDisplay amount={filteredTotal} currency={Currency.NIO} />} // Defaulting to NIO for sum since that's the local display
+          value={<CurrencyDisplay amount={filteredTotal} showDual={true} />}
           accent
         />
         <SummaryTile label="Categorias" value={categories.length} />
@@ -314,8 +314,8 @@ export function ExpensesTable({
               gasto permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>
+          <AlertDialogFooter className="grid grid-cols-2 gap-2 w-full">
+            <AlertDialogCancel disabled={isDeleting} className="w-full">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction

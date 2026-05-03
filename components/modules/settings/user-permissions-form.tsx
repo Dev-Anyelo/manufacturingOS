@@ -396,7 +396,6 @@ export function UserPermissionsForm({
           {/* Admin Alert */}
           {isAdmin ? (
             <Alert variant="default" className="border-primary/50 bg-primary/5">
-              <AlertTriangleIcon className="size-4 text-primary" />
               <AlertTitle>Privilegios de Administrador</AlertTitle>
               <AlertDescription className="mt-1 text-sm text-pretty text-muted-foreground">
                 Los administradores poseen acceso total inamovible al sistema.

@@ -338,14 +338,14 @@ export function ProductionTable({
               eliminará el registro permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>
+          <AlertDialogFooter className="grid grid-cols-2 gap-2 w-full">
+            <AlertDialogCancel disabled={isDeleting} className="w-full">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={isDeleting}
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full"
             >
               {isDeleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>

@@ -1,11 +1,13 @@
 import Link from "next/link"
-import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
-import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
+import type { ReactNode } from "react"
+import { Currency } from "@prisma/client"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 
 interface StatCardProps {
   title: string
   value: ReactNode
+  currency?: Currency
   description?: string
   icon: ReactNode
   trend?: { value: number; isPositive?: boolean; label: string }
@@ -33,6 +35,7 @@ const valueToneStyles = {
 export function StatCard({
   title,
   value,
+  currency,
   description,
   icon,
   trend,
@@ -40,18 +43,23 @@ export function StatCard({
   isLoading = false,
   href,
 }: StatCardProps) {
-  const isPositiveTrend = trend?.isPositive ?? true
+  const renderedValue =
+    typeof value === "number" && currency ? (
+      <CurrencyDisplay amount={value} currency={currency} />
+    ) : (
+      value
+    )
 
   const Content = (
     <div
       className={cn(
-        "flex items-center gap-2.5 p-2.5 rounded-lg border bg-card transition-colors hover:bg-muted/30",
+        "flex items-center gap-2.5 rounded-lg border bg-card p-2.5 transition-colors hover:bg-muted/30",
         href && "cursor-pointer"
       )}
     >
       <div
         className={cn(
-          "shrink-0 h-8 w-8 rounded-md flex items-center justify-center [&>svg]:h-3.5 [&>svg]:w-3.5",
+          "flex size-8 shrink-0 items-center justify-center rounded-md [&>svg]:h-3.5 [&>svg]:w-3.5",
           iconWrapStyles[variant]
         )}
       >
@@ -59,19 +67,19 @@ export function StatCard({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide truncate leading-none mb-1">
+        <p className="mb-1 truncate text-[10px] leading-none font-medium tracking-wide text-muted-foreground uppercase">
           {title}
         </p>
         <div
           className={cn(
-            "text-lg font-bold tabular-nums leading-none truncate",
+            "truncate text-lg leading-none font-bold tabular-nums",
             !isLoading && valueToneStyles[variant]
           )}
         >
           {isLoading ? (
             <div className="h-5 w-16 animate-pulse rounded bg-muted" />
           ) : (
-            value
+            renderedValue
           )}
         </div>
       </div>

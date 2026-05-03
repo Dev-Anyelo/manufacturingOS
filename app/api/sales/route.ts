@@ -299,9 +299,9 @@ export async function POST(request: Request) {
 
       const saleTotal = decimalToNumber(result.sale.total)
       const body = [
-        `Venta por $${saleTotal.toFixed(2)} registrada`,
+        `Venta por ${saleTotal.toFixed(2)} registrada`,
         customer?.fullName ? `para ${customer.fullName}` : null,
-        balanceDue.gt(0) ? `saldo pendiente: $${decimalToNumber(balanceDue).toFixed(2)}` : null,
+        balanceDue.gt(0) ? `saldo pendiente: ${decimalToNumber(balanceDue).toFixed(2)}` : null,
       ]
         .filter(Boolean)
         .join(", ")

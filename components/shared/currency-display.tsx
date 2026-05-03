@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Currency, Prisma } from "@prisma/client"
 import { useSystemSettings } from "@/hooks/use-system-settings"
@@ -79,13 +78,14 @@ export function CurrencyDisplay({
   const sizeClasses = sizeClassMap[size]
 
   // Determine the "other" currency for dual display
-  const otherCurrency = displayCurrency === Currency.USD ? Currency.NIO : Currency.USD
+  const otherCurrency =
+    displayCurrency === Currency.USD ? Currency.NIO : Currency.USD
   const otherRate = getRate(displayCurrency, otherCurrency)
   const otherAmount = (convertedAmount ?? value) * (otherRate ?? 1)
 
   // Dual Display: Main (Converted/Display) + Secondary (Alternate)
   return (
-    <div className={cn("flex flex-col leading-none", className)}>
+    <span className={cn("inline-flex flex-col leading-none", className)}>
       <span className={cn(sizeClasses.main, toneClass)}>
         {convertedAmount !== null
           ? formatter(displayCurrency).format(convertedAmount)
@@ -96,6 +96,6 @@ export function CurrencyDisplay({
           {formatter(otherCurrency).format(otherAmount)}
         </span>
       )}
-    </div>
+    </span>
   )
 }

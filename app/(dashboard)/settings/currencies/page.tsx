@@ -19,7 +19,7 @@ export default async function CurrencySettingsPage() {
         description="Gestiona la moneda principal del sistema y las tasas de cambio vigentes."
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
-          { label: "Configuración", href: "/settings" },
+          { label: "Configuración" },
           { label: "Moneda" },
         ]}
       />

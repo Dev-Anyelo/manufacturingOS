@@ -4,12 +4,17 @@ import Link from "next/link"
 import * as React from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { useQueryClient } from "@tanstack/react-query"
+import { Button } from "@/components/ui/button"
 import { UserRole, Currency } from "@prisma/client"
+import { useQueryClient } from "@tanstack/react-query"
+import { type ColumnDef } from "@tanstack/react-table"
+import { DataTable } from "@/components/shared/data-table"
+import { StatusBadge } from "@/components/shared/status-badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+
 import {
-  ArrowUpRight,
   AlertTriangleIcon,
-  Trash2Icon,
   ExternalLinkIcon,
   MessageCircleIcon,
   MoreHorizontal,
@@ -18,14 +23,14 @@ import {
   ShoppingCartIcon,
   StoreIcon,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,10 +41,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { type ColumnDef } from "@tanstack/react-table"
-import { DataTable } from "@/components/shared/data-table"
-import { StatusBadge } from "@/components/shared/status-badge"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
 
 import {
   Select,
@@ -360,21 +361,23 @@ export function SalesTable({ sales, currentUserRole }: SalesTableProps) {
               <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive">
                 <AlertTriangleIcon className="size-5" />
               </div>
-              <AlertDialogTitle className="text-center">¿Eliminar esta venta?</AlertDialogTitle>
-              <AlertDialogDescription className="text-center">
+              <AlertDialogTitle className="text-center">
+                ¿Eliminar esta venta?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-center text-pretty">
                 Esta acción no se puede deshacer. Se eliminará la venta y todos
                 sus items.
               </AlertDialogDescription>
             </AlertDialogHeader>
           </div>
-          <AlertDialogFooter className="px-5 pb-5">
-            <AlertDialogCancel disabled={isDeleting}>
+          <AlertDialogFooter className="grid w-full grid-cols-2 gap-2 px-5 pb-5">
+            <AlertDialogCancel disabled={isDeleting} className="w-full">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={isDeleting}
               onClick={handleDeleteSale}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>
@@ -384,4 +387,3 @@ export function SalesTable({ sales, currentUserRole }: SalesTableProps) {
     </>
   )
 }
-

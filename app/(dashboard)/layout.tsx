@@ -13,7 +13,7 @@ import {
 } from "@/lib/nav/dashboard-links"
 
 const layoutStyle = {
-  "--sidebar-width": "14rem",
+  "--sidebar-width": "16.5rem",
   "--header-height": "60px",
 } as CSSProperties
 

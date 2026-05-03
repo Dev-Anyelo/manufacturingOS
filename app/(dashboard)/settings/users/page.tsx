@@ -39,7 +39,7 @@ export default async function UsersSettingsPage() {
         description="Administra los accesos y roles de los usuarios del sistema."
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
-          { label: "Configuración", href: "/settings" },
+          { label: "Configuración" },
           { label: "Usuarios" },
         ]}
         actions={
