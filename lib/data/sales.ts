@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { decimalToNumber } from "@/lib/api/utils"
+import { Currency } from "@prisma/client"
+import { getExchangeRate } from "@/lib/currency/exchange"
 
 export type SaleFilters = {
   dateFrom?: Date
@@ -126,14 +128,26 @@ export async function getTodaySalesSummary() {
     select: {
       total: true,
       discount: true,
+      totalCurrency: true,
     },
   })
 
-  const totalAmount = sales.reduce(
-    (acc, row) =>
-      acc + decimalToNumber(row.total) - decimalToNumber(row.discount),
-    0
-  )
+  // Fetch current rate for conversion
+  let rate = 36.5
+  try {
+    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
+    rate = Number(rateDecimal)
+  } catch (e) {
+    console.error("Could not fetch exchange rate for sales summary", e)
+  }
+
+  const totalAmount = sales.reduce((acc, row) => {
+    const amount = decimalToNumber(row.total) - decimalToNumber(row.discount)
+    if (row.totalCurrency === Currency.NIO) {
+      return acc + amount / rate
+    }
+    return acc + amount
+  }, 0)
 
   return {
     total_sales: sales.length,

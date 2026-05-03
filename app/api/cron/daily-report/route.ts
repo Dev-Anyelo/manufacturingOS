@@ -136,7 +136,7 @@ export async function POST(request: Request) {
         }),
         generatedAt: today.toISOString(),
         company: {
-          name: "manufacturingOS",
+          name: "DANIELLS CONFECCIONES",
         },
       })
     )

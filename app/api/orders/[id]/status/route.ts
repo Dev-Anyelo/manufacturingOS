@@ -108,7 +108,7 @@ export async function PATCH(
           orderDescription: `Pedido #${updated.id.slice(0, 8)}`,
           pendingBalance: Number(updated.balanceDue),
           workshopContact:
-            process.env.RESEND_FROM_EMAIL ?? "soporte@manufacturingos.app",
+            process.env.RESEND_FROM_EMAIL ?? "onboarding@revvioapp.com",
         })
       }
     }

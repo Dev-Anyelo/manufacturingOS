@@ -1,40 +1,72 @@
+"use client"
+
+import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Currency, Prisma } from "@prisma/client"
+import { useSystemSettings } from "@/hooks/use-system-settings"
+import { useExchangeRates } from "@/hooks/use-exchange-rates"
 
 interface CurrencyDisplayProps {
   amount: number | string | Prisma.Decimal
   currency?: Currency
+  displayCurrency?: Currency
+  showDual?: boolean
   size?: "sm" | "md" | "lg" | "kpi"
   colored?: boolean
   className?: string
+  secondaryClassName?: string
 }
 
 const sizeClassMap: Record<
   NonNullable<CurrencyDisplayProps["size"]>,
-  string
+  { main: string; secondary: string }
 > = {
-  sm: "text-sm",
-  md: "text-base",
-  lg: "text-xl font-semibold",
-  kpi: "text-3xl font-bold tabular-nums tracking-tight",
+  sm: {
+    main: "text-sm",
+    secondary: "text-[10px] text-muted-foreground",
+  },
+  md: {
+    main: "text-base",
+    secondary: "text-xs text-muted-foreground",
+  },
+  lg: {
+    main: "text-xl font-semibold",
+    secondary: "text-sm text-muted-foreground",
+  },
+  kpi: {
+    main: "text-3xl font-bold tabular-nums tracking-tight",
+    secondary: "text-base text-muted-foreground",
+  },
 }
 
 export function CurrencyDisplay({
   amount,
-  currency = "USD",
+  currency: recordCurrency = Currency.USD,
+  displayCurrency: propDisplayCurrency,
+  showDual = true,
   size = "md",
   colored = false,
   className,
+  secondaryClassName,
 }: CurrencyDisplayProps) {
-  const numericAmount = Number(amount)
+  const { displayCurrency: globalDisplayCurrency } = useSystemSettings()
+  const { getRate } = useExchangeRates()
 
+  const displayCurrency = propDisplayCurrency || globalDisplayCurrency
+
+  const numericAmount = Number(amount)
   const value = Number.isFinite(numericAmount) ? numericAmount : 0
-  const formatter = new Intl.NumberFormat("es-NI", {
-    style: "currency",
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
+
+  const rate = getRate(recordCurrency, displayCurrency)
+  const convertedAmount = rate !== null ? value * rate : null
+
+  const formatter = (curr: Currency) =>
+    new Intl.NumberFormat("es-NI", {
+      style: "currency",
+      currency: curr,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
 
   const toneClass =
     colored && value !== 0
@@ -43,9 +75,33 @@ export function CurrencyDisplay({
         : "text-danger"
       : "text-foreground"
 
+  const sizeClasses = sizeClassMap[size]
+
+  // If no dual display needed or currencies match
+  if (!showDual || recordCurrency === displayCurrency) {
+    // If showDual is false, we might want to convert to displayCurrency anyway?
+    // The prompt says: "If showDual=false: Convert amount to displayCurrency and show only that"
+    const amountToShow = showDual ? value : (convertedAmount ?? value)
+    const currencyToShow = showDual ? recordCurrency : displayCurrency
+
+    return (
+      <span className={cn(sizeClasses.main, toneClass, className)}>
+        {formatter(currencyToShow).format(amountToShow)}
+      </span>
+    )
+  }
+
+  // Dual Display: Main (Converted/Display) + Secondary (Original/Record)
   return (
-    <span className={cn(sizeClassMap[size], toneClass, className)}>
-      {formatter.format(value)}
-    </span>
+    <div className={cn("flex flex-col leading-none", className)}>
+      <span className={cn(sizeClasses.main, toneClass)}>
+        {convertedAmount !== null
+          ? formatter(displayCurrency).format(convertedAmount)
+          : formatter(recordCurrency).format(value)}
+      </span>
+      <span className={cn(sizeClasses.secondary, secondaryClassName)}>
+        {recordCurrency !== displayCurrency && formatter(recordCurrency).format(value)}
+      </span>
+    </div>
   )
 }

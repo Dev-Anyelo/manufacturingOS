@@ -502,7 +502,7 @@ model SystemSetting {
   displayCurrency   Currency @default(USD) @map("display_currency")
   timezone          String   @default("America/Managua")
   locale            String   @default("es-NI")
-  companyName       String   @default("manufacturingOS") @map("company_name")
+  companyName       String   @default("DANIELLS_CONFECCIONES") @map("company_name")
   companyPhone      String?  @map("company_phone")
   companyEmail      String?  @map("company_email")
   companyAddress    String?  @map("company_address")

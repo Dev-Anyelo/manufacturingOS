@@ -47,12 +47,28 @@ export async function POST(request: Request) {
       })
     }
 
-    const rate = await prisma.exchangeRate.create({
-      data: {
+    // Normalize valid_from to date only (midnight) to match DB @db.Date and unique constraint
+    const normalizedValidFrom = new Date(payload.valid_from)
+    normalizedValidFrom.setHours(0, 0, 0, 0)
+
+    const rate = await prisma.exchangeRate.upsert({
+      where: {
+        fromCurrency_toCurrency_validFrom: {
+          fromCurrency: payload.from_currency,
+          toCurrency: payload.to_currency,
+          validFrom: normalizedValidFrom,
+        },
+      },
+      update: {
+        rate: toPrismaDecimal(payload.rate),
+        notes: payload.notes,
+        validTo: payload.valid_to,
+      },
+      create: {
         fromCurrency: payload.from_currency,
         toCurrency: payload.to_currency,
         rate: toPrismaDecimal(payload.rate),
-        validFrom: payload.valid_from,
+        validFrom: normalizedValidFrom,
         validTo: payload.valid_to,
         notes: payload.notes,
       },

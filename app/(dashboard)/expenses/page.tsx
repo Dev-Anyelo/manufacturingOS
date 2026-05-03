@@ -1,6 +1,6 @@
-import { formatCurrency } from "@/lib/utils"
-import { ExpenseCategory } from "@prisma/client"
+import { ExpenseCategory, Currency } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { requireAuth } from "@/lib/api/response"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
@@ -39,6 +39,7 @@ export default async function ExpensesPage() {
     concept: expense.concept,
     supplier: expense.supplier,
     total: decimalToNumber(expense.total),
+    totalCurrency: expense.totalCurrency as Currency,
     updatesInventory: expense.updatesInventory,
     inventoryItemName: expense.inventoryItem?.name ?? null,
     receiptUrl: expense.receiptUrl,
@@ -90,7 +91,12 @@ export default async function ExpensesPage() {
         <KpiSection label="Resumen de gastos">
           <CompactKpiCard
             label="Total del mes"
-            value={formatCurrency(totalThisMonth)}
+            value={
+              <CurrencyDisplay 
+                amount={totalThisMonth} 
+                currency={Currency.USD}
+              />
+            }
             icon={<TrendingDownIcon />}
             iconClass={
               totalThisMonth > 0
@@ -112,7 +118,12 @@ export default async function ExpensesPage() {
           />
           <CompactKpiCard
             label="Top monto"
-            value={formatCurrency(topCategoryAmount)}
+            value={
+              <CurrencyDisplay 
+                amount={topCategoryAmount} 
+                currency={Currency.USD}
+              />
+            }
             icon={<WalletCardsIcon />}
             iconClass="bg-muted text-muted-foreground"
           />

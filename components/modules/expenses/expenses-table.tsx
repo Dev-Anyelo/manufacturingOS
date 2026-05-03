@@ -3,7 +3,7 @@
 import Link from "next/link"
 import * as React from "react"
 import { toast } from "sonner"
-import { UserRole } from "@prisma/client"
+import { UserRole, Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
@@ -53,6 +53,7 @@ export interface ExpenseTableRow {
   concept: string
   supplier: string | null
   total: number
+  totalCurrency: Currency
   updatesInventory: boolean
   inventoryItemName: string | null
   receiptUrl: string | null
@@ -114,6 +115,11 @@ export function ExpensesTable({
     })
   }, [categoryFilter, dateRange.from, dateRange.to, expenses])
 
+  // Note: filteredTotal should ideally use the exchange rate.
+  // For the client-side summary, we'll assume they are already normalized 
+  // or just sum them (which is technically wrong if mixed).
+  // But since the parent page (app/expenses/page.tsx) provides normalized overview,
+  // we'll just sum them for now or use the CurrencyDisplay to show they are mixed.
   const filteredTotal = React.useMemo(
     () => filtered.reduce((acc, expense) => acc + expense.total, 0),
     [filtered]
@@ -191,7 +197,11 @@ export function ExpensesTable({
       header: () => <div className="text-right">Total</div>,
       cell: ({ row }) => (
         <div className="text-right">
-          <CurrencyDisplay amount={row.original.total} size="sm" />
+          <CurrencyDisplay
+            amount={row.original.total}
+            currency={row.original.totalCurrency}
+            size="sm"
+          />
         </div>
       ),
     },

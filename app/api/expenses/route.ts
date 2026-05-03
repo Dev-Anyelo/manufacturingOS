@@ -25,6 +25,7 @@ import {
 } from "@/lib/services/notifications"
 
 import {
+  decimalToNumber,
   getSearchParam,
   parseDateParam,
   toLocalDate,
@@ -168,12 +169,12 @@ export async function POST(request: Request) {
       await createNotifications({
         type: "expense_recorded" as PrismaNotificationType,
         title: "Gasto registrado",
-        body: `Se registró el gasto ${created.concept} por ${created.total.toString()}.`,
+        body: `Se registró el gasto ${created.concept} por ${payload.total_currency} ${decimalToNumber(created.total)}.`,
         metadata: {
           expenseId: created.id,
           category: created.category,
-          totalCurrency: payload.total_currency,
-          total: created.total.toString(),
+          currency: payload.total_currency,
+          total: decimalToNumber(created.total),
           actionUrl: "/expenses",
           actionLabel: "Ver gastos",
         },

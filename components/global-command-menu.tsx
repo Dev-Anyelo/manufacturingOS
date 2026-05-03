@@ -104,7 +104,7 @@ export function GlobalCommandMenu({ sections }: GlobalCommandMenuProps) {
         showCloseButton={false}
         className="overflow-hidden gap-0 p-0 sm:max-w-lg"
       >
-        <DialogTitle className="sr-only">Buscar en manufacturingOS</DialogTitle>
+        <DialogTitle className="sr-only">Buscar...</DialogTitle>
         <Command className="rounded-none border-0 shadow-none">
           <CommandInput
             placeholder="Buscar modulo o ir a..."

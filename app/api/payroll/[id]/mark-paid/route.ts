@@ -80,7 +80,7 @@ export async function PATCH(
           total: decimalToNumber(updated.total),
         },
         company: {
-          name: "manufacturingOS",
+          name: "DANIELLS CONFECCIONES",
         },
       })
     )
@@ -103,7 +103,7 @@ export async function PATCH(
       await createNotifications({
         type: NotificationType.payment_due,
         title: "Planilla pagada",
-        body: `Se registró el pago de ${decimalToNumber(updated.total)} para ${updated.employee.fullName}.`,
+        body: `Se registró el pago de ${updated.baseAmountCurrency} ${decimalToNumber(updated.total)} para ${updated.employee.fullName}.`,
         metadata: {
           payrollPaymentId: updated.id,
           employeeId: updated.employee.id,
@@ -119,7 +119,7 @@ export async function PATCH(
       await createNotifications({
         type: NotificationType.payment_due,
         title: "Recibiste tu pago de planilla",
-        body: `Tu pago de ${decimalToNumber(updated.total)} fue registrado correctamente.`,
+        body: `Tu pago de ${updated.baseAmountCurrency} ${decimalToNumber(updated.total)} fue registrado correctamente.`,
         metadata: {
           payrollPaymentId: updated.id,
           actionUrl: `/payroll/${updated.id}`,

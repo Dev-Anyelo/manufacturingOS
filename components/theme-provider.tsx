@@ -10,7 +10,7 @@ function ThemeProvider({
   return (
     <NextThemesProvider
       attribute="class"
-      storageKey="manufacturingos-theme"
+      storageKey="daniells-confecciones-theme"
       defaultTheme="dark"
       enableSystem={false}
       disableTransitionOnChange

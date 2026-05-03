@@ -270,10 +270,11 @@ export async function POST(request: Request) {
     await createNotifications({
       type: NotificationType.sale_completed,
       title: "Venta registrada",
-      body: `Se registró la venta #${result.sale.id.slice(0, 8)}.`,
+      body: `Se registró la venta #${result.sale.id.slice(0, 8)} por un total de ${result.sale.totalCurrency} ${decimalToNumber(result.sale.total)}.`,
       metadata: {
         saleId: result.sale.id,
         total: decimalToNumber(result.sale.total),
+        currency: result.sale.totalCurrency,
         actionUrl: `/sales/${result.sale.id}`,
         actionLabel: "Ver venta",
       },

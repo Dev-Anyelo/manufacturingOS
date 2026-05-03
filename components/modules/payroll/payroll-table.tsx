@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { Currency } from "@prisma/client"
 
 import {
   CheckCircle2Icon,
@@ -52,6 +53,7 @@ export interface PayrollTableRow {
   periodStart: string
   periodEnd: string
   total: number
+  totalCurrency: Currency
   status: "pending" | "paid"
   paymentDate: string | null
   paymentMethod: "cash" | "transfer" | "other" | null
@@ -182,7 +184,11 @@ export function PayrollTable({
         header: () => <div className="text-right">Total</div>,
         cell: ({ row }) => (
           <div className="text-right">
-            <CurrencyDisplay amount={row.original.total} size="sm" />
+            <CurrencyDisplay
+              amount={row.original.total}
+              currency={row.original.totalCurrency}
+              size="sm"
+            />
           </div>
         ),
       },

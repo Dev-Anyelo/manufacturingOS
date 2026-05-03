@@ -1,5 +1,3 @@
-import * as React from "react"
-
 export type MonthlyReportEmailTemplateProps = {
   totalSales: number
   totalExpenses: number
@@ -17,7 +15,7 @@ export function MonthlyReportEmailTemplate({
 }: MonthlyReportEmailTemplateProps) {
   return (
     <div style={{ fontFamily: "Arial, sans-serif", color: "#111827" }}>
-      <h2>Reporte mensual manufacturingOS</h2>
+      <h2>Reporte mensual DANIELLS CONFECCIONES</h2>
       <p>Total ventas: ${totalSales.toFixed(2)}</p>
       <p>Total gastos: ${totalExpenses.toFixed(2)}</p>
       <p>Utilidad bruta: ${grossProfit.toFixed(2)}</p>

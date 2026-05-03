@@ -181,7 +181,7 @@ export function ForgotPasswordForm({
             <div className="absolute right-10 bottom-5 left-5 flex flex-col gap-5">
               <div className="flex flex-col gap-2">
                 <h2 className="text-2xl font-bold tracking-tighter text-white">
-                  manufacturingOS
+                  DANIELLS CONFECCIONES
                 </h2>
                 <div className="h-1.5 w-12 rounded-full bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
               </div>

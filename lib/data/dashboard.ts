@@ -2,6 +2,8 @@ import { NotificationType, WorkOrderStatus } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { decimalToNumber } from "@/lib/api/utils"
+import { getExchangeRate } from "@/lib/currency/exchange"
+import { Currency } from "@prisma/client"
 
 export async function getDashboardStats() {
   const today = new Date()
@@ -31,6 +33,7 @@ export async function getDashboardStats() {
       select: {
         total: true,
         discount: true,
+        totalCurrency: true,
       },
     }),
     prisma.sale.findMany({
@@ -43,6 +46,7 @@ export async function getDashboardStats() {
       select: {
         total: true,
         discount: true,
+        totalCurrency: true,
       },
     }),
     prisma.inventoryItem.findMany({
@@ -90,17 +94,30 @@ export async function getDashboardStats() {
     }),
   ])
 
-  const todaySalesAmount = todaySales.reduce(
-    (acc, row) =>
-      acc + decimalToNumber(row.total) - decimalToNumber(row.discount),
-    0
-  )
+  // Fetch current rate for conversion to USD (base)
+  let rate = 36.5
+  try {
+    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
+    rate = Number(rateDecimal)
+  } catch (e) {
+    console.error("Could not fetch exchange rate for dashboard", e)
+  }
 
-  const yesterdaySalesAmount = yesterdaySales.reduce(
-    (acc, row) =>
-      acc + decimalToNumber(row.total) - decimalToNumber(row.discount),
-    0
-  )
+  const todaySalesAmount = todaySales.reduce((acc, row) => {
+    const amount = decimalToNumber(row.total) - decimalToNumber(row.discount)
+    if (row.totalCurrency === Currency.NIO) {
+      return acc + amount / rate
+    }
+    return acc + amount
+  }, 0)
+
+  const yesterdaySalesAmount = yesterdaySales.reduce((acc, row) => {
+    const amount = decimalToNumber(row.total) - decimalToNumber(row.discount)
+    if (row.totalCurrency === Currency.NIO) {
+      return acc + amount / rate
+    }
+    return acc + amount
+  }, 0)
 
   const todayGarments = todayProduction.reduce(
     (acc, session) => acc + session.totalGarments,
@@ -217,6 +234,7 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
         saleDate: true,
         total: true,
         discount: true,
+        totalCurrency: true,
       },
     }),
     prisma.expense.findMany({
@@ -229,6 +247,7 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
       select: {
         expenseDate: true,
         total: true,
+        totalCurrency: true,
       },
     }),
   ])
@@ -243,12 +262,23 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
     current.setDate(current.getDate() + 1)
   }
 
+  // Fetch current rate for conversion
+  let rate = 36.5
+  try {
+    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
+    rate = Number(rateDecimal)
+  } catch (e) {
+    console.error("Could not fetch exchange rate for chart", e)
+  }
+
   // Aggregate Sales
   for (const sale of sales) {
     const dateStr = sale.saleDate.toISOString().split("T")[0]
     const current = daysMap.get(dateStr)
     if (current) {
-      current.sales += decimalToNumber(sale.total) - decimalToNumber(sale.discount)
+      const amount = decimalToNumber(sale.total) - decimalToNumber(sale.discount)
+      const converted = sale.totalCurrency === Currency.NIO ? amount / rate : amount
+      current.sales += converted
     }
   }
 
@@ -257,7 +287,9 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
     const dateStr = exp.expenseDate.toISOString().split("T")[0]
     const current = daysMap.get(dateStr)
     if (current) {
-      current.expenses += decimalToNumber(exp.total)
+      const amount = decimalToNumber(exp.total)
+      const converted = exp.totalCurrency === Currency.NIO ? amount / rate : amount
+      current.expenses += converted
     }
   }
 

@@ -69,7 +69,7 @@ export function NotificationEmailTemplate({
         >
           <Section style={{ textAlign: "center", marginBottom: "24px" }}>
             <Heading style={{ margin: 0, fontSize: "22px", color: "#18181b" }}>
-              manufacturingOS
+              DANIELLS CONFECCIONES
             </Heading>
           </Section>
 
@@ -115,6 +115,41 @@ export function NotificationEmailTemplate({
               Hola {name}, {body}
             </Text>
 
+            {!!metadata?.total && !!metadata?.currency && (
+              <Section
+                style={{
+                  textAlign: "center",
+                  margin: "12px 0 24px",
+                  padding: "16px",
+                  backgroundColor: "#f8fafc",
+                  borderRadius: "10px",
+                  border: "1px dashed #cbd5e1",
+                }}
+              >
+                <Text
+                  style={{
+                    margin: "0 0 4px",
+                    fontSize: "12px",
+                    color: "#64748b",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Monto del registro
+                </Text>
+                <Text
+                  style={{
+                    margin: 0,
+                    fontSize: "24px",
+                    fontWeight: 700,
+                    color: "#0f172a",
+                  }}
+                >
+                  {String(metadata.currency)} {Number(metadata.total).toLocaleString("es-NI", { minimumFractionDigits: 2 })}
+                </Text>
+              </Section>
+            )}
+
             {actionUrl && actionLabel ? (
               <Section style={{ textAlign: "center", marginTop: "24px" }}>
                 <Button
@@ -146,7 +181,7 @@ export function NotificationEmailTemplate({
               textAlign: "center",
             }}
           >
-            Este es un mensaje automático de manufacturingOS. Por favor no
+            Este es un mensaje automático de DANIELLS CONFECCIONES. Por favor no
             respondas a este correo.
           </Text>
         </Container>

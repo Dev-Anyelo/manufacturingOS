@@ -58,7 +58,7 @@ export async function POST(
           total: decimalToNumber(payment.total),
         },
         company: {
-          name: "manufacturingOS",
+          name: "DANIELLS CONFECCIONES",
         },
       })
     )

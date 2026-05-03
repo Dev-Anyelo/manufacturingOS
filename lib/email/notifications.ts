@@ -13,7 +13,7 @@ type NotificationEmailInput = {
   metadata?: Record<string, unknown>
 }
 
-const APP_NAME = "manufacturingOS"
+const APP_NAME = "DANIELLS CONFECCIONES"
 
 const subjectPrefixes: Record<NotificationType, string> = {
   low_stock: "Stock bajo —",

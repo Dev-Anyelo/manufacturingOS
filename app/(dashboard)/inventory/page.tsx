@@ -1,4 +1,5 @@
 import { UserRole } from "@/types"
+import { Currency } from "@prisma/client"
 import { BoxesIcon, AlertTriangleIcon, PackageXIcon, PackageIcon } from "lucide-react"
 import { getInventoryItems } from "@/lib/data/inventory"
 import { PageHeader } from "@/components/shared/page-header"
@@ -28,6 +29,7 @@ export default async function InventoryPage() {
     minimumStock: Number(item.minimumStock),
     unit: item.unit,
     unitPrice: Number(item.unitPrice),
+    unitPriceCurrency: item.unitPriceCurrency as Currency,
     supplier: item.supplier,
     imageUrl: item.imageUrl,
   }))

@@ -5,7 +5,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { UserRole } from "@prisma/client"
+import { UserRole, Currency } from "@prisma/client"
 import {
   ArrowUpRight,
   AlertTriangleIcon,
@@ -56,6 +56,7 @@ export interface SalesTableRow {
   channel: string
   paymentMethod: string
   total: number
+  totalCurrency: Currency
   status: string
   balanceDue: number
 }
@@ -165,7 +166,10 @@ function getColumns(options: {
       header: () => <div className="text-right">Total</div>,
       cell: ({ row }) => (
         <div className="text-right">
-          <CurrencyDisplay amount={row.original.total} />
+          <CurrencyDisplay
+            amount={row.original.total}
+            currency={row.original.totalCurrency}
+          />
         </div>
       ),
     },

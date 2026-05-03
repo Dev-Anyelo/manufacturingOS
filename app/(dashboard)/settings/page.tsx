@@ -13,6 +13,7 @@ import {
   ShieldCheckIcon,
   UserIcon,
   FileCheck2Icon,
+  TrendingUpIcon,
 } from "lucide-react"
 
 export default async function SettingsPage() {
@@ -148,13 +149,30 @@ export default async function SettingsPage() {
           <Card className="border border-border/70 shadow-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs text-muted-foreground">
-                Notificaciones sistema
+                Moneda y Tasas
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2">
-                <BellRingIcon className="text-warning size-4" />
-                <p className="text-sm font-semibold">Configurable por modulo</p>
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-2">
+                  <TrendingUpIcon className="text-brand size-4" />
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-semibold">
+                      {settings?.displayCurrency || "USD"} (Principal)
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Gestión de paridad y visualización dual
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="w-full sm:w-auto"
+                >
+                  <Link href="/settings/currencies">Configurar</Link>
+                </Button>
               </div>
             </CardContent>
           </Card>

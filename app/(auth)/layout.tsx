@@ -1,7 +1,7 @@
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Autenticación | manufacturingOS",
+  title: "Autenticación | ",
   description: "Accede a tu sistema de gestión de manufactura textil",
 }
 

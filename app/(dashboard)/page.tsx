@@ -14,6 +14,8 @@ import { requireCurrentUser } from "@/lib/auth/current-user"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { UrlDateFilter } from "@/components/shared/url-date-filter"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { Currency } from "@prisma/client"
 import { formatCurrency, formatDate, formatDateRelative } from "@/lib/utils"
 
 import {
@@ -263,7 +265,14 @@ export default async function DashboardPage(props: {
             <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
               <StatCard
                 title="Ventas hoy"
-                value={formatCurrency(stats.todaySales)}
+                value={
+                  <CurrencyDisplay
+                    amount={stats.todaySales}
+                    currency={Currency.USD}
+                    size="md"
+                    showDual={true}
+                  />
+                }
                 description={`${stats.todaySalesCount} transacciones`}
                 icon={<ShoppingCartIcon className="size-5" />}
                 variant={stats.todaySales > 0 ? "success" : "default"}

@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { decimalToNumber } from "@/lib/api/utils"
+import { Currency } from "@prisma/client"
+import { getExchangeRate } from "@/lib/currency/exchange"
 
 export type PayrollFilters = {
   employeeId?: string
@@ -100,6 +102,15 @@ export async function getPayrollSummaryByEmployee(
     },
   })
 
+  // Fetch current rate for conversion
+  let rate = 36.5
+  try {
+    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
+    rate = Number(rateDecimal)
+  } catch (e) {
+    console.error("Could not fetch exchange rate for payroll summary", e)
+  }
+
   const grouped = new Map<
     string,
     { employeeId: string; fullName: string; total: number }
@@ -112,7 +123,9 @@ export async function getPayrollSummaryByEmployee(
       total: 0,
     }
 
-    row.total += decimalToNumber(payment.total)
+    const amount = decimalToNumber(payment.total)
+    const converted = payment.baseAmountCurrency === Currency.NIO ? amount / rate : amount
+    row.total += converted
     grouped.set(payment.employeeId, row)
   }
 
@@ -132,6 +145,7 @@ export async function getPayrollFormBootstrap() {
       fullName: true,
       contractType: true,
       baseSalary: true,
+      baseSalaryCurrency: true,
     },
   })
 

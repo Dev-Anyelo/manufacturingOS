@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { SaleStatus } from "@prisma/client"
+import { SaleStatus, Currency } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { StatCard } from "@/components/shared/stat-card"
@@ -47,6 +47,7 @@ export default async function SalesPage(props: { searchParams: SearchParams }) {
     channel: sale.channel,
     paymentMethod: sale.paymentMethod,
     total: decimalToNumber(sale.total) - decimalToNumber(sale.discount),
+    totalCurrency: sale.totalCurrency as Currency,
     status: sale.status,
     balanceDue: decimalToNumber(sale.balanceDue),
   }))
@@ -88,7 +89,11 @@ export default async function SalesPage(props: { searchParams: SearchParams }) {
           <StatCard
             title="Total del día"
             value={
-              <CurrencyDisplay amount={todaySummary.total_amount} size="lg" />
+              <CurrencyDisplay 
+                amount={todaySummary.total_amount} 
+                currency={Currency.USD} 
+                size="lg" 
+              />
             }
             description="Ingreso neto del día"
             icon={<DollarSignIcon className="size-5" />}

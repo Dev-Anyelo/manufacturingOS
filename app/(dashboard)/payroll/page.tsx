@@ -1,4 +1,5 @@
 import { decimalToNumber } from "@/lib/api/utils"
+import { Currency } from "@prisma/client"
 import { PageHeader } from "@/components/shared/page-header"
 import { PayrollWorkspace } from "@/components/modules/payroll/payroll-workspace"
 
@@ -45,6 +46,7 @@ export default async function PayrollPage() {
             periodStart: payment.periodStart.toISOString(),
             periodEnd: payment.periodEnd.toISOString(),
             total: decimalToNumber(payment.total),
+            totalCurrency: payment.baseAmountCurrency as Currency,
             status: payment.status,
             paymentDate: payment.paymentDate?.toISOString() ?? null,
             paymentMethod: payment.paymentMethod,
@@ -63,6 +65,7 @@ export default async function PayrollPage() {
               employee.baseSalary === null
                 ? null
                 : decimalToNumber(employee.baseSalary),
+            baseSalaryCurrency: employee.baseSalaryCurrency as Currency,
           }))}
         />
       </div>

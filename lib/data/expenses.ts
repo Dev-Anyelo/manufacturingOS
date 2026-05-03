@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { decimalToNumber } from "@/lib/api/utils"
+import { Currency } from "@prisma/client"
+import { getExchangeRate } from "@/lib/currency/exchange"
 
 export type ExpenseFilters = {
   dateFrom?: Date
@@ -64,15 +66,27 @@ export async function getExpenseSummary(
     select: {
       category: true,
       total: true,
+      totalCurrency: true,
     },
   })
 
+  // Fetch current rate for conversion
+  let rate = 36.5
+  try {
+    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
+    rate = Number(rateDecimal)
+  } catch (e) {
+    console.error("Could not fetch exchange rate for expense summary", e)
+  }
+
   const summary = expenses.reduce(
     (acc, expense) => {
-      const total = decimalToNumber(expense.total)
+      const amount = decimalToNumber(expense.total)
+      const converted = expense.totalCurrency === Currency.NIO ? amount / rate : amount
+      
       acc.byCategory[expense.category] =
-        (acc.byCategory[expense.category] ?? 0) + total
-      acc.total += total
+        (acc.byCategory[expense.category] ?? 0) + converted
+      acc.total += converted
       return acc
     },
     {
@@ -120,20 +134,32 @@ export async function getMonthlyExpenseOverview(): Promise<MonthlyExpenseOvervie
       category: true,
       concept: true,
       total: true,
+      totalCurrency: true,
     },
   })
+
+  // Fetch current rate for conversion
+  let rate = 36.5
+  try {
+    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
+    rate = Number(rateDecimal)
+  } catch (e) {
+    console.error("Could not fetch exchange rate for monthly expense overview", e)
+  }
 
   const byCategory: Record<string, number> = {}
   const byConcept = new Map<string, number>()
   let monthlyTotal = 0
 
   for (const expense of expenses) {
-    const total = decimalToNumber(expense.total)
-    monthlyTotal += total
-    byCategory[expense.category] = (byCategory[expense.category] ?? 0) + total
+    const amount = decimalToNumber(expense.total)
+    const converted = expense.totalCurrency === Currency.NIO ? amount / rate : amount
+
+    monthlyTotal += converted
+    byCategory[expense.category] = (byCategory[expense.category] ?? 0) + converted
     byConcept.set(
       expense.concept,
-      (byConcept.get(expense.concept) ?? 0) + total
+      (byConcept.get(expense.concept) ?? 0) + converted
     )
   }
 

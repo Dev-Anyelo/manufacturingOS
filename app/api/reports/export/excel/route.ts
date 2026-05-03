@@ -109,7 +109,7 @@ export async function GET() {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition":
-          "attachment; filename=reporte-manufacturingos.xlsx",
+          "attachment; filename=reporte-daniels-confecciones.xlsx",
       },
     })
   } catch (error) {

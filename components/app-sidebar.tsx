@@ -71,12 +71,9 @@ export function AppSidebar({ user, sections, ...props }: AppSidebarProps) {
               className="data-[slot=sidebar-menu-button]:h-auto! data-[slot=sidebar-menu-button]:rounded-xl! data-[slot=sidebar-menu-button]:border! data-[slot=sidebar-menu-button]:border-sidebar-border/60! data-[slot=sidebar-menu-button]:bg-sidebar-accent/40! data-[slot=sidebar-menu-button]:px-3! data-[slot=sidebar-menu-button]:py-2.5!"
             >
               <Link href="/" className="flex items-center gap-3">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-                  <CommandIcon className="size-4" />
-                </div>
                 <div className="min-w-0 space-y-0.5">
                   <p className="truncate text-sm font-semibold text-sidebar-foreground">
-                    manufacturingOS
+                    DANIELLS CONFECCIONES
                   </p>
                   <p className="truncate text-[11px] text-sidebar-foreground/65">
                     ERP textil · {roleLabel}

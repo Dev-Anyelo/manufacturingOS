@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import Image from "next/image"
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
@@ -82,6 +83,7 @@ export interface InventoryTableRow {
   minimumStock: number
   unit: string
   unitPrice: number
+  unitPriceCurrency: Currency
   supplier: string | null
   imageUrl: string | null
 }
@@ -220,7 +222,10 @@ function createInventoryColumns(
       header: () => <div className="text-right">Precio</div>,
       cell: ({ row }) => (
         <div className="text-right font-medium tabular-nums">
-          <CurrencyDisplay amount={row.original.unitPrice} />
+          <CurrencyDisplay
+            amount={row.original.unitPrice}
+            currency={row.original.unitPriceCurrency}
+          />
         </div>
       ),
       meta: {

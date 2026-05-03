@@ -13,13 +13,13 @@ export function UserWelcomeEmailTemplate({
 }: WelcomeEmailTemplateProps) {
   return (
     <div style={{ fontFamily: "Arial, sans-serif", color: "#111827" }}>
-      <h2>Bienvenido a manufacturingOS</h2>
+      <h2>Bienvenido a DANIELLS CONFECCIONES</h2>
       <p>Hola {fullName}, tu cuenta fue creada correctamente.</p>
       <p>Correo: {email}</p>
       <p>Rol asignado: {role}</p>
       <p>
         Ingresa al sistema desde este enlace:{" "}
-        <a href="https://manufacturing-os.vercel.app">manufacturingOS</a>
+        <a href="https://manufacturing-os.vercel.app">DANIELLS CONFECCIONES</a>
       </p>
       <p>Por seguridad, cambia tu contrasena en tu primer inicio de sesion.</p>
     </div>

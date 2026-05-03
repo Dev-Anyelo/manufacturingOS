@@ -93,7 +93,7 @@ async function sendEmail(options: {
 export async function sendWelcomeEmail(to: string, data: WelcomeEmailData) {
   return sendEmail({
     to,
-    subject: "Bienvenido a manufacturingOS",
+    subject: "Bienvenido a DANIELLS CONFECCIONES",
     react: UserWelcomeEmailTemplate(data),
   })
 }

@@ -52,7 +52,7 @@ export async function GET(
           total: decimalToNumber(payment.total),
         },
         company: {
-          name: "manufacturingOS",
+          name: "DANIELLS CONFECCIONES",
         },
       })
     )

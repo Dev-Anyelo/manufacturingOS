@@ -36,7 +36,7 @@ export async function GET() {
         }),
         generatedAt: new Date().toISOString(),
         company: {
-          name: "manufacturingOS",
+          name: "DANIELLS CONFECCIONES",
         },
       })
     )

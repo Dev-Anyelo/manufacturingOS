@@ -62,7 +62,7 @@ export function SaleReceipt({
           <div className="relative flex items-start justify-between">
             <div className="w-full space-y-1 text-center">
               <DialogTitle className="text-base font-bold tracking-tight md:text-lg">
-                manufacturingOS
+                DANIELLS CONFECCIONES
               </DialogTitle>
               <DialogDescription className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
                 Recibo #{receipt.id.slice(0, 8).toUpperCase()}

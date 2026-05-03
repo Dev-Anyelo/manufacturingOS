@@ -24,6 +24,7 @@ import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { EmptyState } from "@/components/shared/empty-state"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { AppNotification } from "@/stores/notificationStore"
 
 type NotificationPanelProps = {
@@ -287,6 +288,20 @@ export function NotificationPanel({
                       <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                         {item.body}
                       </p>
+
+                      {item.metadata &&
+                        typeof item.metadata === "object" &&
+                        "total" in (item.metadata as object) &&
+                        "currency" in (item.metadata as object) && (
+                          <div className="pt-1">
+                            <CurrencyDisplay
+                              amount={(item.metadata as any).total}
+                              currency={(item.metadata as any).currency}
+                              size="sm"
+                              className="text-primary font-semibold"
+                            />
+                          </div>
+                        )}
 
                       <p className="text-[10px] font-medium text-muted-foreground/60">
                         {getRelativeTime(item.createdAt)}

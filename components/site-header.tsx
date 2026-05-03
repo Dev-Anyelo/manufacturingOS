@@ -37,7 +37,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
               Centro de operaciones
             </h1>
             <p className="hidden truncate text-xs text-muted-foreground md:block">
-              manufacturingOS
+              DANIELLS CONFECCIONES
             </p>
           </div>
         </div>
