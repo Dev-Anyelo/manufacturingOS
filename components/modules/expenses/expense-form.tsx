@@ -3,20 +3,19 @@
 import { z } from "zod"
 import * as React from "react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { Currency } from "@prisma/client"
-import { CurrencySelector } from "@/components/shared/currency-selector"
-import { formatCurrencyNI, getCurrencySymbol } from "@/lib/currency/exchange"
 import { Switch } from "@/components/ui/switch"
-import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { StatCard } from "@/components/shared/stat-card"
+import { CurrencySelector } from "@/components/shared/currency-selector"
+import { formatCurrencyNI, getCurrencySymbol } from "@/lib/currency/exchange"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -55,6 +54,8 @@ import {
   ArrowLeft,
   ImagePlusIcon,
 } from "lucide-react"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { Calendar } from "@/components/ui/calendar"
 
 const EXPENSE_CATEGORIES = {
   fabrics: "Telas",
@@ -545,7 +546,7 @@ export function ExpenseForm({
                 <div className="mt-1 flex justify-center">
                   <CurrencyDisplay 
                     amount={Number.isFinite(calculatedTotal) ? calculatedTotal : 0} 
-                    currency={form.watch("total_currency") as any}
+                    currency={form.watch("total_currency") as Currency}
                   />
                 </div>
               </div>
