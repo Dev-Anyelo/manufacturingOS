@@ -62,6 +62,7 @@ export default async function PayrollDetailPage({
             deductions: decimalToNumber(payment.deductions),
             total: decimalToNumber(payment.total),
             notes: payment.notes,
+            receiptUrl: payment.receiptUrl,
           }}
         />
 

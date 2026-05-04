@@ -108,6 +108,7 @@ export async function POST(request: Request) {
         total: toPrismaDecimal(payload.total),
         balanceDue: balanceDue,
         notes: payload.notes,
+        referenceImages: payload.reference_images || [],
         createdBy: profile.id,
         items: {
           create: payload.items.map((item) => ({

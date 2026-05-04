@@ -105,6 +105,7 @@ export async function PATCH(
           total: toPrismaDecimal(payload.total),
           totalCurrency: payload.total_currency,
           notes: payload.notes,
+          referenceImages: payload.reference_images,
           items: {
             create: payload.items.map((item) => ({
               catalogItemId: item.catalog_item_id,

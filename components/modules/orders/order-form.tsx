@@ -17,10 +17,11 @@ import { Currency } from "@prisma/client"
 import { CurrencySelector } from "@/components/shared/currency-selector"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { cn } from "@/lib/utils"
-import { formatCurrencyNI, getCurrencySymbol, calculateBalanceDue } from "@/lib/currency/exchange"
+import {  getCurrencySymbol, calculateBalanceDue } from "@/lib/currency/exchange"
 import { useSettingsStore } from "@/stores/settingsStore"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
+import { MediaUpload } from "@/components/shared/media-upload"
 
 import {
   Popover,
@@ -58,6 +59,7 @@ import {
   ChevronDown,
   Ruler,
   Save,
+  ImageIcon,
 } from "lucide-react"
 
 // Using PosCustomer from @/components/modules/sales/types
@@ -131,6 +133,7 @@ const orderFormSchema = z.object({
   balance_due_currency: z.nativeEnum(Currency),
   notes: z.string().trim().max(1000).optional().nullable(),
   items: z.array(lineSchema).min(1, "Debes agregar al menos un item"),
+  reference_images: z.array(z.string()).default([]),
 })
 
 type OrderFormValues = z.infer<typeof orderFormSchema>
@@ -230,6 +233,7 @@ export function OrderForm({
       advance_paid: 0,
       notes: "",
       items: [getEmptyLine()],
+      reference_images: [],
     },
   })
 
@@ -327,6 +331,7 @@ export function OrderForm({
         total_currency: values.total_currency,
         balance_due_currency: values.balance_due_currency,
         notes: toNullableString(values.notes),
+        reference_images: values.reference_images,
         items: values.items.map((item, index) => ({
           catalog_item_id: toNullableString(item.catalog_item_id),
           description: item.description.trim(),
@@ -436,6 +441,10 @@ export function OrderForm({
           <TabsTrigger value="payment" className="gap-1.5 text-xs sm:text-sm">
             <DollarSign className="size-3.5" />
             Pago
+          </TabsTrigger>
+          <TabsTrigger value="media" className="gap-1.5 text-xs sm:text-sm">
+            <ImageIcon className="size-3.5" />
+            Fotos
           </TabsTrigger>
         </TabsList>
 
@@ -979,6 +988,26 @@ export function OrderForm({
                 </div>
               </div>
             </div>
+          </div>
+        </TabsContent>
+        {/* Media Tab */}
+        <TabsContent value="media" className="space-y-4">
+          <div className="m-0 border-none bg-none p-0">
+            {/* Campo oculto para asegurar captura del array */}
+            <input type="hidden" {...form.register("reference_images")} />
+            
+            <MediaUpload
+              bucketType="orders"
+              currentValue={form.watch("reference_images")}
+              onUploadComplete={(paths) => {
+                form.setValue("reference_images", (Array.isArray(paths) ? paths : [paths]) as string[], {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }}
+              label="Imágenes de referencia"
+              multiple={true}
+            />
           </div>
         </TabsContent>
       </Tabs>

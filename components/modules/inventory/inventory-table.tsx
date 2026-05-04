@@ -16,6 +16,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { InventoryForm } from "@/components/modules/inventory/inventory-form"
 import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { AdjustStockDialog } from "@/components/modules/inventory/adjust-stock-dialog"
+import { getStorageUrl } from "@/lib/storage/upload"
 
 import {
   ArrowUpDown,
@@ -167,7 +168,7 @@ function createInventoryColumns(
             {item.imageUrl ? (
               <div className="relative size-9 shrink-0 overflow-hidden rounded-md border border-border/60">
                 <Image
-                  src={item.imageUrl}
+                  src={getStorageUrl("inventory", item.imageUrl) || ""}
                   alt={item.name}
                   fill
                   className="object-cover"

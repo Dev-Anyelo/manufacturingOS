@@ -15,9 +15,10 @@ import { useSystemSettings } from "@/hooks/use-system-settings"
 import type { PosCustomer } from "@/components/modules/sales/types"
 import { CurrencySelector } from "@/components/shared/currency-selector"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { formatCurrencyNI, getCurrencySymbol, formatDateNI } from "@/lib/currency/exchange"
+import { getCurrencySymbol, formatDateNI } from "@/lib/currency/exchange"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { MediaUpload } from "@/components/shared/media-upload"
 
 import {
   Popover,
@@ -35,6 +36,7 @@ import {
   CreditCard,
   Clock,
   Scissors,
+  Receipt,
 } from "lucide-react"
 
 const payrollFormSchema = z
@@ -52,6 +54,7 @@ const payrollFormSchema = z
     deductions_currency: z.nativeEnum(Currency),
     payment_method: z.enum(["cash", "transfer", "other"]).optional().nullable(),
     notes: z.string().trim().max(1000).optional().nullable(),
+    receipt_url: z.string().trim().optional().nullable(),
   })
   .superRefine((value, context) => {
     if (
@@ -140,6 +143,7 @@ export function PayrollForm({
       bonuses: 0,
       deductions: 0,
       notes: "",
+      receipt_url: null,
     },
   })
 
@@ -198,6 +202,8 @@ export function PayrollForm({
     }
   }, [employees, form, selectedEmployeeId])
 
+
+
   async function onSubmit(values: PayrollFormOutput) {
     setIsSubmitting(true)
 
@@ -218,6 +224,7 @@ export function PayrollForm({
         total_amount_currency: values.base_amount_currency,
         payment_method: values.payment_method,
         notes: normalizeOptional(values.notes),
+        receipt_url: values.receipt_url || null, // Asegurar inclusión
       }
 
       const response = await fetch("/api/payroll", {
@@ -284,6 +291,10 @@ export function PayrollForm({
           <TabsTrigger value="metrics" className="gap-1.5 text-xs sm:text-sm">
             <Clock className="size-3.5" />
             Métricas
+          </TabsTrigger>
+          <TabsTrigger value="media" className="gap-1.5 text-xs sm:text-sm">
+            <Receipt className="size-3.5" />
+            Comprobante
           </TabsTrigger>
         </TabsList>
 
@@ -593,6 +604,27 @@ export function PayrollForm({
                 />
               </div>
             </div>
+          </div>
+        </TabsContent>
+
+        {/* Media Tab */}
+        <TabsContent value="media" className="space-y-4">
+          <div className="m-0 border-none bg-none p-0">
+            {/* Campo oculto para asegurar captura */}
+            <input type="hidden" {...form.register("receipt_url")} />
+            
+            <MediaUpload
+              bucketType="payroll"
+              currentValue={form.watch("receipt_url") || undefined}
+              onUploadComplete={(path) => {
+                form.setValue("receipt_url", path as string, { 
+                  shouldDirty: true, 
+                  shouldValidate: true 
+                })
+              }}
+              label="Comprobante de pago"
+              multiple={false}
+            />
           </div>
         </TabsContent>
       </Tabs>

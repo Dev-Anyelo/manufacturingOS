@@ -75,6 +75,28 @@ export default async function ExpenseDetailPage({
     notFound()
   }
 
+  // Si hay un comprobante, generar URL firmada ya que el bucket de 'expenses' es privado
+  let receiptDisplayUrl = expense.receiptUrl
+  if (receiptDisplayUrl) {
+    try {
+      const { createSupabaseAdminClient } = await import("@/lib/supabase/admin")
+      const { getRelativePath } = await import("@/lib/storage/upload")
+      const supabase = createSupabaseAdminClient()
+      const relativePath =
+        getRelativePath("expenses", receiptDisplayUrl) || receiptDisplayUrl
+
+      const { data } = await supabase.storage
+        .from("expenses")
+        .createSignedUrl(relativePath, 3600) // 1 hora
+
+      if (data?.signedUrl) {
+        receiptDisplayUrl = data.signedUrl
+      }
+    } catch (error) {
+      console.error("Error generating signed URL for expense receipt:", error)
+    }
+  }
+
   return (
     <div className="page-shell">
       <PageHeader
@@ -263,17 +285,17 @@ export default async function ExpenseDetailPage({
 
           <div className="space-y-6">
             <Card className="overflow-hidden border">
-              <CardHeader className="border-b bg-muted/20 px-4 py-3">
+              <CardHeader className="border-b bg-muted/20 px-4">
                 <CardTitle className="flex items-center gap-2 text-sm font-semibold">
                   <ReceiptIcon className="size-4" /> Comprobante
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                {expense.receiptUrl ? (
+                {receiptDisplayUrl ? (
                   <div className="group relative">
                     <div className="relative aspect-3/4 w-full overflow-hidden bg-muted/30">
                       <Image
-                        src={expense.receiptUrl}
+                        src={receiptDisplayUrl}
                         alt="Recibo"
                         fill
                         className="object-contain p-2"
@@ -286,7 +308,7 @@ export default async function ExpenseDetailPage({
                         className="w-full"
                         size="sm"
                       >
-                        <Link href={expense.receiptUrl} target="_blank">
+                        <Link href={expense.receiptUrl!} target="_blank">
                           <ExternalLinkIcon className="mr-2 size-4" />
                           Ver archivo original
                         </Link>

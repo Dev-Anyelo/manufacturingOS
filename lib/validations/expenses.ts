@@ -34,7 +34,7 @@ export const expenseSchema = z
     inventory_item_id: z.string().uuid().optional().nullable(),
     inventory_quantity_added: z.coerce.number().optional().nullable(),
     notes: z.string().trim().max(1000).optional().nullable(),
-    receipt_url: z.string().url().optional().nullable(),
+    receipt_url: z.string().trim().max(500).optional().nullable(),
   })
   .superRefine((value, context) => {
     if (value.updates_inventory) {

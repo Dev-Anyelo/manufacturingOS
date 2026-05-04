@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
-import { UserRole } from "@prisma/client"
 import { uploadReceipt } from "@/lib/storage/upload"
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   ApiRouteError,
@@ -10,7 +10,7 @@ import {
   resolveRouteParams,
 } from "@/lib/api/response"
 
-import { requirePermission } from "@/lib/api/require-permission"
+
 
 type RouteParams = {
   id: string
@@ -33,7 +33,7 @@ export async function POST(
       throw new ApiRouteError("Debes adjuntar un archivo valido.", 422)
     }
 
-    const receiptUrl = await uploadReceipt(file, "expense", id)
+    const receiptUrl = await uploadReceipt(file, "expenses", id)
 
     const expense = await prisma.expense.update({
       where: { id },

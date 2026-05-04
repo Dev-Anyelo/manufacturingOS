@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCatalogItem } from "@/lib/data/catalog"
+import { getStorageUrl } from "@/lib/storage/upload"
 import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
-import { ArrowLeftIcon, BoxesIcon, LayersIcon } from "lucide-react"
+import { ArrowLeftIcon, BoxesIcon, ImageOff } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CatalogForm } from "@/components/modules/catalog/catalog-form"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
@@ -71,15 +72,15 @@ export default async function CatalogDetailPage({
               <div className="overflow-hidden rounded-xl border border-border bg-muted/30">
                 {item.imageUrl ? (
                   <Image
-                    src={item.imageUrl}
+                    src={getStorageUrl("catalog", item.imageUrl) || ""}
                     alt={item.name}
                     width={240}
                     height={240}
-                    className="h-60 w-full object-cover"
+                    className="w-full h-full object-cover object-center"
                   />
                 ) : (
                   <div className="flex h-60 items-center justify-center">
-                    <LayersIcon className="size-8 text-muted-foreground" />
+                    <ImageOff className="size-8 text-muted-foreground" />
                   </div>
                 )}
               </div>

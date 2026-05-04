@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { requirePermission } from "@/lib/api/require-permission"
 import { productionSessionSchema } from "@/lib/validations/production"
 
 import {
@@ -22,8 +23,6 @@ import {
   parseBodyWithSchema,
   requireAuth,
 } from "@/lib/api/response"
-
-import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   decimalToNumber,

@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import * as React from "react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
@@ -16,6 +17,7 @@ import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CatalogForm } from "@/components/modules/catalog/catalog-form"
 import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
+import { getStorageUrl, getBucketConfig } from "@/lib/storage/upload"
 
 import {
   Sheet,
@@ -137,6 +139,30 @@ export function CatalogWorkspace({
 
   const columns = React.useMemo<ColumnDef<CatalogCardItem>[]>(
     () => [
+      {
+        id: "thumbnail",
+        header: "",
+        cell: ({ row }) => {
+          const url = getStorageUrl("catalog", row.original.imageUrl)
+          return (
+            <div className="relative size-10 shrink-0 overflow-hidden rounded-md border border-border/60 bg-muted/30">
+              {url ? (
+                <Image
+                  src={url}
+                  alt={row.original.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <ShoppingBagIcon className="size-4 text-muted-foreground/30" />
+                </div>
+              )}
+            </div>
+          )
+        },
+        size: 50,
+      },
       {
         accessorKey: "name",
         header: "Prenda",

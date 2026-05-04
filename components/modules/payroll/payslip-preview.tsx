@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { DownloadIcon } from "lucide-react"
+import { DownloadIcon, ReceiptIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
@@ -24,6 +24,7 @@ export interface PayslipPreviewData {
   deductions: number
   total: number
   notes: string | null
+  receiptUrl: string | null
 }
 
 interface PayslipPreviewProps {
@@ -148,6 +149,18 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          {payment.receiptUrl && (
+            <Button asChild variant="secondary">
+              <Link
+                href={`/api/storage/signed-url?bucket=payroll&path=${payment.receiptUrl}&redirect=true`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <ReceiptIcon className="size-4" />
+                Ver Recibo
+              </Link>
+            </Button>
+          )}
           <Button asChild variant="outline">
             <Link
               href={`/api/payroll/${payment.id}/pdf`}

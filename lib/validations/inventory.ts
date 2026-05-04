@@ -47,11 +47,7 @@ export const inventoryItemSchema = z.object({
     .max(1000, "Las notas no pueden exceder 1000 caracteres")
     .optional()
     .nullable(),
-  image_url: z
-    .string()
-    .url("La URL de la imagen no es valida")
-    .optional()
-    .nullable(),
+  image_url: z.string().trim().max(500).optional().nullable(),
   is_active: z.boolean().optional().default(true),
 })
 

@@ -502,28 +502,31 @@ export function OrderDetail({ order }: OrderDetailProps) {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
-                {order.referenceImages.map((src, index) => (
-                  <a
-                    key={`${src}-${index}`}
-                    href={src}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group relative overflow-hidden rounded-xl border border-border bg-muted/20"
-                  >
-                    <div
-                      className="aspect-square bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-                      style={{ backgroundImage: `url(${src})` }}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/30">
-                      <ExternalLinkIcon className="size-5 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-                    </div>
-                    <div className="absolute bottom-1.5 left-1.5">
-                      <span className="rounded-md bg-black/50 px-1.5 py-0.5 text-xs text-white backdrop-blur-sm">
-                        {index + 1}
-                      </span>
-                    </div>
-                  </a>
-                ))}
+                {order.referenceImages.map((path, index) => {
+                  const src = `/api/storage/signed-url?bucket=orders&path=${path}&redirect=true`
+                  return (
+                    <a
+                      key={`${path}-${index}`}
+                      href={src}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group relative overflow-hidden rounded-xl border border-border bg-muted/20"
+                    >
+                      <div
+                        className="aspect-square bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                        style={{ backgroundImage: `url(${src})` }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/30">
+                        <ExternalLinkIcon className="size-5 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                      </div>
+                      <div className="absolute bottom-1.5 left-1.5">
+                        <span className="rounded-md bg-black/50 px-1.5 py-0.5 text-xs text-white backdrop-blur-sm">
+                          {index + 1}
+                        </span>
+                      </div>
+                    </a>
+                  )
+                })}
               </div>
             )}
           </SectionCard>

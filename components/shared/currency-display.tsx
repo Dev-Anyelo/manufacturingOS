@@ -1,6 +1,7 @@
 "use client"
 
 import { Currency, Prisma } from "@prisma/client"
+import * as React from "react"
 import { cn, formatCurrency } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSystemSettings } from "@/hooks/use-system-settings"
@@ -52,6 +53,11 @@ export function CurrencyDisplay({
   const { displayCurrency: globalDisplayCurrency, isLoading: settingsLoading } =
     useSystemSettings()
   const { getRate, isLoading: ratesLoading } = useExchangeRates()
+  const [isMounted, setIsMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const displayCurrency = propDisplayCurrency || globalDisplayCurrency
   const recordCurrency = propCurrency || displayCurrency
@@ -85,7 +91,7 @@ export function CurrencyDisplay({
   const otherAmount = otherRate !== null ? mainAmount * otherRate : null
 
   // Dual Display: Main (Converted/Display) + Secondary (Alternate)
-  if (settingsLoading || ratesLoading) {
+  if (!isMounted || settingsLoading || ratesLoading) {
     return <Skeleton className={cn("h-8 w-24", className)} />
   }
 

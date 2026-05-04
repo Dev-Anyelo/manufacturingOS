@@ -9,6 +9,7 @@ import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MovementHistory } from "@/components/modules/inventory/movement-history"
 import { InventoryDetailActions } from "@/components/modules/inventory/inventory-detail-actions"
+import { getStorageUrl } from "@/lib/storage/upload"
 
 import {
   Collapsible,
@@ -226,7 +227,7 @@ export default async function InventoryDetailPage({
             <div className="overflow-hidden rounded-xl border border-border/50 bg-muted/20">
               {item.imageUrl ? (
                 <Image
-                  src={item.imageUrl}
+                  src={getStorageUrl("inventory", item.imageUrl) || ""}
                   alt={item.name}
                   width={220}
                   height={224}

@@ -111,6 +111,7 @@ export async function POST(request: Request) {
         deductions: toPrismaDecimal(payload.deductions),
         total: total,
         paymentMethod: payload.payment_method ?? null,
+        receiptUrl: payload.receipt_url ?? null,
         notes: payload.notes,
         createdBy: profile.id,
       },

@@ -1,7 +1,6 @@
-import { Badge } from "@/components/ui/badge"
-import { ShirtIcon } from "lucide-react"
-
 import { GARMENT_TYPES } from "@/types"
+import { ShirtIcon } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 type GarmentTypeKey = keyof typeof GARMENT_TYPES
 

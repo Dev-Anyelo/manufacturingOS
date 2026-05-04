@@ -213,7 +213,7 @@ export function ExpensesTable({
           {row.original.receiptUrl && (
             <Button asChild variant="ghost" size="icon" className="size-7">
               <Link
-                href={row.original.receiptUrl}
+                href={`/api/storage/signed-url?bucket=expenses&path=${row.original.receiptUrl}&redirect=true`}
                 target="_blank"
                 rel="noreferrer"
                 title="Ver recibo"

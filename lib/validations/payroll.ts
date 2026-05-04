@@ -35,6 +35,7 @@ export const payrollPaymentSchema = z
     
     payment_method: z.enum(["cash", "transfer", "other"]).optional().nullable(),
     notes: z.string().trim().max(1000).optional().nullable(),
+    receipt_url: z.string().trim().max(500).optional().nullable(),
   })
   .superRefine((value, context) => {
     if (value.period_end < value.period_start) {

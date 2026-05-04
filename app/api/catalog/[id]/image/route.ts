@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
-import { UserRole } from "@prisma/client"
 import { uploadCatalogImage } from "@/lib/storage/upload"
+import { requirePermission } from "@/lib/api/require-permission"
 
 import {
   ApiRouteError,
@@ -9,8 +9,6 @@ import {
   requireAuth,
   resolveRouteParams,
 } from "@/lib/api/response"
-
-import { requirePermission } from "@/lib/api/require-permission"
 
 type RouteParams = {
   id: string

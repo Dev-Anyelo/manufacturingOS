@@ -56,6 +56,7 @@ export const workOrderSchema = z
     items: z
       .array(workOrderItemSchema)
       .min(1, "Debes agregar al menos un item"),
+    reference_images: z.array(z.string()).optional().default([]),
   })
   .superRefine((value, context) => {
     const today = new Date()

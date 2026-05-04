@@ -1,7 +1,9 @@
-import { PayrollStatus, UserRole, Prisma } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
+import { PayrollStatus, Prisma } from "@prisma/client"
+import { requirePermission } from "@/lib/api/require-permission"
+import { toLocalDate, toPrismaDecimal } from "@/lib/api/utils"
 import { payrollPaymentSchema } from "@/lib/validations/payroll"
+
 import {
   ApiRouteError,
   apiSuccess,
@@ -10,9 +12,6 @@ import {
   requireAuth,
   resolveRouteParams,
 } from "@/lib/api/response"
-
-import { requirePermission } from "@/lib/api/require-permission"
-import { toLocalDate, toPrismaDecimal } from "@/lib/api/utils"
 
 type RouteParams = {
   id: string
@@ -88,6 +87,7 @@ export async function PATCH(
         deductions: toPrismaDecimal(payload.deductions),
         paymentMethod: payload.payment_method ?? null,
         notes: payload.notes,
+        receiptUrl: payload.receipt_url,
       },
     })
 

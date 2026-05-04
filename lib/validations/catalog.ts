@@ -21,7 +21,7 @@ export const catalogItemSchema = z.object({
   estimated_cost: z.coerce.number().min(0).optional().nullable(),
   estimated_cost_currency: z.nativeEnum(Currency),
   
-  image_url: z.string().url().optional().nullable(),
+  image_url: z.string().trim().max(500).optional().nullable(),
   notes: z.string().trim().max(1000).optional().nullable(),
 })
 

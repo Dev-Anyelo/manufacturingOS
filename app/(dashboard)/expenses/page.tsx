@@ -1,10 +1,10 @@
-import { ExpenseCategory, Currency } from "@prisma/client"
-import { decimalToNumber } from "@/lib/api/utils"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { requireAuth } from "@/lib/api/response"
+import { decimalToNumber } from "@/lib/api/utils"
+import { ExpenseCategory, Currency } from "@prisma/client"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { ExpensesTable } from "@/components/modules/expenses/expenses-table"
 import { ExpensesSummary } from "@/components/modules/expenses/expenses-summary"
 import { NewExpenseSheet } from "@/components/modules/expenses/new-expense-sheet"
@@ -117,7 +117,12 @@ export default async function ExpensesPage() {
           />
           <CompactKpiCard
             label="Top monto"
-            value={<CurrencyDisplay amount={topCategoryAmount} currency={overview.baseCurrency} />}
+            value={
+              <CurrencyDisplay
+                amount={topCategoryAmount}
+                currency={overview.baseCurrency}
+              />
+            }
             icon={<WalletCardsIcon />}
             iconClass="bg-muted text-muted-foreground"
           />
@@ -127,9 +132,7 @@ export default async function ExpensesPage() {
           monthlyTotal={overview.monthlyTotal}
           topConcepts={overview.topConcepts}
           byCategory={overview.byCategory}
-          baseCurrency={
-            overview.baseCurrency
-          }
+          baseCurrency={overview.baseCurrency}
         />
 
         <ExpensesTable expenses={rows} currentUserRole={profile.role} />

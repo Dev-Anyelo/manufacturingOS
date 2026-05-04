@@ -1,13 +1,14 @@
 import Link from "next/link"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { GarmentType } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ArrowUpRight, ShirtIcon } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { ArrowUpRight, EditIcon, EyeIcon, ShirtIcon } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
-import { GarmentType } from "@prisma/client"
+import { getStorageUrl } from "@/lib/storage/upload"
 
 export interface CatalogCardItem {
   id: string
@@ -42,7 +43,7 @@ export function CatalogCard({ item }: CatalogCardProps) {
       <div className="relative aspect-square shrink-0 overflow-hidden bg-muted/30">
         {item.imageUrl ? (
           <Image
-            src={item.imageUrl}
+            src={getStorageUrl("catalog", item.imageUrl) || ""}
             alt={item.name}
             fill
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
@@ -121,10 +122,10 @@ export function CatalogCard({ item }: CatalogCardProps) {
               Unitario
             </span>
             <span className="text-sm font-bold text-brand tabular-nums">
-              <CurrencyDisplay 
-                amount={item.ourPriceUnit ?? 0} 
+              <CurrencyDisplay
+                amount={item.ourPriceUnit ?? 0}
                 currency={item.ourPriceUnitCurrency as any}
-                size="sm" 
+                size="sm"
               />
             </span>
           </div>
@@ -133,10 +134,10 @@ export function CatalogCard({ item }: CatalogCardProps) {
               Docena
             </span>
             <span className="text-[13px] font-medium text-muted-foreground/80 tabular-nums">
-              <CurrencyDisplay 
-                amount={item.ourPriceDozen ?? 0} 
+              <CurrencyDisplay
+                amount={item.ourPriceDozen ?? 0}
                 currency={item.ourPriceDozenCurrency as any}
-                size="sm" 
+                size="sm"
               />
             </span>
           </div>

@@ -30,8 +30,6 @@ import { formatCurrencyNI } from "@/lib/currency/exchange"
 
 import {
   Loader2,
-  Upload,
-  X,
   Package,
   Tag,
   Layers,
@@ -58,7 +56,7 @@ const inventoryFormSchema = z.object({
   minimum_stock: z.number().min(0),
   supplier: z.string().trim().max(120).optional().nullable(),
   notes: z.string().trim().max(1000).optional().nullable(),
-  image_url: z.string().url().optional().nullable(),
+  image_url: z.string().trim().optional().nullable(),
   is_active: z.boolean().optional(),
 })
 
@@ -104,6 +102,8 @@ const categoryOptions = [
 
 const unitOptions = ["yd", "metros", "unidades", "rollos"] as const
 
+import { MediaUpload } from "@/components/shared/media-upload"
+
 // formatCurrency eliminado, se usa exchange.ts
 
 export function InventoryForm({
@@ -115,11 +115,6 @@ export function InventoryForm({
 }: InventoryFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const { baseCurrency, isLoading: settingsLoading } = useSystemSettings()
-  const [imageFile, setImageFile] = React.useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = React.useState<string | null>(
-    defaultValues?.image_url ?? null
-  )
-  const [isDragging, setIsDragging] = React.useState(false)
 
   const form = useForm<InventoryFormInput, unknown, InventoryFormOutput>({
     resolver: zodResolver(inventoryFormSchema),
@@ -162,26 +157,6 @@ export function InventoryForm({
 
   const totalValue = quantityWatch * unitPriceWatch
 
-  React.useEffect(() => {
-    return () => {
-      if (previewUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(previewUrl)
-      }
-    }
-  }, [previewUrl])
-
-  function handleFileSelection(file: File | null) {
-    if (!file) return
-    if (!file.type.startsWith("image/")) {
-      toast.error("Debes seleccionar una imagen válida.")
-      return
-    }
-    if (previewUrl?.startsWith("blob:")) {
-      URL.revokeObjectURL(previewUrl)
-    }
-    setImageFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
-  }
 
   const onSubmit = form.handleSubmit(async (values) => {
     setIsSubmitting(true)
@@ -195,6 +170,7 @@ export function InventoryForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
+          image_url: values.image_url || null, // Asegurar que se envíe incluso si es cadena vacía
           fabric_type: values.fabric_type?.trim() || null,
           color: values.color?.trim() || null,
           supplier: values.supplier?.trim() || null,
@@ -206,15 +182,6 @@ export function InventoryForm({
 
       if (!response.ok || !result.success) {
         throw new Error(result.error ?? "No se pudo guardar el material.")
-      }
-
-      if (imageFile && result.data?.id) {
-        const formData = new FormData()
-        formData.append("file", imageFile)
-        await fetch(`/api/inventory/${result.data.id}/image`, {
-          method: "POST",
-          body: formData,
-        })
       }
 
       toast.success(
@@ -578,72 +545,22 @@ export function InventoryForm({
         {/* Media Tab */}
         <TabsContent value="media" className="space-y-4">
           <div className="m-0 border-none bg-none p-0">
-            <label
-              onDrop={(e) => {
-                e.preventDefault()
-                setIsDragging(false)
-                handleFileSelection(e.dataTransfer.files?.[0] ?? null)
+            {/* Campo oculto para asegurar que react-hook-form capture el valor */}
+            <input type="hidden" {...form.register("image_url")} />
+            
+            <MediaUpload
+              bucketType="inventory"
+              recordId={itemId}
+              currentValue={form.watch("image_url") || undefined}
+              onUploadComplete={(path) => {
+                form.setValue("image_url", path as string, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
               }}
-              onDragOver={(e) => {
-                e.preventDefault()
-                setIsDragging(true)
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              className={cn(
-                "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all",
-                isDragging
-                  ? "border-accent bg-accent/10"
-                  : "border-border bg-muted/30 hover:border-accent/50"
-              )}
-            >
-              {previewUrl ? (
-                <div className="relative w-full max-w-50">
-                  <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted">
-                    <Image
-                      src={previewUrl}
-                      alt="Preview"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 size-7 rounded-full shadow-lg"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setImageFile(null)
-                      setPreviewUrl(null)
-                    }}
-                  >
-                    <X className="size-3" />
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="rounded-full bg-muted p-3">
-                    <Upload className="size-6 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-pretty">
-                      Arrastra o selecciona una imagen
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      PNG, JPG hasta 5MB
-                    </p>
-                  </div>
-                </>
-              )}
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={(e) =>
-                  handleFileSelection(e.target.files?.[0] ?? null)
-                }
-              />
-            </label>
+              label="Imagen del material"
+              multiple={false}
+            />
           </div>
         </TabsContent>
       </Tabs>

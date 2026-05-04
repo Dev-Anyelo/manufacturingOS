@@ -19,6 +19,8 @@ import { useExchangeRates } from "@/hooks/use-exchange-rates"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CurrencySelector } from "@/components/shared/currency-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { MediaUpload } from "@/components/shared/media-upload"
+
 import {
   Popover,
   PopoverContent,
@@ -48,9 +50,7 @@ import {
   Calculator,
   Building2,
   ChevronDown,
-  X,
   Save,
-  ImagePlusIcon,
 } from "lucide-react"
 
 const EXPENSE_CATEGORIES = {
@@ -95,6 +95,7 @@ const expenseFormSchema = z
     inventory_item_id: z.string().uuid().optional().nullable(),
     inventory_quantity_added: z.coerce.number().optional().nullable(),
     notes: z.string().trim().max(1000).optional().nullable(),
+    receipt_url: z.string().trim().optional().nullable(),
   })
   .superRefine((value, context) => {
     if (value.updates_inventory) {
@@ -130,6 +131,8 @@ type InventoryOption = {
 
 interface ExpenseFormProps {
   inventoryItems: InventoryOption[]
+  itemId?: string
+  defaultValues?: Partial<ExpenseFormInput> & { receipt_url?: string | null }
   /** Called after successful submission — used when embedded in a Sheet */
   onSuccess?: () => void
   /** Called when the user cancels — used when embedded in a Sheet */
@@ -172,13 +175,13 @@ function formatDateLabel(value: string) {
 
 export function ExpenseForm({
   inventoryItems,
+  itemId,
+  defaultValues,
   onSuccess,
   onCancel,
 }: ExpenseFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [receiptFile, setReceiptFile] = React.useState<File | null>(null)
-  const [isDragging, setIsDragging] = React.useState(false)
   const { baseCurrency, isLoading: settingsLoading } = useSystemSettings()
   const { getRate } = useExchangeRates()
   const [inventoryOpen, setInventoryOpen] = React.useState(false)
@@ -186,16 +189,20 @@ export function ExpenseForm({
   const form = useForm<ExpenseFormInput, unknown, ExpenseFormOutput>({
     resolver: zodResolver(expenseFormSchema),
     defaultValues: {
-      expense_date: todayInputDate(),
-      category: "supplies",
-      concept: "",
-      supplier: "",
-      quantity: 0,
-      unit_price: 0,
-      updates_inventory: false,
-      inventory_item_id: null,
-      inventory_quantity_added: null,
-      notes: "",
+      expense_date: defaultValues?.expense_date || todayInputDate(),
+      category: defaultValues?.category || "supplies",
+      concept: defaultValues?.concept || "",
+      supplier: defaultValues?.supplier || "",
+      quantity: defaultValues?.quantity || 0,
+      unit_price: defaultValues?.unit_price || 0,
+      updates_inventory: defaultValues?.updates_inventory || false,
+      inventory_item_id: defaultValues?.inventory_item_id || null,
+      inventory_quantity_added: defaultValues?.inventory_quantity_added || null,
+      notes: defaultValues?.notes || "",
+      receipt_url: defaultValues?.receipt_url || null,
+      total: defaultValues?.total || 0,
+      total_currency: defaultValues?.total_currency,
+      unit_price_currency: defaultValues?.unit_price_currency,
     },
   })
 
@@ -209,10 +216,13 @@ export function ExpenseForm({
   const unitPriceCurrency = form.watch("unit_price_currency")
 
   const rateForTotal = React.useMemo(() => {
-    return getRate(unitPriceCurrency as Currency, totalCurrency as Currency) || 1
+    return (
+      getRate(unitPriceCurrency as Currency, totalCurrency as Currency) || 1
+    )
   }, [getRate, unitPriceCurrency, totalCurrency])
 
-  const calculatedTotal = Number(quantity ?? 0) * Number(unitPrice ?? 0) * rateForTotal
+  const calculatedTotal =
+    Number(quantity ?? 0) * Number(unitPrice ?? 0) * rateForTotal
 
   const selectedInventoryItem = React.useMemo(
     () =>
@@ -246,27 +256,6 @@ export function ExpenseForm({
     }
   }, [updatesInventory, inventoryOpen])
 
-  async function uploadReceipt(expenseId: string) {
-    if (!receiptFile) return
-
-    const formData = new FormData()
-    formData.append("file", receiptFile)
-
-    const response = await fetch(`/api/expenses/${expenseId}/receipt`, {
-      method: "POST",
-      body: formData,
-    })
-
-    const result = (await response.json()) as {
-      success: boolean
-      error?: string
-    }
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.error ?? "No se pudo subir el recibo.")
-    }
-  }
-
   async function onSubmit(values: ExpenseFormOutput) {
     setIsSubmitting(true)
 
@@ -289,11 +278,14 @@ export function ExpenseForm({
           ? values.inventory_quantity_added
           : null,
         notes: normalizeOptional(values.notes),
-        receipt_url: null,
+        receipt_url: values.receipt_url || null, // Asegurar inclusión
       }
 
-      const response = await fetch("/api/expenses", {
-        method: "POST",
+      const endpoint = itemId ? `/api/expenses/${itemId}` : "/api/expenses"
+      const method = itemId ? "PATCH" : "POST"
+
+      const response = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
@@ -306,14 +298,6 @@ export function ExpenseForm({
 
       if (!response.ok || !result.success || !result.data) {
         throw new Error(result.error ?? "No se pudo registrar el gasto.")
-      }
-
-      if (receiptFile) {
-        try {
-          await uploadReceipt(result.data.id)
-        } catch {
-          toast.warning("El gasto se registró pero no se pudo subir el recibo.")
-        }
       }
 
       toast.success("Gasto registrado correctamente")
@@ -683,66 +667,21 @@ export function ExpenseForm({
 
               {/* Receipt Upload */}
               <div className="space-y-2">
-                <Label className="flex items-center gap-1 text-sm font-medium">
-                  <Receipt className="size-3.5" />
-                  Comprobante
-                </Label>
-                <Label
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    setIsDragging(false)
-                    const file = e.dataTransfer.files?.[0]
-                    if (file) setReceiptFile(file)
+                {/* Campo oculto para asegurar captura */}
+                <input type="hidden" {...form.register("receipt_url")} />
+                
+                <MediaUpload
+                  bucketType="expenses"
+                  currentValue={form.watch("receipt_url") || undefined}
+                  onUploadComplete={(path) => {
+                    form.setValue("receipt_url", path as string, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
                   }}
-                  onDragOver={(e) => {
-                    e.preventDefault()
-                    setIsDragging(true)
-                  }}
-                  onDragLeave={() => setIsDragging(false)}
-                  className={cn(
-                    "flex cursor-pointer items-center justify-center gap-3 rounded-lg border-2 border-dashed p-4 transition-all",
-                    isDragging
-                      ? "border-accent bg-accent/10"
-                      : "border-border hover:border-accent/50"
-                  )}
-                >
-                  {receiptFile ? (
-                    <div className="flex items-center gap-2">
-                      <Receipt className="text-success size-4" />
-                      <span className="truncate text-sm">
-                        {receiptFile.name}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="size-6"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          setReceiptFile(null)
-                        }}
-                      >
-                        <X className="size-3" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <ImagePlusIcon className="size-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        Arrastra o selecciona archivo
-                      </span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*,.pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) setReceiptFile(file)
-                    }}
-                  />
-                </Label>
+                  label="Comprobante / Recibo"
+                  multiple={false}
+                />
               </div>
 
               {/* Notes */}
