@@ -1,4 +1,8 @@
+"use client"
+
+import React from "react"
 import { UserRole } from "@/types"
+import { formatDateTimeNI } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import type { CurrentUser } from "@/lib/auth/current-user"
@@ -10,18 +14,20 @@ type SiteHeaderProps = {
 }
 
 export function SiteHeader({ user }: SiteHeaderProps) {
+  const [mounted, setMounted] = React.useState(false)
+  
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const roleLabel = {
     [UserRole.Admin]: "Administrador",
     [UserRole.Manager]: "Gerente",
     [UserRole.Employee]: "Empleado",
-    [UserRole.Readonly]: "Solo lectura",
+    [UserRole.Readonly]: "Sólo lectura",
   }[user.role]
 
-  const todayLabel = new Intl.DateTimeFormat("es-NI", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-  }).format(new Date())
+  const todayLabel = mounted ? formatDateTimeNI(new Date()) : ""
 
   return (
     <header className="sticky top-0 z-40 flex h-15 shrink-0 items-center gap-2 border-b border-border/80 bg-background/88 backdrop-blur-md transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-15 supports-backdrop-filter:bg-background/70">
@@ -57,4 +63,3 @@ export function SiteHeader({ user }: SiteHeaderProps) {
     </header>
   )
 }
-

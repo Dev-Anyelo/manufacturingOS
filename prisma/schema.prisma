@@ -348,7 +348,7 @@ model Sale {
   amountPaidCurrency  Currency      @default(USD) @map("amount_paid_currency")
   changeGiven         Decimal       @default(0) @map("change_given") @db.Decimal(12, 2)
   changeGivenCurrency Currency      @default(USD) @map("change_given_currency")
-  balanceDue          Decimal       @default(dbgenerated()) @map("balance_due") @db.Decimal(12, 2)
+  balanceDue          Decimal       @default(0) @map("balance_due") @db.Decimal(12, 2)
   status              SaleStatus    @default(pending)
   notes               String?
   createdBy           String?       @map("created_by") @db.Uuid
@@ -371,7 +371,7 @@ model SaleItem {
   unitPriceCurrency Currency     @default(USD) @map("unit_price_currency")
   discount          Decimal      @default(0) @db.Decimal(12, 2)
   discountCurrency  Currency     @default(USD) @map("discount_currency")
-  subtotal          Decimal      @default(dbgenerated()) @db.Decimal(12, 2)
+  subtotal          Decimal      @default(0) @db.Decimal(12, 2)
   sale              Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
   catalogItem       CatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
 
@@ -389,7 +389,7 @@ model WorkOrder {
   advancePaidCurrency Currency         @default(USD) @map("advance_paid_currency")
   total               Decimal          @default(0) @db.Decimal(12, 2)
   totalCurrency       Currency         @default(USD) @map("total_currency")
-  balanceDue          Decimal          @default(dbgenerated()) @map("balance_due") @db.Decimal(12, 2)
+  balanceDue          Decimal          @default(0) @map("balance_due") @db.Decimal(12, 2)
   reservedMaterials   Json?            @map("reserved_materials")
   referenceImages     String[]         @default([]) @map("reference_images")
   notes               String?
@@ -417,7 +417,7 @@ model WorkOrderItem {
   quantity          Int            @default(1)
   unitPrice         Decimal        @map("unit_price") @db.Decimal(12, 2)
   unitPriceCurrency Currency       @default(USD) @map("unit_price_currency")
-  subtotal          Decimal        @default(dbgenerated()) @db.Decimal(12, 2)
+  subtotal          Decimal        @default(0) @db.Decimal(12, 2)
   workOrder         WorkOrder      @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
   catalogItem       CatalogItem?   @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
   inventoryItem     InventoryItem? @relation(fields: [inventoryItemId], references: [id], onDelete: SetNull)
@@ -464,7 +464,7 @@ model PayrollPayment {
   bonusesCurrency    Currency              @default(USD) @map("bonuses_currency")
   deductions         Decimal               @default(0) @db.Decimal(12, 2)
   deductionsCurrency Currency              @default(USD) @map("deductions_currency")
-  total              Decimal               @default(dbgenerated()) @db.Decimal(12, 2)
+  total              Decimal               @default(0) @db.Decimal(12, 2)
   status             PayrollStatus         @default(pending)
   paymentDate        DateTime?             @map("payment_date") @db.Date
   paymentMethod      PayrollPaymentMethod? @map("payment_method")

@@ -1,6 +1,6 @@
 import { twMerge } from "tailwind-merge"
 import { clsx, type ClassValue } from "clsx"
-import { WorkOrderStatus } from "@prisma/client"
+import { Currency, WorkOrderStatus } from "@prisma/client"
 import { InventoryMovementEntry } from "@/components/modules/inventory/movement-history"
 
 import {
@@ -56,7 +56,7 @@ export function getMovementMeta(type: InventoryMovementEntry["movementType"]) {
 
 export function formatDateTime(value: Date | string) {
   return new Intl.DateTimeFormat("es-NI", {
-    dateStyle: "medium",
+    dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value))
 }
@@ -79,7 +79,8 @@ export const statusConfig: Record<
     progress: 10,
     icon: <ClipboardListIcon className="size-3.5" />,
     dot: "bg-slate-500",
-    badge: "bg-[var(--surface-3)] text-[var(--text-primary)] border-[var(--table-border)]",
+    badge:
+      "bg-[var(--surface-3)] text-[var(--text-primary)] border-[var(--table-border)]",
     headerBg: "bg-[var(--surface-2)]",
     bodyBg: "bg-[var(--surface-1)]",
     border: "border-border",
@@ -144,10 +145,10 @@ export function formatDate(value: string | Date) {
   )
 }
 
-export function formatCurrency(amount: number, currency = "USD") {
+export function formatCurrency(amount: number, currency?: Currency) {
   return new Intl.NumberFormat("es-NI", {
     style: "currency",
-    currency: currency,
+    currency: currency || Currency.USD,
     minimumFractionDigits: 2,
   }).format(amount)
 }
@@ -341,7 +342,8 @@ export const channelConfig: Record<
   },
   referral: {
     label: "Referido",
-    color: "bg-[var(--surface-3)] text-[var(--text-primary)] outline outline-1 outline-border",
+    color:
+      "bg-[var(--surface-3)] text-[var(--text-primary)] outline outline-1 outline-border",
     dot: "bg-[var(--text-primary)]",
   },
   social_media: {
@@ -356,7 +358,8 @@ export const channelConfig: Record<
   },
   other: {
     label: "Otro",
-    color: "bg-[var(--surface-2)] text-[var(--text-muted)] outline outline-1 outline-border",
+    color:
+      "bg-[var(--surface-2)] text-[var(--text-muted)] outline outline-1 outline-border",
     dot: "bg-[var(--text-muted)]",
   },
 }

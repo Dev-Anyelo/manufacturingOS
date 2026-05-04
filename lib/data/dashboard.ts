@@ -2,7 +2,8 @@ import { NotificationType, WorkOrderStatus } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { decimalToNumber } from "@/lib/api/utils"
-import { getExchangeRate } from "@/lib/currency/exchange"
+import { getExchangeRate, convertAmount } from "@/lib/currency/exchange"
+import { getSystemSettings } from "@/lib/data/settings"
 import { Currency } from "@prisma/client"
 
 export async function getDashboardStats() {
@@ -94,29 +95,21 @@ export async function getDashboardStats() {
     }),
   ])
 
-  // Fetch current rate for conversion to USD (base)
-  let rate = 36.5
-  try {
-    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
-    rate = Number(rateDecimal)
-  } catch (e) {
-    console.error("Could not fetch exchange rate for dashboard", e)
-  }
+  // Fetch system settings and current rate
+  const settings = await getSystemSettings()
+  const baseCurrency = settings.baseCurrency
+  const rateNIO = decimalToNumber(await getExchangeRate(Currency.USD, Currency.NIO))
 
   const todaySalesAmount = todaySales.reduce((acc, row) => {
     const amount = decimalToNumber(row.total) - decimalToNumber(row.discount)
-    if (row.totalCurrency === Currency.NIO) {
-      return acc + amount / rate
-    }
-    return acc + amount
+    const converted = convertAmount(amount, row.totalCurrency, baseCurrency, rateNIO)
+    return acc + converted
   }, 0)
 
   const yesterdaySalesAmount = yesterdaySales.reduce((acc, row) => {
     const amount = decimalToNumber(row.total) - decimalToNumber(row.discount)
-    if (row.totalCurrency === Currency.NIO) {
-      return acc + amount / rate
-    }
-    return acc + amount
+    const converted = convertAmount(amount, row.totalCurrency, baseCurrency, rateNIO)
+    return acc + converted
   }, 0)
 
   const todayGarments = todayProduction.reduce(
@@ -131,6 +124,7 @@ export async function getDashboardStats() {
 
   return {
     todaySales: todaySalesAmount,
+    baseCurrency,
     todaySalesCount: todaySales.length,
     yesterdaySales: yesterdaySalesAmount,
     yesterdaySalesCount: yesterdaySales.length,
@@ -262,14 +256,10 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
     current.setDate(current.getDate() + 1)
   }
 
-  // Fetch current rate for conversion
-  let rate = 36.5
-  try {
-    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
-    rate = Number(rateDecimal)
-  } catch (e) {
-    console.error("Could not fetch exchange rate for chart", e)
-  }
+  // Fetch system settings and current rate
+  const settings = await getSystemSettings()
+  const baseCurrency = settings.baseCurrency
+  const rateNIO = decimalToNumber(await getExchangeRate(Currency.USD, Currency.NIO))
 
   // Aggregate Sales
   for (const sale of sales) {
@@ -277,7 +267,7 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
     const current = daysMap.get(dateStr)
     if (current) {
       const amount = decimalToNumber(sale.total) - decimalToNumber(sale.discount)
-      const converted = sale.totalCurrency === Currency.NIO ? amount / rate : amount
+      const converted = convertAmount(amount, sale.totalCurrency, baseCurrency, rateNIO)
       current.sales += converted
     }
   }
@@ -288,7 +278,7 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
     const current = daysMap.get(dateStr)
     if (current) {
       const amount = decimalToNumber(exp.total)
-      const converted = exp.totalCurrency === Currency.NIO ? amount / rate : amount
+      const converted = convertAmount(amount, exp.totalCurrency, baseCurrency, rateNIO)
       current.expenses += converted
     }
   }

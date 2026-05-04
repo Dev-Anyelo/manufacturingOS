@@ -136,7 +136,7 @@ export default async function InventoryDetailPage({
                   Precio unitario
                 </span>
                 <div className="text-lg leading-none font-bold tabular-nums">
-                  <CurrencyDisplay amount={unitPrice} />
+                  <CurrencyDisplay amount={unitPrice} currency={item.unitPriceCurrency} />
                 </div>
               </div>
               <div className="flex flex-col justify-center bg-muted/10 p-4">
@@ -144,7 +144,7 @@ export default async function InventoryDetailPage({
                   Valor estimado
                 </span>
                 <div className="text-lg leading-none font-bold text-brand tabular-nums">
-                  <CurrencyDisplay amount={estimatedValue} />
+                  <CurrencyDisplay amount={estimatedValue} currency={item.unitPriceCurrency} />
                 </div>
               </div>
             </div>
@@ -157,7 +157,7 @@ export default async function InventoryDetailPage({
               <CardHeader className="border-b border-border">
                 <CardTitle>Historial de movimientos</CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="pt-2">
                 <MovementHistory
                   unit={item.unit}
                   movements={item.inventoryMovements.map((movement) => ({
@@ -193,7 +193,10 @@ export default async function InventoryDetailPage({
                   <div className="flex justify-between px-4 py-2.5">
                     <dt className="text-muted-foreground">Precio unitario</dt>
                     <dd className="font-medium tabular-nums">
-                      <CurrencyDisplay amount={item.unitPrice} />
+                      <CurrencyDisplay 
+                        amount={unitPrice} 
+                        currency={item.unitPriceCurrency}
+                      />
                     </dd>
                   </div>
                   <div className="flex justify-between px-4 py-2.5">

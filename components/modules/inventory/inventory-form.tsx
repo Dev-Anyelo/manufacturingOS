@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { MaterialCategory } from "@prisma/client"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useSystemSettings } from "@/hooks/use-system-settings"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -53,7 +54,7 @@ const inventoryFormSchema = z.object({
   quantity: z.number().min(0),
   unit: z.string().trim().min(1).max(20),
   unit_price: z.number().min(0),
-  unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
+  unit_price_currency: z.nativeEnum(Currency),
   minimum_stock: z.number().min(0),
   supplier: z.string().trim().max(120).optional().nullable(),
   notes: z.string().trim().max(1000).optional().nullable(),
@@ -113,6 +114,7 @@ export function InventoryForm({
   onCancel,
 }: InventoryFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const { baseCurrency, isLoading: settingsLoading } = useSystemSettings()
   const [imageFile, setImageFile] = React.useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(
     defaultValues?.image_url ?? null
@@ -129,7 +131,7 @@ export function InventoryForm({
       quantity: defaultValues?.quantity ?? 0,
       unit: defaultValues?.unit ?? "yd",
       unit_price: defaultValues?.unit_price ?? 0,
-      unit_price_currency: defaultValues?.unit_price_currency ?? Currency.USD,
+      unit_price_currency: defaultValues?.unit_price_currency,
       minimum_stock: defaultValues?.minimum_stock ?? 0,
       supplier: defaultValues?.supplier ?? "",
       notes: defaultValues?.notes ?? "",
@@ -139,6 +141,13 @@ export function InventoryForm({
   })
 
   const category = form.watch("category")
+  React.useEffect(() => {
+    if (baseCurrency && !form.getValues("unit_price_currency")) {
+      form.setValue("unit_price_currency", baseCurrency)
+    }
+  }, [baseCurrency, form])
+
+  const { isDirty, isValid } = form.formState
   const quantityWatch = form.watch("quantity")
   const minimumStockWatch = form.watch("minimum_stock")
   const unitWatch = form.watch("unit")

@@ -220,17 +220,17 @@ export function ChangeStatusDialog({
         >
           {isSubmitting ? (
             <>
-              <Loader2Icon className="mr-1.5 size-4 animate-spin" />
+              <Loader2Icon className="size-4 animate-spin" />
               Guardando…
             </>
           ) : isCancel ? (
             <>
-              <XCircleIcon className="mr-1.5 size-3.5" />
+              <XCircleIcon className="size-3.5" />
               Confirmar cancelación
             </>
           ) : (
             <>
-              <CheckCircle2Icon className="mr-1.5 size-3.5" />
+              <CheckCircle2Icon className="size-3.5" />
               Confirmar cambio
             </>
           )}

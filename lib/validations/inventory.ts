@@ -31,7 +31,7 @@ export const inventoryItemSchema = z.object({
   unit_price: z.coerce
     .number({ message: "El precio unitario es obligatorio" })
     .min(0, "El precio unitario no puede ser negativo"),
-  unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
+  unit_price_currency: z.nativeEnum(Currency),
   minimum_stock: z.coerce
     .number({ message: "El stock minimo es obligatorio" })
     .min(0, "El stock minimo no puede ser negativo"),

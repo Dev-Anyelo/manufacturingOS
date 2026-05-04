@@ -2,7 +2,8 @@ import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { decimalToNumber } from "@/lib/api/utils"
 import { Currency } from "@prisma/client"
-import { getExchangeRate } from "@/lib/currency/exchange"
+import { getExchangeRate, convertAmount } from "@/lib/currency/exchange"
+import { getSystemSettings } from "@/lib/data/settings"
 
 export type ExpenseFilters = {
   dateFrom?: Date
@@ -13,11 +14,13 @@ export type ExpenseFilters = {
 export type ExpenseSummary = {
   byCategory: Record<string, number>
   total: number
+  baseCurrency: Currency
 }
 
 export type MonthlyExpenseOverview = {
   byCategory: Record<string, number>
   monthlyTotal: number
+  baseCurrency: Currency
   topConcepts: Array<{ concept: string; total: number }>
 }
 
@@ -70,19 +73,15 @@ export async function getExpenseSummary(
     },
   })
 
-  // Fetch current rate for conversion
-  let rate = 36.5
-  try {
-    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
-    rate = Number(rateDecimal)
-  } catch (e) {
-    console.error("Could not fetch exchange rate for expense summary", e)
-  }
+  // Fetch system settings and current rate
+  const settings = await getSystemSettings()
+  const baseCurrency = settings.baseCurrency
+  const rateNIO = decimalToNumber(await getExchangeRate(Currency.USD, Currency.NIO))
 
   const summary = expenses.reduce(
     (acc, expense) => {
       const amount = decimalToNumber(expense.total)
-      const converted = expense.totalCurrency === Currency.NIO ? amount / rate : amount
+      const converted = convertAmount(amount, expense.totalCurrency, baseCurrency, rateNIO)
       
       acc.byCategory[expense.category] =
         (acc.byCategory[expense.category] ?? 0) + converted
@@ -95,7 +94,7 @@ export async function getExpenseSummary(
     }
   )
 
-  return summary
+  return { ...summary, baseCurrency }
 }
 
 export async function getExpensesFormBootstrap() {
@@ -138,14 +137,10 @@ export async function getMonthlyExpenseOverview(): Promise<MonthlyExpenseOvervie
     },
   })
 
-  // Fetch current rate for conversion
-  let rate = 36.5
-  try {
-    const rateDecimal = await getExchangeRate(Currency.USD, Currency.NIO)
-    rate = Number(rateDecimal)
-  } catch (e) {
-    console.error("Could not fetch exchange rate for monthly expense overview", e)
-  }
+  // Fetch system settings and current rate
+  const settings = await getSystemSettings()
+  const baseCurrency = settings.baseCurrency
+  const rateNIO = decimalToNumber(await getExchangeRate(Currency.USD, Currency.NIO))
 
   const byCategory: Record<string, number> = {}
   const byConcept = new Map<string, number>()
@@ -153,7 +148,7 @@ export async function getMonthlyExpenseOverview(): Promise<MonthlyExpenseOvervie
 
   for (const expense of expenses) {
     const amount = decimalToNumber(expense.total)
-    const converted = expense.totalCurrency === Currency.NIO ? amount / rate : amount
+    const converted = convertAmount(amount, expense.totalCurrency, baseCurrency, rateNIO)
 
     monthlyTotal += converted
     byCategory[expense.category] = (byCategory[expense.category] ?? 0) + converted
@@ -171,6 +166,33 @@ export async function getMonthlyExpenseOverview(): Promise<MonthlyExpenseOvervie
   return {
     byCategory,
     monthlyTotal,
+    baseCurrency,
     topConcepts,
+  }
+}
+
+export async function getExpenseById(id: string) {
+  const expense = await prisma.expense.findUnique({
+    where: { id },
+    include: {
+      inventoryItem: true,
+      payrollPayment: {
+        include: {
+          employee: true,
+        },
+      },
+      createdByProfile: true,
+    },
+  })
+
+  if (!expense) return null
+
+  return {
+    ...expense,
+    total: decimalToNumber(expense.total),
+    unitPrice: expense.unitPrice ? decimalToNumber(expense.unitPrice) : null,
+    inventoryQuantityAdded: expense.inventoryQuantityAdded
+      ? decimalToNumber(expense.inventoryQuantityAdded)
+      : null,
   }
 }

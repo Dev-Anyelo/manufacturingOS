@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils"
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
+function Skeleton({ className, ...props }: React.ComponentProps<"span">) {
   return (
-    <div
+    <span
       data-slot="skeleton"
       className={cn(
-        "rounded-md bg-muted/20 skeleton-shimmer",
+        "inline-flex rounded-md bg-muted/20 skeleton-shimmer",
         className
       )}
       {...props}

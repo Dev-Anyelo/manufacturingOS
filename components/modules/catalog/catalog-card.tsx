@@ -85,7 +85,9 @@ export function CatalogCard({ item }: CatalogCardProps) {
         <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-1.5">
           <ProfitMarginIndicator
             ourPriceUnit={item.ourPriceUnit}
+            ourPriceCurrency={item.ourPriceUnitCurrency as any}
             estimatedCost={item.estimatedCost}
+            estimatedCostCurrency={item.estimatedCostCurrency as any}
           />
           <Badge
             variant={item.totalStock > 0 ? "default" : "destructive"}

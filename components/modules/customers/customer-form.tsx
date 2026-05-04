@@ -2,12 +2,12 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { Loader2, SaveIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Loader2, SaveIcon } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { customerSchema, type CustomerInput } from "@/lib/validations/sales"

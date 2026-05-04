@@ -167,16 +167,11 @@ function normalizeOptional(value?: string | null) {
   return normalized ? normalized : null
 }
 
+import { formatDateNI } from "@/lib/currency/exchange"
+
 function formatDateLabel(value: string) {
   if (!value) return "Seleccionar"
-
-  const [year, month, day] = value.split("-").map(Number)
-  const date = new Date(year, (month || 1) - 1, day || 1)
-
-  return new Intl.DateTimeFormat("es-NI", {
-    day: "2-digit",
-    month: "short",
-  }).format(date)
+  return formatDateNI(value, "dd 'de' MMM")
 }
 
 function toInputDate(value: Date) {

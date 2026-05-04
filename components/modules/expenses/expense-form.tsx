@@ -14,6 +14,8 @@ import { Switch } from "@/components/ui/switch"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useSystemSettings } from "@/hooks/use-system-settings"
+import { useExchangeRates } from "@/hooks/use-exchange-rates"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CurrencySelector } from "@/components/shared/currency-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -86,9 +88,9 @@ const expenseFormSchema = z
     supplier: z.string().trim().max(120).optional().nullable(),
     quantity: z.coerce.number().min(0).optional().nullable(),
     unit_price: z.coerce.number().min(0).optional().nullable(),
-    unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
+    unit_price_currency: z.nativeEnum(Currency),
     total: z.coerce.number().min(0, "El total no puede ser negativo"),
-    total_currency: z.nativeEnum(Currency).default(Currency.USD),
+    total_currency: z.nativeEnum(Currency),
     updates_inventory: z.boolean().default(false),
     inventory_item_id: z.string().uuid().optional().nullable(),
     inventory_quantity_added: z.coerce.number().optional().nullable(),
@@ -177,6 +179,8 @@ export function ExpenseForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [receiptFile, setReceiptFile] = React.useState<File | null>(null)
   const [isDragging, setIsDragging] = React.useState(false)
+  const { baseCurrency, isLoading: settingsLoading } = useSystemSettings()
+  const { getRate } = useExchangeRates()
   const [inventoryOpen, setInventoryOpen] = React.useState(false)
 
   const form = useForm<ExpenseFormInput, unknown, ExpenseFormOutput>({
@@ -188,9 +192,6 @@ export function ExpenseForm({
       supplier: "",
       quantity: 0,
       unit_price: 0,
-      unit_price_currency: Currency.USD,
-      total: 0,
-      total_currency: Currency.USD,
       updates_inventory: false,
       inventory_item_id: null,
       inventory_quantity_added: null,
@@ -206,7 +207,12 @@ export function ExpenseForm({
   const watchedTotal = (form.watch("total") as number | null | undefined) ?? 0
   const totalCurrency = form.watch("total_currency")
   const unitPriceCurrency = form.watch("unit_price_currency")
-  const calculatedTotal = Number(quantity ?? 0) * Number(unitPrice ?? 0)
+
+  const rateForTotal = React.useMemo(() => {
+    return getRate(unitPriceCurrency as Currency, totalCurrency as Currency) || 1
+  }, [getRate, unitPriceCurrency, totalCurrency])
+
+  const calculatedTotal = Number(quantity ?? 0) * Number(unitPrice ?? 0) * rateForTotal
 
   const selectedInventoryItem = React.useMemo(
     () =>
@@ -226,6 +232,13 @@ export function ExpenseForm({
       : 0
     form.setValue("total", nextTotal, { shouldDirty: true })
   }, [calculatedTotal, form])
+
+  React.useEffect(() => {
+    if (baseCurrency && !form.getValues("total_currency")) {
+      form.setValue("unit_price_currency", baseCurrency)
+      form.setValue("total_currency", baseCurrency)
+    }
+  }, [baseCurrency, form])
 
   React.useEffect(() => {
     if (updatesInventory && !inventoryOpen) {
@@ -499,7 +512,7 @@ export function ExpenseForm({
                       value={form.watch("unit_price_currency") || Currency.USD}
                       onChange={(val) => {
                         form.setValue("unit_price_currency", val)
-                        form.setValue("total_currency", val) // Sincronizar por defecto
+                        form.setValue("total_currency", val)
                       }}
                     />
                     <Input

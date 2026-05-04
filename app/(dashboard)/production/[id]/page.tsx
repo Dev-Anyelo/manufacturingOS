@@ -25,12 +25,12 @@ export default async function ProductionDetailPage({
   return (
     <div className="page-shell">
       <PageHeader
-        title={`Sesión #${session.id.slice(0, 8)}`}
+        title={`Sesión #${session.id.slice(0, 8).toUpperCase()}`}
         description="Detalle de prendas confeccionadas y consumo por material."
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
           { label: "Producción", href: "/production" },
-          { label: `Sesión #${session.id.slice(0, 8)}` },
+          { label: `Sesión #${session.id.slice(0, 8).toUpperCase()}` },
         ]}
         actions={
           <Button

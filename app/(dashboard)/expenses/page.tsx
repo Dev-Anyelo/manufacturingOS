@@ -89,7 +89,13 @@ export default async function ExpensesPage() {
         <KpiSection label="Resumen de gastos">
           <CompactKpiCard
             label="Total del mes"
-            value={<CurrencyDisplay amount={totalThisMonth} />}
+            value={
+              <CurrencyDisplay
+                amount={totalThisMonth}
+                currency={overview.baseCurrency}
+                showDual
+              />
+            }
             icon={<TrendingDownIcon />}
             iconClass={
               totalThisMonth > 0
@@ -111,7 +117,7 @@ export default async function ExpensesPage() {
           />
           <CompactKpiCard
             label="Top monto"
-            value={<CurrencyDisplay amount={topCategoryAmount} />}
+            value={<CurrencyDisplay amount={topCategoryAmount} currency={overview.baseCurrency} />}
             icon={<WalletCardsIcon />}
             iconClass="bg-muted text-muted-foreground"
           />
@@ -121,6 +127,9 @@ export default async function ExpensesPage() {
           monthlyTotal={overview.monthlyTotal}
           topConcepts={overview.topConcepts}
           byCategory={overview.byCategory}
+          baseCurrency={
+            overview.baseCurrency
+          }
         />
 
         <ExpensesTable expenses={rows} currentUserRole={profile.role} />

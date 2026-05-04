@@ -3,13 +3,14 @@
 import Link from "next/link"
 import * as React from "react"
 import { toast } from "sonner"
+import { Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { formatDateNI } from "@/lib/currency/exchange"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { Currency } from "@prisma/client"
 
 import {
   CheckCircle2Icon,
@@ -66,16 +67,6 @@ interface PayrollTableProps {
   onSendEmail: (id: string) => Promise<void>
   busyId?: string | null
   canDelete?: boolean
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "-"
-  }
-
-  return new Intl.DateTimeFormat("es-NI", {
-    dateStyle: "short",
-  }).format(new Date(value))
 }
 
 const methodLabelMap: Record<"cash" | "transfer" | "other", string> = {
@@ -160,9 +151,9 @@ export function PayrollTable({
         header: "Periodo",
         cell: ({ row }) => (
           <div className="space-y-0.5 text-sm">
-            <p>{formatDate(row.original.periodStart)}</p>
+            <p>{formatDateNI(row.original.periodStart)}</p>
             <p className="text-xs text-muted-foreground">
-              a {formatDate(row.original.periodEnd)}
+              a {formatDateNI(row.original.periodEnd)}
             </p>
           </div>
         ),

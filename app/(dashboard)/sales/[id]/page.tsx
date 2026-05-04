@@ -29,30 +29,26 @@ export default async function SaleDetailPage({ params }: SaleDetailPageProps) {
   return (
     <div className="page-shell">
       <PageHeader
-        title={`Venta #${sale.id.slice(0, 8)}`}
+        title={`Venta #${sale.id.slice(0, 8).toLocaleUpperCase()}`}
         description="Consulta items, pagos y estado para esta venta."
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
           { label: "Ventas", href: "/sales" },
-          { label: `#${sale.id.slice(0, 8)}` },
+          { label: `#${sale.id.slice(0, 8).toLocaleUpperCase()}` },
         ]}
         actions={
           <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="max-w-fit"
-            >
+            <Button asChild variant="outline" size="sm" className="max-w-fit">
               <Link href="/sales">
                 <ArrowLeft className="h-4 w-4" />
                 Volver
               </Link>
             </Button>
             {sale.status !== "paid" ? (
-              <UpdateSalePaymentButton 
+              <UpdateSalePaymentButton
                 saleId={sale.id}
                 balanceDue={decimalToNumber(sale.balanceDue)}
+                currency={sale.totalCurrency}
               />
             ) : null}
             <Button asChild size="sm" className="max-w-fit">

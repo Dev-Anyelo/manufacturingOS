@@ -20,6 +20,7 @@ export default async function CustomersPage() {
     phone: c.phone,
     email: c.email,
     totalPurchases: Number(c.totalPurchases),
+    totalPurchasesCurrency: c.totalPurchasesCurrency,
     salesCount: c._count.sales,
     workOrdersCount: c._count.workOrders,
   }))

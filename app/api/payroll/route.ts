@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/response"
 
 import { requirePermission } from "@/lib/api/require-permission"
+import { convertCurrency } from "@/lib/currency/exchange"
 import {
   getSearchParam,
   parseDateParam,
@@ -71,10 +72,31 @@ export async function POST(request: Request) {
 
     const payload = await parseBodyWithSchema(request, payrollPaymentSchema)
 
+    const baseAmount = new Prisma.Decimal(payload.base_amount)
+    const bonuses = new Prisma.Decimal(payload.bonuses)
+    const deductions = new Prisma.Decimal(payload.deductions)
+    const periodStart = toLocalDate(payload.period_start)
+
+    // Normalize everything to baseAmountCurrency for the total
+    const normalizedBonuses = await convertCurrency(
+      bonuses,
+      payload.bonuses_currency,
+      payload.base_amount_currency,
+      periodStart
+    )
+    const normalizedDeductions = await convertCurrency(
+      deductions,
+      payload.deductions_currency,
+      payload.base_amount_currency,
+      periodStart
+    )
+
+    const total = baseAmount.add(normalizedBonuses).sub(normalizedDeductions)
+
     const payment = await prisma.payrollPayment.create({
       data: {
         employeeId: payload.employee_id,
-        periodStart: toLocalDate(payload.period_start),
+        periodStart,
         periodEnd: toLocalDate(payload.period_end),
         piecesProduced: payload.pieces_produced,
         hoursWorked:
@@ -87,6 +109,7 @@ export async function POST(request: Request) {
         bonuses: toPrismaDecimal(payload.bonuses),
         deductionsCurrency: payload.deductions_currency,
         deductions: toPrismaDecimal(payload.deductions),
+        total: total,
         paymentMethod: payload.payment_method ?? null,
         notes: payload.notes,
         createdBy: profile.id,

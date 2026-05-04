@@ -53,7 +53,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [customerOptions, setCustomerOptions] = React.useState(customers)
   const [selectedCustomer, setSelectedCustomer] =
     React.useState<PosCustomer | null>(null)
-  const { exchangeRate } = useSettingsStore()
+  const { settings, exchangeRate } = useSettingsStore()
 
   const [cartItems, setCartItems] = React.useState<PosCartItem[]>([])
   const [cartDrawerOpen, setCartDrawerOpen] = React.useState(false)
@@ -75,14 +75,22 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [notes, setNotes] = React.useState("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [receiptOpen, setReceiptOpen] = React.useState(false)
-  const [currency, setCurrency] = React.useState<Currency>(Currency.USD)
   const [receiptData, setReceiptData] = React.useState<SaleReceiptData | null>(
     null
+  )
+  const [currency, setCurrency] = React.useState<Currency>(
+    settings?.baseCurrency || (Currency.USD as Currency)
   )
 
   React.useEffect(() => {
     setCustomerOptions(customers)
   }, [customers])
+
+  React.useEffect(() => {
+    if (settings?.baseCurrency) {
+      setCurrency(settings.baseCurrency)
+    }
+  }, [settings?.baseCurrency])
 
   const subtotal = React.useMemo(() => {
     return cartItems.reduce(
@@ -196,7 +204,8 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     setAmountPaid(0)
     setDueDate("")
     setNotes("")
-    setCurrency(Currency.USD)
+    setNotes("")
+    setCurrency(settings?.baseCurrency || (Currency.USD as Currency))
     setReceiptOpen(false)
     setReceiptData(null)
     setCartDrawerOpen(false)
@@ -208,17 +217,32 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     const previousCurrency = previousCurrencyRef.current
     if (previousCurrency === currency) return
 
-    // Convert cart items unit prices
+    // Convert cart items unit prices and discounts
     setCartItems((prev) =>
       prev.map((item) => ({
         ...item,
-        unitPrice: convertAmount(item.unitPrice, previousCurrency, currency),
+        unitPrice: convertAmount(
+          item.unitPrice,
+          previousCurrency,
+          currency,
+          exchangeRate
+        ),
+        discount: convertAmount(
+          item.discount,
+          previousCurrency,
+          currency,
+          exchangeRate
+        ),
       }))
     )
 
     // Convert payment amounts
-    setReceivedAmount((prev) => convertAmount(prev, previousCurrency, currency))
-    setAmountPaid((prev) => convertAmount(prev, previousCurrency, currency))
+    setReceivedAmount((prev) =>
+      convertAmount(prev, previousCurrency, currency, exchangeRate)
+    )
+    setAmountPaid((prev) =>
+      convertAmount(prev, previousCurrency, currency, exchangeRate)
+    )
 
     previousCurrencyRef.current = currency
   }, [currency])

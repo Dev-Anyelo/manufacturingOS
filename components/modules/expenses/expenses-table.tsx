@@ -3,9 +3,9 @@
 import Link from "next/link"
 import * as React from "react"
 import { toast } from "sonner"
-import { UserRole, Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { UserRole, Currency } from "@prisma/client"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
@@ -64,10 +64,10 @@ interface ExpensesTableProps {
   currentUserRole: string
 }
 
+import { formatDateNI } from "@/lib/currency/exchange"
+
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-NI", {
-    dateStyle: "short",
-  }).format(new Date(value))
+  return formatDateNI(value)
 }
 
 export function ExpensesTable({

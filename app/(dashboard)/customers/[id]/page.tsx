@@ -1,15 +1,24 @@
 import Link from "next/link"
+import { Currency } from "@prisma/client"
 import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCustomer } from "@/lib/data/customers"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { getSystemSettings } from "@/lib/data/settings"
 import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatusBadge } from "@/components/shared/status-badge"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CustomerForm } from "@/components/modules/customers/customer-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+import {
+  formatCurrencyNI,
+  formatDateNI,
+  getExchangeRate,
+  convertAmount,
+} from "@/lib/currency/exchange"
 
 import {
   Card,
@@ -76,18 +85,44 @@ export default async function CustomerDetailPage({
     notFound()
   }
 
-  const totalSpent = customer.sales.reduce(
-    (acc, s) => acc + decimalToNumber(s.total) - decimalToNumber(s.discount),
-    0
+  const settings = await getSystemSettings()
+  const baseCurrency = settings.baseCurrency
+  const rateNIO = decimalToNumber(
+    await getExchangeRate(Currency.USD, Currency.NIO)
   )
-  const pendingBalance = customer.sales.reduce(
-    (acc, s) => acc + decimalToNumber(s.balanceDue),
-    0
-  )
-  const totalOrdersValue = customer.workOrders.reduce(
-    (acc, wo) => acc + decimalToNumber(wo.total),
-    0
-  )
+
+  const totalSpent = customer.sales.reduce((acc, s) => {
+    const amount = decimalToNumber(s.total) - decimalToNumber(s.discount)
+    const converted = convertAmount(
+      amount,
+      s.totalCurrency,
+      baseCurrency,
+      rateNIO
+    )
+    return acc + converted
+  }, 0)
+
+  const pendingBalance = customer.sales.reduce((acc, s) => {
+    const amount = decimalToNumber(s.balanceDue)
+    const converted = convertAmount(
+      amount,
+      s.totalCurrency,
+      baseCurrency,
+      rateNIO
+    )
+    return acc + converted
+  }, 0)
+
+  const totalOrdersValue = customer.workOrders.reduce((acc, wo) => {
+    const amount = decimalToNumber(wo.total)
+    const converted = convertAmount(
+      amount,
+      wo.totalCurrency,
+      baseCurrency,
+      rateNIO
+    )
+    return acc + converted
+  }, 0)
 
   return (
     <div className="page-shell">
@@ -100,12 +135,7 @@ export default async function CustomerDetailPage({
           { label: customer.fullName },
         ]}
         actions={
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="max-w-fit"
-          >
+          <Button asChild variant="outline" size="sm" className="max-w-fit">
             <Link href="/customers">
               <ArrowLeftIcon className="size-4" />
               Volver
@@ -135,23 +165,47 @@ export default async function CustomerDetailPage({
                 <div>
                   <p className="text-sm font-semibold">{customer.fullName}</p>
                   <p className="text-xs text-muted-foreground">
-                    Cliente desde {formatDate(customer.createdAt.toISOString())}
+                    Cliente desde {formatDateNI(customer.createdAt)}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2.5 text-sm">
-                  <PhoneIcon className="size-4 text-muted-foreground" />
-                  <span>{customer.phone ?? "Sin teléfono"}</span>
+                  {customer.phone ? (
+                    <>
+                      <PhoneIcon className="size-4 text-muted-foreground" />
+                      <span>{customer.phone}</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">
+                      Sin teléfono
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2.5 text-sm">
-                  <MailIcon className="size-4 text-muted-foreground" />
-                  <span>{customer.email ?? "Sin email"}</span>
+                  {customer.email ? (
+                    <>
+                      <MailIcon className="size-4 text-muted-foreground" />
+                      <span>{customer.email}</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">
+                      Sin email
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2.5 text-sm">
-                  <MapPinIcon className="size-4 text-muted-foreground" />
-                  <span>{customer.address ?? "Sin dirección"}</span>
+                  {customer.address ? (
+                    <>
+                      <MapPinIcon className="size-4 text-muted-foreground" />
+                      <span>{customer.address}</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">
+                      Sin dirección
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -170,14 +224,18 @@ export default async function CustomerDetailPage({
           </Card>
 
           {/* KPI Cards */}
-          <div className="grid grid-cols-3 gap-3 w-full">
+          <div className="grid w-full grid-cols-3 gap-3">
             <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
               <div className="flex shrink-0 flex-col items-center px-4 py-2">
                 <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   Total ventas
                 </span>
                 <span className="mt-0.5 text-sm font-bold tabular-nums">
-                  {formatCurrency(totalSpent)}
+                  <CurrencyDisplay
+                    amount={totalSpent}
+                    currency={baseCurrency}
+                    showDual
+                  />
                 </span>
               </div>
             </div>
@@ -188,7 +246,11 @@ export default async function CustomerDetailPage({
                   Total pedidos
                 </span>
                 <span className="mt-0.5 text-sm font-bold tabular-nums">
-                  {formatCurrency(totalOrdersValue)}
+                  <CurrencyDisplay
+                    amount={totalOrdersValue}
+                    currency={baseCurrency}
+                    showDual
+                  />
                 </span>
               </div>
             </div>
@@ -199,7 +261,11 @@ export default async function CustomerDetailPage({
                   Saldo pendiente
                 </span>
                 <span className="mt-0.5 text-sm font-bold tabular-nums">
-                  {formatCurrency(pendingBalance)}
+                  <CurrencyDisplay
+                    amount={pendingBalance}
+                    currency={baseCurrency}
+                    showDual
+                  />
                 </span>
               </div>
             </div>
@@ -257,7 +323,7 @@ export default async function CustomerDetailPage({
                               className="border-border/55 hover:bg-muted/50"
                             >
                               <TableCell className="text-sm whitespace-nowrap">
-                                {formatDate(sale.saleDate.toISOString())}
+                                {formatDateNI(sale.saleDate)}
                               </TableCell>
                               <TableCell>
                                 <Badge variant="outline" className="text-xs">
@@ -268,7 +334,7 @@ export default async function CustomerDetailPage({
                                 {getPaymentLabel(sale.paymentMethod)}
                               </TableCell>
                               <TableCell className="text-right font-medium tabular-nums">
-                                {formatCurrency(net)}
+                                {formatCurrencyNI(net, sale.totalCurrency)}
                               </TableCell>
                               <TableCell className="text-right tabular-nums">
                                 <span
@@ -278,8 +344,9 @@ export default async function CustomerDetailPage({
                                       : "text-muted-foreground"
                                   }
                                 >
-                                  {formatCurrency(
-                                    decimalToNumber(sale.balanceDue)
+                                  {formatCurrencyNI(
+                                    decimalToNumber(sale.balanceDue),
+                                    sale.totalCurrency
                                   )}
                                 </span>
                               </TableCell>
@@ -343,16 +410,19 @@ export default async function CustomerDetailPage({
                               className="border-border/55 hover:bg-muted/50"
                             >
                               <TableCell className="text-sm whitespace-nowrap">
-                                {formatDate(wo.receivedDate.toISOString())}
+                                {formatDateNI(wo.receivedDate)}
                               </TableCell>
                               <TableCell className="text-sm whitespace-nowrap">
-                                {formatDate(wo.deliveryDate.toISOString())}
+                                {formatDateNI(wo.deliveryDate)}
                               </TableCell>
                               <TableCell className="text-right font-bold tabular-nums">
                                 {garmentCount}
                               </TableCell>
                               <TableCell className="text-right font-medium tabular-nums">
-                                {formatCurrency(decimalToNumber(wo.total))}
+                                {formatCurrencyNI(
+                                  decimalToNumber(wo.total),
+                                  wo.totalCurrency
+                                )}
                               </TableCell>
                               <TableCell className="text-right tabular-nums">
                                 <span
@@ -362,8 +432,9 @@ export default async function CustomerDetailPage({
                                       : "text-muted-foreground"
                                   }
                                 >
-                                  {formatCurrency(
-                                    decimalToNumber(wo.balanceDue)
+                                  {formatCurrencyNI(
+                                    decimalToNumber(wo.balanceDue),
+                                    wo.totalCurrency
                                   )}
                                 </span>
                               </TableCell>

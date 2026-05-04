@@ -16,22 +16,22 @@ export const payrollPaymentSchema = z
     base_amount: z.coerce
       .number()
       .min(0, "El monto base no puede ser negativo"),
-    base_amount_currency: z.nativeEnum(Currency).default(Currency.USD),
+    base_amount_currency: z.nativeEnum(Currency),
     
     bonuses: z.coerce
       .number()
       .min(0, "Los bonos no pueden ser negativos")
       .default(0),
-    bonuses_currency: z.nativeEnum(Currency).default(Currency.USD),
+    bonuses_currency: z.nativeEnum(Currency),
     
     deductions: z.coerce
       .number()
       .min(0, "Las deducciones no pueden ser negativas")
       .default(0),
-    deductions_currency: z.nativeEnum(Currency).default(Currency.USD),
+    deductions_currency: z.nativeEnum(Currency),
     
     total_amount: z.coerce.number().min(0).optional().nullable(),
-    total_amount_currency: z.nativeEnum(Currency).default(Currency.USD),
+    total_amount_currency: z.nativeEnum(Currency),
     
     payment_method: z.enum(["cash", "transfer", "other"]).optional().nullable(),
     notes: z.string().trim().max(1000).optional().nullable(),

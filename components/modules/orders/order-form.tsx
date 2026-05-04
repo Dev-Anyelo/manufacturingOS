@@ -12,6 +12,7 @@ import { useForm, useFieldArray, type FieldPath } from "react-hook-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
 import type { PosCustomer } from "@/components/modules/sales/types"
+import { useSystemSettings } from "@/hooks/use-system-settings"
 import { Currency } from "@prisma/client"
 import { CurrencySelector } from "@/components/shared/currency-selector"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
@@ -100,7 +101,7 @@ const lineSchema = z.object({
   unit_price: z.coerce
     .number()
     .min(0, "El precio unitario no puede ser negativo"),
-  unit_price_currency: z.nativeEnum(Currency).default(Currency.USD),
+  unit_price_currency: z.nativeEnum(Currency),
   measurements: z
     .object({
       bust: z.coerce.number().positive().optional(),
@@ -124,10 +125,10 @@ const orderFormSchema = z.object({
     "other",
   ]),
   advance_paid: z.coerce.number().min(0, "El adelanto no puede ser negativo"),
-  advance_paid_currency: z.nativeEnum(Currency).default(Currency.USD),
+  advance_paid_currency: z.nativeEnum(Currency),
   total: z.coerce.number().min(0, "El total no puede ser negativo"),
-  total_currency: z.nativeEnum(Currency).default(Currency.USD),
-  balance_due_currency: z.nativeEnum(Currency).default(Currency.USD),
+  total_currency: z.nativeEnum(Currency),
+  balance_due_currency: z.nativeEnum(Currency),
   notes: z.string().trim().max(1000).optional().nullable(),
   items: z.array(lineSchema).min(1, "Debes agregar al menos un item"),
 })
@@ -147,7 +148,7 @@ interface OrderFormProps {
   onCancel?: () => void
 }
 
-function getEmptyLine(): OrderFormValues["items"][number] {
+function getEmptyLine(currency?: Currency): OrderFormValues["items"][number] {
   return {
     catalog_item_id: null,
     description: "",
@@ -157,7 +158,7 @@ function getEmptyLine(): OrderFormValues["items"][number] {
     design_notes: "",
     quantity: 1,
     unit_price: 0,
-    unit_price_currency: Currency.USD,
+    unit_price_currency: currency || (Currency.USD as Currency),
     measurements: null,
   }
 }
@@ -210,6 +211,7 @@ export function OrderForm({
   onCancel,
 }: OrderFormProps) {
   const router = useRouter()
+  const { baseCurrency } = useSystemSettings()
   const { exchangeRate } = useSettingsStore()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [measurementModes, setMeasurementModes] = React.useState<
@@ -226,10 +228,6 @@ export function OrderForm({
       delivery_date: "",
       channel: "in_person",
       advance_paid: 0,
-      advance_paid_currency: Currency.USD,
-      total: 0,
-      total_currency: Currency.USD,
-      balance_due_currency: Currency.USD,
       notes: "",
       items: [getEmptyLine()],
     },
@@ -245,6 +243,20 @@ export function OrderForm({
   const watchedAdvance = form.watch("advance_paid")
   const watchedTotal = form.watch("total")
   const watchedDeliveryDate = form.watch("delivery_date")
+
+  React.useEffect(() => {
+    if (baseCurrency && !form.getValues("total_currency")) {
+      form.setValue("advance_paid_currency", baseCurrency)
+      form.setValue("total_currency", baseCurrency)
+      form.setValue("balance_due_currency", baseCurrency)
+      
+      // Update first item currency
+      const items = form.getValues("items")
+      if (items.length > 0 && !items[0].unit_price_currency) {
+        form.setValue("items.0.unit_price_currency", baseCurrency)
+      }
+    }
+  }, [baseCurrency, form])
 
   const selectedCustomer = React.useMemo(
     () => customers.find((c) => c.id === watchedCustomerId) ?? null,

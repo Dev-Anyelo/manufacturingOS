@@ -2,12 +2,17 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Textarea } from "@/components/ui/textarea"
+import { getCurrencySymbol } from "@/lib/currency/exchange"
+import { useExchangeRates } from "@/hooks/use-exchange-rates"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { CurrencySelector } from "@/components/shared/currency-selector"
 import { CheckCircle2Icon, Loader2Icon, BanknoteIcon } from "lucide-react"
 
 import {
@@ -37,21 +42,34 @@ import {
 interface UpdateSalePaymentButtonProps {
   saleId: string
   balanceDue: number
+  currency?: Currency
 }
 
 export function UpdateSalePaymentButton({
   saleId,
   balanceDue,
+  currency = Currency.USD,
 }: UpdateSalePaymentButtonProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
   const [open, setOpen] = React.useState(false)
+  const { getRate } = useExchangeRates()
+  const [selectedCurrency, setSelectedCurrency] =
+    React.useState<Currency>(currency)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   // Form state
   const [amountPaid, setAmountPaid] = React.useState<number | "">(balanceDue)
   const [paymentMethod, setPaymentMethod] = React.useState<string>("cash")
   const [notes, setNotes] = React.useState("")
+
+  // Handle currency change - convert balance due as suggestion
+  React.useEffect(() => {
+    const rate = getRate(currency, selectedCurrency)
+    if (rate !== null) {
+      setAmountPaid(Number((balanceDue * rate).toFixed(2)))
+    }
+  }, [selectedCurrency, currency, balanceDue, getRate])
 
   React.useEffect(() => {
     if (open) {
@@ -80,6 +98,7 @@ export function UpdateSalePaymentButton({
         },
         body: JSON.stringify({
           amount_paid: parsedAmount,
+          payment_currency: selectedCurrency,
           payment_method: paymentMethod,
           notes: notes.trim() || null,
         }),
@@ -117,7 +136,9 @@ export function UpdateSalePaymentButton({
         </h2>
         <p className="mt-1 text-sm text-pretty text-muted-foreground">
           Saldo pendiente:{" "}
-          <strong className="text-foreground">${balanceDue.toFixed(2)}</strong>
+          <strong className="text-foreground">
+            <CurrencyDisplay amount={balanceDue} currency={currency} />
+          </strong>
         </p>
       </div>
 
@@ -128,31 +149,53 @@ export function UpdateSalePaymentButton({
         <div className="space-y-4 px-4 py-4">
           <div className="space-y-2">
             <Label className="text-sm font-medium">Monto recibido</Label>
-            <div className="relative">
-              <span className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground">
-                $
-              </span>
-              <Input
-                type="number"
-                step="0.01"
-                min="0.01"
-                required
-                value={amountPaid}
-                onChange={(e) =>
-                  setAmountPaid(
-                    e.target.value === "" ? "" : Number(e.target.value)
-                  )
-                }
-                placeholder="0.00"
-                className="pl-7"
+            <div className="flex gap-2">
+              <CurrencySelector
+                value={selectedCurrency}
+                onChange={setSelectedCurrency}
+                className="w-[100px]"
               />
+              <div className="relative flex-1">
+                <span className="absolute top-1/2 left-3 -translate-y-1/2 font-medium text-muted-foreground">
+                  {getCurrencySymbol(selectedCurrency)}
+                </span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  required
+                  value={amountPaid}
+                  onChange={(e) =>
+                    setAmountPaid(
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
+                  placeholder="0.00"
+                  className="pl-7"
+                />
+              </div>
             </div>
-            {Number(amountPaid) > balanceDue && (
-              <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                Cambio a devolver: $
-                {(Number(amountPaid) - balanceDue).toFixed(2)}
-              </p>
-            )}
+            {(() => {
+              const rateToSaleCurrency = getRate(selectedCurrency, currency)
+              if (rateToSaleCurrency === null) return null
+
+              const amountInSaleCurrency =
+                Number(amountPaid) * rateToSaleCurrency
+              const changeInSaleCurrency = amountInSaleCurrency - balanceDue
+
+              if (changeInSaleCurrency > 0.01) {
+                return (
+                  <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    Cambio a devolver:{" "}
+                    <CurrencyDisplay
+                      amount={changeInSaleCurrency}
+                      currency={currency}
+                    />
+                  </p>
+                )
+              }
+              return null
+            })()}
           </div>
 
           <div className="space-y-2">

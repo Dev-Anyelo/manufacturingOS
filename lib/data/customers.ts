@@ -34,6 +34,7 @@ export async function getCustomer(id: string) {
           channel: true,
           paymentMethod: true,
           balanceDue: true,
+          totalCurrency: true,
         },
       },
       workOrders: {
@@ -46,6 +47,7 @@ export async function getCustomer(id: string) {
           status: true,
           total: true,
           balanceDue: true,
+          totalCurrency: true,
           items: {
             select: { quantity: true },
           },

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useSystemSettings } from "@/hooks/use-system-settings"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -43,22 +44,22 @@ const catalogFormSchema = z.object({
   garment_type: z.string().trim().min(2, "El tipo de prenda es obligatorio"),
 
   market_price_unit: z.coerce.number().min(0),
-  market_price_unit_currency: z.nativeEnum(Currency).default(Currency.USD),
+  market_price_unit_currency: z.nativeEnum(Currency),
 
   market_price_dozen: z.coerce.number().min(0).optional().nullable(),
-  market_price_dozen_currency: z.nativeEnum(Currency).default(Currency.USD),
+  market_price_dozen_currency: z.nativeEnum(Currency),
 
   our_price_unit: z.coerce.number().min(0),
-  our_price_unit_currency: z.nativeEnum(Currency).default(Currency.USD),
+  our_price_unit_currency: z.nativeEnum(Currency),
 
   our_price_dozen: z.coerce.number().min(0).optional().nullable(),
-  our_price_dozen_currency: z.nativeEnum(Currency).default(Currency.USD),
+  our_price_dozen_currency: z.nativeEnum(Currency),
 
   estimated_cost: z.coerce.number().min(0).optional().nullable(),
-  estimated_cost_currency: z.nativeEnum(Currency).default(Currency.USD),
+  estimated_cost_currency: z.nativeEnum(Currency),
 
   sale_price: z.coerce.number().min(0).default(0),
-  sale_price_currency: z.nativeEnum(Currency).default(Currency.USD),
+  sale_price_currency: z.nativeEnum(Currency),
 
   notes: z.string().trim().max(1000).optional().nullable(),
 })
@@ -91,6 +92,7 @@ export function CatalogForm({
   onCancel,
 }: CatalogFormProps) {
   const router = useRouter()
+  const { baseCurrency, isLoading: settingsLoading } = useSystemSettings()
   const { exchangeRate } = useSettingsStore()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [imageFile, setImageFile] = React.useState<File | null>(null)
@@ -106,23 +108,12 @@ export function CatalogForm({
       description: defaultValues?.description ?? "",
       garment_type: defaultValues?.garment_type ?? "",
       market_price_unit: defaultValues?.market_price_unit ?? 0,
-      market_price_unit_currency:
-        defaultValues?.market_price_unit_currency ?? Currency.USD,
       market_price_dozen: defaultValues?.market_price_dozen ?? null,
-      market_price_dozen_currency:
-        defaultValues?.market_price_dozen_currency ?? Currency.USD,
       our_price_unit: defaultValues?.our_price_unit ?? 0,
-      our_price_unit_currency:
-        defaultValues?.our_price_unit_currency ?? Currency.USD,
       our_price_dozen: defaultValues?.our_price_dozen ?? null,
-      our_price_dozen_currency:
-        defaultValues?.our_price_dozen_currency ?? Currency.USD,
       estimated_cost: defaultValues?.estimated_cost ?? null,
-      estimated_cost_currency:
-        defaultValues?.estimated_cost_currency ?? Currency.USD,
       notes: defaultValues?.notes ?? "",
       sale_price: defaultValues?.sale_price ?? 0,
-      sale_price_currency: defaultValues?.sale_price_currency ?? Currency.USD,
     },
   })
 
@@ -147,6 +138,17 @@ export function CatalogForm({
           1
         )
       : null
+
+  React.useEffect(() => {
+    if (baseCurrency && !form.getValues("sale_price_currency")) {
+      form.setValue("market_price_unit_currency", baseCurrency)
+      form.setValue("market_price_dozen_currency", baseCurrency)
+      form.setValue("our_price_unit_currency", baseCurrency)
+      form.setValue("our_price_dozen_currency", baseCurrency)
+      form.setValue("estimated_cost_currency", baseCurrency)
+      form.setValue("sale_price_currency", baseCurrency)
+    }
+  }, [baseCurrency, form])
 
   React.useEffect(() => {
     return () => {

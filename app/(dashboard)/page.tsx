@@ -268,7 +268,7 @@ export default async function DashboardPage(props: {
                 value={
                   <CurrencyDisplay
                     amount={stats.todaySales}
-                    currency={Currency.USD}
+                    currency={stats.baseCurrency}
                     size="md"
                     showDual={true}
                   />

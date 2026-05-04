@@ -1,7 +1,7 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import { Currency } from "@prisma/client"
+import { useQuery } from "@tanstack/react-query"
 
 export interface ExchangeRate {
   id: string
@@ -45,6 +45,16 @@ export function useExchangeRates() {
     )
     
     if (inverse) return 1 / parseFloat(inverse.rate)
+
+    // Fallback hardcoded rates if DB is empty
+    const FALLBACK_RATE = 36.62
+    const fromStr = String(from)
+    const toStr = String(to)
+    const usdStr = String(Currency.USD)
+    const nioStr = String(Currency.NIO)
+
+    if (fromStr === usdStr && toStr === nioStr) return FALLBACK_RATE
+    if (fromStr === nioStr && toStr === usdStr) return 1 / FALLBACK_RATE
 
     return null
   }

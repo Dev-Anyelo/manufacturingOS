@@ -44,7 +44,7 @@ export const dashboardNavSections: DashboardNavSection[] = [
     items: [
       {
         title: "Configuración",
-        url: "/settings",
+        url: "#",
         module: "settings",
         items: [
           {

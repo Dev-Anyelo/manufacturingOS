@@ -66,16 +66,14 @@ interface ProductionTableProps {
   canDelete?: boolean
 }
 
+import { formatDateNI } from "@/lib/currency/exchange"
+
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-NI", {
-    dateStyle: "short",
-  }).format(new Date(value))
+  return formatDateNI(value)
 }
 
 function formatDateFull(value: string) {
-  return new Intl.DateTimeFormat("es-NI", {
-    dateStyle: "full",
-  }).format(new Date(value))
+  return formatDateNI(value, "PPPP") // Usar formato largo
 }
 
 function getRelativeLabel(value: string) {

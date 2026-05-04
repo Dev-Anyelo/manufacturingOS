@@ -1,14 +1,15 @@
 import Link from "next/link"
+import { Currency } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/shared/status-badge"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { OrderSummaryItem } from "@/components/modules/orders/types"
 
 import {
   channelIconMap,
   channelLabelMap,
   cn,
-  formatCurrency,
   formatDate,
   isOverdue,
   statusConfig,
@@ -102,14 +103,17 @@ export function OrderCard({ order, isDragging, className }: OrderCardProps) {
         <div className="mt-2.5 flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground/60">Saldo pendiente</p>
-            <p
+            <div
               className={cn(
                 "text-sm font-bold tabular-nums",
                 balance > 0 ? "text-danger" : "text-success"
               )}
             >
-              {formatCurrency(balance)}
-            </p>
+              <CurrencyDisplay
+                amount={balance}
+                currency={order.totalCurrency as Currency}
+              />
+            </div>
             <div className="mt-1 h-1 w-22 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-primary transition-all duration-500"

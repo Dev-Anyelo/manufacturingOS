@@ -25,12 +25,12 @@ export default async function PayrollDetailPage({
   return (
     <div className="page-shell">
       <PageHeader
-        title={`Pago #${payment.id.slice(0, 8)}`}
+        title={`Pago #${payment.id.slice(0, 8).toUpperCase()}`}
         description="Detalle de planilla y comprobante asociado."
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
           { label: "Planilla", href: "/payroll" },
-          { label: `Pago #${payment.id.slice(0, 8)}` },
+          { label: `Pago #${payment.id.slice(0, 8).toUpperCase()}` },
         ]}
         actions={
           <Button

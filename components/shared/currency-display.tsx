@@ -1,7 +1,8 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import { Currency, Prisma } from "@prisma/client"
+import { cn, formatCurrency } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useSystemSettings } from "@/hooks/use-system-settings"
 import { useExchangeRates } from "@/hooks/use-exchange-rates"
 
@@ -48,8 +49,9 @@ export function CurrencyDisplay({
   className,
   secondaryClassName,
 }: CurrencyDisplayProps) {
-  const { displayCurrency: globalDisplayCurrency } = useSystemSettings()
-  const { getRate } = useExchangeRates()
+  const { displayCurrency: globalDisplayCurrency, isLoading: settingsLoading } =
+    useSystemSettings()
+  const { getRate, isLoading: ratesLoading } = useExchangeRates()
 
   const displayCurrency = propDisplayCurrency || globalDisplayCurrency
   const recordCurrency = propCurrency || displayCurrency
@@ -60,13 +62,7 @@ export function CurrencyDisplay({
   const rate = getRate(recordCurrency, displayCurrency)
   const convertedAmount = rate !== null ? value * rate : null
 
-  const formatter = (curr: Currency) =>
-    new Intl.NumberFormat("es-NI", {
-      style: "currency",
-      currency: curr,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
+  const formatValue = (val: number, curr: Currency) => formatCurrency(val, curr)
 
   const toneClass =
     colored && value !== 0
@@ -80,20 +76,30 @@ export function CurrencyDisplay({
   // Determine the "other" currency for dual display
   const otherCurrency =
     displayCurrency === Currency.USD ? Currency.NIO : Currency.USD
+
+  // The amount in the "displayCurrency"
+  const mainAmount = convertedAmount !== null ? convertedAmount : value
+
+  // The amount in the "otherCurrency"
   const otherRate = getRate(displayCurrency, otherCurrency)
-  const otherAmount = (convertedAmount ?? value) * (otherRate ?? 1)
+  const otherAmount = otherRate !== null ? mainAmount * otherRate : null
 
   // Dual Display: Main (Converted/Display) + Secondary (Alternate)
+  if (settingsLoading || ratesLoading) {
+    return <Skeleton className={cn("h-8 w-24", className)} />
+  }
+
   return (
     <span className={cn("inline-flex flex-col leading-none", className)}>
       <span className={cn(sizeClasses.main, toneClass)}>
-        {convertedAmount !== null
-          ? formatter(displayCurrency).format(convertedAmount)
-          : formatter(recordCurrency).format(value)}
+        {formatValue(
+          mainAmount,
+          convertedAmount !== null ? displayCurrency : recordCurrency
+        )}
       </span>
-      {showDual && (
+      {showDual && otherAmount !== null && (
         <span className={cn(sizeClasses.secondary, secondaryClassName)}>
-          {formatter(otherCurrency).format(otherAmount)}
+          {formatValue(otherAmount, otherCurrency)}
         </span>
       )}
     </span>

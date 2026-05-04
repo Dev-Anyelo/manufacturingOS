@@ -426,7 +426,7 @@ export function PosCart(props: PosCartProps) {
                   <div className="flex items-center justify-between rounded-xl bg-brand px-4 py-3 font-black text-brand-foreground">
                     <span className="text-sm">Cambio a devolver</span>
                     <span className="text-xl tracking-tight tabular-nums">
-                      <CurrencyDisplay amount={changeGiven} />
+                      <CurrencyDisplay amount={changeGiven} currency={currency} />
                     </span>
                   </div>
                 )}
@@ -574,7 +574,7 @@ export function PosCart(props: PosCartProps) {
                   <div className="flex items-center justify-between rounded-xl bg-brand px-4 py-3 font-black text-brand-foreground">
                     <span className="text-sm">Cambio a devolver</span>
                     <span className="text-xl tracking-tight tabular-nums">
-                      <CurrencyDisplay amount={changeGiven} />
+                      <CurrencyDisplay amount={changeGiven} currency={currency} />
                     </span>
                   </div>
                 )}

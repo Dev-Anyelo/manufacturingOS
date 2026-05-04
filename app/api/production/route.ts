@@ -173,7 +173,7 @@ export async function POST(request: Request) {
         },
       })
 
-      createdSessionId = createdSession.id.slice(0, 8)
+      createdSessionId = createdSession.id
       totalGarments = createdSession.totalGarments
 
       // Deduce raw material and log movement (skip deduction on explicit reuse)
@@ -228,7 +228,7 @@ export async function POST(request: Request) {
         if (!catalogItem) {
           catalogItem = await tx.catalogItem.create({
             data: {
-              name: `Producto Terminado: ${
+              name: `${
                 item.garmentType === GarmentType.shirt
                   ? "Camisa"
                   : item.garmentType === GarmentType.skirt

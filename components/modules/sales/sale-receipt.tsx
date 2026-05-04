@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { formatDateTimeNI } from "@/lib/currency/exchange"
 import { SaleChannel, Currency, PaymentMethod } from "@prisma/client"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { SaleReceiptData } from "@/components/modules/sales/types"
@@ -114,16 +115,6 @@ function getPaymentConfig(method: PaymentMethod) {
   )
 }
 
-function formatDate(date: Date) {
-  return date.toLocaleString("es-NI", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
 // ─── Sub-components ──────────────────────────────────────────────────────────
 function ReceiptDivider() {
   return (
@@ -177,9 +168,9 @@ export function SaleReceipt({
           "gap-0 overflow-hidden p-0",
           "rounded-2xl border border-border bg-background text-foreground shadow-2xl",
           "sm:max-w-[420px]",
-          // Print overrides
-          "print:fixed print:inset-0 print:z-9999 print:flex print:flex-col",
-          "print:rounded-none print:border-0 print:bg-white print:text-black print:shadow-none",
+          // Print overrides - Standardize for thermal printers (80mm)
+          "print:static print:mx-auto print:block print:w-full print:max-w-[80mm] print:border-0 print:shadow-none",
+          "print:bg-white print:text-black",
           "max-h-[95dvh] print:max-h-none"
         )}
       >
@@ -201,11 +192,11 @@ export function SaleReceipt({
               {/* Receipt badge */}
               <div className="shrink-0 text-center">
                 <DialogDescription asChild>
-                  <div className="space-y-0.5 flex items-center gap-2">
-                    <p className="text-sm font-mono font-bold tracking-wider text-muted-foreground uppercase print:text-gray-400">
+                  <div className="flex items-center gap-2 space-y-0.5">
+                    <p className="font-mono text-sm font-bold tracking-wider text-muted-foreground uppercase print:text-gray-400">
                       Recibo
                     </p>
-                    <p className="text-sm font-mono font-bold tracking-wider text-muted-foreground uppercase print:text-black">
+                    <p className="font-mono text-sm font-bold tracking-wider text-muted-foreground uppercase print:text-black">
                       #{receiptNumber}
                     </p>
                   </div>
@@ -258,7 +249,7 @@ export function SaleReceipt({
                   Fecha
                 </p>
                 <p className="text-xs leading-snug font-medium text-foreground print:text-black">
-                  {formatDate(receipt.createdAt)}
+                  {formatDateTimeNI(receipt.createdAt)}
                 </p>
               </div>
 
@@ -401,7 +392,12 @@ export function SaleReceipt({
                       Pagado
                     </span>
                     <span className="font-mono font-medium text-foreground tabular-nums print:text-black">
-                      ${receipt.amountPaid.toFixed(2)}
+                      <CurrencyDisplay
+                        amount={receipt.amountPaid}
+                        currency={receipt.totalCurrency as Currency}
+                        showDual={false}
+                        size="sm"
+                      />
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -409,7 +405,12 @@ export function SaleReceipt({
                       Cambio
                     </span>
                     <span className="font-mono font-medium text-emerald-600 tabular-nums dark:text-emerald-400 print:text-emerald-700">
-                      ${receipt.changeGiven.toFixed(2)}
+                      <CurrencyDisplay
+                        amount={receipt.changeGiven}
+                        currency={receipt.totalCurrency as Currency}
+                        showDual={false}
+                        size="sm"
+                      />
                     </span>
                   </div>
                 </div>
@@ -422,7 +423,7 @@ export function SaleReceipt({
                 ¡Gracias por su compra! • DANIELLS CONFECCIONES
               </p>
               <p className="mt-0.5 text-[9px] text-gray-300">
-                #{receiptNumber} • {formatDate(receipt.createdAt)}
+                #{receiptNumber} • {formatDateTimeNI(receipt.createdAt)}
               </p>
             </div>
           </div>

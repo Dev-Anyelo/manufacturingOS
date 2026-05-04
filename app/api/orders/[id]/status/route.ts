@@ -73,16 +73,25 @@ export async function PATCH(
       )
     }
 
-    const updated = await prisma.workOrder.update({
+    // Update order using raw SQL to avoid issues with enum type casting in Prisma/Postgres
+    await prisma.$executeRaw`
+      UPDATE public.work_orders 
+      SET status = CAST(${nextStatus} AS public.work_order_status),
+          cancelled_reason = ${payload.cancelled_reason},
+          updated_at = NOW()
+      WHERE id = CAST(${id} AS uuid)
+    `
+
+    const updated = await prisma.workOrder.findUnique({
       where: { id },
-      data: {
-        status: nextStatus,
-        cancelledReason: payload.cancelled_reason,
-      },
       include: {
         customer: true,
       },
     })
+
+    if (!updated) {
+      throw new ApiRouteError("Error al recuperar el pedido actualizado", 500)
+    }
 
     const adminManagerIds = await getUserIdsByRoles(["admin", "manager"])
 

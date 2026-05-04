@@ -159,20 +159,28 @@ export async function POST(request: Request) {
           amountPaid: toPrismaDecimal(payload.amount_paid),
           changeGivenCurrency: payload.change_given_currency || payload.total_currency,
           changeGiven: balanceDue.lt(0) ? balanceDue.abs() : new Prisma.Decimal(0),
+          balanceDue: Prisma.Decimal.max(balanceDue, 0),
           status,
           notes: payload.notes,
           createdBy: profile.id,
           items: {
-            create: payload.items.map((item) => ({
-              catalogItemId: item.catalog_item_id,
-              description: item.description,
-              size: item.size,
-              quantity: item.quantity,
-              unitPriceCurrency: item.unit_price_currency,
-              unitPrice: toPrismaDecimal(item.unit_price),
-              discountCurrency: item.discount_currency,
-              discount: toPrismaDecimal(item.discount),
-            })),
+            create: payload.items.map((item) => {
+              const itemSubtotal = new Prisma.Decimal(item.unit_price)
+                .mul(item.quantity)
+                .sub(item.discount)
+
+              return {
+                catalogItemId: item.catalog_item_id,
+                description: item.description,
+                size: item.size,
+                quantity: item.quantity,
+                unitPriceCurrency: item.unit_price_currency,
+                unitPrice: toPrismaDecimal(item.unit_price),
+                discountCurrency: item.discount_currency,
+                discount: toPrismaDecimal(item.discount),
+                subtotal: itemSubtotal,
+              }
+            }),
           },
         },
         include: {

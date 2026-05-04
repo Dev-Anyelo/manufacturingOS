@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { Currency } from "@prisma/client"
+import { Currency, WorkOrderStatus } from "@prisma/client"
 
 const measurementSchema = z.object({
   bust: z.coerce.number().positive("El busto debe ser mayor a 0").optional(),
@@ -46,12 +46,12 @@ export const workOrderSchema = z
       .number({ message: "El adelanto no es valido" })
       .min(0, "El adelanto no puede ser negativo")
       .default(0),
-    advance_paid_currency: z.nativeEnum(Currency).default(Currency.USD),
+    advance_paid_currency: z.nativeEnum(Currency),
     total: z.coerce
       .number({ message: "El total es obligatorio" })
       .min(0, "El total no puede ser negativo"),
-    total_currency: z.nativeEnum(Currency).default(Currency.USD),
-    balance_due_currency: z.nativeEnum(Currency).default(Currency.USD),
+    total_currency: z.nativeEnum(Currency),
+    balance_due_currency: z.nativeEnum(Currency),
     notes: z.string().trim().max(1000).optional().nullable(),
     items: z
       .array(workOrderItemSchema)
@@ -87,14 +87,7 @@ export const workOrderSchema = z
 
 export const workOrderStatusSchema = z
   .object({
-    status: z.enum([
-      "received",
-      "confirmed",
-      "in_production",
-      "ready",
-      "delivered",
-      "cancelled",
-    ]),
+    status: z.nativeEnum(WorkOrderStatus),
     cancelled_reason: z.string().trim().max(500).optional().nullable(),
   })
   .superRefine((value, context) => {

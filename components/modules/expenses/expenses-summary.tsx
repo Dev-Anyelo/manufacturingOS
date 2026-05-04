@@ -1,15 +1,17 @@
-import { formatCurrency } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { EXPENSE_CATEGORIES } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { EmptyState } from "@/components/shared/empty-state"
 import { TrendingDownIcon, WalletCardsIcon } from "lucide-react"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface ExpensesSummaryProps {
   monthlyTotal: number
   topConcepts: Array<{ concept: string; total: number }>
   byCategory: Record<string, number>
+  baseCurrency: Currency
 }
 const categoryColors = [
   "bg-primary",
@@ -25,6 +27,7 @@ export function ExpensesSummary({
   monthlyTotal,
   topConcepts,
   byCategory,
+  baseCurrency,
 }: ExpensesSummaryProps) {
   const sortedCategories = Object.entries(byCategory)
     .sort((a, b) => b[1] - a[1])
@@ -50,9 +53,12 @@ export function ExpensesSummary({
               <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 Total del mes
               </p>
-              <p className="text-base leading-tight font-bold tracking-tight tabular-nums">
-                {formatCurrency(monthlyTotal)}
-              </p>
+              <CurrencyDisplay
+                amount={monthlyTotal}
+                currency={baseCurrency}
+                size="sm"
+                className="text-base leading-tight font-bold tracking-tight tabular-nums"
+              />
             </div>
           </div>
         </CardHeader>
@@ -80,9 +86,12 @@ export function ExpensesSummary({
                     {concept.concept}
                   </span>
                 </div>
-                <span className="shrink-0 text-xs font-bold text-foreground tabular-nums">
-                  {formatCurrency(concept.total)}
-                </span>
+                <CurrencyDisplay
+                  amount={concept.total}
+                  size="sm"
+                  currency={baseCurrency}
+                  className="text-base leading-tight font-bold tracking-tight tabular-nums"
+                />
               </div>
             ))
           )}
@@ -148,9 +157,12 @@ export function ExpensesSummary({
                       <span className="text-xs text-muted-foreground">
                         {pct}%
                       </span>
-                      <span className="w-20 text-right text-xs font-bold tabular-nums">
-                        {formatCurrency(value)}
-                      </span>
+                      <CurrencyDisplay
+                        amount={value}
+                        currency={baseCurrency}
+                        size="sm"
+                        className="text-base leading-tight font-bold tracking-tight tabular-nums"
+                      />
                     </div>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-muted">

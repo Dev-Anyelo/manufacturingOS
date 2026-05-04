@@ -34,12 +34,18 @@ type NotificationBellProps = {
 
 export function NotificationBell({ unreadCount }: NotificationBellProps) {
   const isMobile = useIsMobile()
+  const [mounted, setMounted] = React.useState(false)
+  
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const notifications = useNotificationStore((state) => state.notifications)
   const storeUnreadCount = useNotificationStore((state) => state.unreadCount)
   const markAsRead = useNotificationStore((state) => state.markAsRead)
   const markAllAsRead = useNotificationStore((state) => state.markAllAsRead)
 
-  const unread = unreadCount ?? storeUnreadCount
+  const unread = mounted ? (unreadCount ?? storeUnreadCount) : 0
   const [open, setOpen] = React.useState(false)
   const previousUnreadRef = React.useRef(unread)
 

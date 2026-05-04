@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useSystemSettings } from "@/hooks/use-system-settings"
 import type { PosCustomer } from "@/components/modules/sales/types"
 import { CurrencySelector } from "@/components/shared/currency-selector"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { formatCurrencyNI, getCurrencySymbol } from "@/lib/currency/exchange"
+import { formatCurrencyNI, getCurrencySymbol, formatDateNI } from "@/lib/currency/exchange"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -44,11 +45,11 @@ const payrollFormSchema = z
     pieces_produced: z.coerce.number().int().min(0).optional().nullable(),
     hours_worked: z.coerce.number().min(0).optional().nullable(),
     base_amount: z.coerce.number().min(0),
-    base_amount_currency: z.nativeEnum(Currency).default(Currency.USD),
+    base_amount_currency: z.nativeEnum(Currency),
     bonuses: z.coerce.number().min(0).default(0),
-    bonuses_currency: z.nativeEnum(Currency).default(Currency.USD),
+    bonuses_currency: z.nativeEnum(Currency),
     deductions: z.coerce.number().min(0).default(0),
-    deductions_currency: z.nativeEnum(Currency).default(Currency.USD),
+    deductions_currency: z.nativeEnum(Currency),
     payment_method: z.enum(["cash", "transfer", "other"]).optional().nullable(),
     notes: z.string().trim().max(1000).optional().nullable(),
   })
@@ -108,11 +109,7 @@ function parseInputDate(value: string) {
 
 function formatDateLabel(value: string) {
   if (!value) return "Seleccionar"
-
-  return new Intl.DateTimeFormat("es-NI", {
-    day: "2-digit",
-    month: "short",
-  }).format(parseInputDate(value))
+  return formatDateNI(value, "dd 'de' MMM")
 }
 
 // formatCurrency eliminado, se usa exchange.ts
@@ -128,6 +125,7 @@ export function PayrollForm({
   onSuccess,
   onCancel,
 }: PayrollFormProps) {
+  const { baseCurrency, isLoading: settingsLoading } = useSystemSettings()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const form = useForm<PayrollFormInput, unknown, PayrollFormOutput>({
@@ -136,18 +134,24 @@ export function PayrollForm({
       employee_id: "",
       period_start: todayInputDate(),
       period_end: todayInputDate(),
-      pieces_produced: null,
-      hours_worked: null,
+      pieces_produced: 0,
+      hours_worked: 0,
       base_amount: 0,
-      base_amount_currency: Currency.USD,
       bonuses: 0,
-      bonuses_currency: Currency.USD,
       deductions: 0,
-      deductions_currency: Currency.USD,
-      payment_method: null,
       notes: "",
     },
   })
+
+  const watchedEmployeeId = form.watch("employee_id")
+
+  React.useEffect(() => {
+    if (baseCurrency && !form.getValues("base_amount_currency")) {
+      form.setValue("base_amount_currency", baseCurrency)
+      form.setValue("bonuses_currency", baseCurrency)
+      form.setValue("deductions_currency", baseCurrency)
+    }
+  }, [baseCurrency, form])
 
   const selectedEmployeeId = form.watch("employee_id")
   const watchBaseAmount = Number(form.watch("base_amount") ?? 0)

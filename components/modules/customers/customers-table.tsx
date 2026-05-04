@@ -5,12 +5,14 @@ import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrencyNI } from "@/lib/currency/exchange"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
-import { ChevronRightIcon, MailIcon, UserIcon, MoreHorizontal, Trash2, AlertTriangle, Eye } from "lucide-react"
+import { MailIcon, UserIcon, MoreHorizontal, Trash2, AlertTriangle, Eye } from "lucide-react"
+import { Currency } from "@prisma/client"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 
 import {
   DropdownMenu,
@@ -36,6 +38,7 @@ export type CustomerRow = {
   phone: string | null
   email: string | null
   totalPurchases: number
+  totalPurchasesCurrency: Currency
   salesCount: number
   workOrdersCount: number
 }
@@ -148,12 +151,18 @@ export function CustomersTable({ data, canDelete = false }: CustomersTableProps)
       header: "Total Compras",
       cell: ({ row }) => {
         const amount = row.original.totalPurchases
+        const currency = row.original.totalPurchasesCurrency
+
         return (
           <div className={cn(
             "text-center font-medium tabular-nums",
             amount > 0 ? "text-foreground" : "text-muted-foreground"
           )}>
-            {formatCurrency(amount)}
+            <CurrencyDisplay 
+              amount={amount} 
+              currency={currency} 
+              showDual 
+            />
           </div>
         )
       },

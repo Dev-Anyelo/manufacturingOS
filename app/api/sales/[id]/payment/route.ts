@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { requirePermission } from "@/lib/api/require-permission"
 
 import {
+  Currency,
   NotificationType,
   SaleStatus,
   UserRole,
@@ -23,8 +24,11 @@ import {
   ApiRouteError,
 } from "@/lib/api/response"
 
+import { convertCurrency } from "@/lib/currency/exchange"
+
 const registerPaymentSchema = z.object({
   amount_paid: z.number().min(0, "El monto debe ser mayor o igual a 0"),
+  payment_currency: z.nativeEnum(Currency).optional(),
   payment_method: z.nativeEnum(PaymentMethod, {
     message: "Método de pago no válido",
   }),
@@ -58,8 +62,17 @@ export async function PATCH(
       throw new ApiRouteError("La venta ya se encuentra totalmente pagada", 400)
     }
 
+    // Convert payment amount to sale currency if necessary
+    const paymentCurrency = payload.payment_currency || sale.totalCurrency
+    const convertedPaymentAmount = await convertCurrency(
+      payload.amount_paid,
+      paymentCurrency,
+      sale.totalCurrency,
+      new Date()
+    )
+
     const currentAmountPaid = Number(sale.amountPaid)
-    const newAmountPaid = currentAmountPaid + payload.amount_paid
+    const newAmountPaid = currentAmountPaid + Number(convertedPaymentAmount)
     const netTotal = Number(sale.total) - Number(sale.discount)
 
     // Si paga de más, registramos el vuelto y topeamos amountPaid a netTotal

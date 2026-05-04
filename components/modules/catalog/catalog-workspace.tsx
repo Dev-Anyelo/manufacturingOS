@@ -203,7 +203,9 @@ export function CatalogWorkspace({
         cell: ({ row }) => (
           <ProfitMarginIndicator
             ourPriceUnit={row.original.ourPriceUnit}
+            ourPriceCurrency={row.original.ourPriceUnitCurrency as any}
             estimatedCost={row.original.estimatedCost}
+            estimatedCostCurrency={row.original.estimatedCostCurrency as any}
           />
         ),
       },

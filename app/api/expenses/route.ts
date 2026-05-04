@@ -169,7 +169,7 @@ export async function POST(request: Request) {
       await createNotifications({
         type: "expense_recorded" as PrismaNotificationType,
         title: "Gasto registrado",
-        body: `Se registró el gasto ${created.concept} por ${payload.total_currency} ${decimalToNumber(created.total)}.`,
+        body: `Se registró el gasto "${created.concept}" por ${payload.total_currency} ${decimalToNumber(created.total)}.`,
         metadata: {
           expenseId: created.id,
           category: created.category,

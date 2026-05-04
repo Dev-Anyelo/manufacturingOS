@@ -1,5 +1,66 @@
-import { Prisma, Currency } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
+import { es } from "date-fns/locale"
+import { parseISO, isValid } from "date-fns"
+import { formatInTimeZone } from "date-fns-tz"
+import { Prisma, Currency } from "@prisma/client"
+
+const DEFAULT_TIMEZONE = "America/Managua"
+const DEFAULT_LOCALE = es
+
+/**
+ * Formats a date to es-NI standard (dd/MM/yyyy) in America/Managua timezone.
+ */
+export function formatDateNI(
+  date: Date | string | number | null | undefined,
+  formatStr: string = "dd/MM/yyyy"
+): string {
+  if (!date) return "N/A"
+  try {
+    const d = typeof date === "string" ? parseISO(date) : new Date(date)
+    if (!isValid(d)) return "Fecha inválida"
+    return formatInTimeZone(d, DEFAULT_TIMEZONE, formatStr, {
+      locale: DEFAULT_LOCALE,
+    })
+  } catch (error) {
+    return "Error fecha"
+  }
+}
+
+/**
+ * Formats a time to es-NI standard (hh:mm a) in America/Managua timezone.
+ */
+export function formatTimeNI(
+  date: Date | string | number | null | undefined
+): string {
+  if (!date) return "N/A"
+  try {
+    const d = typeof date === "string" ? parseISO(date) : new Date(date)
+    if (!isValid(d)) return "Hora inválida"
+    return formatInTimeZone(d, DEFAULT_TIMEZONE, "hh:mm a", {
+      locale: DEFAULT_LOCALE,
+    })
+  } catch (error) {
+    return "Error hora"
+  }
+}
+
+/**
+ * Formats a date and time to es-NI standard (dd/MM/yyyy hh:mm a) in America/Managua timezone.
+ */
+export function formatDateTimeNI(
+  date: Date | string | number | null | undefined
+): string {
+  if (!date) return "N/A"
+  try {
+    const d = typeof date === "string" ? parseISO(date) : new Date(date)
+    if (!isValid(d)) return "Fecha/hora inválida"
+    return formatInTimeZone(d, DEFAULT_TIMEZONE, "dd/MM/yyyy hh:mm a", {
+      locale: DEFAULT_LOCALE,
+    })
+  } catch (error) {
+    return "Error fecha/hora"
+  }
+}
 
 /**
  * Obtiene la tasa de cambio válida en una fecha específica
@@ -103,7 +164,12 @@ export function calculateBalanceDue(
   advanceCurrency: Currency,
   rate: number = 36.62
 ): number {
-  const convertedAdvance = convertAmount(advance, advanceCurrency, totalCurrency, rate)
+  const convertedAdvance = convertAmount(
+    advance,
+    advanceCurrency,
+    totalCurrency,
+    rate
+  )
   return Math.max(total - convertedAdvance, 0)
 }
 
@@ -133,51 +199,13 @@ export function getCurrencySymbol(currency: Currency | string): string {
 }
 
 /**
- * Formatea una fecha con locale es-NI (estándar nicaragüense)
+ * Formats a date range for periods (e.g. payroll) in es-NI
  */
-export function formatDateNI(
-  date: Date | string,
-  format: "short" | "long" = "short"
+export function formatDateRangeNI(
+  startDate: Date | string,
+  endDate: Date | string
 ): string {
-  const parsed = typeof date === "string" ? new Date(date) : date
-  if (isNaN(parsed.getTime())) return "Fecha inválida"
-
-  return new Intl.DateTimeFormat("es-NI", {
-    year: "numeric",
-    month: format === "long" ? "long" : "2-digit",
-    day: "2-digit",
-  }).format(parsed)
-}
-
-/**
- * Formatea hora en formato es-NI
- */
-export function formatTimeNI(date: Date | string): string {
-  const parsed = typeof date === "string" ? new Date(date) : date
-  if (isNaN(parsed.getTime())) return "Hora inválida"
-
-  return new Intl.DateTimeFormat("es-NI", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(parsed)
-}
-
-/**
- * Formatea fecha y hora en formato es-NI
- */
-export function formatDateTimeNI(date: Date | string): string {
-  const parsed = typeof date === "string" ? new Date(date) : date
-  if (isNaN(parsed.getTime())) return "Fecha/Hora inválida"
-
-  return `${formatDateNI(parsed)} ${formatTimeNI(parsed)}`
-}
-
-/**
- * Formatea un rango de fechas para períodos (ej. nómina) en es-NI
- */
-export function formatDateRangeNI(startDate: Date | string, endDate: Date | string): string {
-  const start = formatDateNI(startDate, "long")
-  const end = formatDateNI(endDate, "long")
+  const start = formatDateNI(startDate, "dd 'de' MMMM, yyyy")
+  const end = formatDateNI(endDate, "dd 'de' MMMM, yyyy")
   return `${start} - ${end}`
 }

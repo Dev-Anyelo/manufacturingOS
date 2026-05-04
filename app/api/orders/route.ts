@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { Prisma, WorkOrderStatus } from "@prisma/client"
 import { workOrderSchema } from "@/lib/validations/orders"
 import { requirePermission } from "@/lib/api/require-permission"
+import { convertCurrency } from "@/lib/currency/exchange"
 
 import {
   apiSuccess,
@@ -82,17 +83,30 @@ export async function POST(request: Request) {
     await requirePermission(profile, "orders", "create")
 
     const payload = await parseBodyWithSchema(request, workOrderSchema)
+    const total = new Prisma.Decimal(payload.total)
+    const advancePaid = new Prisma.Decimal(payload.advance_paid)
+    const receivedDate = toLocalDate(new Date())
+
+    // Calculate balance due considering currencies
+    const normalizedAdvance = await convertCurrency(
+      advancePaid,
+      payload.advance_paid_currency,
+      payload.total_currency,
+      receivedDate
+    )
+    const balanceDue = Prisma.Decimal.max(total.sub(normalizedAdvance), 0)
 
     const order = await prisma.workOrder.create({
       data: {
         customerId: payload.customer_id,
-        receivedDate: toLocalDate(new Date()),
+        receivedDate,
         deliveryDate: toLocalDate(payload.delivery_date),
         channel: payload.channel,
         advancePaidCurrency: payload.advance_paid_currency,
         advancePaid: toPrismaDecimal(payload.advance_paid),
         totalCurrency: payload.total_currency,
         total: toPrismaDecimal(payload.total),
+        balanceDue: balanceDue,
         notes: payload.notes,
         createdBy: profile.id,
         items: {
@@ -109,6 +123,7 @@ export async function POST(request: Request) {
             quantity: item.quantity,
             unitPriceCurrency: item.unit_price_currency,
             unitPrice: toPrismaDecimal(item.unit_price),
+            subtotal: new Prisma.Decimal(item.unit_price).mul(item.quantity),
           })),
         },
       },
