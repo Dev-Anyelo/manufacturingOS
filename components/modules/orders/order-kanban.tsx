@@ -105,8 +105,7 @@ function KanbanColumn({
       <div
         className={cn(
           "flex items-center justify-between gap-2 rounded-t-2xl border border-b-0 px-3.5 py-3",
-          cfg.headerBg,
-          cfg.border
+          cfg.card
         )}
       >
         <div className="flex items-center gap-2">
@@ -116,7 +115,7 @@ function KanbanColumn({
               cfg.badge ?? ""
             )}
           >
-            {cfg.icon}
+            <cfg.icon className="size-3.5" />
           </span>
           <h3 className="text-xs font-bold tracking-wide text-foreground/80">
             {cfg.label}
@@ -138,8 +137,7 @@ function KanbanColumn({
         className={cn(
           "min-h-80 flex-1 space-y-2 rounded-b-2xl border border-t-0 p-2.5",
           "transition-all duration-100",
-          cfg.bodyBg,
-          cfg.border,
+          cfg.card,
           isOver && "bg-primary/5 ring-1 ring-primary ring-inset"
         )}
       >

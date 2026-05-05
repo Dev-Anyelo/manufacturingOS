@@ -8,10 +8,11 @@ import {
   ArrowLeftRightIcon,
   ArrowUpCircleIcon,
   CheckCircle2Icon,
-  ClipboardListIcon,
+  CircleDashedIcon,
+  CircleDotIcon,
+  LucideIcon,
   PackageCheckIcon,
   PackageIcon,
-  ScissorsIcon,
   ShoppingBagIcon,
   SparklesIcon,
   TagIcon,
@@ -61,81 +62,65 @@ export function formatDateTime(value: Date | string) {
   }).format(new Date(value))
 }
 
-export const statusConfig: Record<
-  WorkOrderStatus,
-  {
-    label: string
-    icon: React.ReactNode
-    dot: string
-    badge: string
-    headerBg: string
-    bodyBg: string
-    border: string
-    progress: number
-  }
-> = {
-  [WorkOrderStatus.received]: {
+/**
+ * Configuración visual y semántica de cada estado.
+ * Usa tokens semánticos cuando es posible y colores Tailwind
+ * sólo para diferenciar estados (info/success/danger/etc.).
+ */
+export const statusConfig: Record<WorkOrderStatus, StatusMeta> = {
+  received: {
     label: "Recibido",
-    progress: 10,
-    icon: <ClipboardListIcon className="size-3.5" />,
-    dot: "bg-slate-500",
+    description: "El pedido aún no ha comenzado.",
+    icon: CircleDashedIcon,
+    dot: "bg-zinc-400 dark:bg-zinc-500",
     badge:
-      "bg-[var(--surface-3)] text-[var(--text-primary)] border-[var(--table-border)]",
-    headerBg: "bg-[var(--surface-2)]",
-    bodyBg: "bg-[var(--surface-1)]",
-    border: "border-border",
+      "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700/60 dark:bg-zinc-800/60 dark:text-zinc-200",
+    card: "border-zinc-200 bg-zinc-50/60 dark:border-zinc-800/60 dark:bg-zinc-900/40",
   },
-  [WorkOrderStatus.confirmed]: {
-    label: "Confirmado",
-    progress: 30,
-    icon: <CheckCircle2Icon className="size-3.5" />,
-    dot: "bg-info",
-    badge: "bg-info-soft text-info border-info/20",
-    headerBg: "bg-[var(--surface-2)]",
-    bodyBg: "bg-[var(--surface-1)]",
-    border: "border-border",
-  },
-  [WorkOrderStatus.in_production]: {
+  in_production: {
     label: "En producción",
-    progress: 60,
-    icon: <ScissorsIcon className="size-3.5" />,
-    dot: "bg-[color:var(--stage)]",
+    description: "El pedido está en producción.",
+    icon: CircleDotIcon,
+    dot: "bg-amber-500",
     badge:
-      "bg-[rgb(var(--stage-rgb)/0.14)] text-[color:var(--stage)] border-[rgb(var(--stage-rgb)/0.28)]",
-    headerBg: "bg-[var(--surface-2)]",
-    bodyBg: "bg-[var(--surface-1)]",
-    border: "border-border",
+      "border-amber-300/60 bg-amber-50 text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300",
+    card: "border-amber-200/60 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20",
   },
-  [WorkOrderStatus.ready]: {
+  ready: {
     label: "Listo",
-    progress: 85,
-    icon: <PackageCheckIcon className="size-3.5" />,
-    dot: "bg-success",
+    description: "Listo para retirar.",
+    icon: CheckCircle2Icon,
+    dot: "bg-sky-500",
     badge:
-      "bg-[rgb(var(--success-rgb)/0.14)] text-success border-[rgb(var(--success-rgb)/0.28)]",
-    headerBg: "bg-[var(--surface-2)]",
-    bodyBg: "bg-[var(--surface-1)]",
-    border: "border-border",
+      "border-sky-300/60 bg-sky-50 text-sky-700 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300",
+    card: "border-sky-200/60 bg-sky-50/60 dark:border-sky-900/40 dark:bg-sky-950/20",
   },
-  [WorkOrderStatus.delivered]: {
+  delivered: {
     label: "Entregado",
-    progress: 100,
-    icon: <TruckIcon className="size-3.5" />,
-    dot: "bg-success",
-    badge: "bg-success-soft text-success border-success/20",
-    headerBg: "bg-[var(--surface-2)]",
-    bodyBg: "bg-[var(--surface-1)]",
-    border: "border-border",
+    description: "El pedido fue entregado al cliente.",
+    icon: PackageCheckIcon,
+    dot: "bg-emerald-500",
+    badge:
+      "border-emerald-300/60 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300",
+    card: "border-emerald-200/60 bg-emerald-50/60 dark:border-emerald-900/40 dark:bg-emerald-950/20",
   },
-  [WorkOrderStatus.cancelled]: {
+  cancelled: {
     label: "Cancelado",
-    progress: 0,
-    icon: <XCircleIcon className="size-3.5" />,
-    dot: "bg-danger",
-    badge: "bg-danger-soft text-danger border-danger/20",
-    headerBg: "bg-[var(--surface-2)]",
-    bodyBg: "bg-[var(--surface-1)]",
-    border: "border-border",
+    description: "El pedido fue cancelado.",
+    icon: XCircleIcon,
+    dot: "bg-rose-500",
+    badge:
+      "border-rose-300/60 bg-rose-50 text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/40 dark:text-rose-300",
+    card: "border-rose-200/60 bg-rose-50/60 dark:border-rose-900/40 dark:bg-rose-950/20",
+  },
+  confirmed: {
+    label: "Confirmado",
+    description: "El pedido está confirmado.",
+    icon: CheckCircle2Icon,
+    dot: "bg-indigo-500",
+    badge:
+      "border-indigo-300/60 bg-indigo-50 text-indigo-700 dark:border-indigo-800/60 dark:bg-indigo-950/40 dark:text-indigo-300",
+    card: "border-indigo-200/60 bg-indigo-50/60 dark:border-indigo-900/40 dark:bg-indigo-950/20",
   },
 }
 
@@ -362,4 +347,16 @@ export const channelConfig: Record<
       "bg-[var(--surface-2)] text-[var(--text-muted)] outline outline-1 outline-border",
     dot: "bg-[var(--text-muted)]",
   },
+}
+
+export interface StatusMeta {
+  label: string
+  description: string
+  icon: LucideIcon
+  /** Clases utilitarias para el dot/indicador */
+  dot: string
+  /** Clases utilitarias para el badge completo */
+  badge: string
+  /** Clases utilitarias para el contenedor "card" del estado */
+  card: string
 }

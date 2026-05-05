@@ -1,6 +1,16 @@
 "use client"
 
 import * as React from "react"
+import { es } from "date-fns/locale"
+import { cn } from "@/lib/utils"
+import { Button, buttonVariants } from "@/components/ui/button"
+
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+} from "lucide-react"
+
 import {
   DayPicker,
   getDefaultClassNames,
@@ -8,17 +18,13 @@ import {
   type Locale,
 } from "react-day-picker"
 
-import { cn } from "@/lib/utils"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
-
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
   captionLayout = "label",
   buttonVariant = "ghost",
-  locale,
+  locale = es,
   formatters,
   components,
   ...props
@@ -38,6 +44,7 @@ function Calendar({
       )}
       captionLayout={captionLayout}
       locale={locale}
+      weekStartsOn={1}
       formatters={{
         formatMonthDropdown: (date) =>
           date.toLocaleString(locale?.code, { month: "short" }),
@@ -153,7 +160,10 @@ function Calendar({
 
           if (orientation === "right") {
             return (
-              <ChevronRightIcon className={cn("size-4", className)} {...props} />
+              <ChevronRightIcon
+                className={cn("size-4", className)}
+                {...props}
+              />
             )
           }
 
