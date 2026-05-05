@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { requireCurrentUser } from "@/lib/auth/current-user"
+import { normalizeDateOnly } from "@/lib/currency/exchange"
 import {
   getProductionSessions,
   getProductionFormBootstrap,
@@ -39,7 +40,7 @@ export default async function ProductionPage(props: {
 
   const rows = sessions.map((session) => ({
     id: session.id,
-    sessionDate: session.sessionDate.toISOString(),
+    sessionDate: session.sessionDate.toISOString().slice(0, 10),
     employeeId: session.employeeId,
     employeeName: session.employee.fullName,
     totalGarments: session.totalGarments,
@@ -47,13 +48,13 @@ export default async function ProductionPage(props: {
     createdByName: session.createdByProfile?.fullName ?? "Sistema",
   }))
 
-  const today = new Date()
+  const today = normalizeDateOnly(new Date())
   const todayRows = rows.filter((row) => {
-    const sessionDate = new Date(row.sessionDate)
+    const sessionDate = normalizeDateOnly(row.sessionDate)
     return (
-      sessionDate.getFullYear() === today.getFullYear() &&
-      sessionDate.getMonth() === today.getMonth() &&
-      sessionDate.getDate() === today.getDate()
+      today !== null &&
+      sessionDate !== null &&
+      sessionDate.getTime() === today.getTime()
     )
   })
 

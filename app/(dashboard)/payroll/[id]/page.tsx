@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getPayrollPayment } from "@/lib/data/payroll"
 import { PageHeader } from "@/components/shared/page-header"
+import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { PayslipPreview } from "@/components/modules/payroll/payslip-preview"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -52,8 +53,8 @@ export default async function PayrollDetailPage({
           payment={{
             id: payment.id,
             employeeName: payment.employee.fullName,
-            periodStart: payment.periodStart.toISOString(),
-            periodEnd: payment.periodEnd.toISOString(),
+            periodStart: payment.periodStart.toISOString().slice(0, 10),
+            periodEnd: payment.periodEnd.toISOString().slice(0, 10),
             status: payment.status,
             paymentDate: payment.paymentDate?.toISOString() ?? null,
             paymentMethod: payment.paymentMethod,
@@ -84,9 +85,7 @@ export default async function PayrollDetailPage({
                   <div>
                     <p className="text-sm font-medium">{expense.concept}</p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(expense.expenseDate).toLocaleDateString(
-                        "es-NI"
-                      )}
+                      {formatDateOnlyNI(expense.expenseDate)}
                     </p>
                   </div>
                   <p className="text-sm font-semibold">

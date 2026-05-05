@@ -7,7 +7,7 @@ import { Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { formatDateNI } from "@/lib/currency/exchange"
+import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
@@ -151,9 +151,9 @@ export function PayrollTable({
         header: "Periodo",
         cell: ({ row }) => (
           <div className="space-y-0.5 text-sm">
-            <p>{formatDateNI(row.original.periodStart)}</p>
+            <p>{formatDateOnlyNI(row.original.periodStart)}</p>
             <p className="text-xs text-muted-foreground">
-              a {formatDateNI(row.original.periodEnd)}
+              a {formatDateOnlyNI(row.original.periodEnd)}
             </p>
           </div>
         ),
@@ -334,14 +334,14 @@ export function PayrollTable({
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="grid grid-cols-2 gap-2 w-full">
+          <AlertDialogFooter className="grid w-full grid-cols-2 gap-2">
             <AlertDialogCancel disabled={isDeleting} className="w-full">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={isDeleting}
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full"
+              className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>
@@ -351,4 +351,3 @@ export function PayrollTable({
     </div>
   )
 }
-

@@ -1,10 +1,18 @@
 import * as React from "react"
+import { cn } from "@/lib/utils"
+import { NotificationType } from "@/types"
 import { useRouter } from "next/navigation"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import type { AppNotification } from "@/stores/notificationStore"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
   ArrowRightIcon,
   BarChart3Icon,
-  BellIcon,
   BadgeDollarSignIcon,
   CheckCircle2Icon,
   CircleSlash2Icon,
@@ -15,18 +23,8 @@ import {
   TriangleAlertIcon,
   WalletIcon,
   CheckCheckIcon,
+  BellOff,
 } from "lucide-react"
-
-import { cn } from "@/lib/utils"
-import { NotificationType } from "@/types"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { EmptyState } from "@/components/shared/empty-state"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import type { AppNotification } from "@/stores/notificationStore"
 
 type NotificationPanelProps = {
   items?: AppNotification[]
@@ -238,7 +236,11 @@ export function NotificationPanel({
       return (
         <div className="flex min-h-60 animate-in flex-col items-center justify-center p-6 text-center fade-in">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <BellIcon className="h-6 w-6 text-muted-foreground/60" />
+            {activeTab === "unread" ? (
+              <BellOff className="size-6 text-muted-foreground" />
+            ) : (
+              <CheckCircle2Icon className="size-6 text-muted-foreground" />
+            )}
           </div>
           <p className="text-sm font-medium text-foreground">Estás al día</p>
           <p className="mt-1 text-xs text-muted-foreground">

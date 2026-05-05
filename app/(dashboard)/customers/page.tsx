@@ -1,17 +1,16 @@
 import { getCustomers } from "@/lib/data/customers"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
+import { requireCurrentUser } from "@/lib/auth/current-user"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { UsersIcon, ShoppingBagIcon, FileTextIcon } from "lucide-react"
 import { CustomersTable } from "@/components/modules/customers/customers-table"
 import { NewCustomerSheet } from "@/components/modules/customers/new-customer-sheet"
 
-import { requireCurrentUser } from "@/lib/auth/current-user"
-
 export default async function CustomersPage() {
   const [customers, currentUser] = await Promise.all([
     getCustomers(),
-    requireCurrentUser()
+    requireCurrentUser(),
   ])
 
   const rows = customers.map((c) => ({
@@ -68,9 +67,11 @@ export default async function CustomersPage() {
           />
         </KpiSection>
 
-        <CustomersTable 
-          data={rows} 
-          canDelete={currentUser.role === "admin" || currentUser.role === "manager"} 
+        <CustomersTable
+          data={rows}
+          canDelete={
+            currentUser.role === "admin" || currentUser.role === "manager"
+          }
         />
       </div>
     </section>

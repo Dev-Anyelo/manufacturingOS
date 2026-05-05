@@ -51,7 +51,7 @@ export default async function ProductionDetailPage({
         <ProductionSessionDetail
           session={{
             id: session.id,
-            sessionDate: session.sessionDate.toISOString(),
+            sessionDate: session.sessionDate.toISOString().slice(0, 10),
             employeeName: session.employee.fullName,
             notes: session.notes,
             totalGarments: session.totalGarments,

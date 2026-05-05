@@ -7,7 +7,7 @@ import { getExpenseById } from "@/lib/data/expenses"
 import { ExpenseCategory, Currency } from "@prisma/client"
 import { PageHeader } from "@/components/shared/page-header"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { formatDateNI, formatDateTimeNI } from "@/lib/currency/exchange"
+import { formatDateOnlyNI, formatDateTimeNI } from "@/lib/currency/exchange"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import {
@@ -118,7 +118,7 @@ export default async function ExpenseDetailPage({
             {getExpenseCategoryLabel(expense.category)}
           </Badge>
           <Badge variant="outline" className="bg-muted/50">
-            {formatDateNI(expense.expenseDate)}
+            {formatDateOnlyNI(expense.expenseDate)}
           </Badge>
         </div>
 
@@ -160,7 +160,7 @@ export default async function ExpenseDetailPage({
                   Fecha de Gasto
                 </span>
                 <span className="text-lg leading-none font-bold tabular-nums">
-                  {formatDateNI(expense.expenseDate)}
+                  {formatDateOnlyNI(expense.expenseDate)}
                 </span>
               </div>
               <div className="flex flex-col justify-center p-4">

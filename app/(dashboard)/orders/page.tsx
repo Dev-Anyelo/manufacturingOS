@@ -2,6 +2,7 @@ import { WorkOrderStatus } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
+import { normalizeDateOnly } from "@/lib/currency/exchange"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { getWorkOrders, getOrderFormBootstrap } from "@/lib/data/orders"
@@ -26,8 +27,8 @@ export default async function OrdersPage() {
     id: order.id,
     customerId: order.customerId,
     customerName: order.customer.fullName,
-    receivedDate: order.receivedDate.toISOString(),
-    deliveryDate: order.deliveryDate.toISOString(),
+    receivedDate: order.receivedDate.toISOString().slice(0, 10),
+    deliveryDate: order.deliveryDate.toISOString().slice(0, 10),
     status: order.status,
     channel: order.channel,
     advancePaid: decimalToNumber(order.advancePaid),
@@ -50,12 +51,12 @@ export default async function OrdersPage() {
     ready: orderRows.filter((o) => o.status === WorkOrderStatus.ready).length,
     deliveredToday: orderRows.filter((o) => {
       if (o.status !== WorkOrderStatus.delivered) return false
-      const today = new Date()
-      const d = new Date(o.deliveryDate)
+      const today = normalizeDateOnly(new Date())
+      const deliveryDate = normalizeDateOnly(o.deliveryDate)
       return (
-        d.getFullYear() === today.getFullYear() &&
-        d.getMonth() === today.getMonth() &&
-        d.getDate() === today.getDate()
+        today !== null &&
+        deliveryDate !== null &&
+        deliveryDate.getTime() === today.getTime()
       )
     }).length,
   }

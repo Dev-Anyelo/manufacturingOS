@@ -507,7 +507,7 @@ export function DateRangePicker({
         disabled={disabled}
         onClick={extraOnClick}
         className={cn(
-          "group h-9 w-full min-w-[200px] justify-between gap-2 px-3 font-normal sm:w-auto",
+          "group h-9 w-full min-w-50 justify-between gap-2 px-3 font-normal sm:w-auto",
           !hasSelection && "text-muted-foreground",
           className
         )}

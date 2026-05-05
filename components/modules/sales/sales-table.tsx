@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { UserRole, Currency } from "@prisma/client"
 import { useQueryClient } from "@tanstack/react-query"
-import { formatDateNI } from "@/lib/currency/exchange"
+import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
@@ -100,7 +100,9 @@ function getColumns(options: {
       accessorKey: "saleDate",
       header: "Fecha",
       cell: ({ row }) => (
-        <span className="text-sm">{formatDateNI(row.original.saleDate)}</span>
+        <span className="text-sm">
+          {formatDateOnlyNI(row.original.saleDate)}
+        </span>
       ),
     },
     {

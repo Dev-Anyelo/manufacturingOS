@@ -16,7 +16,7 @@ import { useSystemSettings } from "@/hooks/use-system-settings"
 import type { PosCustomer } from "@/components/modules/sales/types"
 import { CurrencySelector } from "@/components/shared/currency-selector"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { getCurrencySymbol, formatDateNI } from "@/lib/currency/exchange"
+import { getCurrencySymbol, formatDateOnlyNI } from "@/lib/currency/exchange"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -110,7 +110,7 @@ function parseInputDate(value: string) {
 
 function formatDateLabel(value: string) {
   if (!value) return "Seleccionar"
-  return formatDateNI(value, "dd 'de' MMM")
+  return formatDateOnlyNI(value, "dd 'de' MMM")
 }
 
 // formatCurrency eliminado, se usa exchange.ts
@@ -535,7 +535,7 @@ export function PayrollForm({
                           { shouldDirty: true }
                         )
                       }
-                      className="h-10 min-w-[100px] flex-1"
+                      className="h-10 min-w-25 flex-1"
                     >
                       {method === "cash"
                         ? "Efectivo"

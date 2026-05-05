@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { formatDateOnlyNI } from "@/lib/currency/exchange"
 
 export interface PayslipPreviewData {
   id: string
@@ -42,9 +43,7 @@ function formatDate(value: string | null) {
     return "-"
   }
 
-  return new Intl.DateTimeFormat("es-NI", {
-    dateStyle: "medium",
-  }).format(new Date(value))
+  return formatDateOnlyNI(value, "dd 'de' MMM, yyyy")
 }
 
 export function PayslipPreview({ payment }: PayslipPreviewProps) {
@@ -176,4 +175,3 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
     </Card>
   )
 }
-

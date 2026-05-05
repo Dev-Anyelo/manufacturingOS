@@ -2,6 +2,7 @@ import { twMerge } from "tailwind-merge"
 import { clsx, type ClassValue } from "clsx"
 import { Currency, WorkOrderStatus } from "@prisma/client"
 import { InventoryMovementEntry } from "@/components/modules/inventory/movement-history"
+import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
 
 import {
   ArrowDownCircleIcon,
@@ -125,9 +126,7 @@ export const statusConfig: Record<WorkOrderStatus, StatusMeta> = {
 }
 
 export function formatDate(value: string | Date) {
-  return new Intl.DateTimeFormat("es-NI", { dateStyle: "short" }).format(
-    new Date(value)
-  )
+  return formatDateOnlyNI(value, "dd/MM/yyyy")
 }
 
 export function formatCurrency(amount: number, currency?: Currency) {
@@ -199,8 +198,15 @@ export function groupByStatus(orders: OrderSummaryItem[]): OrderStatusColumns {
 }
 
 export function isOverdue(order: OrderSummaryItem) {
+  const deliveryDate = normalizeDateOnly(order.deliveryDate)
+  const today = normalizeDateOnly(new Date())
+
+  if (!deliveryDate || !today) {
+    return false
+  }
+
   return (
-    new Date(order.deliveryDate).getTime() < Date.now() &&
+    deliveryDate.getTime() < today.getTime() &&
     order.status !== WorkOrderStatus.delivered &&
     order.status !== WorkOrderStatus.cancelled
   )
@@ -235,12 +241,15 @@ export function getInitials(name: string) {
 }
 
 export function getUrgency(deliveryDate: string) {
-  const now = new Date()
-  const delivery = new Date(deliveryDate)
-  const diff = delivery.getTime() - now.getTime()
+  const today = normalizeDateOnly(new Date())
+  const delivery = normalizeDateOnly(deliveryDate)
+  const diff =
+    today && delivery ? delivery.getTime() - today.getTime() : Number.NaN
   return {
-    isOverdue: diff < 0,
-    isUrgent: diff >= 0 && diff <= 24 * 60 * 60 * 1000,
+    isOverdue: Number.isFinite(diff) ? diff < 0 : false,
+    isUrgent: Number.isFinite(diff)
+      ? diff >= 0 && diff <= 24 * 60 * 60 * 1000
+      : false,
     diff,
   }
 }
@@ -279,10 +288,14 @@ export const actionConfig: Partial<
 }
 
 export function formatDateRelative(value: string | Date) {
-  const date = new Date(value)
-  const now = new Date()
-  const diff = Math.ceil(
-    (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  const date = normalizeDateOnly(value)
+  const today = normalizeDateOnly(new Date())
+  if (!date || !today) {
+    return "Fecha inválida"
+  }
+
+  const diff = Math.round(
+    (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
   )
   if (diff < 0) return `Hace ${Math.abs(diff)} días`
   if (diff === 0) return "Hoy"

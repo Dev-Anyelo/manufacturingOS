@@ -66,24 +66,37 @@ interface ProductionTableProps {
   canDelete?: boolean
 }
 
-import { formatDateNI } from "@/lib/currency/exchange"
+import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
 
 function formatDate(value: string) {
-  return formatDateNI(value)
+  return formatDateOnlyNI(value)
 }
 
 function formatDateFull(value: string) {
-  return formatDateNI(value, "PPPP") // Usar formato largo
+  return formatDateOnlyNI(value, "PPPP") // Usar formato largo
 }
 
 function getRelativeLabel(value: string) {
-  const sessionDate = new Date(value)
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
+  const sessionDate = normalizeDateOnly(value)
+  const today = normalizeDateOnly(new Date())
+  const yesterday = today ? new Date(today) : null
 
-  if (sessionDate.toDateString() === today.toDateString()) return "Hoy"
-  if (sessionDate.toDateString() === yesterday.toDateString()) return "Ayer"
+  if (yesterday) {
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1)
+  }
+
+  if (sessionDate && today && sessionDate.getTime() === today.getTime()) {
+    return "Hoy"
+  }
+
+  if (
+    sessionDate &&
+    yesterday &&
+    sessionDate.getTime() === yesterday.getTime()
+  ) {
+    return "Ayer"
+  }
+
   return null
 }
 
@@ -124,12 +137,17 @@ export function ProductionTable({
       if (employeeFilter !== "all" && session.employeeId !== employeeFilter) {
         return false
       }
-      const currentDate = new Date(session.sessionDate)
-      if (dateRange.from && currentDate < dateRange.from) return false
+      const currentDate = normalizeDateOnly(session.sessionDate)
+      const fromDate = normalizeDateOnly(dateRange.from)
+      if (currentDate && fromDate && currentDate < fromDate) return false
       if (dateRange.to) {
-        const inclusiveTo = new Date(dateRange.to)
-        inclusiveTo.setHours(23, 59, 59, 999)
-        if (currentDate > inclusiveTo) return false
+        const inclusiveTo = normalizeDateOnly(dateRange.to)
+        if (inclusiveTo) {
+          inclusiveTo.setUTCHours(23, 59, 59, 999)
+        }
+        if (currentDate && inclusiveTo && currentDate > inclusiveTo) {
+          return false
+        }
       }
       return true
     })
@@ -323,7 +341,7 @@ export function ProductionTable({
           !open && !isDeleting && setSessionToDelete(null)
         }
       >
-        <AlertDialogContent className="px-4 py-4 sm:px-6 sm:py-6 sm:max-w-md">
+        <AlertDialogContent className="px-4 py-4 sm:max-w-md sm:px-6 sm:py-6">
           <AlertDialogHeader>
             <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive">
               <AlertTriangle className="size-5" />
@@ -336,14 +354,14 @@ export function ProductionTable({
               eliminará el registro permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="grid grid-cols-2 gap-2 w-full">
+          <AlertDialogFooter className="grid w-full grid-cols-2 gap-2">
             <AlertDialogCancel disabled={isDeleting} className="w-full">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={isDeleting}
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full"
+              className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>
@@ -353,4 +371,3 @@ export function ProductionTable({
     </div>
   )
 }
-

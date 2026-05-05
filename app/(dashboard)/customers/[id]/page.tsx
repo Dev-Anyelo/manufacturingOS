@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   formatCurrencyNI,
   formatDateNI,
+  formatDateOnlyNI,
   getExchangeRate,
   convertAmount,
 } from "@/lib/currency/exchange"
@@ -323,7 +324,7 @@ export default async function CustomerDetailPage({
                               className="border-border/55 hover:bg-muted/50"
                             >
                               <TableCell className="text-sm whitespace-nowrap">
-                                {formatDateNI(sale.saleDate)}
+                                {formatDateOnlyNI(sale.saleDate)}
                               </TableCell>
                               <TableCell>
                                 <Badge variant="outline" className="text-xs">
@@ -410,10 +411,10 @@ export default async function CustomerDetailPage({
                               className="border-border/55 hover:bg-muted/50"
                             >
                               <TableCell className="text-sm whitespace-nowrap">
-                                {formatDateNI(wo.receivedDate)}
+                                {formatDateOnlyNI(wo.receivedDate)}
                               </TableCell>
                               <TableCell className="text-sm whitespace-nowrap">
-                                {formatDateNI(wo.deliveryDate)}
+                                {formatDateOnlyNI(wo.deliveryDate)}
                               </TableCell>
                               <TableCell className="text-right font-bold tabular-nums">
                                 {garmentCount}

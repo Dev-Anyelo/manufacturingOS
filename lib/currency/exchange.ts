@@ -6,6 +6,72 @@ import { Prisma, Currency } from "@prisma/client"
 
 const DEFAULT_TIMEZONE = "America/Managua"
 const DEFAULT_LOCALE = es
+const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
+
+function normalizeDateOnlyValue(date: Date | string | number): Date {
+  if (date instanceof Date) {
+    return new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12)
+    )
+  }
+
+  if (typeof date === "string") {
+    const trimmed = date.trim()
+    const match = DATE_ONLY_PATTERN.exec(trimmed)
+    if (match) {
+      const year = Number(match[1])
+      const month = Number(match[2]) - 1
+      const day = Number(match[3])
+      return new Date(Date.UTC(year, month, day, 12))
+    }
+
+    const parsed = parseISO(trimmed)
+    return new Date(
+      Date.UTC(
+        parsed.getUTCFullYear(),
+        parsed.getUTCMonth(),
+        parsed.getUTCDate(),
+        12
+      )
+    )
+  }
+
+  const parsed = new Date(date)
+  return new Date(
+    Date.UTC(
+      parsed.getUTCFullYear(),
+      parsed.getUTCMonth(),
+      parsed.getUTCDate(),
+      12
+    )
+  )
+}
+
+export function normalizeDateOnly(
+  date: Date | string | number | null | undefined
+): Date | null {
+  if (!date) return null
+  return normalizeDateOnlyValue(date)
+}
+
+/**
+ * Formats a date-only value to es-NI standard (dd/MM/yyyy) in America/Managua.
+ */
+export function formatDateOnlyNI(
+  date: Date | string | number | null | undefined,
+  formatStr: string = "dd/MM/yyyy"
+): string {
+  if (!date) return "N/A"
+  try {
+    const normalized = normalizeDateOnlyValue(date)
+    if (!isValid(normalized)) return "Fecha inválida"
+    return formatInTimeZone(normalized, DEFAULT_TIMEZONE, formatStr, {
+      locale: DEFAULT_LOCALE,
+    })
+  } catch (error) {
+    return "Error fecha"
+  }
+}
 
 /**
  * Formats a date to es-NI standard (dd/MM/yyyy) in America/Managua timezone.
@@ -205,7 +271,7 @@ export function formatDateRangeNI(
   startDate: Date | string,
   endDate: Date | string
 ): string {
-  const start = formatDateNI(startDate, "dd 'de' MMMM, yyyy")
-  const end = formatDateNI(endDate, "dd 'de' MMMM, yyyy")
+  const start = formatDateOnlyNI(startDate, "dd 'de' MMMM, yyyy")
+  const end = formatDateOnlyNI(endDate, "dd 'de' MMMM, yyyy")
   return `${start} - ${end}`
 }

@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button"
 import { UserRole, Currency } from "@prisma/client"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
+import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { DateRangePicker } from "@/components/shared/date-range-picker"
+import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
 import { ExpenseCategoryBadge } from "@/components/modules/expenses/expense-category-badge"
 
 import {
@@ -18,6 +20,8 @@ import {
   Trash2Icon,
   AlertTriangleIcon,
   ArrowUpRight,
+  LayersPlusIcon,
+  RulerIcon,
 } from "lucide-react"
 
 import {
@@ -64,10 +68,8 @@ interface ExpensesTableProps {
   currentUserRole: string
 }
 
-import { formatDateNI } from "@/lib/currency/exchange"
-
 function formatDate(value: string) {
-  return formatDateNI(value)
+  return formatDateOnlyNI(value)
 }
 
 export function ExpensesTable({
@@ -96,17 +98,21 @@ export function ExpensesTable({
         return false
       }
 
-      const currentDate = new Date(expense.expenseDate)
+      const currentDate = normalizeDateOnly(expense.expenseDate)
+      const fromDate = normalizeDateOnly(dateRange.from)
 
-      if (dateRange.from && currentDate < dateRange.from) {
+      if (currentDate && fromDate && currentDate < fromDate) {
         return false
       }
 
       if (dateRange.to) {
-        const inclusiveTo = new Date(dateRange.to)
-        inclusiveTo.setHours(23, 59, 59, 999)
+        const inclusiveTo = normalizeDateOnly(dateRange.to)
 
-        if (currentDate > inclusiveTo) {
+        if (currentDate && inclusiveTo) {
+          inclusiveTo.setUTCHours(23, 59, 59, 999)
+        }
+
+        if (currentDate && inclusiveTo && currentDate > inclusiveTo) {
           return false
         }
       }
@@ -116,7 +122,7 @@ export function ExpensesTable({
   }, [categoryFilter, dateRange.from, dateRange.to, expenses])
 
   // Note: filteredTotal should ideally use the exchange rate.
-  // For the client-side summary, we'll assume they are already normalized 
+  // For the client-side summary, we'll assume they are already normalized
   // or just sum them (which is technically wrong if mixed).
   // But since the parent page (app/expenses/page.tsx) provides normalized overview,
   // we'll just sum them for now or use the CurrencyDisplay to show they are mixed.
@@ -254,13 +260,24 @@ export function ExpensesTable({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <SummaryTile label="Registros" value={filtered.length} accent />
-        <SummaryTile
-          label="Total filtrado"
-          value={<CurrencyDisplay amount={filteredTotal} showDual={true} />}
-          accent
+        <CompactKpiCard
+          label="Total de gastos"
+          value={<CurrencyDisplay amount={filteredTotal} size="sm" />}
+          icon={<ArrowUpRight />}
+          iconClass="bg-destructive/15 text-destructive"
         />
-        <SummaryTile label="Categorias" value={categories.length} />
+        <CompactKpiCard
+          label="Registros filtrados"
+          value={filtered.length}
+          icon={<LayersPlusIcon />}
+          iconClass="bg-brand/15 text-brand"
+        />
+        <CompactKpiCard
+          label="Categorias"
+          value={categories.length}
+          icon={<RulerIcon />}
+          iconClass="bg-blue-500/15 text-blue-600 dark:text-blue-400"
+        />
       </div>
 
       <DataTable
@@ -301,7 +318,7 @@ export function ExpensesTable({
           !open && !isDeleting && setExpenseToDelete(null)
         }
       >
-        <AlertDialogContent className="px-4 py-4 sm:px-6 sm:py-6 sm:max-w-md">
+        <AlertDialogContent className="px-4 py-4 sm:max-w-md sm:px-6 sm:py-6">
           <AlertDialogHeader>
             <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full bg-destructive/10 text-destructive">
               <AlertTriangleIcon className="size-5" />
@@ -314,7 +331,7 @@ export function ExpensesTable({
               gasto permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="grid grid-cols-2 gap-2 w-full">
+          <AlertDialogFooter className="grid w-full grid-cols-2 gap-2">
             <AlertDialogCancel disabled={isDeleting} className="w-full">
               Cancelar
             </AlertDialogCancel>
@@ -356,4 +373,3 @@ function SummaryTile({
     </div>
   )
 }
-

@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
 import type { PayrollTableRow } from "@/components/modules/payroll/payroll-table"
+import { formatDateOnlyNI } from "@/lib/currency/exchange"
 
 import {
   BanknoteIcon,
@@ -145,7 +146,7 @@ export function MarkPaidDialog({
   }
 
   const periodStr = payment
-    ? `${new Date(payment.periodStart).toLocaleDateString("es-NI")} - ${new Date(payment.periodEnd).toLocaleDateString("es-NI")}`
+    ? `${formatDateOnlyNI(payment.periodStart)} - ${formatDateOnlyNI(payment.periodEnd)}`
     : "-"
 
   const content = (
@@ -249,7 +250,7 @@ export function MarkPaidDialog({
           </Label>
           <Textarea
             id="notes"
-            className="min-h-[60px]"
+            className="min-h-15"
             rows={2}
             placeholder="Observaciones internas del pago (opcional)"
             value={notes}
@@ -303,4 +304,3 @@ export function MarkPaidDialog({
     </Drawer>
   )
 }
-

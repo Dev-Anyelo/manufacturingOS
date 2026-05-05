@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { UserRole } from "@/types"
 import { useRouter } from "next/navigation"
+import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -167,11 +168,9 @@ function normalizeOptional(value?: string | null) {
   return normalized ? normalized : null
 }
 
-import { formatDateNI } from "@/lib/currency/exchange"
-
 function formatDateLabel(value: string) {
   if (!value) return "Seleccionar"
-  return formatDateNI(value, "dd 'de' MMM")
+  return formatDateOnlyNI(value, "dd 'de' MMM")
 }
 
 function toInputDate(value: Date) {

@@ -32,7 +32,7 @@ export default async function ExpensesPage() {
 
   const rows = expenses.map((expense) => ({
     id: expense.id,
-    expenseDate: expense.expenseDate.toISOString(),
+    expenseDate: expense.expenseDate.toISOString().slice(0, 10),
     category: expense.category,
     concept: expense.concept,
     supplier: expense.supplier,
