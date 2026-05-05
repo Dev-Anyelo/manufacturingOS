@@ -130,7 +130,7 @@ function TimelineNode({
 
 function TimelineConnector({ isCancel }: { isCancel?: boolean }) {
   return (
-    <div className="relative ml-[18px] flex h-7 items-center" aria-hidden>
+    <div className="relative ml-4.5 flex h-7 items-center" aria-hidden>
       {/* Línea vertical punteada */}
       <div
         className={cn(
@@ -402,7 +402,7 @@ export function ChangeStatusDialog({
             maxLength={REASON_MAX + 40}
             aria-invalid={!!reasonError}
             className={cn(
-              "min-h-[80px] resize-none text-sm",
+              "min-h-20 resize-none text-sm",
               reasonError &&
                 "border-destructive focus-visible:ring-destructive/30"
             )}
@@ -469,7 +469,7 @@ export function ChangeStatusDialog({
         onClick={handleConfirm}
         disabled={isSubmitting}
         variant={isCancel ? "destructive" : "default"}
-        className="min-w-[160px]"
+        className="min-w-40"
       >
         {isSubmitting ? (
           <>
@@ -500,7 +500,7 @@ export function ChangeStatusDialog({
           showCloseButton={false}
           className={cn(
             "flex max-h-[min(640px,90vh)] w-[calc(100vw-2rem)] flex-col gap-0 overflow-hidden p-0",
-            "sm:w-full sm:max-w-[440px]"
+            "sm:w-full sm:max-w-110"
           )}
         >
           <DialogTitle className="sr-only">

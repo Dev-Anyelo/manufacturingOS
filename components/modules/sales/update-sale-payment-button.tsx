@@ -153,7 +153,7 @@ export function UpdateSalePaymentButton({
               <CurrencySelector
                 value={selectedCurrency}
                 onChange={setSelectedCurrency}
-                className="w-[100px]"
+                className="w-25"
               />
               <div className="relative flex-1">
                 <span className="absolute top-1/2 left-3 -translate-y-1/2 font-medium text-muted-foreground">

@@ -251,11 +251,11 @@ export function MediaUpload({
 
   return (
     <div className={cn("space-y-4", className)}>
-      {label && <label className="text-sm font-medium leading-none">{label}</label>}
+      {label && <label className="text-sm font-medium leading-none text-pretty">{label}</label>}
       
       <div
         className={cn(
-          "relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors",
+          "relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors mt-2",
           isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/20",
           disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-muted/5"
         )}
@@ -286,7 +286,7 @@ export function MediaUpload({
             <UploadCloudIcon className="size-6 text-muted-foreground" />
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium text-pretty">
               Haz clic o arrastra archivos para subir
             </p>
             <p className="text-xs text-muted-foreground uppercase">

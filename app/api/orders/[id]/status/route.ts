@@ -100,17 +100,15 @@ export async function PATCH(
       )
     }
 
-    // Update order using raw SQL to avoid issues with enum type casting in Prisma/Postgres
-    await prisma.$executeRaw`
-      UPDATE public.work_orders 
-      SET status = CAST(${nextStatus} AS public.work_order_status),
-          cancelled_reason = ${payload.cancelled_reason},
-          updated_at = NOW()
-      WHERE id = CAST(${id} AS uuid)
-    `
-
-    const updated = await prisma.workOrder.findUnique({
+    // Update order using standard Prisma update.
+    // This is safer and correctly handles the update within the transaction.
+    const updated = await prisma.workOrder.update({
       where: { id },
+      data: {
+        status: nextStatus,
+        cancelledReason: payload.cancelled_reason,
+        updatedAt: new Date(),
+      },
       include: {
         customer: true,
       },
@@ -126,7 +124,7 @@ export async function PATCH(
       await createNotifications({
         type: NotificationType.order_ready,
         title: "Pedido listo para entrega",
-        body: `El pedido ${updated.id} esta listo para entregar.`,
+        body: `El pedido #${updated.id.slice(0, 8).toUpperCase()} esta listo para entregar.`,
         metadata: {
           orderId: updated.id,
           customerId: updated.customer?.id ?? null,
@@ -141,7 +139,7 @@ export async function PATCH(
       if (updated.customer?.email) {
         await sendOrderReadyEmail(updated.customer.email, {
           customerName: updated.customer.fullName,
-          orderDescription: `Pedido #${updated.id.slice(0, 8)}`,
+          orderDescription: `Pedido #${updated.id.slice(0, 8).toUpperCase()}`,
           pendingBalance: Number(updated.balanceDue),
           workshopContact:
             process.env.RESEND_FROM_EMAIL ?? "onboarding@revvioapp.com",
@@ -156,7 +154,7 @@ export async function PATCH(
       await createNotifications({
         type: NotificationType.order_cancelled,
         title: "Pedido cancelado",
-        body: `El pedido ${updated.id} fue cancelado${updated.cancelledReason ? `: ${updated.cancelledReason}` : ""}.`,
+        body: `El pedido #${updated.id.slice(0, 8).toUpperCase()} fue cancelado${updated.cancelledReason ? `: ${updated.cancelledReason}` : ""}.`,
         metadata: {
           orderId: updated.id,
           customerId: updated.customer?.id ?? null,
