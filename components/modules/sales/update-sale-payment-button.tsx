@@ -185,11 +185,12 @@ export function UpdateSalePaymentButton({
 
               if (changeInSaleCurrency > 0.01) {
                 return (
-                  <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Cambio a devolver:{" "}
                     <CurrencyDisplay
                       amount={changeInSaleCurrency}
                       currency={currency}
+                      size="sm"
                     />
                   </p>
                 )
