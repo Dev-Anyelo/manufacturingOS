@@ -1,5 +1,6 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
+
 import {
   ArrowRightIcon,
   BarChart3Icon,
@@ -13,7 +14,7 @@ import {
   ScissorsIcon,
   TriangleAlertIcon,
   WalletIcon,
-  CheckIcon,
+  CheckCheckIcon,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -43,57 +44,68 @@ const configMap = {
   [NotificationType.LowStock]: {
     icon: TriangleAlertIcon,
     iconClassName: "text-amber-500",
-    toneClassName: "border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-500/10",
+    toneClassName:
+      "border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-500/10",
   },
   [NotificationType.OutOfStock]: {
     icon: CircleSlash2Icon,
     iconClassName: "text-red-500",
-    toneClassName: "border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-500/10",
+    toneClassName:
+      "border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-500/10",
   },
   [NotificationType.OrderReady]: {
     icon: CheckCircle2Icon,
     iconClassName: "text-emerald-500",
-    toneClassName: "border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-500/10",
+    toneClassName:
+      "border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-500/10",
   },
   [NotificationType.OrderOverdue]: {
     icon: Clock3Icon,
     iconClassName: "text-red-500",
-    toneClassName: "border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-500/10",
+    toneClassName:
+      "border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-500/10",
   },
   [NotificationType.SaleCompleted]: {
     icon: BadgeDollarSignIcon,
     iconClassName: "text-green-500",
-    toneClassName: "border-green-200 bg-green-50 dark:border-green-900/50 dark:bg-green-500/10",
+    toneClassName:
+      "border-green-200 bg-green-50 dark:border-green-900/50 dark:bg-green-500/10",
   },
   [NotificationType.ProductionSaved]: {
     icon: ScissorsIcon,
     iconClassName: "text-sky-500",
-    toneClassName: "border-sky-200 bg-sky-50 dark:border-sky-900/50 dark:bg-sky-500/10",
+    toneClassName:
+      "border-sky-200 bg-sky-50 dark:border-sky-900/50 dark:bg-sky-500/10",
   },
   [NotificationType.PaymentDue]: {
     icon: WalletIcon,
     iconClassName: "text-violet-500",
-    toneClassName: "border-violet-200 bg-violet-50 dark:border-violet-900/50 dark:bg-violet-500/10",
+    toneClassName:
+      "border-violet-200 bg-violet-50 dark:border-violet-900/50 dark:bg-violet-500/10",
   },
   [NotificationType.MonthlyReport]: {
     icon: BarChart3Icon,
     iconClassName: "text-indigo-500",
-    toneClassName: "border-indigo-200 bg-indigo-50 dark:border-indigo-900/50 dark:bg-indigo-500/10",
+    toneClassName:
+      "border-indigo-200 bg-indigo-50 dark:border-indigo-900/50 dark:bg-indigo-500/10",
   },
   [NotificationType.InventoryUpdated]: {
     icon: Package2Icon,
     iconClassName: "text-slate-500",
-    toneClassName: "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-500/10",
+    toneClassName:
+      "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-500/10",
   },
   [NotificationType.ExpenseRecorded]: {
     icon: ReceiptTextIcon,
     iconClassName: "text-amber-600",
-    toneClassName: "border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-500/10",
+    toneClassName:
+      "border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-500/10",
   },
   [NotificationType.OrderCancelled]: {
     icon: CircleSlash2Icon,
     iconClassName: "text-zinc-500",
-    toneClassName: "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-500/10",
+    toneClassName:
+      "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-500/10",
   },
 } satisfies Record<
   NotificationType,
@@ -224,7 +236,7 @@ export function NotificationPanel({
   const renderNotificationList = (emptyStateMessage: string) => {
     if (filteredItems.length === 0) {
       return (
-        <div className="flex min-h-60 flex-col items-center justify-center p-6 text-center animate-in fade-in">
+        <div className="flex min-h-60 animate-in flex-col items-center justify-center p-6 text-center fade-in">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <BellIcon className="h-6 w-6 text-muted-foreground/60" />
           </div>
@@ -257,7 +269,7 @@ export function NotificationPanel({
                       void handleNotificationClick(item)
                     }}
                     className={cn(
-                      "group flex w-full items-start gap-3 rounded-xl p-2.5 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring hover:bg-muted/60 active:scale-[0.98]",
+                      "group flex w-full items-start gap-3 rounded-xl p-2.5 text-left transition-all outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98]",
                       !item.read && "bg-primary/5 hover:bg-primary/10"
                     )}
                   >
@@ -270,7 +282,7 @@ export function NotificationPanel({
                       <Icon className={cn("h-4 w-4", config.iconClassName)} />
                     </div>
 
-                    <div className="flex-1 space-y-1 min-w-0">
+                    <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-start justify-between gap-2">
                         <p
                           className={cn(
@@ -281,7 +293,7 @@ export function NotificationPanel({
                           {item.title}
                         </p>
                         {actionUrl ? (
-                          <ArrowRightIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+                          <ArrowRightIcon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
                         ) : null}
                       </div>
 
@@ -298,7 +310,7 @@ export function NotificationPanel({
                               amount={(item.metadata as any).total}
                               currency={(item.metadata as any).currency}
                               size="sm"
-                              className="text-primary font-semibold"
+                              className="font-semibold text-primary"
                             />
                           </div>
                         )}
@@ -334,15 +346,15 @@ export function NotificationPanel({
   }
 
   return (
-    <div className="flex h-[88vh] flex-col overflow-hidden bg-background rounded-xl sm:max-h-[calc(100vh-6rem)]">
+    <div className="flex h-[88vh] flex-col overflow-hidden rounded-xl bg-background sm:max-h-[calc(100vh-6rem)]">
       <div className="shrink-0 space-y-3 px-4 py-4 sm:px-5 sm:py-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold tracking-tight text-foreground">
               Notificaciones
             </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground text-pretty">
-              Mantente al día con las operaciones del taller.
+            <p className="mt-0.5 text-xs text-pretty text-muted-foreground">
+              Mantente al día con las operaciones.
             </p>
           </div>
 
@@ -351,9 +363,9 @@ export function NotificationPanel({
               variant="secondary"
               size="sm"
               onClick={onMarkAllAsRead}
-              className="h-8 shrink-0 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary/80"
+              className="h-8 shrink-0 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary/80 hover:text-foreground"
             >
-              <CheckIcon className="mr-1.5 h-3.5 w-3.5" />
+              <CheckCheckIcon className="size-3.5" />
               Marcar todo
             </Button>
           )}
@@ -375,7 +387,7 @@ export function NotificationPanel({
               {unreadCount > 0 && (
                 <Badge
                   variant="default"
-                  className="ml-2 h-4 min-w-4 px-1 rounded-full text-[9px] font-bold"
+                  className="ml-2 h-4 min-w-4 rounded-full px-1 text-[9px] font-bold"
                 >
                   {unreadCount}
                 </Badge>
@@ -409,4 +421,3 @@ export function NotificationPanel({
     </div>
   )
 }
-

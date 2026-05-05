@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { MediaUpload } from "@/components/shared/media-upload"
 import { useSystemSettings } from "@/hooks/use-system-settings"
 import type { PosCustomer } from "@/components/modules/sales/types"
 import { CurrencySelector } from "@/components/shared/currency-selector"
@@ -18,7 +19,6 @@ import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { getCurrencySymbol, formatDateNI } from "@/lib/currency/exchange"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { MediaUpload } from "@/components/shared/media-upload"
 
 import {
   Popover,
@@ -29,14 +29,12 @@ import {
 import {
   Loader2,
   Calendar as CalendarIcon,
-  User,
   Banknote,
   Plus,
   Minus,
   CreditCard,
   Clock,
   Scissors,
-  Receipt,
 } from "lucide-react"
 
 const payrollFormSchema = z
@@ -202,8 +200,6 @@ export function PayrollForm({
     }
   }, [employees, form, selectedEmployeeId])
 
-
-
   async function onSubmit(values: PayrollFormOutput) {
     setIsSubmitting(true)
 
@@ -279,21 +275,29 @@ export function PayrollForm({
 
       {/* Tabbed Form */}
       <Tabs defaultValue="employee" className="w-full">
-        <TabsList className="mb-4 grid w-full grid-cols-3">
-          <TabsTrigger value="employee" className="gap-1.5 text-xs sm:text-sm">
-            <User className="size-3.5" />
+        <TabsList className="mb-2 grid w-full grid-cols-4">
+          <TabsTrigger
+            value="employee"
+            className="gap-0 text-xs sm:text-sm md:gap-1.5"
+          >
             Empleado
           </TabsTrigger>
-          <TabsTrigger value="amounts" className="gap-1.5 text-xs sm:text-sm">
-            <Banknote className="size-3.5" />
+          <TabsTrigger
+            value="amounts"
+            className="gap-0 text-xs sm:text-sm md:gap-1.5"
+          >
             Montos
           </TabsTrigger>
-          <TabsTrigger value="metrics" className="gap-1.5 text-xs sm:text-sm">
-            <Clock className="size-3.5" />
+          <TabsTrigger
+            value="metrics"
+            className="gap-0 text-xs sm:text-sm md:gap-1.5"
+          >
             Métricas
           </TabsTrigger>
-          <TabsTrigger value="media" className="gap-1.5 text-xs sm:text-sm">
-            <Receipt className="size-3.5" />
+          <TabsTrigger
+            value="media"
+            className="gap-0 text-xs sm:text-sm md:gap-1.5"
+          >
             Comprobante
           </TabsTrigger>
         </TabsList>
@@ -612,14 +616,14 @@ export function PayrollForm({
           <div className="m-0 border-none bg-none p-0">
             {/* Campo oculto para asegurar captura */}
             <input type="hidden" {...form.register("receipt_url")} />
-            
+
             <MediaUpload
               bucketType="payroll"
               currentValue={form.watch("receipt_url") || undefined}
               onUploadComplete={(path) => {
-                form.setValue("receipt_url", path as string, { 
-                  shouldDirty: true, 
-                  shouldValidate: true 
+                form.setValue("receipt_url", path as string, {
+                  shouldDirty: true,
+                  shouldValidate: true,
                 })
               }}
               label="Comprobante de pago"

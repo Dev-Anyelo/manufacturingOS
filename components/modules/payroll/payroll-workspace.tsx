@@ -3,6 +3,7 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -12,7 +13,6 @@ import { KpiSection } from "@/components/shared/kpi-section"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { Currency } from "@prisma/client"
 import { PayrollForm } from "@/components/modules/payroll/payroll-form"
 import { MarkPaidDialog } from "@/components/modules/payroll/mark-paid-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -97,15 +97,15 @@ export function PayrollWorkspace({
   const totalPendingAmount = payments
     .filter((p) => p.status === "pending")
     .reduce((acc, p) => {
-      // For simplicity in the banner, we sum everything. 
+      // For simplicity in the banner, we sum everything.
       // But we should really convert.
-      // Since totalPendingAmount is used in a banner, I'll pass it to CurrencyDisplay 
+      // Since totalPendingAmount is used in a banner, I'll pass it to CurrencyDisplay
       // and it will handle the conversion if needed, but we need to know the source currency.
       // Actually, if we have multiple currencies in pending payments, a single number is hard.
       // I'll assume totalPendingAmount is in USD for the KPI banner if we want a single number.
       return acc + p.total // This is wrong if currencies are mixed.
     }, 0)
-    
+
   // Better: Calculate total pending in USD
   const totalPendingInUSD = payments
     .filter((p) => p.status === "pending")
@@ -195,8 +195,8 @@ export function PayrollWorkspace({
           <span className="text-amber-800 dark:text-amber-200">
             Monto pendiente de pago:{" "}
             <strong className="tabular-nums">
-              <CurrencyDisplay 
-                amount={totalPendingInUSD} 
+              <CurrencyDisplay
+                amount={totalPendingInUSD}
                 className="inline-block"
                 showDual={true}
               />
@@ -234,7 +234,7 @@ export function PayrollWorkspace({
         </TabsContent>
 
         <TabsContent value="employees">
-          <Card className="rounded-xl border border-border shadow-sm pt-0">
+          <Card className="rounded-xl border border-border pt-0 shadow-sm">
             <CardHeader className="border-b border-border px-4 pt-4 pb-3">
               <div className="flex items-center gap-2">
                 <ClipboardListIcon className="size-4 text-muted-foreground" />
@@ -271,7 +271,10 @@ export function PayrollWorkspace({
                       <p className="text-sm font-medium">{row.employeeName}</p>
                     </div>
                     <div className="text-sm font-bold tabular-nums">
-                      <CurrencyDisplay amount={row.total} currency={Currency.USD} />
+                      <CurrencyDisplay
+                        amount={row.total}
+                        currency={Currency.USD}
+                      />
                     </div>
                   </div>
                 ))

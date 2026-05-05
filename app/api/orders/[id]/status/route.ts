@@ -18,7 +18,6 @@ import {
   resolveRouteParams,
 } from "@/lib/api/response"
 
-
 const validTransitions: Record<WorkOrderStatus, WorkOrderStatus[]> = {
   [WorkOrderStatus.received]: [
     WorkOrderStatus.confirmed,
@@ -68,7 +67,35 @@ export async function PATCH(
 
     if (!allowed.includes(nextStatus)) {
       throw new ApiRouteError(
-        `No se permite cambiar de ${currentOrder.status} a ${nextStatus}.`,
+        `No se permite cambiar de estado "${
+          currentOrder.status === WorkOrderStatus.confirmed
+            ? "Confirmado"
+            : currentOrder.status === WorkOrderStatus.in_production
+              ? "En producción"
+              : currentOrder.status === WorkOrderStatus.ready
+                ? "Listo"
+                : currentOrder.status === WorkOrderStatus.delivered
+                  ? "Entregado"
+                  : currentOrder.status === WorkOrderStatus.cancelled
+                    ? "Cancelado"
+                    : currentOrder.status === WorkOrderStatus.received
+                      ? "Recibido"
+                      : ""
+        }" a "${
+          nextStatus === WorkOrderStatus.confirmed
+            ? "Confirmado"
+            : nextStatus === WorkOrderStatus.in_production
+              ? "En producción"
+              : nextStatus === WorkOrderStatus.ready
+                ? "Listo"
+                : nextStatus === WorkOrderStatus.delivered
+                  ? "Entregado"
+                  : nextStatus === WorkOrderStatus.cancelled
+                    ? "Cancelado"
+                    : nextStatus === WorkOrderStatus.received
+                      ? "Recibido"
+                      : ""
+        }"`,
         422
       )
     }
