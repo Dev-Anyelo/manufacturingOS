@@ -14,6 +14,7 @@ import { SaleReceipt } from "@/components/modules/sales/sale-receipt"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { convertAmount, getCurrencySymbol } from "@/lib/currency/exchange"
 import { PosCatalogPanel } from "@/components/modules/sales/pos-catalog-panel"
+import { VariantSelector } from "@/components/modules/sales/variant-selector"
 
 import {
   Drawer,
@@ -35,15 +36,26 @@ interface PosInterfaceProps {
   customers: PosCustomer[]
 }
 
-function createCartItem(catalogItem: PosCatalogItem): PosCartItem {
+function createCartItem(
+  catalogItem: PosCatalogItem,
+  finishedGoodStockId?: string,
+  size?: string,
+  color?: string | null,
+  variantLabel?: string,
+  maxQuantity?: number
+): PosCartItem {
   return {
     rowId: crypto.randomUUID(),
     catalogItemId: catalogItem.id,
+    finishedGoodStockId: finishedGoodStockId || null,
+    variantLabel: variantLabel || null,
+    maxQuantity: maxQuantity ?? null,
     name: catalogItem.name,
     garmentType: catalogItem.garmentType,
     unitPrice: catalogItem.salePrice,
     quantity: 1,
-    size: "",
+    size: size || "",
+    color: color || null,
     discount: 0,
     imageUrl: catalogItem.imageUrl,
   }
@@ -87,6 +99,9 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   const [currency, setCurrency] = React.useState<Currency>(
     settings?.baseCurrency || (Currency.USD as Currency)
   )
+  const [variantSelectorOpen, setVariantSelectorOpen] = React.useState(false)
+  const [selectedItemForVariant, setSelectedItemForVariant] =
+    React.useState<PosCatalogItem | null>(null)
 
   React.useEffect(() => {
     setCustomerOptions(customers)
@@ -132,6 +147,14 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     (paymentMethod !== "credit" || Boolean(dueDate))
 
   function handleAddItem(catalogItem: PosCatalogItem) {
+    // If item has variants, open variant selector
+    if (catalogItem.finishedGoods && catalogItem.finishedGoods.length > 0) {
+      setSelectedItemForVariant(catalogItem)
+      setVariantSelectorOpen(true)
+      return
+    }
+
+    // Otherwise, add directly to cart
     setAddCounts((previous) => ({
       ...previous,
       [catalogItem.id]: (previous[catalogItem.id] ?? 0) + 1,
@@ -171,7 +194,14 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
   function handleIncreaseQuantity(rowId: string) {
     setCartItems((previous) =>
       previous.map((item) =>
-        item.rowId === rowId ? { ...item, quantity: item.quantity + 1 } : item
+        item.rowId === rowId
+          ? {
+              ...item,
+              quantity: item.maxQuantity
+                ? Math.min(item.quantity + 1, item.maxQuantity)
+                : item.quantity + 1,
+            }
+          : item
       )
     )
   }
@@ -190,14 +220,78 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     )
   }
 
-  function handleRemoveItem(rowId: string) {
-    setCartItems((previous) => previous.filter((item) => item.rowId !== rowId))
-  }
-
   function handleSizeChange(rowId: string, size: string) {
     setCartItems((previous) =>
       previous.map((item) => (item.rowId === rowId ? { ...item, size } : item))
     )
+  }
+
+  function handleRemoveItem(rowId: string) {
+    setCartItems((previous) => previous.filter((item) => item.rowId !== rowId))
+  }
+
+  function handleSelectVariant(params: {
+    finishedGoodStockId: string
+    size: string
+    color: string | null
+    quantity: number
+    variantLabel: string
+    maxQuantity: number
+  }) {
+    if (!selectedItemForVariant) return
+
+    const catalogItem = selectedItemForVariant
+
+    setAddCounts((previous) => ({
+      ...previous,
+      [catalogItem.id]: (previous[catalogItem.id] ?? 0) + 1,
+    }))
+
+    // Convert price if catalog item currency differs from current POS currency
+    const itemUnitPrice =
+      convertAmount(
+        catalogItem.salePrice,
+        catalogItem.salePriceCurrency,
+        currency,
+        rateMap
+      ) ?? catalogItem.salePrice
+
+    setCartItems((previous) => {
+      const existingIndex = previous.findIndex(
+        (item) => item.finishedGoodStockId === params.finishedGoodStockId
+      )
+
+      if (existingIndex === -1) {
+        const created = {
+          ...createCartItem(
+            selectedItemForVariant!,
+            params.finishedGoodStockId,
+            params.size,
+            params.color,
+            params.variantLabel,
+            params.maxQuantity
+          ),
+          quantity: params.quantity,
+          unitPrice: itemUnitPrice,
+        }
+        setHighlightRowId(created.rowId)
+        return [created, ...previous]
+      }
+
+      const next = [...previous]
+      const existing = next[existingIndex]
+      next[existingIndex] = {
+        ...existing,
+        quantity: Math.min(
+          existing.quantity + params.quantity,
+          existing.maxQuantity ?? Number.MAX_SAFE_INTEGER
+        ),
+      }
+      setHighlightRowId(existing.rowId)
+      return next
+    })
+
+    setSelectedItemForVariant(null)
   }
 
   function resetPos() {
@@ -210,7 +304,6 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     setReceivedAmount(0)
     setAmountPaid(0)
     setDueDate("")
-    setNotes("")
     setNotes("")
     setCurrency(settings?.baseCurrency || (Currency.USD as Currency))
     setReceiptOpen(false)
@@ -330,8 +423,10 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
           notes: saleNotes || null,
           items: cartItems.map((item) => ({
             catalog_item_id: item.catalogItemId,
+            finished_good_stock_id: item.finishedGoodStockId,
             description: item.name,
             size: item.size || null,
+            color: item.color || null,
             quantity: item.quantity,
             unit_price: item.unitPrice,
             unit_price_currency: currency,
@@ -370,6 +465,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
           unitPrice: item.unitPrice,
           unitPriceCurrency: currency, // En POS, los items se convierten a la moneda de la transaccion
           size: item.size,
+          color: item.color,
           subtotal: item.unitPrice * item.quantity,
         })),
       })
@@ -632,6 +728,16 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
         onOpenChange={setReceiptOpen}
         receipt={receiptData}
         onNewSale={resetPos}
+      />
+
+      <VariantSelector
+        open={variantSelectorOpen}
+        onOpenChange={setVariantSelectorOpen}
+        itemName={selectedItemForVariant?.name ?? ""}
+        variants={selectedItemForVariant?.finishedGoods ?? []}
+        selectedSize=""
+        selectedColor={null}
+        onSelectVariant={handleSelectVariant}
       />
     </>
   )

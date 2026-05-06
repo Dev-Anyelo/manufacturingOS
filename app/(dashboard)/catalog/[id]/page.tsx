@@ -1,12 +1,12 @@
 import Link from "next/link"
 import Image from "next/image"
-import { cn } from "@/lib/utils"
 import { GARMENT_TYPES } from "@/types"
 import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCatalogItem } from "@/lib/data/catalog"
+import { cn, getGarmetTypeLabel } from "@/lib/utils"
 import { getStorageUrl } from "@/lib/storage/upload"
 import { Currency, GarmentType } from "@prisma/client"
 import { EmptyState } from "@/components/shared/empty-state"
@@ -92,23 +92,7 @@ export default async function CatalogDetailPage({
                     Tipo de Prenda
                   </p>
                   <p className="mt-1 flex items-baseline gap-1 text-sm font-medium">
-                    {item.garmentType === GarmentType.blankets
-                      ? "Algodón"
-                      : item.garmentType === GarmentType.sheets
-                        ? "Sábanas"
-                        : item.garmentType === GarmentType.pajamas
-                          ? "Pijamas"
-                          : item.garmentType === GarmentType.shirt
-                            ? "Camisa"
-                            : item.garmentType === GarmentType.shorts
-                              ? "Shorts"
-                              : item.garmentType === GarmentType.skirt
-                                ? "Falda"
-                                : item.garmentType === GarmentType.suit
-                                  ? "Traje"
-                                  : item.garmentType === GarmentType.leggings
-                                    ? "Leggings"
-                                    : "Otro"}
+                    {getGarmetTypeLabel(item.garmentType as GarmentType)}
                   </p>
                 </div>
                 <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/40">

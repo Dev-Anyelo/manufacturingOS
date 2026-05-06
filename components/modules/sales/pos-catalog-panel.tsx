@@ -49,11 +49,27 @@ const sortLabels: Record<CatalogSort, string> = {
   price_desc: "Precio (mayor)",
 }
 
-function getStockStatus(stock: number | null | undefined) {
-  if (stock === null || stock === undefined) return null
-  if (stock <= 0) return { color: "bg-danger", label: "Agotado" }
-  if (stock <= 5) return { color: "bg-warning", label: "Poco stock" }
-  return { color: "bg-success", label: "En stock" }
+function getStockStatus(item: PosCatalogItem) {
+  if (!item.finishedGoods || item.finishedGoods.length === 0) {
+    return null
+  }
+
+  const variants = item.finishedGoods as Array<{
+    stock: number
+    minimumStock?: number
+  }>
+
+  const totalStock = variants.reduce((sum, variant) => sum + variant.stock, 0)
+  const totalMinimumStock = variants.reduce(
+    (sum, variant) => sum + (variant.minimumStock ?? 0),
+    0
+  )
+
+  if (totalStock === 0) return { color: "bg-danger", label: "Sin stock" }
+  if (totalStock <= totalMinimumStock)
+    return { color: "bg-warning", label: "Stock bajo" }
+
+  return { color: "bg-success", label: "en stock" }
 }
 
 export function PosCatalogPanel({
@@ -297,7 +313,8 @@ function CatalogProductCard({
   currency: Currency
   exchangeRate: number
 }) {
-  const stockStatus = getStockStatus(item.stock)
+  const stockStatus = getStockStatus(item)
+  const totalStock = item.finishedGoods?.reduce((sum, variant) => sum + variant.stock, 0)
 
   // Build rate map for convertAmount function
   const rateMap: Record<string, number> = {
@@ -361,12 +378,12 @@ function CatalogProductCard({
                   className={cn("size-2 rounded-full", stockStatus.color)}
                 />
                 <span className="text-xs font-medium text-muted-foreground">
-                  {item.stock} {stockStatus.label}
+                  {totalStock} {stockStatus.label}
                 </span>
               </div>
             ) : (
               <span className="text-xs font-medium text-muted-foreground">
-                Stock ilimitado
+                Sin variantes
               </span>
             )}
           </div>
@@ -387,7 +404,8 @@ function CatalogProductRow({
   currency: Currency
   exchangeRate: number
 }) {
-  const stockStatus = getStockStatus(item.stock)
+  const stockStatus = getStockStatus(item)
+  const totalStock = item.finishedGoods?.reduce((sum, variant) => sum + variant.stock, 0)
 
   // Build rate map for convertAmount function
   const rateMap: Record<string, number> = {
@@ -434,12 +452,12 @@ function CatalogProductRow({
             <div className="flex items-center gap-1.5">
               <span className={cn("size-2 rounded-full", stockStatus.color)} />
               <span className="text-xs font-medium text-muted-foreground">
-                {item.stock} disp.
+                {totalStock} disp.
               </span>
             </div>
           ) : (
             <span className="text-xs font-medium text-muted-foreground">
-              Ilimitado
+              Sin variantes
             </span>
           )}
         </div>

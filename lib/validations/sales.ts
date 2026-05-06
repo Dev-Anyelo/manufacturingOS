@@ -7,6 +7,11 @@ export const saleItemSchema = z.object({
     .uuid("El item de catalogo no es valido")
     .optional()
     .nullable(),
+  finished_good_stock_id: z
+    .string()
+    .uuid("El stock de producto terminado no es valido")
+    .optional()
+    .nullable(),
   description: z
     .string()
     .trim()
@@ -15,6 +20,12 @@ export const saleItemSchema = z.object({
     .string()
     .trim()
     .max(30, "La talla no puede exceder 30 caracteres")
+    .optional()
+    .nullable(),
+  color: z
+    .string()
+    .trim()
+    .max(80, "El color no puede exceder 80 caracteres")
     .optional()
     .nullable(),
   quantity: z.coerce
@@ -87,7 +98,9 @@ export const saleSchema = z
         item.discount_currency,
         value.total_currency
       )
-      return acc + priceInTotalCurrency * item.quantity - discountInTotalCurrency
+      return (
+        acc + priceInTotalCurrency * item.quantity - discountInTotalCurrency
+      )
     }, 0)
 
     const discountInTotalCurrency = convertAmount(

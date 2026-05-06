@@ -213,22 +213,22 @@ model Employee {
 }
 
 model InventoryItem {
-  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name              String
-  category          MaterialCategory
-  fabricType        String?           @map("fabric_type")
-  color             String?
-  quantity          Decimal           @default(0) @db.Decimal(12, 2)
-  unit              String            @default("yd")
-  unitPrice         Decimal           @default(0) @map("unit_price") @db.Decimal(12, 2)
-  unitPriceCurrency Currency          @default(USD) @map("unit_price_currency")
-  minimumStock      Decimal           @default(0) @map("minimum_stock") @db.Decimal(12, 2)
-  supplier          String?
-  notes             String?
-  imageUrl          String?           @map("image_url")
-  isActive          Boolean           @default(true) @map("is_active")
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                   String
+  category               MaterialCategory
+  fabricType             String?                 @map("fabric_type")
+  color                  String?
+  quantity               Decimal                 @default(0) @db.Decimal(12, 2)
+  unit                   String                  @default("yd")
+  unitPrice              Decimal                 @default(0) @map("unit_price") @db.Decimal(12, 2)
+  unitPriceCurrency      Currency                @default(USD) @map("unit_price_currency")
+  minimumStock           Decimal                 @default(0) @map("minimum_stock") @db.Decimal(12, 2)
+  supplier               String?
+  notes                  String?
+  imageUrl               String?                 @map("image_url")
+  isActive               Boolean                 @default(true) @map("is_active")
+  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
   inventoryMovements     InventoryMovement[]
   productionSessionItems ProductionSessionItem[]
   workOrderItems         WorkOrderItem[]
@@ -265,37 +265,37 @@ model Customer {
   createdAt              DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt              DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
   sales                  Sale[]
-  workOrders     WorkOrder[]
+  workOrders             WorkOrder[]
 
   @@map("customers")
 }
 
 model CatalogItem {
-  id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                       String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                     String
   description              String?
-  garmentType              String?   @map("garment_type")
-  marketPriceUnit          Decimal?  @map("market_price_unit") @db.Decimal(12, 2)
-  marketPriceUnitCurrency  Currency? @default(USD) @map("market_price_unit_currency")
-  marketPriceDozen         Decimal?  @map("market_price_dozen") @db.Decimal(12, 2)
-  marketPriceDozenCurrency Currency? @default(USD) @map("market_price_dozen_currency")
-  ourPriceUnit             Decimal?  @map("our_price_unit") @db.Decimal(12, 2)
-  ourPriceUnitCurrency     Currency? @default(USD) @map("our_price_unit_currency")
-  ourPriceDozen            Decimal?  @map("our_price_dozen") @db.Decimal(12, 2)
-  ourPriceDozenCurrency    Currency? @default(USD) @map("our_price_dozen_currency")
-  salePrice                Decimal   @default(0) @map("sale_price") @db.Decimal(12, 2)
-  salePriceCurrency        Currency  @default(USD) @map("sale_price_currency")
-  estimatedCost            Decimal?  @map("estimated_cost") @db.Decimal(12, 2)
-  estimatedCostCurrency    Currency? @default(USD) @map("estimated_cost_currency")
-  imageUrl                 String?   @map("image_url")
-  notes                  String?
-  isActive               Boolean                 @default(true) @map("is_active")
-  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
-  saleItems              SaleItem[]
-  workOrderItems         WorkOrderItem[]
-  finishedGoods          FinishedGoodStock[]
-  productionSessionItems ProductionSessionItem[]
+  garmentType              String?                 @map("garment_type")
+  marketPriceUnit          Decimal?                @map("market_price_unit") @db.Decimal(12, 2)
+  marketPriceUnitCurrency  Currency?               @default(USD) @map("market_price_unit_currency")
+  marketPriceDozen         Decimal?                @map("market_price_dozen") @db.Decimal(12, 2)
+  marketPriceDozenCurrency Currency?               @default(USD) @map("market_price_dozen_currency")
+  ourPriceUnit             Decimal?                @map("our_price_unit") @db.Decimal(12, 2)
+  ourPriceUnitCurrency     Currency?               @default(USD) @map("our_price_unit_currency")
+  ourPriceDozen            Decimal?                @map("our_price_dozen") @db.Decimal(12, 2)
+  ourPriceDozenCurrency    Currency?               @default(USD) @map("our_price_dozen_currency")
+  salePrice                Decimal                 @default(0) @map("sale_price") @db.Decimal(12, 2)
+  salePriceCurrency        Currency                @default(USD) @map("sale_price_currency")
+  estimatedCost            Decimal?                @map("estimated_cost") @db.Decimal(12, 2)
+  estimatedCostCurrency    Currency?               @default(USD) @map("estimated_cost_currency")
+  imageUrl                 String?                 @map("image_url")
+  notes                    String?
+  isActive                 Boolean                 @default(true) @map("is_active")
+  createdAt                DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+  saleItems                SaleItem[]
+  workOrderItems           WorkOrderItem[]
+  finishedGoods            FinishedGoodStock[]
+  productionSessionItems   ProductionSessionItem[]
 
   @@map("catalog_items")
 }
@@ -322,6 +322,7 @@ model ProductionSessionItem {
   inventoryItemId String            @map("inventory_item_id") @db.Uuid
   garmentType     GarmentType       @map("garment_type")
   size            String
+  color           String?
   quantity        Int
   yardsUsed       Decimal           @map("yards_used") @db.Decimal(12, 2)
   isReuse         Boolean           @default(false) @map("is_reuse")
@@ -361,19 +362,21 @@ model Sale {
 }
 
 model SaleItem {
-  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  saleId            String       @map("sale_id") @db.Uuid
-  catalogItemId     String?      @map("catalog_item_id") @db.Uuid
-  description       String
-  size              String?
-  quantity          Int
-  unitPrice         Decimal      @map("unit_price") @db.Decimal(12, 2)
-  unitPriceCurrency Currency     @default(USD) @map("unit_price_currency")
-  discount          Decimal      @default(0) @db.Decimal(12, 2)
-  discountCurrency  Currency     @default(USD) @map("discount_currency")
-  subtotal          Decimal      @default(0) @db.Decimal(12, 2)
-  sale              Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  catalogItem       CatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  saleId              String             @map("sale_id") @db.Uuid
+  catalogItemId       String?            @map("catalog_item_id") @db.Uuid
+  finishedGoodStockId String?            @map("finished_good_stock_id") @db.Uuid
+  description         String
+  size                String?
+  quantity            Int
+  unitPrice           Decimal            @map("unit_price") @db.Decimal(12, 2)
+  unitPriceCurrency   Currency           @default(USD) @map("unit_price_currency")
+  discount            Decimal            @default(0) @db.Decimal(12, 2)
+  discountCurrency    Currency           @default(USD) @map("discount_currency")
+  subtotal            Decimal            @default(0) @db.Decimal(12, 2)
+  sale                Sale               @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  catalogItem         CatalogItem?       @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+  finishedGoodStock   FinishedGoodStock? @relation(fields: [finishedGoodStockId], references: [id], onDelete: SetNull)
 
   @@map("sale_items")
 }
@@ -394,12 +397,12 @@ model WorkOrder {
   referenceImages     String[]         @default([]) @map("reference_images")
   notes               String?
   cancelledReason     String?          @map("cancelled_reason")
-  createdBy         String?       @map("created_by") @db.Uuid
-  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  customer          Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  createdByProfile  Profile?         @relation("WorkOrderCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  items             WorkOrderItem[]
+  createdBy           String?          @map("created_by") @db.Uuid
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  customer            Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdByProfile    Profile?         @relation("WorkOrderCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  items               WorkOrderItem[]
 
   @@map("work_orders")
 }
@@ -469,10 +472,10 @@ model PayrollPayment {
   paymentDate        DateTime?             @map("payment_date") @db.Date
   paymentMethod      PayrollPaymentMethod? @map("payment_method")
   notes              String?
-  receiptUrl       String?               @map("receipt_url")
-  createdBy        String?               @map("created_by") @db.Uuid
-  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  receiptUrl         String?               @map("receipt_url")
+  createdBy          String?               @map("created_by") @db.Uuid
+  createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
   employee           Employee              @relation(fields: [employeeId], references: [id], onDelete: Restrict)
   createdByProfile   Profile?              @relation("PayrollPaymentCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
   expenses           Expense[]
@@ -555,6 +558,7 @@ model FinishedGoodStock {
 
   catalogItem CatalogItem       @relation(fields: [catalogItemId], references: [id], onDelete: Cascade)
   movements   CatalogMovement[]
+  saleItems   SaleItem[]
 
   @@unique([catalogItemId, garmentType, size, color])
   @@map("finished_good_stock")
@@ -569,7 +573,7 @@ model CatalogMovement {
   newQuantity         Int                   @map("new_quantity")
   reason              String?
   createdBy           String?               @map("created_by") @db.Uuid
-  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
 
   finishedGoodStock FinishedGoodStock @relation(fields: [finishedGoodStockId], references: [id], onDelete: Restrict)
   createdByProfile  Profile?          @relation("CatalogMovementCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)

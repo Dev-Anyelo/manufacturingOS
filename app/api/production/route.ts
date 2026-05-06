@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { getGarmetTypeLabel } from "@/lib/utils"
 import { requirePermission } from "@/lib/api/require-permission"
 import { productionSessionSchema } from "@/lib/validations/production"
 
@@ -144,6 +145,8 @@ export async function POST(request: Request) {
         }
       }
 
+      const affectedFinishedGoodIds = new Set<string>()
+
       const createdSession = await tx.productionSession.create({
         data: {
           employeeId: payload.employee_id,
@@ -157,6 +160,7 @@ export async function POST(request: Request) {
               inventoryItemId: item.inventory_item_id,
               garmentType: item.garment_type,
               size: item.size,
+              color: item.color?.trim() || null,
               quantity: item.quantity,
               yardsUsed: toPrismaDecimal(item.yards_used),
               notes: item.notes
@@ -227,25 +231,7 @@ export async function POST(request: Request) {
         if (!catalogItem) {
           catalogItem = await tx.catalogItem.create({
             data: {
-              name: `${
-                item.garmentType === GarmentType.shirt
-                  ? "Camisa"
-                  : item.garmentType === GarmentType.skirt
-                    ? "Falda"
-                    : item.garmentType === GarmentType.shorts
-                      ? "Pantalones cortos"
-                      : item.garmentType === GarmentType.leggings
-                        ? "Leggings"
-                        : item.garmentType === GarmentType.pajamas
-                          ? "Pijamas"
-                          : item.garmentType === GarmentType.suit
-                            ? "Traje"
-                            : item.garmentType === GarmentType.sheets
-                              ? "Sábanas"
-                              : item.garmentType === GarmentType.blankets
-                                ? "Mantas"
-                                : "Otro"
-              }`,
+              name: `${getGarmetTypeLabel(item.garmentType as GarmentType)}`,
               garmentType: item.garmentType,
               isActive: true,
               salePrice: toPrismaDecimal(0),
@@ -256,8 +242,13 @@ export async function POST(request: Request) {
         // Link the item to the catalog item
         await tx.productionSessionItem.update({
           where: { id: item.id },
-          data: { catalogItemId: catalogItem.id },
+          data: {
+            catalogItemId: catalogItem.id,
+            color: sourceItem.color?.trim() || null,
+          },
         })
+
+        const normalizedColor = sourceItem.color?.trim() || null
 
         // Upsert FinishedGoodStock
         const existingFgs = await tx.finishedGoodStock.findFirst({
@@ -265,7 +256,7 @@ export async function POST(request: Request) {
             catalogItemId: catalogItem.id,
             garmentType: item.garmentType,
             size: item.size,
-            color: null,
+            color: normalizedColor,
           },
         })
 
@@ -288,12 +279,14 @@ export async function POST(request: Request) {
               catalogItemId: catalogItem.id,
               garmentType: item.garmentType,
               size: item.size,
-              color: null,
+              color: normalizedColor,
               stock: item.quantity,
             },
           })
           fgsId = newFgs.id
         }
+
+        affectedFinishedGoodIds.add(fgsId)
 
         // Log CatalogMovement
         await tx.catalogMovement.create({
@@ -317,7 +310,29 @@ export async function POST(request: Request) {
         },
       })
 
-      return createdSession
+      const affectedFinishedGoods = affectedFinishedGoodIds.size
+        ? await tx.finishedGoodStock.findMany({
+            where: {
+              id: { in: Array.from(affectedFinishedGoodIds) },
+            },
+            select: {
+              id: true,
+              stock: true,
+              minimumStock: true,
+              catalogItem: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          })
+        : []
+
+      return {
+        createdSession,
+        refreshedItems,
+        affectedFinishedGoods,
+      }
     })
 
     if (createdSessionId) {
@@ -384,22 +399,14 @@ export async function POST(request: Request) {
       })
     }
 
-    const refreshedItems = await prisma.inventoryItem.findMany({
-      where: {
-        id: {
-          in: payload.items.map((item) => item.inventory_item_id),
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        quantity: true,
-        minimumStock: true,
-      },
-    })
+    const { createdSession, refreshedItems, affectedFinishedGoods } = result
 
     const lowStockItems = refreshedItems.filter(
       (item) => Number(item.quantity) <= Number(item.minimumStock)
+    )
+
+    const lowFinishedGoods = affectedFinishedGoods.filter(
+      (item) => Number(item.stock) < Number(item.minimumStock)
     )
 
     for (const item of lowStockItems) {
@@ -428,7 +435,25 @@ export async function POST(request: Request) {
       })
     }
 
-    return apiSuccess(result, 201)
+    for (const item of lowFinishedGoods) {
+      await createNotifications({
+        type: NotificationType.low_stock,
+        title: "Stock critico de prenda",
+        body: `El stock de ${item.catalogItem.name ?? "la prenda"} esta por debajo del minimo.`,
+        metadata: {
+          finishedGoodStockId: item.id,
+          catalogItemName: item.catalogItem.name,
+          stock: Number(item.stock),
+          minimumStock: Number(item.minimumStock),
+          actionUrl: `/catalog`,
+          actionLabel: "Ver catálogo",
+        },
+        userIds: adminManagerIds,
+        sendEmail: true,
+      })
+    }
+
+    return apiSuccess(createdSession, 201)
   } catch (error) {
     return handleApiError(error)
   }

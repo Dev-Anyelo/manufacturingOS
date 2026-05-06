@@ -14,6 +14,8 @@ import {
   getUserIdsByRoles,
 } from "@/lib/services/notifications"
 
+import { ApiRouteError } from "@/lib/api/response"
+
 import {
   createMonetaryMetadata,
   createEntityMetadata,
@@ -174,25 +176,6 @@ export async function POST(request: Request) {
           status,
           notes: payload.notes,
           createdBy: profile.id,
-          items: {
-            create: payload.items.map((item) => {
-              const itemSubtotal = new Prisma.Decimal(item.unit_price)
-                .mul(item.quantity)
-                .sub(item.discount)
-
-              return {
-                catalogItemId: item.catalog_item_id,
-                description: item.description,
-                size: item.size,
-                quantity: item.quantity,
-                unitPriceCurrency: item.unit_price_currency,
-                unitPrice: toPrismaDecimal(item.unit_price),
-                discountCurrency: item.discount_currency,
-                discount: toPrismaDecimal(item.discount),
-                subtotal: itemSubtotal,
-              }
-            }),
-          },
         },
         include: {
           items: true,
@@ -201,25 +184,54 @@ export async function POST(request: Request) {
 
       const affectedFinishedGoodIds = new Set<string>()
 
-      // Deduct Finished Good Stock if catalog_item_id is present
+      // Deduct Finished Good Stock by id (preferred) or by catalog + variant data.
       for (const item of payload.items) {
-        if (!item.catalog_item_id) continue
+        const normalizedColor = item.color?.trim() || null
+        let resolvedFinishedGoodStockId: string | null = null
 
-        const fgs = await tx.finishedGoodStock.findFirst({
-          where: {
-            catalogItemId: item.catalog_item_id,
-            ...(item.size ? { size: item.size } : {}),
-          },
-          orderBy: { stock: "desc" },
-        })
+        let fgs =
+          item.finished_good_stock_id && !resolvedFinishedGoodStockId
+            ? await tx.finishedGoodStock.findUnique({
+                where: { id: item.finished_good_stock_id },
+                include: {
+                  catalogItem: {
+                    select: { name: true },
+                  },
+                },
+              })
+            : null
+
+        if (!fgs && item.catalog_item_id) {
+          fgs = await tx.finishedGoodStock.findFirst({
+            where: {
+              catalogItemId: item.catalog_item_id,
+              ...(item.size ? { size: item.size } : {}),
+              color: normalizedColor,
+            },
+            orderBy: { stock: "desc" },
+            include: {
+              catalogItem: {
+                select: { name: true },
+              },
+            },
+          })
+        }
 
         if (fgs) {
           const newStock = fgs.stock - item.quantity
+          if (newStock < 0) {
+            throw new ApiRouteError(
+              `No hay stock suficiente para ${fgs.catalogItem?.name ?? item.description}.`,
+              422
+            )
+          }
+
           await tx.finishedGoodStock.update({
             where: { id: fgs.id },
             data: { stock: newStock },
           })
           affectedFinishedGoodIds.add(fgs.id)
+          resolvedFinishedGoodStockId = fgs.id
 
           await tx.catalogMovement.create({
             data: {
@@ -233,6 +245,26 @@ export async function POST(request: Request) {
             },
           })
         }
+
+        const itemSubtotal = new Prisma.Decimal(item.unit_price)
+          .mul(item.quantity)
+          .sub(item.discount)
+
+        await tx.saleItem.create({
+          data: {
+            saleId: sale.id,
+            catalogItemId: item.catalog_item_id,
+            finishedGoodStockId: resolvedFinishedGoodStockId,
+            description: item.description,
+            size: item.size,
+            quantity: item.quantity,
+            unitPriceCurrency: item.unit_price_currency,
+            unitPrice: toPrismaDecimal(item.unit_price),
+            discountCurrency: item.discount_currency,
+            discount: toPrismaDecimal(item.discount),
+            subtotal: itemSubtotal,
+          },
+        })
       }
 
       const affectedFinishedGoods = affectedFinishedGoodIds.size
@@ -256,7 +288,7 @@ export async function POST(request: Request) {
         : []
 
       const lowFinishedGoods = affectedFinishedGoods.filter(
-        (item) => item.stock <= item.minimumStock
+        (item) => item.stock < item.minimumStock
       )
 
       // Update customer total purchases if applicable

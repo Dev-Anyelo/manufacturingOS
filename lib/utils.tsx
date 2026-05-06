@@ -1,6 +1,6 @@
 import { twMerge } from "tailwind-merge"
 import { clsx, type ClassValue } from "clsx"
-import { Currency, WorkOrderStatus } from "@prisma/client"
+import { Currency, GarmentType, WorkOrderStatus } from "@prisma/client"
 import { InventoryMovementEntry } from "@/components/modules/inventory/movement-history"
 import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
 
@@ -372,4 +372,27 @@ export interface StatusMeta {
   badge: string
   /** Clases utilitarias para el contenedor "card" del estado */
   card: string
+}
+
+export function getGarmetTypeLabel(type: GarmentType) {
+  switch (type) {
+    case GarmentType.shirt:
+      return "Camisa"
+    case GarmentType.skirt:
+      return "Falda"
+    case GarmentType.shorts:
+      return "Shorts"
+    case GarmentType.leggings:
+      return "Leggings"
+    case GarmentType.pajamas:
+      return "Pijamas"
+    case GarmentType.suit:
+      return "Traje"
+    case GarmentType.sheets:
+      return "Sábanas"
+    case GarmentType.blankets:
+      return "Edredones"
+    default:
+      return "Otro"
+  }
 }

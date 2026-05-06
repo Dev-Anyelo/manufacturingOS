@@ -33,6 +33,12 @@ const productionItemSchema = z
     size: z.enum(GARMENT_SIZES, {
       message: "Selecciona una talla valida",
     }),
+    color: z
+      .string()
+      .trim()
+      .max(80, "El color no puede exceder 80 caracteres")
+      .optional()
+      .nullable(),
     quantity: z.coerce
       .number({ message: "La cantidad es obligatoria" })
       .int("La cantidad debe ser un numero entero")

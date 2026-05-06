@@ -89,6 +89,7 @@ const productionFormSchema = z.object({
           "4XL",
           "Personalizada",
         ]),
+        color: z.string().trim().max(80).optional().nullable(),
         quantity: z.coerce.number().int().min(1),
         yards_used: z.coerce.number().min(0),
         is_reuse: z.boolean().default(false),
@@ -156,6 +157,7 @@ function emptyItem(): ProductionFormValues["items"][number] {
     inventory_item_id: "",
     garment_type: "shirt",
     size: "M",
+    color: "",
     quantity: 1,
     yards_used: 0,
     is_reuse: false,
@@ -279,6 +281,7 @@ export function ProductionForm({
           inventory_item_id: item.inventory_item_id,
           garment_type: item.garment_type,
           size: item.size,
+          color: normalizeOptional(item.color),
           quantity: Number(item.quantity),
           yards_used: Number(item.yards_used),
           is_reuse: item.is_reuse,
@@ -624,6 +627,18 @@ export function ProductionForm({
                       </div>
 
                       <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Color
+                        </Label>
+                        <Input
+                          type="text"
+                          {...form.register(`items.${index}.color`)}
+                          className="h-9 text-xs"
+                          placeholder="Ej. Rojo, Azul"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
                         <Label className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Scissors className="size-3" />
                           Piezas
@@ -654,37 +669,36 @@ export function ProductionForm({
                           className="h-9 text-xs"
                         />
                       </div>
-
                     </div>
-                      <div className="space-y-2 sm:col-span-2 mt-3">
-                        <div className="flex items-center gap-2 pt-1">
-                          <Checkbox
-                            id={`reuse-${field.id}`}
-                            checked={itemIsReuse}
-                            onCheckedChange={(checked) =>
-                              form.setValue(
-                                `items.${index}.is_reuse`,
-                                checked === true,
-                                {
-                                  shouldDirty: true,
-                                  shouldValidate: true,
-                                }
-                              )
-                            }
-                          />
-                          <Label
-                            htmlFor={`reuse-${field.id}`}
-                            className="cursor-pointer text-xs text-muted-foreground"
-                          >
-                            Reutilizando material de sesión anterior
-                          </Label>
-                        </div>
-                        {itemIsReuse ? (
-                          <p className="text-warning mt-1 text-xs">
-                            No se descontará del inventario
-                          </p>
-                        ) : null}
+                    <div className="mt-3 space-y-2 sm:col-span-2">
+                      <div className="flex items-center gap-2 pt-1">
+                        <Checkbox
+                          id={`reuse-${field.id}`}
+                          checked={itemIsReuse}
+                          onCheckedChange={(checked) =>
+                            form.setValue(
+                              `items.${index}.is_reuse`,
+                              checked === true,
+                              {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              }
+                            )
+                          }
+                        />
+                        <Label
+                          htmlFor={`reuse-${field.id}`}
+                          className="cursor-pointer text-xs text-muted-foreground"
+                        >
+                          Reutilizando material de sesión anterior
+                        </Label>
                       </div>
+                      {itemIsReuse ? (
+                        <p className="text-warning mt-1 text-xs">
+                          No se descontará del inventario
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                 )
               })}
@@ -722,4 +736,3 @@ export function ProductionForm({
     </form>
   )
 }
-

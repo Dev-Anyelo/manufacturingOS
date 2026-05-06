@@ -8,6 +8,13 @@ export interface PosCatalogItem {
   salePriceCurrency: Currency
   imageUrl: string | null
   stock?: number | null
+  finishedGoods?: Array<{
+    id: string
+    size: string
+    color: string | null
+    stock: number
+    minimumStock: number
+  }>
 }
 
 export interface PosCustomer {
@@ -20,11 +27,15 @@ export interface PosCustomer {
 export interface PosCartItem {
   rowId: string
   catalogItemId: string | null
+  finishedGoodStockId: string | null
+  variantLabel?: string | null
+  maxQuantity?: number | null
   name: string
   garmentType: string | null
   unitPrice: number
   quantity: number
   size: string
+  color: string | null
   discount: number
   imageUrl: string | null
 }
@@ -48,6 +59,7 @@ export interface SaleReceiptData {
     unitPrice: number
     unitPriceCurrency: Currency
     size: string
+    color: string | null
     subtotal: number
   }>
 }

@@ -1,6 +1,11 @@
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { NotificationType, SaleStatus, UserRole } from "@prisma/client"
+import {
+  InventoryMovementType,
+  NotificationType,
+  SaleStatus,
+  UserRole,
+} from "@prisma/client"
 
 import {
   createNotifications,
@@ -8,6 +13,7 @@ import {
 } from "@/lib/services/notifications"
 
 import {
+  ApiRouteError,
   apiSuccess,
   handleApiError,
   parseBodyWithSchema,
@@ -36,11 +42,76 @@ export async function PATCH(
     const payload = await parseBodyWithSchema(request, updateStatusSchema)
     const { id } = await resolveRouteParams(context.params)
 
-    const sale = await prisma.sale.update({
-      where: { id },
-      data: {
-        status: payload.status,
-      },
+    const sale = await prisma.$transaction(async (tx) => {
+      const currentSale = await tx.sale.findUnique({
+        where: { id },
+        include: {
+          items: {
+            include: {
+              finishedGoodStock: true,
+              catalogItem: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (!currentSale) {
+        throw new ApiRouteError("No se encontro la venta solicitada.", 404)
+      }
+
+      if (
+        payload.status === SaleStatus.cancelled &&
+        currentSale.status === SaleStatus.cancelled
+      ) {
+        throw new ApiRouteError("La venta ya estaba cancelada.", 409)
+      }
+
+      const updatedSale = await tx.sale.update({
+        where: { id },
+        data: {
+          status: payload.status,
+        },
+      })
+
+      if (
+        payload.status === SaleStatus.cancelled &&
+        currentSale.status !== SaleStatus.cancelled
+      ) {
+        for (const item of currentSale.items) {
+          if (!item.finishedGoodStockId || item.quantity <= 0) continue
+
+          const fgs = await tx.finishedGoodStock.findUnique({
+            where: { id: item.finishedGoodStockId },
+          })
+
+          if (!fgs) continue
+
+          const newStock = fgs.stock + item.quantity
+
+          await tx.finishedGoodStock.update({
+            where: { id: fgs.id },
+            data: { stock: newStock },
+          })
+
+          await tx.catalogMovement.create({
+            data: {
+              finishedGoodStockId: fgs.id,
+              movementType: InventoryMovementType.in,
+              quantity: item.quantity,
+              previousQuantity: fgs.stock,
+              newQuantity: newStock,
+              reason: `Cancelación de venta: #${updatedSale.id.slice(0, 8)}`,
+              createdBy: profile.id,
+            },
+          })
+        }
+      }
+
+      return updatedSale
     })
 
     if (payload.status === SaleStatus.paid) {

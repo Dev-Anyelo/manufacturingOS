@@ -89,6 +89,20 @@ export async function getSalesPosBootstrap() {
         salePrice: true,
         salePriceCurrency: true,
         imageUrl: true,
+        finishedGoods: {
+          select: {
+            id: true,
+            size: true,
+            color: true,
+            stock: true,
+            minimumStock: true,
+          },
+          where: {
+            stock: {
+              gt: 0,
+            },
+          },
+        },
       },
     }),
     prisma.customer.findMany({

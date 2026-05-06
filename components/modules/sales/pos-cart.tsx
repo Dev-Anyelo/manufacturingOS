@@ -278,6 +278,9 @@ export function PosCart(props: PosCartProps) {
                     onDecrease={() => onDecreaseQuantity(item.rowId)}
                     onRemove={() => onRemoveItem(item.rowId)}
                     onSizeChange={(size) => onSizeChange(item.rowId, size)}
+                    canIncrease={
+                      item.maxQuantity ? item.quantity < item.maxQuantity : true
+                    }
                     currency={currency}
                   />
                 ))}
@@ -291,7 +294,10 @@ export function PosCart(props: PosCartProps) {
               <Label className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 Canal
               </Label>
-              <Select value={channel} onValueChange={(v) => onChannelChange(v as SaleChannel)}>
+              <Select
+                value={channel}
+                onValueChange={(v) => onChannelChange(v as SaleChannel)}
+              >
                 <SelectTrigger className="h-10 w-full rounded-xl border-border/60 bg-background shadow-sm">
                   <SelectValue placeholder="Canal" />
                 </SelectTrigger>
@@ -426,7 +432,11 @@ export function PosCart(props: PosCartProps) {
                   <div className="flex items-center justify-between rounded-xl bg-muted px-4 py-2 font-medium">
                     <span className="text-sm">Cambio a devolver</span>
                     <span className="text-xl tracking-tight tabular-nums">
-                      <CurrencyDisplay amount={changeGiven} currency={currency} size="sm" />
+                      <CurrencyDisplay
+                        amount={changeGiven}
+                        currency={currency}
+                        size="sm"
+                      />
                     </span>
                   </div>
                 )}
@@ -574,7 +584,10 @@ export function PosCart(props: PosCartProps) {
                   <div className="flex items-center justify-between rounded-xl bg-brand px-4 py-3 font-black text-brand-foreground">
                     <span className="text-sm">Cambio a devolver</span>
                     <span className="text-xl tracking-tight tabular-nums">
-                      <CurrencyDisplay amount={changeGiven} currency={currency} />
+                      <CurrencyDisplay
+                        amount={changeGiven}
+                        currency={currency}
+                      />
                     </span>
                   </div>
                 )}
@@ -680,6 +693,7 @@ function CartItemRow({
   onDecrease,
   onRemove,
   onSizeChange,
+  canIncrease,
   currency,
 }: {
   item: PosCartItem
@@ -688,12 +702,13 @@ function CartItemRow({
   onDecrease: () => void
   onRemove: () => void
   onSizeChange: (size: string) => void
+  canIncrease: boolean
   currency: Currency
 }) {
   return (
     <div
       className={cn(
-        "group flex flex-col gap-3 border-b border-border/20 p-3 transition-colors last:border-0",
+        "group flex flex-col gap-3 border-b border-border/50 p-3 transition-colors last:border-0 hover:bg-muted/50 hover:rounded-lg hover:shadow-sm",
         highlighted && "bg-brand/5"
       )}
     >
@@ -719,6 +734,23 @@ function CartItemRow({
           <p className="line-clamp-2 text-sm leading-tight font-semibold text-foreground">
             {item.name}
           </p>
+          {item.variantLabel ? (
+            <p className="mt-0.5 text-xs text-muted-foreground">{item.variantLabel}</p>
+          ) : null}
+          {(item.size || item.color) && (
+            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+              {item.size && (
+                <Badge variant="outline" className="h-5 px-1.5 text-xs">
+                  {item.size}
+                </Badge>
+              )}
+              {item.color && (
+                <Badge variant="outline" className="h-5 px-1.5 text-xs">
+                  {item.color}
+                </Badge>
+              )}
+            </div>
+          )}
           <div className="mt-1 text-sm font-bold tracking-tight text-brand tabular-nums">
             <CurrencyDisplay amount={item.unitPrice} currency={currency} />
           </div>
@@ -771,6 +803,7 @@ function CartItemRow({
             variant="ghost"
             className="h-full w-12 rounded-none text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80"
             onClick={onIncrease}
+            disabled={!canIncrease}
             aria-label="Aumentar"
           >
             <PlusIcon className="size-5" />

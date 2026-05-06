@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { Prisma, GarmentType, InventoryMovementType } from "@prisma/client"
+import { Prisma, InventoryMovementType } from "@prisma/client"
 import { catalogItemSchema } from "@/lib/validations/catalog"
 import { requirePermission } from "@/lib/api/require-permission"
 import { getSearchParam, toPrismaDecimal } from "@/lib/api/utils"
@@ -50,9 +50,33 @@ export async function GET(request: Request) {
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        finishedGoods: {
+          select: {
+            id: true,
+            garmentType: true,
+            size: true,
+            color: true,
+            stock: true,
+            minimumStock: true,
+          },
+        },
+      },
     })
 
-    return apiSuccess(items)
+    const itemsWithStock = items.map((item) => ({
+      ...item,
+      finishedGoods: item.finishedGoods.map((variant) => ({
+        ...variant,
+        color: variant.color?.trim() || null,
+      })),
+      totalStock: item.finishedGoods.reduce(
+        (sum, variant) => sum + variant.stock,
+        0
+      ),
+    }))
+
+    return apiSuccess(itemsWithStock)
   } catch (error) {
     return handleApiError(error)
   }
@@ -110,29 +134,35 @@ export async function POST(request: Request) {
     if (payload.stock_entries && payload.stock_entries.length > 0) {
       await prisma.$transaction(async (tx) => {
         for (const stockItem of payload.stock_entries) {
-          // Upsert FinishedGoodStock
-          const finishedGoodStock = await tx.finishedGoodStock.upsert({
+          const normalizedColor = stockItem.color?.trim() || null
+
+          const existingStock = await tx.finishedGoodStock.findFirst({
             where: {
-              catalogItemId_garmentType_size_color: {
-                catalogItemId: item.id,
-                garmentType: payload.garment_type,
-                size: stockItem.size,
-                color: stockItem.color || "",
-              },
-            },
-            update: {
-              stock: stockItem.quantity,
-              minimumStock: stockItem.minimumStock,
-            },
-            create: {
               catalogItemId: item.id,
               garmentType: payload.garment_type,
               size: stockItem.size,
-              color: stockItem.color || "",
-              stock: stockItem.quantity,
-              minimumStock: stockItem.minimumStock,
+              color: normalizedColor,
             },
           })
+
+          const finishedGoodStock = existingStock
+            ? await tx.finishedGoodStock.update({
+                where: { id: existingStock.id },
+                data: {
+                  stock: stockItem.quantity,
+                  minimumStock: stockItem.minimumStock,
+                },
+              })
+            : await tx.finishedGoodStock.create({
+                data: {
+                  catalogItemId: item.id,
+                  garmentType: payload.garment_type,
+                  size: stockItem.size,
+                  color: normalizedColor,
+                  stock: stockItem.quantity,
+                  minimumStock: stockItem.minimumStock,
+                },
+              })
 
           // Create CatalogMovement for initial stock
           if (stockItem.quantity > 0) {

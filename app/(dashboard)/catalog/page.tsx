@@ -1,9 +1,8 @@
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCatalogItems } from "@/lib/data/catalog"
 import { PageHeader } from "@/components/shared/page-header"
-import { CatalogWorkspace } from "@/components/modules/catalog/catalog-workspace"
-
 import { requireCurrentUser } from "@/lib/auth/current-user"
+import { CatalogWorkspace } from "@/components/modules/catalog/catalog-workspace"
 
 export default async function CatalogPage() {
   const [items, currentUser] = await Promise.all([

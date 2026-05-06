@@ -28,9 +28,35 @@ export async function GET(
 
     const item = await prisma.catalogItem.findUnique({
       where: { id },
+      include: {
+        finishedGoods: {
+          select: {
+            id: true,
+            garmentType: true,
+            size: true,
+            color: true,
+            stock: true,
+            minimumStock: true,
+          },
+        },
+      },
     })
 
-    return apiSuccess(item)
+    const itemWithStock = item
+      ? {
+          ...item,
+          finishedGoods: item.finishedGoods.map((variant) => ({
+            ...variant,
+            color: variant.color?.trim() || null,
+          })),
+          totalStock: item.finishedGoods.reduce(
+            (sum, variant) => sum + variant.stock,
+            0
+          ),
+        }
+      : null
+
+    return apiSuccess(itemWithStock)
   } catch (error) {
     return handleApiError(error)
   }
@@ -98,14 +124,14 @@ export async function PATCH(
       const processedKeys = new Set<string>()
 
       for (const stockItem of incomingStockEntries) {
-        const normalizedColor = stockItem.color?.trim() ?? ""
-        const stockKey = `${stockItem.size}_${normalizedColor}`
+        const normalizedColor = stockItem.color?.trim() || null
+        const stockKey = `${stockItem.size}_${normalizedColor ?? "__null__"}`
         processedKeys.add(stockKey)
 
         const existingStock = existingStocks.find(
           (stock) =>
             stock.size === stockItem.size &&
-            (stock.color ?? "") === normalizedColor
+            (stock.color ?? null) === normalizedColor
         )
 
         if (existingStock) {
@@ -168,7 +194,8 @@ export async function PATCH(
       }
 
       const removedStocks = existingStocks.filter(
-        (stock) => !processedKeys.has(`${stock.size}_${stock.color ?? ""}`)
+        (stock) =>
+          !processedKeys.has(`${stock.size}_${stock.color ?? "__null__"}`)
       )
 
       for (const removed of removedStocks) {

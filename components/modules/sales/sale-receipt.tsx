@@ -300,6 +300,14 @@ export function SaleReceipt({
                             {item.size}
                           </Badge>
                         )}
+                        {item.color && (
+                          <Badge
+                            variant="outline"
+                            className="h-4 shrink-0 py-0 text-[10px] font-medium print:border-gray-300 print:text-gray-600"
+                          >
+                            {item.color}
+                          </Badge>
+                        )}
                       </div>
 
                       <p className="font-mono text-[11px] text-muted-foreground tabular-nums print:text-gray-500">

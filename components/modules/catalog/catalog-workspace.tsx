@@ -3,11 +3,14 @@
 import Link from "next/link"
 import * as React from "react"
 import Image from "next/image"
-import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { GARMENT_TYPES } from "@/types"
+import { Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
+import { GarmentType } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { cn, getGarmetTypeLabel } from "@/lib/utils"
 import { getStorageUrl } from "@/lib/storage/upload"
 import { useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
@@ -18,8 +21,6 @@ import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CatalogForm } from "@/components/modules/catalog/catalog-form"
 import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
-import { GARMENT_TYPES } from "@/types"
-import { GarmentType } from "@prisma/client"
 
 import {
   Sheet,
@@ -40,6 +41,7 @@ import {
   Trash2,
   AlertTriangle,
   MoreHorizontal,
+  PencilLineIcon,
 } from "lucide-react"
 
 import {
@@ -72,7 +74,6 @@ import {
   CatalogCard,
   type CatalogCardItem,
 } from "@/components/modules/catalog/catalog-card"
-import { Currency } from "@prisma/client"
 
 interface CatalogWorkspaceProps {
   items: CatalogCardItem[]
@@ -144,7 +145,7 @@ export function CatalogWorkspace({
     () => [
       {
         id: "thumbnail",
-        header: "",
+        header: "Imagen",
         cell: ({ row }) => {
           const url = getStorageUrl("catalog", row.original.imageUrl)
           return (
@@ -154,7 +155,7 @@ export function CatalogWorkspace({
                   src={url}
                   alt={row.original.name}
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center">
@@ -173,7 +174,8 @@ export function CatalogWorkspace({
           <div className="space-y-0.5">
             <p className="text-sm font-semibold">{row.original.name}</p>
             <p className="text-xs text-muted-foreground">
-              {row.original.garmentType ?? "Sin tipo"}
+              {getGarmetTypeLabel(row.original.garmentType as GarmentType) ??
+                "Sin tipo"}
             </p>
           </div>
         ),
@@ -257,7 +259,7 @@ export function CatalogWorkspace({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setEditingItem(row.original)}>
-                  <PencilIcon className="size-3.5" />
+                  <PencilLineIcon className="size-3.5" />
                   Editar
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
