@@ -167,7 +167,7 @@ export function SaleReceipt({
         className={cn(
           "gap-0 overflow-hidden p-0",
           "rounded-2xl border border-border bg-background text-foreground shadow-2xl",
-          "sm:max-w-[420px]",
+          "sm:max-w-105",
           // Print overrides - Standardize for thermal printers (80mm)
           "print:static print:mx-auto print:block print:w-full print:max-w-[80mm] print:border-0 print:shadow-none",
           "print:bg-white print:text-black",
