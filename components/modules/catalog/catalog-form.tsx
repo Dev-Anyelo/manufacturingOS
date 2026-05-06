@@ -2,39 +2,45 @@
 
 import { z } from "zod"
 import * as React from "react"
-import Image from "next/image"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { Currency } from "@prisma/client"
-import { useForm } from "react-hook-form"
+import { GARMENT_TYPES } from "@/types"
 import { useRouter } from "next/navigation"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Currency, GarmentType } from "@prisma/client"
 import { convertAmount } from "@/lib/currency/exchange"
 import { useSettingsStore } from "@/stores/settingsStore"
 import { MediaUpload } from "@/components/shared/media-upload"
 import { useSystemSettings } from "@/hooks/use-system-settings"
+import { Loader2, FileText, Save, ArrowUpDown } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CurrencySelector } from "@/components/shared/currency-selector"
+import { CatalogStockSection } from "@/components/modules/catalog/catalog-stock-section"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
 import {
-  Loader2,
-  Package,
-  DollarSign,
-  FileText,
-  ImageIcon,
-  Save,
-  ArrowUpDown,
-} from "lucide-react"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+const stockEntrySchema = z.object({
+  size: z.string().trim().min(1, "La talla es obligatoria"),
+  color: z.string().trim().optional(),
+  quantity: z.coerce.number().min(0, "La cantidad debe ser >= 0"),
+  minimumStock: z.coerce.number().min(0, "El stock mínimo debe ser >= 0"),
+})
 
 const catalogFormSchema = z.object({
   name: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres"),
   description: z.string().trim().max(1000).optional().nullable(),
-  garment_type: z.string().trim().min(2, "El tipo de prenda es obligatorio"),
+  garment_type: z.nativeEnum(GarmentType),
 
   market_price_unit: z.coerce.number().min(0),
   market_price_unit_currency: z.nativeEnum(Currency),
@@ -54,10 +60,13 @@ const catalogFormSchema = z.object({
   sale_price: z.coerce.number().min(0).default(0),
   sale_price_currency: z.nativeEnum(Currency),
 
+  stock_entries: z.array(stockEntrySchema).optional().default([]),
+
   notes: z.string().trim().max(1000).optional().nullable(),
   image_url: z.string().trim().optional().nullable(),
 })
 
+export type CatalogFormValues = z.input<typeof catalogFormSchema>
 type CatalogFormInput = z.input<typeof catalogFormSchema>
 type CatalogFormOutput = z.output<typeof catalogFormSchema>
 
@@ -94,15 +103,42 @@ export function CatalogForm({
     defaultValues: {
       name: defaultValues?.name ?? "",
       description: defaultValues?.description ?? "",
-      garment_type: defaultValues?.garment_type ?? "",
       market_price_unit: defaultValues?.market_price_unit ?? 0,
+      market_price_unit_currency: (defaultValues?.market_price_unit_currency ??
+        baseCurrency ??
+        Currency.USD) as Currency,
       market_price_dozen: defaultValues?.market_price_dozen ?? null,
+      market_price_dozen_currency:
+        (defaultValues?.market_price_dozen_currency ??
+          baseCurrency ??
+          Currency.USD) as Currency,
       our_price_unit: defaultValues?.our_price_unit ?? 0,
+      our_price_unit_currency: (defaultValues?.our_price_unit_currency ??
+        baseCurrency ??
+        Currency.USD) as Currency,
       our_price_dozen: defaultValues?.our_price_dozen ?? null,
+      our_price_dozen_currency: (defaultValues?.our_price_dozen_currency ??
+        baseCurrency ??
+        Currency.USD) as Currency,
       estimated_cost: defaultValues?.estimated_cost ?? null,
+      estimated_cost_currency: (defaultValues?.estimated_cost_currency ??
+        baseCurrency ??
+        Currency.USD) as Currency,
       notes: defaultValues?.notes ?? "",
       sale_price: defaultValues?.sale_price ?? 0,
+      sale_price_currency: (defaultValues?.sale_price_currency ??
+        baseCurrency ??
+        Currency.USD) as Currency,
+      stock_entries: defaultValues?.stock_entries ?? [],
       image_url: defaultValues?.image_url ?? null,
+      garment_type:
+        defaultValues?.garment_type &&
+        Object.prototype.hasOwnProperty.call(
+          GARMENT_TYPES,
+          defaultValues.garment_type
+        )
+          ? defaultValues.garment_type
+          : ("other" as GarmentType),
     },
   })
 
@@ -113,16 +149,22 @@ export function CatalogForm({
   const watchedOurPriceCurrency =
     form.watch("our_price_unit_currency") || Currency.USD
 
+  // Build rate map for convertAmount function
+  const rateMap: Record<string, number> = {
+    [`${Currency.USD}_${Currency.NIO}`]: exchangeRate,
+    [`${Currency.NIO}_${Currency.USD}`]: 1 / exchangeRate,
+  }
+
   // Convert cost to price currency for accurate margin calculation
   const normalizedCost = convertAmount(
     watchedCost,
     watchedCostCurrency,
     watchedOurPriceCurrency,
-    exchangeRate
+    rateMap
   )
 
   const profitMargin =
-    watchedOurPrice > 0 && watchedCost > 0
+    watchedOurPrice > 0 && watchedCost > 0 && normalizedCost !== null
       ? (((watchedOurPrice - normalizedCost) / watchedOurPrice) * 100).toFixed(
           1
         )
@@ -168,6 +210,7 @@ export function CatalogForm({
           sale_price_currency: values.our_price_unit_currency,
           image_url: values.image_url || null, // Forzar inclusión
           notes: normalizeOptional(values.notes),
+          stock_entries: values.stock_entries ?? [],
         }),
       })
 
@@ -213,7 +256,7 @@ export function CatalogForm({
       noValidate
     >
       {/* Quick Stats Bar - Compact Info Bar */}
-      <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
+      <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
           {
             label: "Mercado",
@@ -260,17 +303,17 @@ export function CatalogForm({
 
       {/* Tabbed Form */}
       <Tabs defaultValue="info" className="w-full">
-        <TabsList className="mb-6 grid w-full grid-cols-3">
+        <TabsList className="mb-6 grid w-full grid-cols-4">
           <TabsTrigger value="info" className="gap-2">
-            <Package className="size-4" />
             <span className="hidden sm:inline">Información</span>
           </TabsTrigger>
           <TabsTrigger value="pricing" className="gap-2">
-            <DollarSign className="size-4" />
             <span className="hidden sm:inline">Precios</span>
           </TabsTrigger>
+          <TabsTrigger value="stock" className="gap-2">
+            <span className="hidden sm:inline">Stock</span>
+          </TabsTrigger>
           <TabsTrigger value="media" className="gap-2">
-            <ImageIcon className="size-4" />
             <span className="hidden sm:inline">Media</span>
           </TabsTrigger>
         </TabsList>
@@ -301,11 +344,23 @@ export function CatalogForm({
                 <Label htmlFor="garment_type" className="text-sm font-medium">
                   Tipo de prenda <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="garment_type"
-                  {...form.register("garment_type")}
-                  placeholder="Ej: Camisa"
-                  className="h-11"
+                <Controller
+                  control={form.control}
+                  name="garment_type"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="garment_type" className="h-11 w-full">
+                        <SelectValue placeholder="Selecciona un tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(GARMENT_TYPES).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
                 {form.formState.errors.garment_type && (
                   <p className="text-xs text-destructive">
@@ -539,7 +594,11 @@ export function CatalogForm({
                       Ganancia por unidad:
                     </span>
                     <CurrencyDisplay
-                      amount={watchedOurPrice - normalizedCost}
+                      amount={
+                        normalizedCost !== null
+                          ? watchedOurPrice - normalizedCost
+                          : 0
+                      }
                       currency={
                         form.watch("our_price_unit_currency") || Currency.USD
                       }
@@ -552,12 +611,23 @@ export function CatalogForm({
           </div>
         </TabsContent>
 
+        {/* Stock Tab */}
+        <TabsContent value="stock" className="space-y-4">
+          <div className="m-0 border-none bg-none p-0">
+            <CatalogStockSection
+              control={form.control}
+              watch={form.watch}
+              setValue={form.setValue}
+            />
+          </div>
+        </TabsContent>
+
         {/* Media Tab */}
         <TabsContent value="media" className="space-y-4">
           <div className="m-0 border-none bg-none p-0">
             {/* Campo oculto para asegurar que react-hook-form capture el valor */}
             <input type="hidden" {...form.register("image_url")} />
-            
+
             <MediaUpload
               bucketType="catalog"
               recordId={itemId}

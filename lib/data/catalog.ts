@@ -35,8 +35,33 @@ export async function getCatalogItems(filters?: CatalogFilters) {
 
   return prisma.catalogItem.findMany({
     where,
-    include: {
-      finishedGoods: true
+    select: {
+      id: true,
+      name: true,
+      garmentType: true,
+      marketPriceUnit: true,
+      marketPriceUnitCurrency: true,
+      marketPriceDozen: true,
+      marketPriceDozenCurrency: true,
+      ourPriceUnit: true,
+      ourPriceUnitCurrency: true,
+      ourPriceDozen: true,
+      ourPriceDozenCurrency: true,
+      salePrice: true,
+      salePriceCurrency: true,
+      estimatedCost: true,
+      estimatedCostCurrency: true,
+      imageUrl: true,
+      notes: true,
+      finishedGoods: {
+        select: {
+          id: true,
+          size: true,
+          color: true,
+          stock: true,
+          minimumStock: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",

@@ -88,9 +88,15 @@ export default async function CustomerDetailPage({
 
   const settings = await getSystemSettings()
   const baseCurrency = settings.baseCurrency
-  const rateNIO = decimalToNumber(
+  const usdToNioRate = decimalToNumber(
     await getExchangeRate(Currency.USD, Currency.NIO)
   )
+
+  // Build rate map for convertAmount function
+  const rateMap: Record<string, number> = {
+    [`${Currency.USD}_${Currency.NIO}`]: usdToNioRate,
+    [`${Currency.NIO}_${Currency.USD}`]: 1 / usdToNioRate,
+  }
 
   const totalSpent = customer.sales.reduce((acc, s) => {
     const amount = decimalToNumber(s.total) - decimalToNumber(s.discount)
@@ -98,9 +104,9 @@ export default async function CustomerDetailPage({
       amount,
       s.totalCurrency,
       baseCurrency,
-      rateNIO
+      rateMap
     )
-    return acc + converted
+    return acc + (converted || 0)
   }, 0)
 
   const pendingBalance = customer.sales.reduce((acc, s) => {
@@ -109,9 +115,9 @@ export default async function CustomerDetailPage({
       amount,
       s.totalCurrency,
       baseCurrency,
-      rateNIO
+      rateMap
     )
-    return acc + converted
+    return acc + (converted || 0)
   }, 0)
 
   const totalOrdersValue = customer.workOrders.reduce((acc, wo) => {
@@ -120,9 +126,9 @@ export default async function CustomerDetailPage({
       amount,
       wo.totalCurrency,
       baseCurrency,
-      rateNIO
+      rateMap
     )
-    return acc + converted
+    return acc + (converted || 0)
   }, 0)
 
   return (
@@ -164,7 +170,12 @@ export default async function CustomerDetailPage({
                   <UserIcon className="size-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">{customer.fullName}</p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <p className="text-sm font-semibold">{customer.fullName}</p>
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      #{customer.id.slice(0, 8)}
+                    </p>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Cliente desde {formatDateNI(customer.createdAt)}
                   </p>

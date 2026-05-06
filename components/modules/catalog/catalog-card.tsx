@@ -20,11 +20,20 @@ export interface CatalogCardItem {
   ourPriceDozenCurrency: string | null
   marketPriceUnit: number | null
   marketPriceUnitCurrency: string | null
+  marketPriceDozen: number | null
+  marketPriceDozenCurrency: string | null
   estimatedCost: number | null
   estimatedCostCurrency: string | null
   imageUrl: string | null
   notes: string | null
   totalStock: number
+  finishedGoods?: Array<{
+    id: string
+    size: string
+    color: string | null
+    stock: number
+    minimumStock: number
+  }>
 }
 
 interface CatalogCardProps {

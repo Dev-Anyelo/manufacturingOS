@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { NotificationType } from "@/types"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
@@ -309,8 +310,13 @@ export function NotificationPanel({
                         "currency" in (item.metadata as object) && (
                           <div className="pt-1">
                             <CurrencyDisplay
-                              amount={(item.metadata as any).total}
-                              currency={(item.metadata as any).currency}
+                              amount={
+                                (item.metadata as { total: number }).total
+                              }
+                              currency={
+                                (item.metadata as { currency: Currency })
+                                  .currency
+                              }
                               size="sm"
                               className="font-semibold text-primary"
                             />

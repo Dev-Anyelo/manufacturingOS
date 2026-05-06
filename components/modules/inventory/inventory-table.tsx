@@ -352,6 +352,7 @@ function InventoryFormSheet({
           minimum_stock: item.minimumStock,
           unit: item.unit,
           unit_price: item.unitPrice,
+          unit_price_currency: item.unitPriceCurrency,
           supplier: item.supplier,
           image_url: item.imageUrl,
         }

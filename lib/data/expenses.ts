@@ -1,9 +1,9 @@
-import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
+import { Prisma, Currency } from "@prisma/client"
 import { decimalToNumber } from "@/lib/api/utils"
-import { Currency } from "@prisma/client"
-import { getExchangeRate, convertAmount } from "@/lib/currency/exchange"
 import { getSystemSettings } from "@/lib/data/settings"
+import { convertAmount, getExchangeRate } from "@/lib/currency/exchange"
+import { CurrencyRateService } from "@/lib/currency/currency-rate-service"
 
 export type ExpenseFilters = {
   dateFrom?: Date
@@ -76,16 +76,31 @@ export async function getExpenseSummary(
   // Fetch system settings and current rate
   const settings = await getSystemSettings()
   const baseCurrency = settings.baseCurrency
-  const rateNIO = decimalToNumber(await getExchangeRate(Currency.USD, Currency.NIO))
+
+  // Get all currencies used in expenses
+  const allCurrencies = new Set<Currency>()
+  expenses.forEach((expense) => allCurrencies.add(expense.totalCurrency))
+
+  // Build rate map for all currency pairs to base currency
+  const ratePairs = Array.from(allCurrencies).map((currency) => ({
+    from: currency,
+    to: baseCurrency,
+  }))
+  const rateMap = await CurrencyRateService.fetchNormalizedRates(ratePairs)
 
   const summary = expenses.reduce(
     (acc, expense) => {
       const amount = decimalToNumber(expense.total)
-      const converted = convertAmount(amount, expense.totalCurrency, baseCurrency, rateNIO)
-      
+      const converted = convertAmount(
+        amount,
+        expense.totalCurrency,
+        baseCurrency,
+        rateMap
+      )
+
       acc.byCategory[expense.category] =
-        (acc.byCategory[expense.category] ?? 0) + converted
-      acc.total += converted
+        (acc.byCategory[expense.category] ?? 0) + (converted ?? 0)
+      acc.total += converted ?? 0
       return acc
     },
     {
@@ -140,7 +155,17 @@ export async function getMonthlyExpenseOverview(): Promise<MonthlyExpenseOvervie
   // Fetch system settings and current rate
   const settings = await getSystemSettings()
   const baseCurrency = settings.baseCurrency
-  const rateNIO = decimalToNumber(await getExchangeRate(Currency.USD, Currency.NIO))
+
+  // Get all currencies used in expenses
+  const allCurrencies = new Set<Currency>()
+  expenses.forEach((expense) => allCurrencies.add(expense.totalCurrency))
+
+  // Build rate map for all currency pairs to base currency
+  const ratePairs = Array.from(allCurrencies).map((currency) => ({
+    from: currency,
+    to: baseCurrency,
+  }))
+  const rateMap = await CurrencyRateService.fetchNormalizedRates(ratePairs)
 
   const byCategory: Record<string, number> = {}
   const byConcept = new Map<string, number>()
@@ -148,13 +173,20 @@ export async function getMonthlyExpenseOverview(): Promise<MonthlyExpenseOvervie
 
   for (const expense of expenses) {
     const amount = decimalToNumber(expense.total)
-    const converted = convertAmount(amount, expense.totalCurrency, baseCurrency, rateNIO)
+    const converted = convertAmount(
+      amount,
+      expense.totalCurrency,
+      baseCurrency,
+      rateMap
+    )
 
-    monthlyTotal += converted
-    byCategory[expense.category] = (byCategory[expense.category] ?? 0) + converted
+    const convertedAmount = converted ?? 0
+    monthlyTotal += convertedAmount
+    byCategory[expense.category] =
+      (byCategory[expense.category] ?? 0) + convertedAmount
     byConcept.set(
       expense.concept,
-      (byConcept.get(expense.concept) ?? 0) + converted
+      (byConcept.get(expense.concept) ?? 0) + convertedAmount
     )
   }
 

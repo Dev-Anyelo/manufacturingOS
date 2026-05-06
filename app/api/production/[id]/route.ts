@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { Prisma, UserRole } from "@prisma/client"
 import { toLocalDate, toPrismaDecimal } from "@/lib/api/utils"
+import { requirePermission } from "@/lib/api/require-permission"
 import { productionSessionSchema } from "@/lib/validations/production"
 
 import {
@@ -11,8 +12,6 @@ import {
   requireAuth,
   resolveRouteParams,
 } from "@/lib/api/response"
-
-import { requirePermission } from "@/lib/api/require-permission"
 
 type RouteParams = {
   id: string

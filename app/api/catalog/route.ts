@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { Prisma } from "@prisma/client"
+import { Prisma, GarmentType, InventoryMovementType } from "@prisma/client"
 import { catalogItemSchema } from "@/lib/validations/catalog"
 import { requirePermission } from "@/lib/api/require-permission"
 import { getSearchParam, toPrismaDecimal } from "@/lib/api/utils"
@@ -9,8 +9,7 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  } from "@/lib/api/response"
-
+} from "@/lib/api/response"
 
 export async function GET(request: Request) {
   try {
@@ -71,41 +70,87 @@ export async function POST(request: Request) {
         name: payload.name,
         description: payload.description,
         garmentType: payload.garment_type,
-        
+
         marketPriceUnit: toPrismaDecimal(payload.market_price_unit),
         marketPriceUnitCurrency: payload.market_price_unit_currency,
-        
+
         marketPriceDozen:
           payload.market_price_dozen === null ||
           payload.market_price_dozen === undefined
             ? null
             : toPrismaDecimal(payload.market_price_dozen),
         marketPriceDozenCurrency: payload.market_price_dozen_currency,
-        
+
         ourPriceUnit: toPrismaDecimal(payload.our_price_unit),
         ourPriceUnitCurrency: payload.our_price_unit_currency,
-        
+
         ourPriceDozen:
           payload.our_price_dozen === null ||
           payload.our_price_dozen === undefined
             ? null
             : toPrismaDecimal(payload.our_price_dozen),
         ourPriceDozenCurrency: payload.our_price_dozen_currency,
-        
+
         salePrice: toPrismaDecimal(payload.our_price_unit),
         salePriceCurrency: payload.our_price_unit_currency,
-        
+
         estimatedCost:
           payload.estimated_cost === null ||
           payload.estimated_cost === undefined
             ? null
             : toPrismaDecimal(payload.estimated_cost),
         estimatedCostCurrency: payload.estimated_cost_currency,
-        
+
         imageUrl: payload.image_url,
         notes: payload.notes,
       },
     })
+
+    // Handle stock creation if provided
+    if (payload.stock_entries && payload.stock_entries.length > 0) {
+      await prisma.$transaction(async (tx) => {
+        for (const stockItem of payload.stock_entries) {
+          // Upsert FinishedGoodStock
+          const finishedGoodStock = await tx.finishedGoodStock.upsert({
+            where: {
+              catalogItemId_garmentType_size_color: {
+                catalogItemId: item.id,
+                garmentType: payload.garment_type,
+                size: stockItem.size,
+                color: stockItem.color || "",
+              },
+            },
+            update: {
+              stock: stockItem.quantity,
+              minimumStock: stockItem.minimumStock,
+            },
+            create: {
+              catalogItemId: item.id,
+              garmentType: payload.garment_type,
+              size: stockItem.size,
+              color: stockItem.color || "",
+              stock: stockItem.quantity,
+              minimumStock: stockItem.minimumStock,
+            },
+          })
+
+          // Create CatalogMovement for initial stock
+          if (stockItem.quantity > 0) {
+            await tx.catalogMovement.create({
+              data: {
+                finishedGoodStockId: finishedGoodStock.id,
+                movementType: InventoryMovementType.in,
+                quantity: stockItem.quantity,
+                previousQuantity: 0,
+                newQuantity: stockItem.quantity,
+                reason: `Initial stock setup for ${stockItem.size}${stockItem.color ? `/${stockItem.color}` : ""}`,
+                createdBy: profile.id,
+              },
+            })
+          }
+        }
+      })
+    }
 
     return apiSuccess(item, 201)
   } catch (error) {

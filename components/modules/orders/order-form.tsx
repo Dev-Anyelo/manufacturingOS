@@ -3,25 +3,25 @@
 import { z } from "zod"
 import * as React from "react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useSettingsStore } from "@/stores/settingsStore"
+import { MediaUpload } from "@/components/shared/media-upload"
+import { useSystemSettings } from "@/hooks/use-system-settings"
+import type { PosCustomer } from "@/components/modules/sales/types"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { CurrencySelector } from "@/components/shared/currency-selector"
 import { useForm, useFieldArray, type FieldPath } from "react-hook-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CustomerSelector } from "@/components/modules/sales/customer-selector"
-import type { PosCustomer } from "@/components/modules/sales/types"
-import { useSystemSettings } from "@/hooks/use-system-settings"
-import { Currency } from "@prisma/client"
-import { CurrencySelector } from "@/components/shared/currency-selector"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { cn } from "@/lib/utils"
-import {  getCurrencySymbol, calculateBalanceDue } from "@/lib/currency/exchange"
-import { useSettingsStore } from "@/stores/settingsStore"
-import { Calendar } from "@/components/ui/calendar"
-import { Textarea } from "@/components/ui/textarea"
-import { MediaUpload } from "@/components/shared/media-upload"
+import { getCurrencySymbol, calculateBalanceDue } from "@/lib/currency/exchange"
 
 import {
   Popover,
@@ -224,6 +224,12 @@ export function OrderForm({
     Record<string, boolean>
   >({})
 
+  // Build rate map for convertAmount function
+  const rateMap: Record<string, number> = {
+    [`${Currency.USD}_${Currency.NIO}`]: exchangeRate,
+    [`${Currency.NIO}_${Currency.USD}`]: 1 / exchangeRate,
+  }
+
   const form = useForm<OrderFormInput, unknown, OrderFormOutput>({
     resolver: zodResolver(orderFormSchema),
     defaultValues: {
@@ -253,7 +259,7 @@ export function OrderForm({
       form.setValue("advance_paid_currency", baseCurrency)
       form.setValue("total_currency", baseCurrency)
       form.setValue("balance_due_currency", baseCurrency)
-      
+
       // Update first item currency
       const items = form.getValues("items")
       if (items.length > 0 && !items[0].unit_price_currency) {
@@ -287,7 +293,7 @@ export function OrderForm({
     form.watch("total_currency") || Currency.USD,
     Number(watchedAdvance || 0),
     form.watch("advance_paid_currency") || Currency.USD,
-    exchangeRate
+    rateMap
   )
 
   // Sync item and advance currencies when order currency changes
@@ -412,8 +418,8 @@ export function OrderForm({
             </span>
             <div className="mt-0.5">
               {"amount" in item ? (
-                <CurrencyDisplay 
-                  amount={Number(item.amount || 0)} 
+                <CurrencyDisplay
+                  amount={Number(item.amount || 0)}
                   currency={(orderCurrency as Currency) || Currency.USD}
                   size="sm"
                 />
@@ -621,9 +627,11 @@ export function OrderForm({
                                 "Sin descripción"}
                             </p>
                             <div className="mt-0.5">
-                              <CurrencyDisplay 
-                                amount={Number(itemSubtotal || 0)} 
-                                currency={(orderCurrency as Currency) || Currency.USD}
+                              <CurrencyDisplay
+                                amount={Number(itemSubtotal || 0)}
+                                currency={
+                                  (orderCurrency as Currency) || Currency.USD
+                                }
                                 size="sm"
                               />
                             </div>
@@ -689,7 +697,9 @@ export function OrderForm({
                               </SelectItem>
                               {catalogItems.map((item) => (
                                 <SelectItem key={item.id} value={item.id}>
-                                  {item.name} - {getCurrencySymbol(Currency.USD)}{item.salePrice}
+                                  {item.name} -{" "}
+                                  {getCurrencySymbol(Currency.USD)}
+                                  {item.salePrice}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -887,7 +897,9 @@ export function OrderForm({
             <div className="space-y-4">
               <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
                 <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Moneda del pedido</Label>
+                  <Label className="text-sm font-medium">
+                    Moneda del pedido
+                  </Label>
                   <p className="text-xs text-muted-foreground">
                     Define la divisa para el total y los pagos
                   </p>
@@ -917,15 +929,15 @@ export function OrderForm({
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Calculado: 
-                    <CurrencyDisplay 
-                      amount={estimatedTotal} 
+                    Calculado:
+                    <CurrencyDisplay
+                      amount={estimatedTotal}
                       currency={orderCurrency || Currency.USD}
                       size="sm"
                     />
                   </p>
                 </div>
- 
+
                 <div className="space-y-2">
                   <Label htmlFor="advance_paid" className="text-sm font-medium">
                     Adelanto recibido
@@ -947,14 +959,14 @@ export function OrderForm({
                   </div>
                 </div>
               </div>
- 
+
               {/* Payment Summary */}
               <div className="rounded-lg border border-border bg-muted/30 p-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Total</span>
-                    <CurrencyDisplay 
-                      amount={Number(watchedTotal || 0)} 
+                    <CurrencyDisplay
+                      amount={Number(watchedTotal || 0)}
                       currency={orderCurrency || Currency.USD}
                       size="sm"
                     />
@@ -962,8 +974,8 @@ export function OrderForm({
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Adelanto</span>
                     <div className="text-success">
-                      <CurrencyDisplay 
-                        amount={-Number(watchedAdvance || 0)} 
+                      <CurrencyDisplay
+                        amount={-Number(watchedAdvance || 0)}
                         currency={orderCurrency || Currency.USD}
                         size="sm"
                       />
@@ -975,11 +987,13 @@ export function OrderForm({
                     <div
                       className={cn(
                         "text-lg font-bold",
-                        pendingBalance > 0 ? "text-warning" : "text-success"
+                        pendingBalance !== null && pendingBalance > 0
+                          ? "text-warning"
+                          : "text-success"
                       )}
                     >
-                      <CurrencyDisplay 
-                        amount={pendingBalance} 
+                      <CurrencyDisplay
+                        amount={pendingBalance ?? 0}
                         currency={orderCurrency || Currency.USD}
                         size="md"
                       />
@@ -995,15 +1009,19 @@ export function OrderForm({
           <div className="m-0 border-none bg-none p-0">
             {/* Campo oculto para asegurar captura del array */}
             <input type="hidden" {...form.register("reference_images")} />
-            
+
             <MediaUpload
               bucketType="orders"
               currentValue={form.watch("reference_images")}
               onUploadComplete={(paths) => {
-                form.setValue("reference_images", (Array.isArray(paths) ? paths : [paths]) as string[], {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
+                form.setValue(
+                  "reference_images",
+                  (Array.isArray(paths) ? paths : [paths]) as string[],
+                  {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  }
+                )
               }}
               label="Imágenes de referencia"
               multiple={true}

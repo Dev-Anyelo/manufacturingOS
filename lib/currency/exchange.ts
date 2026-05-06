@@ -1,8 +1,10 @@
-import { prisma } from "@/lib/prisma"
 import { es } from "date-fns/locale"
 import { parseISO, isValid } from "date-fns"
 import { formatInTimeZone } from "date-fns-tz"
 import { Prisma, Currency } from "@prisma/client"
+import { CurrencyRateService } from "./currency-rate-service"
+
+export { CurrencyRateService }
 
 const DEFAULT_TIMEZONE = "America/Managua"
 const DEFAULT_LOCALE = es
@@ -130,54 +132,24 @@ export function formatDateTimeNI(
 
 /**
  * Obtiene la tasa de cambio válida en una fecha específica
+ * Delegator to CurrencyRateService
  */
 export async function getExchangeRate(
   fromCurrency: Currency,
   toCurrency: Currency,
   onDate: Date = new Date()
 ): Promise<Prisma.Decimal> {
-  if (fromCurrency === toCurrency) {
-    return new Prisma.Decimal(1)
-  }
-
-  const rate = await prisma.exchangeRate.findFirst({
-    where: {
-      fromCurrency,
-      toCurrency,
-      validFrom: { lte: onDate },
-      OR: [{ validTo: null }, { validTo: { gte: onDate } }],
-    },
-    orderBy: { validFrom: "desc" },
-  })
-
-  if (!rate) {
-    // Si no hay tasa para el par exacto, intentar la inversa
-    const inverseRate = await prisma.exchangeRate.findFirst({
-      where: {
-        fromCurrency: toCurrency,
-        toCurrency: fromCurrency,
-        validFrom: { lte: onDate },
-        OR: [{ validTo: null }, { validTo: { gte: onDate } }],
-      },
-      orderBy: { validFrom: "desc" },
-    })
-
-    if (inverseRate) {
-      return new Prisma.Decimal(1).div(inverseRate.rate)
-    }
-
-    throw new Error(
-      `No se encontró tasa de cambio de ${fromCurrency} a ${toCurrency} para la fecha ${
-        onDate.toISOString().split("T")[0]
-      }`
-    )
-  }
-
-  return rate.rate
+  const result = await CurrencyRateService.getRate(
+    fromCurrency,
+    toCurrency,
+    onDate
+  )
+  return result.rate
 }
 
 /**
  * Convierte un monto de una moneda a otra
+ * Delegator to CurrencyRateService
  */
 export async function convertCurrency(
   amount: Prisma.Decimal | number,
@@ -185,57 +157,62 @@ export async function convertCurrency(
   toCurrency: Currency,
   onDate: Date = new Date()
 ): Promise<Prisma.Decimal> {
-  const decimalAmount = new Prisma.Decimal(amount)
-  if (fromCurrency === toCurrency) return decimalAmount
-
-  const rate = await getExchangeRate(fromCurrency, toCurrency, onDate)
-  return decimalAmount.times(rate)
+  return CurrencyRateService.convert(amount, fromCurrency, toCurrency, onDate)
 }
 
 /**
- * Convierte un monto de forma sincrónica (Client Components)
- * @param rate Tasa de cambio (opcional, si no se provee usa 36.62 temporalmente)
+ * Client-side currency conversion using pre-fetched rate map
+ * Safe: no hardcoded fallback; throws if rate missing
+ *
+ * Usage:
+ *   const rates = await CurrencyRateService.fetchNormalizedRates([
+ *     { from: Currency.USD, to: Currency.NIO },
+ *   ])
+ *   const result = convertAmount(100, Currency.USD, Currency.NIO, rates)
+ *
+ * @param rateMap Pre-fetched normalized rate map from CurrencyRateService.fetchNormalizedRates
+ * @returns Converted amount or null if rate unavailable (will log warning)
  */
 export function convertAmount(
   amount: number,
   fromCurrency: Currency,
   toCurrency: Currency,
-  rate: number = 36.62 // TODO: Obtener del estado global/Zustand en el componente que lo usa
-): number {
-  if (fromCurrency === toCurrency) return amount
-
-  if (fromCurrency === Currency.USD && toCurrency === Currency.NIO) {
-    return amount * rate
-  }
-
-  if (fromCurrency === Currency.NIO && toCurrency === Currency.USD) {
-    return amount / rate
-  }
-
-  return amount
+  rateMap: Record<string, number>
+): number | null {
+  return CurrencyRateService.convertClient(
+    amount,
+    fromCurrency,
+    toCurrency,
+    rateMap
+  )
 }
 
 /**
  * Calcula el saldo pendiente (balance_due) considerando monedas mixtas
+ *
  * @param total Monto total
  * @param totalCurrency Moneda del total
  * @param advance Adelanto pagado
  * @param advanceCurrency Moneda del adelanto
- * @param rate Tasa de cambio para conversión
+ * @param rateMap Pre-fetched normalized rate map from CurrencyRateService.fetchNormalizedRates
+ * @returns Balance due in totalCurrency, or null if conversion fails
  */
 export function calculateBalanceDue(
   total: number,
   totalCurrency: Currency,
   advance: number,
   advanceCurrency: Currency,
-  rate: number = 36.62
-): number {
+  rateMap: Record<string, number>
+): number | null {
   const convertedAdvance = convertAmount(
     advance,
     advanceCurrency,
     totalCurrency,
-    rate
+    rateMap
   )
+
+  if (convertedAdvance === null) return null
+
   return Math.max(total - convertedAdvance, 0)
 }
 

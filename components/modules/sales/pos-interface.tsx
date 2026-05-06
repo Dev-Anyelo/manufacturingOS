@@ -55,6 +55,12 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     React.useState<PosCustomer | null>(null)
   const { settings, exchangeRate } = useSettingsStore()
 
+  // Build rate map for convertAmount function
+  const rateMap: Record<string, number> = {
+    [`${Currency.USD}_${Currency.NIO}`]: exchangeRate,
+    [`${Currency.NIO}_${Currency.USD}`]: 1 / exchangeRate,
+  }
+
   const [cartItems, setCartItems] = React.useState<PosCartItem[]>([])
   const [cartDrawerOpen, setCartDrawerOpen] = React.useState(false)
   const [confirmClearOpen, setConfirmClearOpen] = React.useState(false)
@@ -132,12 +138,13 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     }))
 
     // Convert price if catalog item currency differs from current POS currency
-    const itemUnitPrice = convertAmount(
-      catalogItem.salePrice,
-      catalogItem.salePriceCurrency,
-      currency,
-      exchangeRate
-    )
+    const itemUnitPrice =
+      convertAmount(
+        catalogItem.salePrice,
+        catalogItem.salePriceCurrency,
+        currency,
+        rateMap
+      ) ?? catalogItem.salePrice
 
     setCartItems((previous) => {
       const existingIndex = previous.findIndex(
@@ -221,27 +228,21 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     setCartItems((prev) =>
       prev.map((item) => ({
         ...item,
-        unitPrice: convertAmount(
+        unitPrice:
+          convertAmount(item.unitPrice, previousCurrency, currency, rateMap) ??
           item.unitPrice,
-          previousCurrency,
-          currency,
-          exchangeRate
-        ),
-        discount: convertAmount(
+        discount:
+          convertAmount(item.discount, previousCurrency, currency, rateMap) ??
           item.discount,
-          previousCurrency,
-          currency,
-          exchangeRate
-        ),
       }))
     )
 
     // Convert payment amounts
-    setReceivedAmount((prev) =>
-      convertAmount(prev, previousCurrency, currency, exchangeRate)
+    setReceivedAmount(
+      (prev) => convertAmount(prev, previousCurrency, currency, rateMap) ?? prev
     )
-    setAmountPaid((prev) =>
-      convertAmount(prev, previousCurrency, currency, exchangeRate)
+    setAmountPaid(
+      (prev) => convertAmount(prev, previousCurrency, currency, rateMap) ?? prev
     )
 
     previousCurrencyRef.current = currency

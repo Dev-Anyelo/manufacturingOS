@@ -1,10 +1,10 @@
-import { NotificationType, WorkOrderStatus } from "@prisma/client"
+import { NotificationType, WorkOrderStatus, Currency } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 import { decimalToNumber } from "@/lib/api/utils"
-import { getExchangeRate, convertAmount } from "@/lib/currency/exchange"
+import { convertAmount } from "@/lib/currency/exchange"
 import { getSystemSettings } from "@/lib/data/settings"
-import { Currency } from "@prisma/client"
+import { CurrencyRateService } from "@/lib/currency/currency-rate-service"
 
 export async function getDashboardStats() {
   const today = new Date()
@@ -98,18 +98,39 @@ export async function getDashboardStats() {
   // Fetch system settings and current rate
   const settings = await getSystemSettings()
   const baseCurrency = settings.baseCurrency
-  const rateNIO = decimalToNumber(await getExchangeRate(Currency.USD, Currency.NIO))
+
+  // Get all currencies used in today's and yesterday's sales
+  const allCurrencies = new Set<Currency>()
+  todaySales.forEach((sale) => allCurrencies.add(sale.totalCurrency))
+  yesterdaySales.forEach((sale) => allCurrencies.add(sale.totalCurrency))
+
+  // Build rate map for all currency pairs to base currency
+  const ratePairs = Array.from(allCurrencies).map((currency) => ({
+    from: currency,
+    to: baseCurrency,
+  }))
+  const rateMap = await CurrencyRateService.fetchNormalizedRates(ratePairs)
 
   const todaySalesAmount = todaySales.reduce((acc, row) => {
     const amount = decimalToNumber(row.total) - decimalToNumber(row.discount)
-    const converted = convertAmount(amount, row.totalCurrency, baseCurrency, rateNIO)
-    return acc + converted
+    const converted = convertAmount(
+      amount,
+      row.totalCurrency,
+      baseCurrency,
+      rateMap
+    )
+    return acc + (converted ?? 0)
   }, 0)
 
   const yesterdaySalesAmount = yesterdaySales.reduce((acc, row) => {
     const amount = decimalToNumber(row.total) - decimalToNumber(row.discount)
-    const converted = convertAmount(amount, row.totalCurrency, baseCurrency, rateNIO)
-    return acc + converted
+    const converted = convertAmount(
+      amount,
+      row.totalCurrency,
+      baseCurrency,
+      rateMap
+    )
+    return acc + (converted ?? 0)
   }, 0)
 
   const todayGarments = todayProduction.reduce(
@@ -147,10 +168,7 @@ export async function getDashboardUrgentOrders(limit = 8) {
   const rows = await prisma.workOrder.findMany({
     where: {
       status: {
-        notIn: [
-          WorkOrderStatus.delivered,
-          WorkOrderStatus.cancelled,
-        ],
+        notIn: [WorkOrderStatus.delivered, WorkOrderStatus.cancelled],
       },
       OR: [
         { deliveryDate: { lt: startOfToday } },
@@ -203,7 +221,9 @@ export async function getUnreadNotificationsCount(userId: string) {
   })
 }
 
-export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?: Date } = {}) {
+export async function getFinancialChartData(
+  options: { dateFrom?: Date; dateTo?: Date } = {}
+) {
   const endDate = options.dateTo ?? new Date()
   if (!options.dateTo) endDate.setHours(23, 59, 59, 999)
 
@@ -246,7 +266,10 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
     }),
   ])
 
-  const daysMap = new Map<string, { date: string; sales: number; expenses: number }>()
+  const daysMap = new Map<
+    string,
+    { date: string; sales: number; expenses: number }
+  >()
 
   // Initialize days with 0 between start and end
   const current = new Date(startDate)
@@ -259,16 +282,33 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
   // Fetch system settings and current rate
   const settings = await getSystemSettings()
   const baseCurrency = settings.baseCurrency
-  const rateNIO = decimalToNumber(await getExchangeRate(Currency.USD, Currency.NIO))
+
+  // Get all currencies used in sales and expenses
+  const allCurrencies = new Set<Currency>()
+  sales.forEach((sale) => allCurrencies.add(sale.totalCurrency))
+  expenses.forEach((exp) => allCurrencies.add(exp.totalCurrency))
+
+  // Build rate map for all currency pairs to base currency
+  const ratePairs = Array.from(allCurrencies).map((currency) => ({
+    from: currency,
+    to: baseCurrency,
+  }))
+  const rateMap = await CurrencyRateService.fetchNormalizedRates(ratePairs)
 
   // Aggregate Sales
   for (const sale of sales) {
     const dateStr = sale.saleDate.toISOString().split("T")[0]
     const current = daysMap.get(dateStr)
     if (current) {
-      const amount = decimalToNumber(sale.total) - decimalToNumber(sale.discount)
-      const converted = convertAmount(amount, sale.totalCurrency, baseCurrency, rateNIO)
-      current.sales += converted
+      const amount =
+        decimalToNumber(sale.total) - decimalToNumber(sale.discount)
+      const converted = convertAmount(
+        amount,
+        sale.totalCurrency,
+        baseCurrency,
+        rateMap
+      )
+      current.sales += converted ?? 0
     }
   }
 
@@ -278,10 +318,17 @@ export async function getFinancialChartData(options: { dateFrom?: Date; dateTo?:
     const current = daysMap.get(dateStr)
     if (current) {
       const amount = decimalToNumber(exp.total)
-      const converted = convertAmount(amount, exp.totalCurrency, baseCurrency, rateNIO)
-      current.expenses += converted
+      const converted = convertAmount(
+        amount,
+        exp.totalCurrency,
+        baseCurrency,
+        rateMap
+      )
+      current.expenses += converted ?? 0
     }
   }
 
-  return Array.from(daysMap.values()).sort((a, b) => a.date.localeCompare(b.date))
+  return Array.from(daysMap.values()).sort((a, b) =>
+    a.date.localeCompare(b.date)
+  )
 }

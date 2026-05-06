@@ -161,7 +161,6 @@ export function CustomersTable({ data, canDelete = false }: CustomersTableProps)
             <CurrencyDisplay 
               amount={amount} 
               currency={currency} 
-              showDual 
             />
           </div>
         )

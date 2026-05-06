@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import * as React from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { useForm } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,7 +13,10 @@ import { Button } from "@/components/ui/button"
 import { MaterialCategory } from "@prisma/client"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { MediaUpload } from "@/components/shared/media-upload"
 import { useSystemSettings } from "@/hooks/use-system-settings"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { CurrencySelector } from "@/components/shared/currency-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -22,11 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-import { Currency } from "@prisma/client"
-import { CurrencySelector } from "@/components/shared/currency-selector"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { formatCurrencyNI } from "@/lib/currency/exchange"
 
 import {
   Loader2,
@@ -102,7 +101,6 @@ const categoryOptions = [
 
 const unitOptions = ["yd", "metros", "unidades", "rollos"] as const
 
-import { MediaUpload } from "@/components/shared/media-upload"
 
 // formatCurrency eliminado, se usa exchange.ts
 
@@ -157,7 +155,6 @@ export function InventoryForm({
 
   const totalValue = quantityWatch * unitPriceWatch
 
-
   const onSubmit = form.handleSubmit(async (values) => {
     setIsSubmitting(true)
     try {
@@ -206,10 +203,11 @@ export function InventoryForm({
       {/* Summary Stats - Compact Info Bar */}
       <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
-          { 
-            label: "Valor", 
+          {
+            label: "Valor",
             amount: Number(totalValue || 0),
-            currency: (form.watch("unit_price_currency") as Currency) || Currency.USD
+            currency:
+              (form.watch("unit_price_currency") as Currency) || Currency.USD,
           },
           {
             label: "Estado",
@@ -236,8 +234,8 @@ export function InventoryForm({
             </span>
             <div className="mt-0.5">
               {"amount" in item ? (
-                <CurrencyDisplay 
-                  amount={item.amount ?? 0} 
+                <CurrencyDisplay
+                  amount={item.amount ?? 0}
                   currency={item.currency}
                   size="sm"
                 />
@@ -469,7 +467,9 @@ export function InventoryForm({
                   <div className="flex gap-2">
                     <CurrencySelector
                       value={form.watch("unit_price_currency") || Currency.USD}
-                      onChange={(val) => form.setValue("unit_price_currency", val)}
+                      onChange={(val) =>
+                        form.setValue("unit_price_currency", val)
+                      }
                     />
                     <Input
                       id="unit_price"
@@ -547,7 +547,7 @@ export function InventoryForm({
           <div className="m-0 border-none bg-none p-0">
             {/* Campo oculto para asegurar que react-hook-form capture el valor */}
             <input type="hidden" {...form.register("image_url")} />
-            
+
             <MediaUpload
               bucketType="inventory"
               recordId={itemId}

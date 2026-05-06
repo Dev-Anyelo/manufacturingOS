@@ -49,7 +49,7 @@ export function CurrencySelector({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn("w-[90px] justify-between px-3 font-bold", className)}
+          className={cn("w-22.55 justify-between px-3 font-bold", className)}
         >
           {value}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

@@ -31,8 +31,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-
-
 interface PosCatalogPanelProps {
   items: PosCatalogItem[]
   onAddItem: (item: PosCatalogItem) => void
@@ -69,6 +67,12 @@ export function PosCatalogPanel({
   const [garmentType, setGarmentType] = React.useState("all")
   const [view, setView] = React.useState<CatalogView>("grid")
   const [sort, setSort] = React.useState<CatalogSort>("popular")
+
+  // Build rate map for convertAmount function
+  const rateMap: Record<string, number> = {
+    [`${Currency.USD}_${Currency.NIO}`]: exchangeRate,
+    [`${Currency.NIO}_${Currency.USD}`]: 1 / exchangeRate,
+  }
 
   const filteredItems = React.useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -124,7 +128,7 @@ export function PosCatalogPanel({
   return (
     <div className="flex h-full min-h-0 flex-col bg-background shadow-none">
       {/* Header / Search Area */}
-      <div className="border-b border-border/40 py-3 px-2">
+      <div className="border-b border-border/40 px-2 py-3">
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
             <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -253,15 +257,15 @@ export function PosCatalogPanel({
             />
           ) : view === "list" ? (
             <div className="space-y-3">
-                  {sortedItems.map((item) => (
-                    <CatalogProductRow
-                      key={item.id}
-                      item={item}
-                      onAdd={onAddItem}
-                      currency={currency}
-                      exchangeRate={exchangeRate}
-                    />
-                  ))}
+              {sortedItems.map((item) => (
+                <CatalogProductRow
+                  key={item.id}
+                  item={item}
+                  onAdd={onAddItem}
+                  currency={currency}
+                  exchangeRate={exchangeRate}
+                />
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
@@ -295,11 +299,17 @@ function CatalogProductCard({
 }) {
   const stockStatus = getStockStatus(item.stock)
 
+  // Build rate map for convertAmount function
+  const rateMap: Record<string, number> = {
+    [`${Currency.USD}_${Currency.NIO}`]: exchangeRate,
+    [`${Currency.NIO}_${Currency.USD}`]: 1 / exchangeRate,
+  }
+
   const displayPrice = convertAmount(
     item.salePrice,
     item.salePriceCurrency,
     currency,
-    exchangeRate
+    rateMap
   )
 
   return (
@@ -336,14 +346,14 @@ function CatalogProductCard({
 
       {/* Info container */}
       <div className="flex flex-1 flex-col gap-2 p-3.5 text-left">
-        <p className="line-clamp-2 text-sm leading-tight font-semibold text-foreground text-pretty">
+        <p className="line-clamp-2 text-sm leading-tight font-semibold text-pretty text-foreground">
           {item.name}
         </p>
 
         <div className="mt-auto flex items-end justify-between">
           <div className="flex flex-col gap-1.5">
             <span className="text-lg font-bold tracking-tight text-brand tabular-nums">
-              <CurrencyDisplay amount={displayPrice} currency={currency} />
+              <CurrencyDisplay amount={displayPrice ?? 0} currency={currency} />
             </span>
             {stockStatus ? (
               <div className="flex items-center gap-1.5">
@@ -379,11 +389,17 @@ function CatalogProductRow({
 }) {
   const stockStatus = getStockStatus(item.stock)
 
+  // Build rate map for convertAmount function
+  const rateMap: Record<string, number> = {
+    [`${Currency.USD}_${Currency.NIO}`]: exchangeRate,
+    [`${Currency.NIO}_${Currency.USD}`]: 1 / exchangeRate,
+  }
+
   const displayPrice = convertAmount(
     item.salePrice,
     item.salePriceCurrency,
     currency,
-    exchangeRate
+    rateMap
   )
 
   return (
@@ -431,7 +447,7 @@ function CatalogProductRow({
 
       <div className="flex items-center gap-4 pr-2">
         <span className="text-lg font-bold text-brand tabular-nums">
-          <CurrencyDisplay amount={displayPrice} currency={currency} />
+          <CurrencyDisplay amount={displayPrice ?? 0} currency={currency} />
         </span>
         <Button
           type="button"

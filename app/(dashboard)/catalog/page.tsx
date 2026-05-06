@@ -8,7 +8,7 @@ import { requireCurrentUser } from "@/lib/auth/current-user"
 export default async function CatalogPage() {
   const [items, currentUser] = await Promise.all([
     getCatalogItems(),
-    requireCurrentUser()
+    requireCurrentUser(),
   ])
 
   return (
@@ -25,7 +25,9 @@ export default async function CatalogPage() {
 
         <div>
           <CatalogWorkspace
-            canDelete={currentUser.role === "admin" || currentUser.role === "manager"}
+            canDelete={
+              currentUser.role === "admin" || currentUser.role === "manager"
+            }
             items={items.map((item) => ({
               id: item.id,
               name: item.name,
@@ -45,6 +47,11 @@ export default async function CatalogPage() {
                   ? null
                   : decimalToNumber(item.marketPriceUnit),
               marketPriceUnitCurrency: item.marketPriceUnitCurrency,
+              marketPriceDozen:
+                item.marketPriceDozen === null
+                  ? null
+                  : decimalToNumber(item.marketPriceDozen),
+              marketPriceDozenCurrency: item.marketPriceDozenCurrency,
               estimatedCost:
                 item.estimatedCost === null
                   ? null
@@ -54,6 +61,13 @@ export default async function CatalogPage() {
               notes: item.notes,
               totalStock:
                 item.finishedGoods?.reduce((sum, fg) => sum + fg.stock, 0) ?? 0,
+              finishedGoods: item.finishedGoods?.map((fg) => ({
+                id: fg.id,
+                size: fg.size,
+                color: fg.color,
+                stock: fg.stock,
+                minimumStock: fg.minimumStock,
+              })),
             }))}
           />
         </div>

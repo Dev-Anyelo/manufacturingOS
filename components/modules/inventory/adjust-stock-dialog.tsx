@@ -321,7 +321,7 @@ export function AdjustStockDialog({
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               placeholder="Ejemplo: Correccion por conteo fisico de bodega"
-              className="min-h-[60px]"
+              className="min-h-15"
               rows={2}
             />
             <div className="flex items-center justify-between text-xs">

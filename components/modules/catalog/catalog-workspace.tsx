@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { getStorageUrl } from "@/lib/storage/upload"
 import { useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -17,7 +18,8 @@ import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CatalogForm } from "@/components/modules/catalog/catalog-form"
 import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
-import { getStorageUrl, getBucketConfig } from "@/lib/storage/upload"
+import { GARMENT_TYPES } from "@/types"
+import { GarmentType } from "@prisma/client"
 
 import {
   Sheet,
@@ -70,6 +72,7 @@ import {
   CatalogCard,
   type CatalogCardItem,
 } from "@/components/modules/catalog/catalog-card"
+import { Currency } from "@prisma/client"
 
 interface CatalogWorkspaceProps {
   items: CatalogCardItem[]
@@ -182,7 +185,7 @@ export function CatalogWorkspace({
           <div className="text-right font-bold text-primary tabular-nums">
             <CurrencyDisplay
               amount={row.original.ourPriceUnit ?? 0}
-              currency={row.original.ourPriceUnitCurrency as any}
+              currency={row.original.ourPriceUnitCurrency as Currency}
               size="sm"
             />
           </div>
@@ -195,7 +198,7 @@ export function CatalogWorkspace({
           <div className="text-right text-muted-foreground tabular-nums">
             <CurrencyDisplay
               amount={row.original.ourPriceDozen ?? 0}
-              currency={row.original.ourPriceDozenCurrency as any}
+              currency={row.original.ourPriceDozenCurrency as Currency}
               size="sm"
             />
           </div>
@@ -229,9 +232,11 @@ export function CatalogWorkspace({
         cell: ({ row }) => (
           <ProfitMarginIndicator
             ourPriceUnit={row.original.ourPriceUnit}
-            ourPriceCurrency={row.original.ourPriceUnitCurrency as any}
+            ourPriceCurrency={row.original.ourPriceUnitCurrency as Currency}
             estimatedCost={row.original.estimatedCost}
-            estimatedCostCurrency={row.original.estimatedCostCurrency as any}
+            estimatedCostCurrency={
+              row.original.estimatedCostCurrency as Currency
+            }
           />
         ),
       },
@@ -459,14 +464,40 @@ export function CatalogWorkspace({
                   defaultValues={{
                     name: editingItem.name,
                     description: null,
-                    garment_type: editingItem.garmentType ?? "",
+                    garment_type:
+                      editingItem.garmentType &&
+                      Object.prototype.hasOwnProperty.call(
+                        GARMENT_TYPES,
+                        editingItem.garmentType as GarmentType
+                      )
+                        ? (editingItem.garmentType as GarmentType)
+                        : ("other" as GarmentType),
                     market_price_unit: editingItem.marketPriceUnit ?? 0,
-                    market_price_dozen: null,
+                    market_price_unit_currency:
+                      (editingItem.marketPriceUnitCurrency ??
+                        "USD") as Currency,
+                    market_price_dozen: editingItem.marketPriceDozen ?? null,
+                    market_price_dozen_currency:
+                      (editingItem.marketPriceDozenCurrency ??
+                        "USD") as Currency,
                     our_price_unit: editingItem.ourPriceUnit ?? 0,
-                    our_price_dozen: editingItem.ourPriceDozen,
-                    estimated_cost: editingItem.estimatedCost,
+                    our_price_unit_currency:
+                      (editingItem.ourPriceUnitCurrency ?? "USD") as Currency,
+                    our_price_dozen: editingItem.ourPriceDozen ?? null,
+                    our_price_dozen_currency:
+                      (editingItem.ourPriceDozenCurrency ?? "USD") as Currency,
+                    estimated_cost: editingItem.estimatedCost ?? null,
+                    estimated_cost_currency:
+                      (editingItem.estimatedCostCurrency ?? "USD") as Currency,
                     notes: editingItem.notes,
                     image_url: editingItem.imageUrl,
+                    stock_entries:
+                      editingItem.finishedGoods?.map((fg) => ({
+                        size: fg.size,
+                        color: fg.color ?? "",
+                        quantity: fg.stock,
+                        minimumStock: fg.minimumStock,
+                      })) ?? [],
                   }}
                   onSuccess={async () => {
                     setEditingItem(null)

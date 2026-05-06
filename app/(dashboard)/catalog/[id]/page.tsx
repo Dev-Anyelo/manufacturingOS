@@ -1,13 +1,14 @@
 import Link from "next/link"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { Currency } from "@prisma/client"
+import { GARMENT_TYPES } from "@/types"
 import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { decimalToNumber } from "@/lib/api/utils"
 import { getCatalogItem } from "@/lib/data/catalog"
 import { getStorageUrl } from "@/lib/storage/upload"
+import { Currency, GarmentType } from "@prisma/client"
 import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { ArrowLeftIcon, BoxesIcon, ImageOff } from "lucide-react"
@@ -76,7 +77,7 @@ export default async function CatalogDetailPage({
                     alt={item.name}
                     width={240}
                     height={240}
-                    className="w-full h-full object-cover object-center"
+                    className="h-full w-full object-cover object-center"
                   />
                 ) : (
                   <div className="flex h-60 items-center justify-center">
@@ -91,7 +92,23 @@ export default async function CatalogDetailPage({
                     Tipo de Prenda
                   </p>
                   <p className="mt-1 flex items-baseline gap-1 text-sm font-medium">
-                    {item.garmentType ?? "Sin tipo"}
+                    {item.garmentType === GarmentType.blankets
+                      ? "Algodón"
+                      : item.garmentType === GarmentType.sheets
+                        ? "Sábanas"
+                        : item.garmentType === GarmentType.pajamas
+                          ? "Pijamas"
+                          : item.garmentType === GarmentType.shirt
+                            ? "Camisa"
+                            : item.garmentType === GarmentType.shorts
+                              ? "Shorts"
+                              : item.garmentType === GarmentType.skirt
+                                ? "Falda"
+                                : item.garmentType === GarmentType.suit
+                                  ? "Traje"
+                                  : item.garmentType === GarmentType.leggings
+                                    ? "Leggings"
+                                    : "Otro"}
                   </p>
                 </div>
                 <div className="rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/40">
@@ -257,7 +274,14 @@ export default async function CatalogDetailPage({
           defaultValues={{
             name: item.name,
             description: item.description,
-            garment_type: item.garmentType ?? "",
+            garment_type:
+              item.garmentType &&
+              Object.prototype.hasOwnProperty.call(
+                GARMENT_TYPES,
+                item.garmentType as GarmentType
+              )
+                ? (item.garmentType as GarmentType)
+                : ("other" as GarmentType),
             market_price_unit: item.marketPriceUnit
               ? decimalToNumber(item.marketPriceUnit)
               : 0,
@@ -282,6 +306,12 @@ export default async function CatalogDetailPage({
             estimated_cost_currency: item.estimatedCostCurrency as Currency,
             notes: item.notes,
             image_url: item.imageUrl,
+            stock_entries: item.finishedGoods.map((fg) => ({
+              size: fg.size,
+              color: fg.color ?? "",
+              quantity: fg.stock,
+              minimumStock: fg.minimumStock,
+            })),
           }}
         />
       </div>

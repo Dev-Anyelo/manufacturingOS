@@ -14,6 +14,12 @@ import {
   getUserIdsByRoles,
 } from "@/lib/services/notifications"
 
+import {
+  createMonetaryMetadata,
+  createEntityMetadata,
+  createActionMetadata,
+} from "@/lib/services/notification-metadata"
+
 import { convertCurrency } from "@/lib/currency/exchange"
 
 import {
@@ -126,7 +132,10 @@ export async function POST(request: Request) {
       saleDate
     )
 
-    const netTotal = Prisma.Decimal.max(itemsTotal.sub(discountInSaleCurrency), 0)
+    const netTotal = Prisma.Decimal.max(
+      itemsTotal.sub(discountInSaleCurrency),
+      0
+    )
 
     const amountPaidInSaleCurrency = await convertCurrency(
       payload.amount_paid,
@@ -137,12 +146,11 @@ export async function POST(request: Request) {
 
     const balanceDue = netTotal.sub(amountPaidInSaleCurrency)
 
-    const status: SaleStatus =
-      balanceDue.lte(0)
-        ? SaleStatus.paid
-        : amountPaidInSaleCurrency.gt(0)
-          ? SaleStatus.partial
-          : SaleStatus.pending
+    const status: SaleStatus = balanceDue.lte(0)
+      ? SaleStatus.paid
+      : amountPaidInSaleCurrency.gt(0)
+        ? SaleStatus.partial
+        : SaleStatus.pending
 
     const result = await prisma.$transaction(async (tx) => {
       const sale = await tx.sale.create({
@@ -157,8 +165,11 @@ export async function POST(request: Request) {
           discount: toPrismaDecimal(payload.discount),
           amountPaidCurrency: payload.amount_paid_currency,
           amountPaid: toPrismaDecimal(payload.amount_paid),
-          changeGivenCurrency: payload.change_given_currency || payload.total_currency,
-          changeGiven: balanceDue.lt(0) ? balanceDue.abs() : new Prisma.Decimal(0),
+          changeGivenCurrency:
+            payload.change_given_currency || payload.total_currency,
+          changeGiven: balanceDue.lt(0)
+            ? balanceDue.abs()
+            : new Prisma.Decimal(0),
           balanceDue: Prisma.Decimal.max(balanceDue, 0),
           status,
           notes: payload.notes,
@@ -256,17 +267,39 @@ export async function POST(request: Request) {
         })
 
         if (customer) {
-          const saleTotalInCustomerCurrency = await convertCurrency(
-            netTotal,
-            payload.total_currency,
-            customer.totalPurchasesCurrency,
-            saleDate
-          )
+          // FIX #1: If totalPurchases == 0, set currency to sale currency; else convert & accumulate
+          let newTotalPurchases: Prisma.Decimal
+          let newCurrency = customer.totalPurchasesCurrency
+
+          if (customer.totalPurchases.eq(0)) {
+            // First sale: use sale currency directly
+            newTotalPurchases = netTotal
+            newCurrency = payload.total_currency
+          } else if (
+            customer.totalPurchasesCurrency === payload.total_currency
+          ) {
+            // Same currency: simple add
+            newTotalPurchases = customer.totalPurchases.add(netTotal)
+          } else {
+            // Different currency: convert sale to customer currency and accumulate
+            const saleTotalInCustomerCurrency = await convertCurrency(
+              netTotal,
+              payload.total_currency,
+              customer.totalPurchasesCurrency,
+              saleDate
+            )
+            newTotalPurchases = customer.totalPurchases.add(
+              saleTotalInCustomerCurrency
+            )
+          }
 
           await tx.customer.update({
             where: { id: payload.customer_id },
             data: {
-              totalPurchases: customer.totalPurchases.add(saleTotalInCustomerCurrency),
+              totalPurchases: newTotalPurchases,
+              ...(customer.totalPurchases.eq(0) && {
+                totalPurchasesCurrency: newCurrency,
+              }),
             },
           })
         }
@@ -280,11 +313,13 @@ export async function POST(request: Request) {
       title: "Venta registrada",
       body: `Se registró la venta #${result.sale.id.slice(0, 8)} por un total de ${result.sale.totalCurrency} ${decimalToNumber(result.sale.total)}.`,
       metadata: {
-        saleId: result.sale.id,
-        total: decimalToNumber(result.sale.total),
-        currency: result.sale.totalCurrency,
-        actionUrl: `/sales/${result.sale.id}`,
-        actionLabel: "Ver venta",
+        monetary: createMonetaryMetadata(
+          decimalToNumber(result.sale.total),
+          result.sale.totalCurrency,
+          { asOfDate: result.sale.saleDate.toISOString() }
+        ),
+        entity: createEntityMetadata("sales", result.sale.id),
+        action: createActionMetadata(`/sales/${result.sale.id}`, "Ver venta"),
       },
       userIds: [profile.id],
       sendEmail: false,
@@ -309,7 +344,9 @@ export async function POST(request: Request) {
       const body = [
         `Venta por ${saleTotal.toFixed(2)} registrada`,
         customer?.fullName ? `para ${customer.fullName}` : null,
-        balanceDue.gt(0) ? `saldo pendiente: ${decimalToNumber(balanceDue).toFixed(2)}` : null,
+        balanceDue.gt(0)
+          ? `saldo pendiente: ${decimalToNumber(balanceDue).toFixed(2)}`
+          : null,
       ]
         .filter(Boolean)
         .join(", ")
@@ -319,11 +356,16 @@ export async function POST(request: Request) {
         title: "Nueva venta registrada",
         body,
         metadata: {
-          saleId: result.sale.id,
-          total: saleTotal,
+          monetary: createMonetaryMetadata(
+            saleTotal,
+            result.sale.totalCurrency,
+            {
+              asOfDate: result.sale.saleDate.toISOString(),
+            }
+          ),
+          entity: createEntityMetadata("sales", result.sale.id),
+          action: createActionMetadata(`/sales/${result.sale.id}`, "Ver venta"),
           customerId: payload.customer_id ?? null,
-          actionUrl: `/sales/${result.sale.id}`,
-          actionLabel: "Ver venta",
         },
         userIds: adminManagerIds,
         sendEmail: result.sale.status === SaleStatus.paid,
@@ -347,8 +389,7 @@ export async function POST(request: Request) {
               stock: item.stock,
               minimumStock: item.minimumStock,
             })),
-            actionUrl: "/catalog",
-            actionLabel: "Ver catálogo",
+            action: createActionMetadata("/catalog", "Ver catálogo"),
           },
           userIds: adminManagerIds,
           sendEmail: false,
