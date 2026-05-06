@@ -522,8 +522,8 @@ export function ProductionForm({
                     </div>
 
                     {/* Item Fields - Compact Grid */}
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-6">
-                      <div className="space-y-1 sm:col-span-2">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
                           Material
                         </Label>
@@ -655,7 +655,8 @@ export function ProductionForm({
                         />
                       </div>
 
-                      <div className="sm:col-span-2 lg:col-span-6">
+                    </div>
+                      <div className="space-y-2 sm:col-span-2 mt-3">
                         <div className="flex items-center gap-2 pt-1">
                           <Checkbox
                             id={`reuse-${field.id}`}
@@ -684,7 +685,6 @@ export function ProductionForm({
                           </p>
                         ) : null}
                       </div>
-                    </div>
                   </div>
                 )
               })}

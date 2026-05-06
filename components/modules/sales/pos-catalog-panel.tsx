@@ -4,14 +4,14 @@ import Image from "next/image"
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { GARMENT_TYPES } from "@/types"
+import { PosCatalogItem } from "./types"
+import { Currency } from "@prisma/client"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { convertAmount } from "@/lib/currency/exchange"
 import { EmptyState } from "@/components/shared/empty-state"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { Currency } from "@prisma/client"
-import { Input } from "@/components/ui/input"
-import { convertAmount } from "@/lib/currency/exchange"
-import { PosCatalogItem } from "./types"
 
 import {
   LayoutGridIcon,
