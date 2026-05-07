@@ -5,6 +5,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { formatCurrencyNI } from "@/lib/currency/exchange"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -67,9 +68,9 @@ export function CustomersTable({ data, canDelete = false }: CustomersTableProps)
         throw new Error(errorData.error || "No se pudo eliminar el cliente.")
       }
 
+      await revalidatePaths(["/customers"])
       toast.success("Cliente eliminado correctamente.")
       setCustomerToDelete(null)
-      router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al eliminar.")
     } finally {

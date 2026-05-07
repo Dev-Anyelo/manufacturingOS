@@ -14,6 +14,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray } from "react-hook-form"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { EntitySelector } from "@/components/shared/entity-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -305,12 +306,22 @@ export function ProductionForm({
         throw new Error(result.error ?? "No se pudo registrar la sesión.")
       }
 
-      toast.success("Sesión de producción registrada")
+      const pathsToRevalidate = [
+        "/production",
+        `/production/${result.data.id}`,
+        "/inventory",
+        "/reports",
+        "/",
+      ]
+
       if (onSuccess) {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success("Sesión de producción registrada")
         onSuccess()
       } else {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success("Sesión de producción registrada")
         router.push(`/production/${result.data.id}`)
-        router.refresh()
       }
     } catch (error) {
       const message =

@@ -58,10 +58,7 @@ export function NewCustomerSheet() {
           <ScrollArea className="flex-1">
             <div className="px-4 py-4">
               <CustomerForm
-                onSuccess={() => {
-                  setOpen(false)
-                  router.refresh()
-                }}
+                onSuccess={() => setOpen(false)}
                 onCancel={() => setOpen(false)}
               />
             </div>

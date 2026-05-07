@@ -6,6 +6,7 @@ import { UserRole } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DEFAULT_PERMISSIONS } from "@/lib/permissions/constants"
@@ -256,7 +257,7 @@ export function UserPermissionsForm({
       setOriginalRole(currentRole)
 
       setOpen(false)
-      router.refresh()
+      await revalidatePaths(["/settings/users"])
     } catch (err: any) {
       toast.error(err.message || "Error al guardar permisos")
     } finally {

@@ -5,12 +5,14 @@ import * as React from "react"
 import { toast } from "sonner"
 import { Currency } from "@prisma/client"
 import { useForm } from "react-hook-form"
+import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { MediaUpload } from "@/components/shared/media-upload"
 import { useSystemSettings } from "@/hooks/use-system-settings"
 import type { PosCustomer } from "@/components/modules/sales/types"
@@ -113,8 +115,6 @@ function formatDateLabel(value: string) {
   return formatDateOnlyNI(value, "dd 'de' MMM")
 }
 
-// formatCurrency eliminado, se usa exchange.ts
-
 const contractTypeLabels = {
   fixed_salary: "Salario fijo",
   per_piece: "Por pieza",
@@ -128,6 +128,7 @@ export function PayrollForm({
 }: PayrollFormProps) {
   const { baseCurrency, isLoading: settingsLoading } = useSystemSettings()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const localRouter = useRouter()
 
   const form = useForm<PayrollFormInput, unknown, PayrollFormOutput>({
     resolver: zodResolver(payrollFormSchema),
@@ -220,7 +221,7 @@ export function PayrollForm({
         total_amount_currency: values.base_amount_currency,
         payment_method: values.payment_method,
         notes: normalizeOptional(values.notes),
-        receipt_url: values.receipt_url || null, // Asegurar inclusión
+        receipt_url: values.receipt_url || null,
       }
 
       const response = await fetch("/api/payroll", {
@@ -238,8 +239,26 @@ export function PayrollForm({
         throw new Error(result.error ?? "No se pudo registrar el pago.")
       }
 
-      toast.success("Pago de nómina registrado exitosamente")
-      onSuccess()
+      if (onSuccess) {
+        try {
+          await revalidatePaths(["/payroll", "/reports", "/"])
+          localRouter.refresh()
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error("revalidatePaths failed", e)
+        }
+        toast.success("Pago de nómina registrado exitosamente")
+        onSuccess()
+      } else {
+        try {
+          await revalidatePaths(["/payroll", "/reports", "/"])
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error("revalidatePaths failed", e)
+        }
+        toast.success("Pago de nómina registrado exitosamente")
+        localRouter.refresh()
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "No se pudo registrar el pago."

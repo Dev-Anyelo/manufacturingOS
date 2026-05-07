@@ -94,20 +94,8 @@ export function PayrollWorkspace({
   const pendingCount = payments.filter((p) => p.status === "pending").length
   const paidCount = payments.filter((p) => p.status === "paid").length
 
-  const totalPendingAmount = payments
-    .filter((p) => p.status === "pending")
-    .reduce((acc, p) => {
-      // For simplicity in the banner, we sum everything.
-      // But we should really convert.
-      // Since totalPendingAmount is used in a banner, I'll pass it to CurrencyDisplay
-      // and it will handle the conversion if needed, but we need to know the source currency.
-      // Actually, if we have multiple currencies in pending payments, a single number is hard.
-      // I'll assume totalPendingAmount is in USD for the KPI banner if we want a single number.
-      return acc + p.total // This is wrong if currencies are mixed.
-    }, 0)
-
   // Better: Calculate total pending in USD
-  const totalPendingInUSD = payments
+  const totalPending = payments
     .filter((p) => p.status === "pending")
     .reduce((acc, p) => {
       // For now, let's just use the number. The user said most are USD anyway.
@@ -141,7 +129,8 @@ export function PayrollWorkspace({
   }
 
   function handleRefresh() {
-    router.refresh()
+    // router.refresh() eliminado: los componentes hijos (PayrollForm, MarkPaidDialog)
+    // ya se encargan de llamar a revalidatePaths internamente.
   }
 
   return (
@@ -196,7 +185,7 @@ export function PayrollWorkspace({
             Monto pendiente de pago:{" "}
             <strong className="tabular-nums">
               <CurrencyDisplay
-                amount={totalPendingInUSD}
+                amount={totalPending}
                 className="inline-block"
                 showDual={true}
               />

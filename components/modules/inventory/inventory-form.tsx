@@ -3,16 +3,17 @@
 import { z } from "zod"
 import { toast } from "sonner"
 import * as React from "react"
-import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Currency } from "@prisma/client"
 import { useForm } from "react-hook-form"
+import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { MaterialCategory } from "@prisma/client"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { MediaUpload } from "@/components/shared/media-upload"
 import { useSystemSettings } from "@/hooks/use-system-settings"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
@@ -101,7 +102,6 @@ const categoryOptions = [
 
 const unitOptions = ["yd", "metros", "unidades", "rollos"] as const
 
-
 // formatCurrency eliminado, se usa exchange.ts
 
 export function InventoryForm({
@@ -112,6 +112,7 @@ export function InventoryForm({
   onCancel,
 }: InventoryFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const router = useRouter()
   const { baseCurrency, isLoading: settingsLoading } = useSystemSettings()
 
   const form = useForm<InventoryFormInput, unknown, InventoryFormOutput>({
@@ -167,7 +168,7 @@ export function InventoryForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
-          image_url: values.image_url || null, // Asegurar que se envíe incluso si es cadena vacía
+          image_url: values.image_url || null,
           fabric_type: values.fabric_type?.trim() || null,
           color: values.color?.trim() || null,
           supplier: values.supplier?.trim() || null,
@@ -181,12 +182,29 @@ export function InventoryForm({
         throw new Error(result.error ?? "No se pudo guardar el material.")
       }
 
-      toast.success(
-        mode === "create"
-          ? "Material agregado al inventario"
-          : "Material actualizado correctamente"
-      )
-      onSuccess?.()
+      const pathsToRevalidate = ["/inventory", "/"]
+      if (result.data?.id)
+        pathsToRevalidate.push(`/inventory/${result.data.id}`)
+
+      if (onSuccess) {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success(
+          mode === "create"
+            ? "Material agregado al inventario"
+            : "Material actualizado correctamente"
+        )
+        onSuccess()
+      } else {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success(
+          mode === "create"
+            ? "Material agregado al inventario"
+            : "Material actualizado correctamente"
+        )
+        if (result.data?.id) {
+          router.push(`/inventory/${result.data.id}`)
+        }
+      }
     } catch (error) {
       const message =
         error instanceof Error

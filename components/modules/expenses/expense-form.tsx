@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Currency } from "@prisma/client"
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -298,12 +299,17 @@ export function ExpenseForm({
         throw new Error(result.error ?? "No se pudo registrar el gasto.")
       }
 
-      toast.success("Gasto registrado correctamente")
+      const pathsToRevalidate = ["/expenses", "/reports", "/"]
+      if (result.data?.id) pathsToRevalidate.push(`/expenses/${result.data.id}`)
+
       if (onSuccess) {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success("Gasto registrado correctamente")
         onSuccess()
       } else {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success("Gasto registrado correctamente")
         router.push("/expenses")
-        router.refresh()
       }
     } catch (error) {
       const message =
@@ -667,7 +673,7 @@ export function ExpenseForm({
               <div className="space-y-2">
                 {/* Campo oculto para asegurar captura */}
                 <input type="hidden" {...form.register("receipt_url")} />
-                
+
                 <MediaUpload
                   bucketType="expenses"
                   currentValue={form.watch("receipt_url") || undefined}

@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { UserRole } from "@prisma/client"
 import { useRouter } from "next/navigation"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -99,8 +100,15 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
           : "Usuario creado exitosamente. Ahora puedes compartir las credenciales."
       )
 
-      router.refresh()
-      onSuccess?.()
+      try {
+        await revalidatePaths(["/settings/users"])
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("revalidatePaths failed", e)
+      }
+      if (onSuccess) {
+        onSuccess()
+      }
     } catch (error: any) {
       toast.error(error.message)
     } finally {

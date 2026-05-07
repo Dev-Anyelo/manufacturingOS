@@ -34,6 +34,8 @@ import {
   DrawerDescription,
   DrawerTitle,
 } from "@/components/ui/drawer"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
+import { useRouter } from "next/navigation"
 
 const REASON_MAX = 240
 
@@ -214,6 +216,7 @@ export function ChangeStatusDialog({
   const fromCfg = statusConfig[currentStatus]
   const toCfg = statusConfig[targetStatus]
   const HeaderIcon = isCancel ? TriangleAlertIcon : ZapIcon
+  const router = useRouter()
 
   // reset on close
   React.useEffect(() => {
@@ -275,6 +278,13 @@ export function ChangeStatusDialog({
         await submitFn(payload)
       } else {
         await defaultSubmit(payload)
+      }
+      try {
+        await revalidatePaths(["/orders", `/orders/${orderId}`, "/"])
+      } catch (e) {
+        // non-fatal: log and continue
+        // eslint-disable-next-line no-console
+        console.error("revalidatePaths failed", e)
       }
       toast.success("Estado del pedido actualizado.", {
         description: `${fromCfg.label} → ${toCfg.label}`,

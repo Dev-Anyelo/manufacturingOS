@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Textarea } from "@/components/ui/textarea"
 import { getCurrencySymbol } from "@/lib/currency/exchange"
@@ -113,9 +114,9 @@ export function UpdateSalePaymentButton({
         throw new Error(payload.error ?? "No se pudo actualizar el pago.")
       }
 
+      await revalidatePaths(["/sales", `/sales/${saleId}`, "/reports", "/"])
       toast.success("Pago registrado correctamente.")
       setOpen(false)
-      router.refresh()
     } catch (error) {
       const message =
         error instanceof Error

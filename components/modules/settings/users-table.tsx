@@ -7,6 +7,7 @@ import { UserForm } from "./user-form"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { formatDistanceToNow } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -446,7 +447,7 @@ function UserActionsMenu({
       toast.success(
         `Usuario ${!user.isActive ? "reactivado" : "desactivado"} exitosamente`
       )
-      router.refresh()
+      await revalidatePaths(["/settings/users"])
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Error al actualizar estado"

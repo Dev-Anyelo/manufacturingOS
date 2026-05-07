@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { UserRole, Currency } from "@prisma/client"
 import { useQueryClient } from "@tanstack/react-query"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
@@ -291,9 +292,9 @@ export function SalesTable({ sales, currentUserRole }: SalesTableProps) {
         throw new Error(result.error ?? "No se pudo eliminar la venta.")
       }
 
-      toast.success("Venta eliminada correctamente")
       await queryClient.invalidateQueries({ queryKey: ["sales"] })
-      router.refresh()
+      await revalidatePaths(["/sales", `/sales/${saleToDelete.id}`, "/reports", "/"])
+      toast.success("Venta eliminada correctamente")
       setSaleToDelete(null)
     } catch (error) {
       const message =

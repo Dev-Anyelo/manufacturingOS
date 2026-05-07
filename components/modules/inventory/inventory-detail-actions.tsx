@@ -1,11 +1,10 @@
 "use client"
 
-import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { ChevronLeftIcon, SlidersHorizontalIcon } from "lucide-react"
-
+import * as React from "react"
 import { Button } from "@/components/ui/button"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
+import { ChevronLeftIcon, SlidersHorizontalIcon } from "lucide-react"
 import { AdjustStockDialog } from "@/components/modules/inventory/adjust-stock-dialog"
 
 type InventoryDetailActionsProps = {
@@ -18,12 +17,11 @@ type InventoryDetailActionsProps = {
 }
 
 export function InventoryDetailActions({ item }: InventoryDetailActionsProps) {
-  const router = useRouter()
   const [adjustOpen, setAdjustOpen] = React.useState(false)
 
   return (
     <>
-      <div className="flex w-full gap-2 sm:w-auto flex-row flex-wrap sm:justify-end">
+      <div className="flex w-full flex-row flex-wrap gap-2 sm:w-auto sm:justify-end">
         <Button asChild variant="outline" size="sm" className="max-w-fit">
           <Link href="/inventory">
             <ChevronLeftIcon className="size-4" />
@@ -50,9 +48,9 @@ export function InventoryDetailActions({ item }: InventoryDetailActionsProps) {
           quantity: item.quantity,
           unit: item.unit,
         }}
-        onAdjusted={() => {
+        onAdjusted={async () => {
           setAdjustOpen(false)
-          router.refresh()
+          await revalidatePaths(["/inventory", `/inventory/${item.id}`])
         }}
       />
     </>

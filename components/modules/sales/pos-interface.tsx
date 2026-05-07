@@ -5,6 +5,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { useSettingsStore } from "@/stores/settingsStore"
 import { KeyboardIcon, ShoppingCartIcon } from "lucide-react"
 import { PosCart } from "@/components/modules/sales/pos-cart"
@@ -472,6 +473,11 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
 
       setReceiptOpen(true)
       setCartDrawerOpen(false)
+
+      // Revalidate related pages in the background
+      revalidatePaths(["/sales", "/inventory", "/reports", "/"]).catch((err) =>
+        console.error("[POS] revalidación fallida tras venta:", err)
+      )
       toast.success("Venta registrada correctamente.")
     } catch (error) {
       const message =

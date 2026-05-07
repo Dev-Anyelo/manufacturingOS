@@ -167,7 +167,6 @@ export function OrdersWorkspace({
               )
             )
             setStatusDialogState(null)
-            router.refresh()
           }}
         />
       ) : null}

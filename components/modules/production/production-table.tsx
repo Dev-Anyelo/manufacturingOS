@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -166,9 +167,9 @@ export function ProductionTable({
         throw new Error("No se pudo eliminar la sesión.")
       }
 
+      await revalidatePaths(["/production", "/inventory", "/reports", "/"])
       toast.success("Sesión eliminada correctamente.")
       setSessionToDelete(null)
-      router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al eliminar.")
     } finally {

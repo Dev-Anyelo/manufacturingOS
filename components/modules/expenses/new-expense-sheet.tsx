@@ -63,10 +63,7 @@ export function NewExpenseSheet({ inventoryItems }: NewExpenseSheetProps) {
             <div className="px-4 py-4">
               <ExpenseForm
                 inventoryItems={inventoryItems}
-                onSuccess={() => {
-                  setOpen(false)
-                  router.refresh()
-                }}
+                onSuccess={() => setOpen(false)}
                 onCancel={() => setOpen(false)}
               />
             </div>

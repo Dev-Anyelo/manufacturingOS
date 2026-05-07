@@ -15,13 +15,15 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Currency, GarmentType } from "@prisma/client"
 import { convertAmount } from "@/lib/currency/exchange"
 import { useSettingsStore } from "@/stores/settingsStore"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { MediaUpload } from "@/components/shared/media-upload"
 import { useSystemSettings } from "@/hooks/use-system-settings"
 import { Loader2, FileText, Save, ArrowUpDown } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CurrencySelector } from "@/components/shared/currency-selector"
-import { CatalogStockSection } from "@/components/modules/catalog/catalog-stock-section"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CatalogStockSection } from "@/components/modules/catalog/catalog-stock-section"
+
 import {
   Select,
   SelectContent,
@@ -226,17 +228,28 @@ export function CatalogForm({
         )
       }
 
-      toast.success(
-        mode === "create"
-          ? "Producto agregado al catálogo"
-          : "Producto actualizado correctamente"
-      )
+      const pathsToRevalidate = ["/catalog", `/catalog/${result.data.id}`]
 
       if (onSuccess) {
+        try {
+          await revalidatePaths(pathsToRevalidate)
+        } catch (err) {
+          console.error("revalidatePaths failed", err)
+        }
+        toast.success(
+          mode === "create"
+            ? "Producto agregado al catálogo"
+            : "Producto actualizado correctamente"
+        )
         onSuccess()
       } else {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success(
+          mode === "create"
+            ? "Producto agregado al catálogo"
+            : "Producto actualizado correctamente"
+        )
         router.push(`/catalog/${result.data.id}`)
-        router.refresh()
       }
     } catch (error) {
       const message =

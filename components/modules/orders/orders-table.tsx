@@ -5,6 +5,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { WorkOrderStatus } from "@prisma/client"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
@@ -96,9 +97,9 @@ export function OrdersTable({
         throw new Error(errorData.error || "No se pudo eliminar el pedido.")
       }
 
+      await revalidatePaths(["/orders", "/reports", "/"])
       toast.success("Pedido eliminado correctamente.")
       setOrderToDelete(null)
-      router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al eliminar.")
     } finally {

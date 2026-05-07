@@ -5,6 +5,7 @@ import * as React from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { UserRole, Currency } from "@prisma/client"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
@@ -144,9 +145,9 @@ export function ExpensesTable({
         throw new Error("No se pudo eliminar el gasto.")
       }
 
+      await revalidatePaths(["/expenses", "/reports", "/"])
       toast.success("Gasto eliminado correctamente.")
       setExpenseToDelete(null)
-      router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al eliminar.")
     } finally {

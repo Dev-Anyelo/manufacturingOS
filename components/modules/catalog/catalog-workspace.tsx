@@ -6,7 +6,6 @@ import Image from "next/image"
 import { toast } from "sonner"
 import { GARMENT_TYPES } from "@/types"
 import { Currency } from "@prisma/client"
-import { useRouter } from "next/navigation"
 import { GarmentType } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -16,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DataTable } from "@/components/shared/data-table"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { EmptyState } from "@/components/shared/empty-state"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CatalogForm } from "@/components/modules/catalog/catalog-form"
@@ -86,7 +86,6 @@ export function CatalogWorkspace({
   items,
   canDelete = false,
 }: CatalogWorkspaceProps) {
-  const router = useRouter()
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
   const [viewMode, setViewMode] = React.useState<ViewMode>("grid")
@@ -131,7 +130,7 @@ export function CatalogWorkspace({
       toast.success("Producto desactivado correctamente.")
       setItemToDeactivate(null)
       await queryClient.invalidateQueries({ queryKey: ["catalog"] })
-      router.refresh()
+      await revalidatePaths(["/catalog"])
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Error al desactivar."
@@ -391,7 +390,7 @@ export function CatalogWorkspace({
       <BulkPriceDialog
         open={bulkDialogOpen}
         onOpenChange={setBulkDialogOpen}
-        onSuccess={() => router.refresh()}
+        onSuccess={() => {}}
       />
 
       {/* Create product sheet */}
@@ -422,8 +421,6 @@ export function CatalogWorkspace({
                 mode="create"
                 onSuccess={async () => {
                   setCreateOpen(false)
-                  await queryClient.invalidateQueries({ queryKey: ["catalog"] })
-                  router.refresh()
                 }}
                 onCancel={() => setCreateOpen(false)}
               />
@@ -503,10 +500,6 @@ export function CatalogWorkspace({
                   }}
                   onSuccess={async () => {
                     setEditingItem(null)
-                    await queryClient.invalidateQueries({
-                      queryKey: ["catalog"],
-                    })
-                    router.refresh()
                   }}
                   onCancel={() => setEditingItem(null)}
                 />

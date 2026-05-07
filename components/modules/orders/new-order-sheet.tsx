@@ -84,10 +84,7 @@ export function NewOrderSheet({
                 customers={customers}
                 catalogItems={catalogItems}
                 inventoryItems={inventoryItems}
-                onSuccess={() => {
-                  setOpen(false)
-                  router.refresh()
-                }}
+                onSuccess={() => setOpen(false)}
                 onCancel={() => setOpen(false)}
               />
             </div>

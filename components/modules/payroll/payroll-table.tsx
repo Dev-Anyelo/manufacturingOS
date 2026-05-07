@@ -7,6 +7,7 @@ import { Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
@@ -134,9 +135,9 @@ export function PayrollTable({
         throw new Error(errorData.error || "No se pudo eliminar el pago.")
       }
 
+      await revalidatePaths(["/payroll", "/reports", "/"])
       toast.success("Pago de planilla eliminado.")
       setPaymentToDelete(null)
-      router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al eliminar.")
     } finally {

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 import {
@@ -87,9 +88,17 @@ export function BulkPriceDialog({
         throw new Error(result.error ?? "No se pudo aplicar el ajuste masivo.")
       }
 
+      try {
+        await revalidatePaths(["/catalog"])
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("revalidatePaths failed", e)
+      }
+
       toast.success(
         `Ajuste aplicado a ${result.data?.updated_count ?? 0} productos.`
       )
+
       onOpenChange(false)
       onSuccess()
     } catch (error) {
@@ -109,7 +118,7 @@ export function BulkPriceDialog({
         <h2 className="text-lg font-semibold tracking-tight">
           Ajuste masivo de precios
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-pretty text-muted-foreground">
           Incrementa o reduce precios en bloque según el porcentaje indicado.
         </p>
       </div>
@@ -144,7 +153,7 @@ export function BulkPriceDialog({
               %
             </span>
           </div>
-          <p className="text-xs leading-relaxed text-muted-foreground text-pretty">
+          <p className="text-xs leading-relaxed text-pretty text-muted-foreground">
             Usa valores positivos para incrementar (ej: 10) y negativos para
             reducir (ej: -15).
           </p>
@@ -210,7 +219,6 @@ export function BulkPriceDialog({
             {isSubmitting ? (
               <Loader2Icon className="size-4 animate-spin" />
             ) : null}
-            
             Aplicar
           </Button>
         </div>

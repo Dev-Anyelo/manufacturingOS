@@ -13,6 +13,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useSettingsStore } from "@/stores/settingsStore"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { MediaUpload } from "@/components/shared/media-upload"
 import { useSystemSettings } from "@/hooks/use-system-settings"
 import type { PosCustomer } from "@/components/modules/sales/types"
@@ -61,8 +62,6 @@ import {
   Save,
   ImageIcon,
 } from "lucide-react"
-
-// Using PosCustomer from @/components/modules/sales/types
 
 type CatalogChoice = {
   id: string
@@ -371,12 +370,16 @@ export function OrderForm({
         throw new Error(result.error ?? "No se pudo crear el pedido.")
       }
 
-      toast.success("Pedido creado correctamente")
+      const pathsToRevalidate = ["/orders", `/orders/${result.data.id}`, "/"]
+
       if (onSuccess) {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success("Pedido creado correctamente")
         onSuccess()
       } else {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success("Pedido creado correctamente")
         router.push(`/orders/${result.data.id}`)
-        router.refresh()
       }
     } catch (error) {
       const message =

@@ -84,10 +84,7 @@ export function NewProductionSheet({
                 inventoryItems={inventoryItems}
                 currentUserId={currentUserId}
                 currentUserRole={currentUserRole}
-                onSuccess={() => {
-                  setOpen(false)
-                  router.refresh()
-                }}
+                onSuccess={() => setOpen(false)}
                 onCancel={() => setOpen(false)}
               />
             </div>

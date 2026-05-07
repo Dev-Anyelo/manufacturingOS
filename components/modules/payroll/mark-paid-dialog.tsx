@@ -28,6 +28,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
+import { useRouter } from "next/navigation"
 
 interface MarkPaidDialogProps {
   open: boolean
@@ -81,6 +83,7 @@ export function MarkPaidDialog({
   onSuccess,
 }: MarkPaidDialogProps) {
   const isMobile = useIsMobile()
+  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [paymentDate, setPaymentDate] = React.useState(todayInputDate())
   const [paymentMethod, setPaymentMethod] = React.useState<
@@ -131,6 +134,14 @@ export function MarkPaidDialog({
         throw new Error(result.error ?? "No se pudo marcar como pagado.")
       }
 
+      try {
+        const paths = ["/payroll", "/reports", "/"]
+        if (payment?.id) paths.push(`/payroll/${payment.id}`)
+        await revalidatePaths(paths)
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("revalidatePaths failed", e)
+      }
       toast.success("Pago marcado como pagado.")
       onOpenChange(false)
       onSuccess()

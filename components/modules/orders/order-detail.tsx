@@ -666,7 +666,6 @@ export function OrderDetail({ order }: OrderDetailProps) {
         onSuccess={() => {
           if (targetStatus) setCurrentStatus(targetStatus)
           setTargetStatus(null)
-          router.refresh()
         }}
       />
     </div>

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2, SaveIcon } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { customerSchema, type CustomerInput } from "@/lib/validations/sales"
 
 interface CustomerFormProps {
@@ -63,14 +64,21 @@ export function CustomerForm({
         )
       }
 
-      toast.success(
-        `Cliente ${mode === "create" ? "registrado" : "actualizado"} con éxito`
-      )
+      const pathsToRevalidate = ["/customers"]
+      if (result?.data?.id)
+        pathsToRevalidate.push(`/customers/${result.data.id}`)
 
       if (onSuccess) {
+        await revalidatePaths(pathsToRevalidate)
+        toast.success(
+          `Cliente ${mode === "create" ? "registrado" : "actualizado"} con éxito`
+        )
         onSuccess()
       } else {
-        router.refresh()
+        await revalidatePaths(pathsToRevalidate)
+        toast.success(
+          `Cliente ${mode === "create" ? "registrado" : "actualizado"} con éxito`
+        )
       }
     } catch (error) {
       toast.error(

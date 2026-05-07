@@ -12,6 +12,7 @@ import { type ColumnDef } from "@tanstack/react-table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DataTable } from "@/components/shared/data-table"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { InventoryForm } from "@/components/modules/inventory/inventory-form"
 import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
@@ -472,9 +473,9 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         throw new Error(payload.error ?? "No se pudo desactivar el material.")
       }
 
+      await revalidatePaths(["/inventory", `/inventory/${deletingItem.id}`, "/"])
       toast.success("Material desactivado correctamente.")
       setDeletingItem(null)
-      router.refresh()
     } catch (error) {
       const message =
         error instanceof Error
@@ -553,9 +554,9 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
           if (!open) setAdjustingItem(null)
         }}
         item={adjustingItem}
-        onAdjusted={() => {
+        onAdjusted={async () => {
           setAdjustingItem(null)
-          router.refresh()
+          await revalidatePaths(["/inventory", `/inventory/${adjustingItem!.id}`])
         }}
       />
 
@@ -564,7 +565,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         open={createOpen}
         onOpenChange={setCreateOpen}
         mode="create"
-        onSuccess={() => router.refresh()}
+        onSuccess={() => {}}
       />
 
       {/* Edit material sheet */}
@@ -575,7 +576,7 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         }}
         mode="edit"
         item={editingItem}
-        onSuccess={() => router.refresh()}
+        onSuccess={() => {}}
       />
 
       {/* Delete confirmation — professional AlertDialog */}
