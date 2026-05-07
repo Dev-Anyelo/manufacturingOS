@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma"
 import { Prisma, UserRole } from "@prisma/client"
 import { toLocalDate, toPrismaDecimal } from "@/lib/api/utils"
-import { normalizeDateOnly } from "@/lib/currency/exchange"
 import { requirePermission } from "@/lib/api/require-permission"
 import { productionSessionSchema } from "@/lib/validations/production"
+import { getTodayInManagua, normalizeDateOnly } from "@/lib/currency/exchange"
 
 import {
   ApiRouteError,
@@ -76,8 +76,10 @@ export async function PATCH(
       throw new ApiRouteError("No se encontro la sesion solicitada.", 404)
     }
 
-    const today = normalizeDateOnly(new Date())
+    const today = getTodayInManagua()
     const sessionDay = normalizeDateOnly(session.sessionDate)
+    console.log("hoy:", today)
+    console.log("sesion:", sessionDay)
 
     if (!today || !sessionDay || sessionDay.getTime() !== today.getTime()) {
       throw new ApiRouteError(

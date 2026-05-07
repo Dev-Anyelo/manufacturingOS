@@ -6,14 +6,14 @@ import { CurrencyRateService } from "./currency-rate-service"
 
 export { CurrencyRateService }
 
-const DEFAULT_TIMEZONE = "America/Managua"
+export const DEFAULT_TIMEZONE = "America/Managua"
 const DEFAULT_LOCALE = es
 const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 
 function normalizeDateOnlyValue(date: Date | string | number): Date {
   if (date instanceof Date) {
     return new Date(
-      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12)
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12)
     )
   }
 
@@ -29,13 +29,23 @@ function normalizeDateOnlyValue(date: Date | string | number): Date {
 
     const parsed = parseISO(trimmed)
     return new Date(
-      Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12)
+      Date.UTC(
+        parsed.getUTCFullYear(),
+        parsed.getUTCMonth(),
+        parsed.getUTCDate(),
+        12
+      )
     )
   }
 
   const parsed = new Date(date)
   return new Date(
-    Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12)
+    Date.UTC(
+      parsed.getUTCFullYear(),
+      parsed.getUTCMonth(),
+      parsed.getUTCDate(),
+      12
+    )
   )
 }
 
@@ -69,11 +79,13 @@ export function formatDateOnlyInput(
   date: Date | string | number | null | undefined
 ): string {
   if (!date) return ""
-  const normalized = normalizeDateOnlyValue(date)
-  const year = normalized.getUTCFullYear()
-  const month = String(normalized.getUTCMonth() + 1).padStart(2, "0")
-  const day = String(normalized.getUTCDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
+  try {
+    const normalized = normalizeDateOnlyValue(date)
+    if (!isValid(normalized)) return ""
+    return formatInTimeZone(normalized, DEFAULT_TIMEZONE, "yyyy-MM-dd")
+  } catch {
+    return ""
+  }
 }
 
 /**
@@ -252,4 +264,18 @@ export function formatDateRangeNI(
   const start = formatDateOnlyNI(startDate, "dd 'de' MMMM, yyyy")
   const end = formatDateOnlyNI(endDate, "dd 'de' MMMM, yyyy")
   return `${start} - ${end}`
+}
+
+
+export function getTodayInManagua(): Date {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: DEFAULT_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+  const localDateStr = formatter.format(new Date())
+  const normalized = normalizeDateOnly(localDateStr)
+  if (!normalized) throw new Error("No se pudo determinar la fecha actual.")
+  return normalized
 }

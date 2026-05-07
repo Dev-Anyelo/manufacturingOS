@@ -175,7 +175,12 @@ function normalizeOptional(value?: string | null) {
 
 function formatDateLabel(value: string) {
   if (!value) return "Seleccionar"
-  return formatDateOnlyNI(value, "dd 'de' MMM")
+
+  const date = parseInputDate(value)
+  return new Intl.DateTimeFormat("es-NI", {
+    day: "2-digit",
+    month: "short",
+  }).format(date)
 }
 
 function toInputDate(value: Date) {
@@ -294,7 +299,9 @@ export function ProductionForm({
         })),
       }
 
-      const endpoint = sessionId ? `/api/production/${sessionId}` : "/api/production"
+      const endpoint = sessionId
+        ? `/api/production/${sessionId}`
+        : "/api/production"
       const method = sessionId ? "PATCH" : "POST"
 
       const response = await fetch(endpoint, {

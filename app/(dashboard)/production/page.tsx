@@ -6,7 +6,7 @@ import { requireCurrentUser } from "@/lib/auth/current-user"
 import { UrlDateFilter } from "@/components/shared/url-date-filter"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { ScissorsIcon, LayersIcon, CalendarCheckIcon } from "lucide-react"
-import { normalizeDateOnly, formatDateOnlyInput } from "@/lib/currency/exchange"
+import { formatDateOnlyInput, normalizeDateOnly } from "@/lib/currency/exchange"
 import { ProductionTable } from "@/components/modules/production/production-table"
 import { NewProductionSheet } from "@/components/modules/production/new-production-sheet"
 

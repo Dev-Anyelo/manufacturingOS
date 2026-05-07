@@ -3,22 +3,21 @@
 import Link from "next/link"
 import * as React from "react"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DateRangePicker } from "@/components/shared/date-range-picker"
+import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
 
 import {
   ScissorsIcon,
   MoreHorizontal,
   Trash2,
   AlertTriangle,
-  Eye,
   PencilLineIcon,
+  ArrowUpRight,
 } from "lucide-react"
 
 import {
@@ -68,38 +67,8 @@ interface ProductionTableProps {
   canDelete?: boolean
 }
 
-import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
-
-function formatDate(value: string) {
-  return formatDateOnlyNI(value)
-}
-
 function formatDateFull(value: string) {
-  return formatDateOnlyNI(value, "PPPP") // Usar formato largo
-}
-
-function getRelativeLabel(value: string) {
-  const sessionDate = normalizeDateOnly(value)
-  const today = normalizeDateOnly(new Date())
-  const yesterday = today ? new Date(today) : null
-
-  if (yesterday) {
-    yesterday.setUTCDate(yesterday.getUTCDate() - 1)
-  }
-
-  if (sessionDate && today && sessionDate.getTime() === today.getTime()) {
-    return "Hoy"
-  }
-
-  if (
-    sessionDate &&
-    yesterday &&
-    sessionDate.getTime() === yesterday.getTime()
-  ) {
-    return "Ayer"
-  }
-
-  return null
+  return formatDateOnlyNI(value, "PPPP")
 }
 
 function initials(value: string) {
@@ -115,7 +84,6 @@ export function ProductionTable({
   sessions,
   canDelete = false,
 }: ProductionTableProps) {
-  const router = useRouter()
   const [employeeFilter, setEmployeeFilter] = React.useState("all")
   const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>(
     {}
@@ -183,28 +151,11 @@ export function ProductionTable({
       accessorKey: "sessionDate",
       header: "Fecha",
       cell: ({ row }) => {
-        const relLabel = getRelativeLabel(row.original.sessionDate)
         return (
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="cursor-default">
-                {relLabel ? (
-                  <div className="space-y-0.5">
-                    <Badge
-                      variant="secondary"
-                      className="h-4 px-1.5 text-xs font-medium"
-                    >
-                      {relLabel}
-                    </Badge>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(row.original.sessionDate)}
-                    </p>
-                  </div>
-                ) : (
-                  <span className="text-sm">
-                    {formatDate(row.original.sessionDate)}
-                  </span>
-                )}
+                {formatDateOnlyNI(row.original.sessionDate)}
               </div>
             </TooltipTrigger>
             <TooltipContent>
@@ -283,8 +234,8 @@ export function ProductionTable({
                   href={`/production/${row.original.id}`}
                   className="flex items-center gap-2"
                 >
-                  <Eye className="size-4" />
-                  Ver detalles
+                  <ArrowUpRight className="size-4" />
+                  Detalles
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

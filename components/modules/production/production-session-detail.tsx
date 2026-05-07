@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
-import { formatDateRelative } from "@/lib/utils"
 import { StatCard } from "@/components/shared/stat-card"
+import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { GarmentTypeBadge } from "@/components/modules/production/garment-type-badge"
 
@@ -53,8 +53,8 @@ export function ProductionSessionDetail({
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <StatCard
-          title="Fecha de sesion"
-          value={formatDateRelative(session.sessionDate)}
+          title="Fecha de sesión"
+          value={formatDateOnlyNI(session.sessionDate)}
           description="Fecha de la jornada de produccion."
           icon={<RulerIcon className="size-4" />}
         />
