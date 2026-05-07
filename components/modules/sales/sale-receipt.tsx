@@ -203,7 +203,7 @@ function PhoneList({
           <a
             href={`tel:${phone.replace(/[^+\d]/g, "")}`}
             className={cn(
-              "inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground print:text-gray-700 last:text-red-300",
+              "inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground print:text-gray-700",
               itemClassName
             )}
           >
@@ -329,6 +329,18 @@ export function SaleReceipt({
                 {channel.icon}
                 {channel.label}
               </Badge>
+
+              {/* Payment type badge*/}
+              <Badge
+                variant="outline"
+                className={cn(
+                  "gap-1.5 border-muted text-muted-foreground",
+                  "print:border-gray-400! print:bg-transparent! print:text-black!"
+                )}
+              >
+                {payment.icon}
+                {payment.label}
+              </Badge>
             </div>
           </div>
         </DialogHeader>
@@ -338,20 +350,20 @@ export function SaleReceipt({
             ───────────────────────────────────────────────────────── */}
         <ScrollArea
           className={cn(
-            "min-h-0 flex-1",
+            "min-h-0 flex-1 overflow-x-hidden overflow-y-auto",
             "print:h-auto! print:max-h-none! print:overflow-visible!"
           )}
         >
           <div
             className={cn(
-              "space-y-5 px-6 py-5",
+              "space-y-3 px-5 py-4",
               "print:space-y-3 print:px-4 print:py-3"
             )}
           >
             {/* ── Customer + Meta grid ─────────────────────────── */}
             <section
               aria-label="Detalles de la transacción"
-              className="space-y-4"
+              className="grid grid-cols-2 space-y-2 gap-x-2"
             >
               <MetaField label="Cliente">
                 <p className="truncate text-sm font-semibold text-foreground print:text-black">
@@ -359,22 +371,11 @@ export function SaleReceipt({
                 </p>
               </MetaField>
 
-              <div className="grid grid-cols-2 gap-4">
-                <MetaField label="Fecha">
-                  <p className="text-xs leading-snug font-medium text-foreground print:text-black">
-                    {formattedDate}
-                  </p>
-                </MetaField>
-
-                <MetaField label="Pago">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground print:text-black">
-                    <span className="text-muted-foreground print:text-gray-500">
-                      {payment.icon}
-                    </span>
-                    {payment.label}
-                  </span>
-                </MetaField>
-              </div>
+              <MetaField label="Fecha">
+                <p className="text-xs leading-snug font-medium text-foreground print:text-black">
+                  {formattedDate}
+                </p>
+              </MetaField>
             </section>
 
             <ReceiptDivider />
@@ -596,7 +597,7 @@ export function SaleReceipt({
             ───────────────────────────────────────────────────────── */}
         <DialogFooter
           className={cn(
-            "shrink-0 flex-col gap-3 border-t border-border bg-muted/40 px-6 py-4",
+            "shrink-0 flex-col gap-3 border-t border-border bg-muted/40 px-4 py-4",
             "dark:bg-muted/20",
             "sm:flex-col sm:items-stretch sm:space-x-0",
             "print:hidden"
