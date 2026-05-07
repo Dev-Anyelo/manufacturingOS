@@ -219,7 +219,7 @@ export function InventoryForm({
   return (
     <form className="mx-auto w-full" onSubmit={onSubmit} noValidate>
       {/* Summary Stats - Compact Info Bar */}
-      <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
+      <div className="mb-4 flex justify-center items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
           {
             label: "Valor",

@@ -589,7 +589,7 @@ export function DateRangePicker({
         align="start"
         sideOffset={6}
         className={cn(
-          "w-auto overflow-hidden rounded-xl border-border/60 p-0 shadow-xl",
+          "w-auto overflow-hidden rounded-xl border-border/60 p-0 shadow-xl sm:mr-8",
           "max-w-[calc(100vw-2rem)]"
         )}
       >

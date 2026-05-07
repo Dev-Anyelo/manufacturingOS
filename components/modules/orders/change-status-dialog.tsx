@@ -460,7 +460,7 @@ export function ChangeStatusDialog({
   const footer = (
     <div
       className={cn(
-        "sticky bottom-0 mt-2 flex flex-col-reverse items-stretch gap-2 border-t border-border/60 bg-background/95 px-5 py-3 backdrop-blur",
+        "sticky bottom-0 mt-2 grid grid-cols-2 gap-2 border-t border-border/60 bg-background/95 px-5 py-3 backdrop-blur",
         "sm:flex-row sm:items-center sm:justify-end sm:px-6"
       )}
     >
@@ -489,7 +489,7 @@ export function ChangeStatusDialog({
         ) : isCancel ? (
           <>
             <XCircleIcon className="size-4" />
-            Confirmar cancelación
+            Confirmar
           </>
         ) : (
           <>

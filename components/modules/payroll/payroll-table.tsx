@@ -20,6 +20,7 @@ import {
   Trash2,
   AlertTriangle,
   Eye,
+  PencilLineIcon,
 } from "lucide-react"
 
 import {
@@ -234,6 +235,18 @@ export function PayrollTable({
                     Ver detalles
                   </Link>
                 </DropdownMenuItem>
+                
+                {row.original.status === "pending" && (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={`/payroll/${row.original.id}/edit`}
+                      className="flex items-center gap-2"
+                    >
+                      <PencilLineIcon className="size-4" />
+                      Editar
+                    </Link>
+                  </DropdownMenuItem>
+                )}
 
                 {row.original.status === "pending" && (
                   <DropdownMenuItem

@@ -6,9 +6,9 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DateRangePicker } from "@/components/shared/date-range-picker"
 
@@ -18,6 +18,7 @@ import {
   Trash2,
   AlertTriangle,
   Eye,
+  PencilLineIcon,
 } from "lucide-react"
 
 import {
@@ -284,6 +285,15 @@ export function ProductionTable({
                 >
                   <Eye className="size-4" />
                   Ver detalles
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/production/${row.original.id}/edit`}
+                  className="flex items-center gap-2"
+                >
+                  <PencilLineIcon className="size-4" />
+                  Editar
                 </Link>
               </DropdownMenuItem>
               {canDelete && (

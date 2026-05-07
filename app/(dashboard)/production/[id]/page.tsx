@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/shared/page-header"
 import { decimalToNumber } from "@/lib/api/utils"
+import { formatDateOnlyInput } from "@/lib/currency/exchange"
 import { getProductionSession } from "@/lib/data/production"
 import { ProductionSessionDetail } from "@/components/modules/production/production-session-detail"
 
@@ -51,7 +52,7 @@ export default async function ProductionDetailPage({
         <ProductionSessionDetail
           session={{
             id: session.id,
-            sessionDate: session.sessionDate.toISOString().slice(0, 10),
+            sessionDate: formatDateOnlyInput(session.sessionDate),
             employeeName: session.employee.fullName,
             notes: session.notes,
             totalGarments: session.totalGarments,

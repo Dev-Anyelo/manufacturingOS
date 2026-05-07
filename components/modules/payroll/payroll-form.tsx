@@ -81,6 +81,8 @@ type EmployeeOption = {
 
 interface PayrollFormProps {
   employees: EmployeeOption[]
+  paymentId?: string
+  defaultValues?: Partial<PayrollFormInput>
   onSuccess: () => void
   onCancel?: () => void
 }
@@ -123,6 +125,8 @@ const contractTypeLabels = {
 
 export function PayrollForm({
   employees,
+  paymentId,
+  defaultValues,
   onSuccess,
   onCancel,
 }: PayrollFormProps) {
@@ -132,7 +136,7 @@ export function PayrollForm({
 
   const form = useForm<PayrollFormInput, unknown, PayrollFormOutput>({
     resolver: zodResolver(payrollFormSchema),
-    defaultValues: {
+    defaultValues: defaultValues || {
       employee_id: "",
       period_start: todayInputDate(),
       period_end: todayInputDate(),
@@ -224,8 +228,11 @@ export function PayrollForm({
         receipt_url: values.receipt_url || null,
       }
 
-      const response = await fetch("/api/payroll", {
-        method: "POST",
+      const endpoint = paymentId ? `/api/payroll/${paymentId}` : "/api/payroll"
+      const method = paymentId ? "PATCH" : "POST"
+
+      const response = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
@@ -236,18 +243,31 @@ export function PayrollForm({
       }
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error ?? "No se pudo registrar el pago.")
+        throw new Error(
+          result.error ??
+            (paymentId
+              ? "No se pudo actualizar el pago."
+              : "No se pudo registrar el pago.")
+        )
       }
 
       if (onSuccess) {
         try {
           await revalidatePaths(["/payroll", "/reports", "/"])
-          localRouter.refresh()
+          if (paymentId) {
+            localRouter.push("/payroll")
+          } else {
+            localRouter.refresh()
+          }
         } catch (e) {
           // eslint-disable-next-line no-console
           console.error("revalidatePaths failed", e)
         }
-        toast.success("Pago de nómina registrado exitosamente")
+        toast.success(
+          paymentId
+            ? "Pago de nómina actualizado exitosamente"
+            : "Pago de nómina registrado exitosamente"
+        )
         onSuccess()
       } else {
         try {
@@ -256,12 +276,20 @@ export function PayrollForm({
           // eslint-disable-next-line no-console
           console.error("revalidatePaths failed", e)
         }
-        toast.success("Pago de nómina registrado exitosamente")
+        toast.success(
+          paymentId
+            ? "Pago de nómina actualizado exitosamente"
+            : "Pago de nómina registrado exitosamente"
+        )
         localRouter.refresh()
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "No se pudo registrar el pago."
+        error instanceof Error
+          ? error.message
+          : paymentId
+            ? "No se pudo actualizar el pago."
+            : "No se pudo registrar el pago."
       toast.error(message)
     } finally {
       setIsSubmitting(false)

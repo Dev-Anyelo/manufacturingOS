@@ -6,11 +6,10 @@ import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { UserRole } from "@prisma/client"
-import { useRouter } from "next/navigation"
-import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 
 import {
   Form,
@@ -61,7 +60,6 @@ type UserFormProps = {
 }
 
 export function UserForm({ initialData, onSuccess }: UserFormProps) {
-  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const form = useForm<FormValues>({

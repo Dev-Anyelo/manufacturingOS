@@ -8,16 +8,17 @@ import { cn } from "@/lib/utils"
 import { Currency } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { getStorageUrl } from "@/lib/storage/upload"
 import { type ColumnDef } from "@tanstack/react-table"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DataTable } from "@/components/shared/data-table"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { revalidatePaths } from "@/lib/ui/revalidatePaths"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { InventoryForm } from "@/components/modules/inventory/inventory-form"
 import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { AdjustStockDialog } from "@/components/modules/inventory/adjust-stock-dialog"
-import { getStorageUrl } from "@/lib/storage/upload"
 
 import {
   ArrowUpDown,
@@ -26,12 +27,12 @@ import {
   EllipsisVerticalIcon,
   EyeIcon,
   PackageIcon,
-  PencilIcon,
   PlusIcon,
   ShirtIcon,
   Trash2Icon,
   WrenchIcon,
   BoxesIcon,
+  PencilLineIcon,
 } from "lucide-react"
 
 import {
@@ -74,8 +75,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-import { useIsMobile } from "@/hooks/use-mobile"
 
 export interface InventoryTableRow {
   id: string
@@ -301,7 +300,7 @@ function createInventoryColumns(
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => actions.onEdit(item)}>
-                <PencilIcon className="size-4" />
+                <PencilLineIcon className="size-4" />
                 Editar material
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => actions.onAdjust(item)}>
@@ -473,7 +472,11 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         throw new Error(payload.error ?? "No se pudo desactivar el material.")
       }
 
-      await revalidatePaths(["/inventory", `/inventory/${deletingItem.id}`, "/"])
+      await revalidatePaths([
+        "/inventory",
+        `/inventory/${deletingItem.id}`,
+        "/",
+      ])
       toast.success("Material desactivado correctamente.")
       setDeletingItem(null)
     } catch (error) {
@@ -556,7 +559,10 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         item={adjustingItem}
         onAdjusted={async () => {
           setAdjustingItem(null)
-          await revalidatePaths(["/inventory", `/inventory/${adjustingItem!.id}`])
+          await revalidatePaths([
+            "/inventory",
+            `/inventory/${adjustingItem!.id}`,
+          ])
         }}
       />
 

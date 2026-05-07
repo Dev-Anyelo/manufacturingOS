@@ -13,7 +13,7 @@ const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 function normalizeDateOnlyValue(date: Date | string | number): Date {
   if (date instanceof Date) {
     return new Date(
-      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12)
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12)
     )
   }
 
@@ -29,23 +29,13 @@ function normalizeDateOnlyValue(date: Date | string | number): Date {
 
     const parsed = parseISO(trimmed)
     return new Date(
-      Date.UTC(
-        parsed.getUTCFullYear(),
-        parsed.getUTCMonth(),
-        parsed.getUTCDate(),
-        12
-      )
+      Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12)
     )
   }
 
   const parsed = new Date(date)
   return new Date(
-    Date.UTC(
-      parsed.getUTCFullYear(),
-      parsed.getUTCMonth(),
-      parsed.getUTCDate(),
-      12
-    )
+    Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12)
   )
 }
 
@@ -73,6 +63,17 @@ export function formatDateOnlyNI(
   } catch (error) {
     return "Error fecha"
   }
+}
+
+export function formatDateOnlyInput(
+  date: Date | string | number | null | undefined
+): string {
+  if (!date) return ""
+  const normalized = normalizeDateOnlyValue(date)
+  const year = normalized.getUTCFullYear()
+  const month = String(normalized.getUTCMonth() + 1).padStart(2, "0")
+  const day = String(normalized.getUTCDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
 }
 
 /**

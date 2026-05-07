@@ -1,6 +1,7 @@
-import { decimalToNumber } from "@/lib/api/utils"
 import { Currency } from "@prisma/client"
+import { decimalToNumber } from "@/lib/api/utils"
 import { PageHeader } from "@/components/shared/page-header"
+import { requireCurrentUser } from "@/lib/auth/current-user"
 import { PayrollWorkspace } from "@/components/modules/payroll/payroll-workspace"
 
 import {
@@ -9,7 +10,6 @@ import {
   getPayrollSummaryByEmployee,
 } from "@/lib/data/payroll"
 
-import { requireCurrentUser } from "@/lib/auth/current-user"
 
 export default async function PayrollPage() {
   const startOfMonth = new Date()

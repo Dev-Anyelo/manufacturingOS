@@ -1,10 +1,10 @@
 import Link from "next/link"
 import Image from "next/image"
 import * as React from "react"
+import { GARMENT_TYPES } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getStorageUrl } from "@/lib/storage/upload"
-import { GARMENT_TYPES } from "@/types"
 import { cn, getGarmetTypeLabel } from "@/lib/utils"
 import { Currency, GarmentType } from "@prisma/client"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -159,7 +159,12 @@ export function CatalogCard({ item }: CatalogCardProps) {
       </CardContent>
       <CardFooter className="pt-3">
         <div className="flex w-full gap-2">
-          <Button size="sm" variant="outline" className="flex-1" onClick={() => setOpen(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            onClick={() => setOpen(true)}
+          >
             Editar
           </Button>
 
@@ -213,20 +218,20 @@ export function CatalogCard({ item }: CatalogCardProps) {
                       ? (item.garmentType as GarmentType)
                       : ("other" as GarmentType),
                   market_price_unit: item.marketPriceUnit ?? 0,
-                  market_price_unit_currency:
-                    (item.marketPriceUnitCurrency ?? "USD") as Currency,
+                  market_price_unit_currency: (item.marketPriceUnitCurrency ??
+                    "USD") as Currency,
                   market_price_dozen: item.marketPriceDozen ?? null,
-                  market_price_dozen_currency:
-                    (item.marketPriceDozenCurrency ?? "USD") as Currency,
+                  market_price_dozen_currency: (item.marketPriceDozenCurrency ??
+                    "USD") as Currency,
                   our_price_unit: item.ourPriceUnit ?? 0,
-                  our_price_unit_currency:
-                    (item.ourPriceUnitCurrency ?? "USD") as Currency,
+                  our_price_unit_currency: (item.ourPriceUnitCurrency ??
+                    "USD") as Currency,
                   our_price_dozen: item.ourPriceDozen ?? null,
-                  our_price_dozen_currency:
-                    (item.ourPriceDozenCurrency ?? "USD") as Currency,
+                  our_price_dozen_currency: (item.ourPriceDozenCurrency ??
+                    "USD") as Currency,
                   estimated_cost: item.estimatedCost ?? null,
-                  estimated_cost_currency:
-                    (item.estimatedCostCurrency ?? "USD") as Currency,
+                  estimated_cost_currency: (item.estimatedCostCurrency ??
+                    "USD") as Currency,
                   notes: item.notes,
                   image_url: item.imageUrl,
                   stock_entries:

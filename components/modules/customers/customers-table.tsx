@@ -11,7 +11,15 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
-import { MailIcon, UserIcon, MoreHorizontal, Trash2, AlertTriangle, Eye } from "lucide-react"
+import {
+  MailIcon,
+  UserIcon,
+  MoreHorizontal,
+  Trash2,
+  AlertTriangle,
+  Eye,
+  PencilLineIcon,
+} from "lucide-react"
 import { Currency } from "@prisma/client"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 
@@ -49,9 +57,13 @@ interface CustomersTableProps {
   canDelete?: boolean
 }
 
-export function CustomersTable({ data, canDelete = false }: CustomersTableProps) {
+export function CustomersTable({
+  data,
+  canDelete = false,
+}: CustomersTableProps) {
   const router = useRouter()
-  const [customerToDelete, setCustomerToDelete] = React.useState<CustomerRow | null>(null)
+  const [customerToDelete, setCustomerToDelete] =
+    React.useState<CustomerRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
   async function handleDelete() {
@@ -85,12 +97,15 @@ export function CustomersTable({ data, canDelete = false }: CustomersTableProps)
       cell: ({ row }) => {
         const c = row.original
         return (
-          <Link href={`/customers/${c.id}`} className="group flex min-w-0 items-center gap-3">
+          <Link
+            href={`/customers/${c.id}`}
+            className="group flex min-w-0 items-center gap-3"
+          >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
               <UserIcon className="size-4 text-primary" />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium group-hover:text-primary transition-colors">
+              <p className="truncate text-sm font-medium transition-colors group-hover:text-primary">
                 {c.fullName}
               </p>
               {c.phone ? (
@@ -137,7 +152,7 @@ export function CustomersTable({ data, canDelete = false }: CustomersTableProps)
       header: "Pedidos",
       cell: ({ row }) => (
         <div className="text-center">
-          <Badge variant="outline" className="tabular-nums text-sm">
+          <Badge variant="outline" className="text-sm tabular-nums">
             {row.original.workOrdersCount}
           </Badge>
         </div>
@@ -155,14 +170,13 @@ export function CustomersTable({ data, canDelete = false }: CustomersTableProps)
         const currency = row.original.totalPurchasesCurrency
 
         return (
-          <div className={cn(
-            "text-center font-medium tabular-nums",
-            amount > 0 ? "text-foreground" : "text-muted-foreground"
-          )}>
-            <CurrencyDisplay 
-              amount={amount} 
-              currency={currency} 
-            />
+          <div
+            className={cn(
+              "text-center font-medium tabular-nums",
+              amount > 0 ? "text-foreground" : "text-muted-foreground"
+            )}
+          >
+            <CurrencyDisplay amount={amount} currency={currency} />
           </div>
         )
       },
@@ -180,14 +194,26 @@ export function CustomersTable({ data, canDelete = false }: CustomersTableProps)
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href={`/customers/${row.original.id}`} className="flex items-center gap-2">
+                <Link
+                  href={`/customers/${row.original.id}`}
+                  className="flex items-center gap-2"
+                >
                   <Eye className="size-4" />
                   Ver perfil
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/customers/${row.original.id}/edit`}
+                  className="flex items-center gap-2"
+                >
+                  <PencilLineIcon className="size-4" />
+                  Editar
+                </Link>
+              </DropdownMenuItem>
               {canDelete && (
                 <DropdownMenuItem
-                  className="text-destructive focus:text-destructive flex items-center gap-2"
+                  className="flex items-center gap-2 text-destructive focus:text-destructive"
                   onClick={() => setCustomerToDelete(row.original)}
                 >
                   <Trash2 className="size-4" />
@@ -214,25 +240,34 @@ export function CustomersTable({ data, canDelete = false }: CustomersTableProps)
 
       <AlertDialog
         open={Boolean(customerToDelete)}
-        onOpenChange={(open) => !open && !isDeleting && setCustomerToDelete(null)}
+        onOpenChange={(open) =>
+          !open && !isDeleting && setCustomerToDelete(null)
+        }
       >
-        <AlertDialogContent className="sm:max-w-md px-4 py-4 sm:px-6 sm:py-6">
+        <AlertDialogContent className="px-4 py-4 sm:max-w-md sm:px-6 sm:py-6">
           <AlertDialogHeader>
             <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive">
               <AlertTriangle className="size-5" />
             </div>
-            <AlertDialogTitle className="text-center text-balance">¿Eliminar cliente?</AlertDialogTitle>
+            <AlertDialogTitle className="text-center text-balance">
+              ¿Eliminar cliente?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-pretty">
-              Esta acción eliminará permanentemente al cliente y todo su historial. 
-              <strong>No se puede deshacer si tiene ventas o pedidos asociados.</strong>
+              Esta acción eliminará permanentemente al cliente y todo su
+              historial.
+              <strong>
+                No se puede deshacer si tiene ventas o pedidos asociados.
+              </strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="grid grid-cols-2 gap-2 w-full">
-            <AlertDialogCancel disabled={isDeleting} className="w-full">Cancelar</AlertDialogCancel>
+          <AlertDialogFooter className="grid w-full grid-cols-2 gap-2">
+            <AlertDialogCancel disabled={isDeleting} className="w-full">
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={isDeleting}
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full"
+              className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>

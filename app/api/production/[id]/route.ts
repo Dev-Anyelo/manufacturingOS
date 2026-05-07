@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { Prisma, UserRole } from "@prisma/client"
 import { toLocalDate, toPrismaDecimal } from "@/lib/api/utils"
+import { normalizeDateOnly } from "@/lib/currency/exchange"
 import { requirePermission } from "@/lib/api/require-permission"
 import { productionSessionSchema } from "@/lib/validations/production"
 
@@ -75,13 +76,10 @@ export async function PATCH(
       throw new ApiRouteError("No se encontro la sesion solicitada.", 404)
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = normalizeDateOnly(new Date())
+    const sessionDay = normalizeDateOnly(session.sessionDate)
 
-    const sessionDay = new Date(session.sessionDate)
-    sessionDay.setHours(0, 0, 0, 0)
-
-    if (sessionDay.getTime() !== today.getTime()) {
+    if (!today || !sessionDay || sessionDay.getTime() !== today.getTime()) {
       throw new ApiRouteError(
         "Solo se pueden editar sesiones de la jornada actual.",
         422
@@ -99,6 +97,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.$transaction(async (tx) => {
+      // 2. Revertir el descuento en el material original (incluso si cambia el inventory_item_id o yards_used)
       for (const item of session.items) {
         await tx.inventoryItem.update({
           where: { id: item.inventoryItemId },
@@ -154,6 +153,7 @@ export async function PATCH(
           employeeId: payload.employee_id,
           sessionDate: toLocalDate(payload.session_date),
           notes: payload.notes,
+          // Al crear los nuevos items, el trigger SQL 'trg_deduct_on_production' aplicará el nuevo descuento automáticamente en inventory_item_id.
           items: {
             create: payload.items.map((item) => ({
               inventoryItemId: item.inventory_item_id,

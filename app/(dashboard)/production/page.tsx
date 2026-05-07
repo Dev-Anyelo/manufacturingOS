@@ -1,20 +1,19 @@
 import { decimalToNumber } from "@/lib/api/utils"
+import { parseDateParam } from "@/lib/api/utils"
 import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
-import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { requireCurrentUser } from "@/lib/auth/current-user"
-import { normalizeDateOnly } from "@/lib/currency/exchange"
+import { UrlDateFilter } from "@/components/shared/url-date-filter"
+import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
+import { ScissorsIcon, LayersIcon, CalendarCheckIcon } from "lucide-react"
+import { normalizeDateOnly, formatDateOnlyInput } from "@/lib/currency/exchange"
+import { ProductionTable } from "@/components/modules/production/production-table"
+import { NewProductionSheet } from "@/components/modules/production/new-production-sheet"
+
 import {
   getProductionSessions,
   getProductionFormBootstrap,
 } from "@/lib/data/production"
-import { ProductionTable } from "@/components/modules/production/production-table"
-import { NewProductionSheet } from "@/components/modules/production/new-production-sheet"
-
-import { ScissorsIcon, LayersIcon, CalendarCheckIcon } from "lucide-react"
-
-import { UrlDateFilter } from "@/components/shared/url-date-filter"
-import { parseDateParam } from "@/lib/api/utils"
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -40,7 +39,7 @@ export default async function ProductionPage(props: {
 
   const rows = sessions.map((session) => ({
     id: session.id,
-    sessionDate: session.sessionDate.toISOString().slice(0, 10),
+    sessionDate: formatDateOnlyInput(session.sessionDate),
     employeeId: session.employeeId,
     employeeName: session.employee.fullName,
     totalGarments: session.totalGarments,
@@ -124,9 +123,11 @@ export default async function ProductionPage(props: {
           />
         </KpiSection>
 
-        <ProductionTable 
-          sessions={rows} 
-          canDelete={currentUser.role === "admin" || currentUser.role === "manager"} 
+        <ProductionTable
+          sessions={rows}
+          canDelete={
+            currentUser.role === "admin" || currentUser.role === "manager"
+          }
         />
       </div>
     </section>

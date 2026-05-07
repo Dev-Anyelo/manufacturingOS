@@ -57,6 +57,7 @@ import {
   MoreHorizontal,
   Trash2,
   Eye,
+  PencilLineIcon,
 } from "lucide-react"
 
 // Columns will be defined inside the component to access state
@@ -199,6 +200,15 @@ export function OrdersTable({
                     Ver detalles
                   </Link>
                 </DropdownMenuItem>
+                
+                {(row.original.status === WorkOrderStatus.received || row.original.status === WorkOrderStatus.confirmed) && (
+                  <DropdownMenuItem asChild>
+                    <Link href={`/orders/${row.original.id}/edit`} className="flex items-center gap-2">
+                      <PencilLineIcon className="size-4" />
+                      Editar
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 
                 {canDelete && (row.original.status === WorkOrderStatus.received || row.original.status === WorkOrderStatus.cancelled) && (
                   <DropdownMenuItem

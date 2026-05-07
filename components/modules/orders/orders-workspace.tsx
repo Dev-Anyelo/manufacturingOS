@@ -1,17 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
 import { groupByStatus } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { WorkOrderStatus } from "@prisma/client"
+import { LayoutGridIcon, TableIcon } from "lucide-react"
 import { OrderKanban } from "@/components/modules/orders/order-kanban"
 import { OrdersTable } from "@/components/modules/orders/orders-table"
 import type { OrderSummaryItem } from "@/components/modules/orders/types"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
-import { Button } from "@/components/ui/button"
-import { LayoutGridIcon, TableIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface OrdersWorkspaceProps {
   initialOrders: OrderSummaryItem[]
@@ -55,7 +54,6 @@ export function OrdersWorkspace({
   initialOrders,
   canDelete = false,
 }: OrdersWorkspaceProps) {
-  const router = useRouter()
   const [orders, setOrders] = React.useState(initialOrders)
   const [pipelineFilter, setPipelineFilter] =
     React.useState<PipelineFilter>("all")
@@ -141,9 +139,9 @@ export function OrdersWorkspace({
         </TabsContent>
 
         <TabsContent value="table" className="mt-0 focus-visible:outline-none">
-          <OrdersTable 
-            orders={filteredOrders} 
-            suppressStatusFilter 
+          <OrdersTable
+            orders={filteredOrders}
+            suppressStatusFilter
             canDelete={canDelete}
           />
         </TabsContent>

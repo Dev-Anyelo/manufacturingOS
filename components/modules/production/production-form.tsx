@@ -122,6 +122,8 @@ interface ProductionFormProps {
   inventoryItems: InventoryOption[]
   currentUserId?: string
   currentUserRole?: UserRole | string
+  sessionId?: string
+  defaultValues?: Partial<ProductionFormInput>
   /** Called after successful submission — used when embedded in a Sheet */
   onSuccess?: () => void
   /** Called when the user cancels — used when embedded in a Sheet */
@@ -193,6 +195,8 @@ export function ProductionForm({
   inventoryItems,
   currentUserId,
   currentUserRole,
+  sessionId,
+  defaultValues,
   onSuccess,
   onCancel,
 }: ProductionFormProps) {
@@ -202,7 +206,7 @@ export function ProductionForm({
 
   const form = useForm<ProductionFormInput, unknown, ProductionFormOutput>({
     resolver: zodResolver(productionFormSchema),
-    defaultValues: {
+    defaultValues: defaultValues || {
       employee_id: "",
       session_date: todayInputDate(),
       notes: "",
@@ -290,8 +294,11 @@ export function ProductionForm({
         })),
       }
 
-      const response = await fetch("/api/production", {
-        method: "POST",
+      const endpoint = sessionId ? `/api/production/${sessionId}` : "/api/production"
+      const method = sessionId ? "PATCH" : "POST"
+
+      const response = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
@@ -341,7 +348,7 @@ export function ProductionForm({
       noValidate
     >
       {/* Summary Stats - Compact Info Bar */}
-      <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
+      <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
           { label: "Total prendas", value: totalGarments },
           { label: "Total yardas", value: totalYards.toFixed(1) },

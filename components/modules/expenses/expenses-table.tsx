@@ -23,6 +23,7 @@ import {
   ArrowUpRight,
   LayersPlusIcon,
   RulerIcon,
+  PencilLineIcon,
 } from "lucide-react"
 
 import {
@@ -240,6 +241,12 @@ export function ExpensesTable({
                 <Link href={`/expenses/${row.original.id}`}>
                   <ArrowUpRight className="size-3.5" />
                   Detalles
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/expenses/${row.original.id}/edit`}>
+                  <PencilLineIcon className="size-3.5" />
+                  Editar
                 </Link>
               </DropdownMenuItem>
               {canDelete && (

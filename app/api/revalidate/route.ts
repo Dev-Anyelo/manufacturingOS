@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 
+// @deprecated — usar Server Action revalidatePaths directamente
 export async function POST(request: Request) {
   try {
     // Basic protection: require a valid key header.

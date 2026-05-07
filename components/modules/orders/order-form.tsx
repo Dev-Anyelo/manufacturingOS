@@ -144,6 +144,8 @@ interface OrderFormProps {
   customers: PosCustomer[]
   catalogItems: CatalogChoice[]
   inventoryItems: InventoryChoice[]
+  orderId?: string
+  defaultValues?: Partial<OrderFormInput>
   /** Called after successful submission — used when embedded in a Sheet */
   onSuccess?: () => void
   /** Called when the user cancels — used when embedded in a Sheet */
@@ -209,6 +211,8 @@ export function OrderForm({
   customers,
   catalogItems,
   inventoryItems,
+  orderId,
+  defaultValues,
   onSuccess,
   onCancel,
 }: OrderFormProps) {
@@ -231,7 +235,7 @@ export function OrderForm({
 
   const form = useForm<OrderFormInput, unknown, OrderFormOutput>({
     resolver: zodResolver(orderFormSchema),
-    defaultValues: {
+    defaultValues: defaultValues || {
       customer_id: "",
       delivery_date: "",
       channel: "in_person",
@@ -354,8 +358,11 @@ export function OrderForm({
         })),
       }
 
-      const response = await fetch("/api/orders", {
-        method: "POST",
+      const endpoint = orderId ? `/api/orders/${orderId}` : "/api/orders"
+      const method = orderId ? "PATCH" : "POST"
+
+      const response = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
@@ -367,23 +374,40 @@ export function OrderForm({
       }
 
       if (!response.ok || !result.success || !result.data) {
-        throw new Error(result.error ?? "No se pudo crear el pedido.")
+        throw new Error(
+          result.error ??
+            (orderId
+              ? "No se pudo actualizar el pedido."
+              : "No se pudo crear el pedido.")
+        )
       }
 
       const pathsToRevalidate = ["/orders", `/orders/${result.data.id}`, "/"]
 
       if (onSuccess) {
         await revalidatePaths(pathsToRevalidate)
-        toast.success("Pedido creado correctamente")
+        toast.success(
+          orderId
+            ? "Pedido actualizado correctamente"
+            : "Pedido creado correctamente"
+        )
         onSuccess()
       } else {
         await revalidatePaths(pathsToRevalidate)
-        toast.success("Pedido creado correctamente")
+        toast.success(
+          orderId
+            ? "Pedido actualizado correctamente"
+            : "Pedido creado correctamente"
+        )
         router.push(`/orders/${result.data.id}`)
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "No se pudo crear el pedido."
+        error instanceof Error
+          ? error.message
+          : orderId
+            ? "No se pudo actualizar el pedido."
+            : "No se pudo crear el pedido."
       toast.error(message)
     } finally {
       setIsSubmitting(false)
@@ -397,7 +421,7 @@ export function OrderForm({
       noValidate
     >
       {/* Summary Stats - Compact Info Bar */}
-      <div className="mb-4 flex items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
+      <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
         {[
           { label: "Total", amount: estimatedTotal },
           { label: "Unidades", value: totalUnits.toString() },
@@ -438,7 +462,7 @@ export function OrderForm({
 
       {/* Tabbed Form */}
       <Tabs defaultValue="customer" className="w-full">
-        <TabsList className="mb-4 grid w-full grid-cols-3">
+        <TabsList className="mb-4 grid w-full grid-cols-4">
           <TabsTrigger value="customer" className="gap-1.5 text-xs sm:text-sm">
             <User className="size-3.5" />
             Cliente
