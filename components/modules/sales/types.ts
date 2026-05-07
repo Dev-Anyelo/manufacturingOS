@@ -52,6 +52,7 @@ export interface SaleReceiptData {
   totalCurrency: Currency
   amountPaid: number
   changeGiven: number
+  notes?: string | null
   items: Array<{
     id: string
     name: string

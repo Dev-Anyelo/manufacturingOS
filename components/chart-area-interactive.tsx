@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-
 import { useIsMobile } from "@/hooks/use-mobile"
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+
 import {
   Card,
   CardAction,
@@ -12,12 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
+
 import {
   Select,
   SelectContent,
@@ -25,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 export const description = "An interactive area chart for financials"
 
@@ -67,7 +69,7 @@ export function ChartAreaInteractive({ data }: { data: FinancialChartData[] }) {
     }
     const startDate = new Date(referenceDate)
     startDate.setDate(startDate.getDate() - daysToSubtract)
-    
+
     return data.filter((item) => {
       const date = new Date(item.date)
       date.setHours(0, 0, 0, 0)
@@ -181,7 +183,9 @@ export function ChartAreaInteractive({ data }: { data: FinancialChartData[] }) {
                     const numValue = typeof value === "number" ? value : 0
                     return (
                       <div className="flex w-full justify-between gap-2">
-                        <span className="text-muted-foreground capitalize">{name}</span>
+                        <span className="text-muted-foreground capitalize">
+                          {name}
+                        </span>
                         <span className="font-medium tabular-nums">
                           ${numValue.toFixed(2)}
                         </span>
@@ -209,4 +213,3 @@ export function ChartAreaInteractive({ data }: { data: FinancialChartData[] }) {
     </Card>
   )
 }
-

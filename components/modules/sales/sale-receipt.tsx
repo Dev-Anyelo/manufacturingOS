@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { formatDateTimeNI } from "@/lib/currency/exchange"
-import { SaleChannel, Currency, PaymentMethod } from "@prisma/client"
+import { SaleChannel, PaymentMethod } from "@prisma/client"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import type { SaleReceiptData } from "@/components/modules/sales/types"
 
@@ -42,7 +42,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-// ─── Types ─────────────────────────────────────────────────────────────────
+// ─── Constants ──────────────────────────────────────────────────────────────
+const COMPANY = {
+  name: "DANIELLS CONFECCIONES",
+  phones: ["+505 8215 1882", "+1 (510) 880-9097"],
+} as const
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 interface SaleReceiptProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -50,7 +56,7 @@ interface SaleReceiptProps {
   onNewSale: () => void
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Config maps ────────────────────────────────────────────────────────────
 const channelConfig: Record<
   SaleChannel,
   { label: string; icon: React.ReactNode; color: string }
@@ -85,16 +91,18 @@ const channelConfig: Record<
   },
 }
 
-const paymentConfig: Record<string, { label: string; icon: React.ReactNode }> =
-  {
-    cash: { label: "Efectivo", icon: <BanknoteIcon className="size-3.5" /> },
-    transfer: {
-      label: "Transferencia",
-      icon: <ArrowLeftRightIcon className="size-3.5" />,
-    },
-    credit: { label: "Crédito", icon: <CreditCardIcon className="size-3.5" /> },
-    mixed: { label: "Mixto", icon: <SplitIcon className="size-3.5" /> },
-  }
+const paymentConfig: Record<
+  PaymentMethod,
+  { label: string; icon: React.ReactNode }
+> = {
+  cash: { label: "Efectivo", icon: <BanknoteIcon className="size-3.5" /> },
+  transfer: {
+    label: "Transferencia",
+    icon: <ArrowLeftRightIcon className="size-3.5" />,
+  },
+  credit: { label: "Crédito", icon: <CreditCardIcon className="size-3.5" /> },
+  mixed: { label: "Mixto", icon: <SplitIcon className="size-3.5" /> },
+}
 
 function getChannelConfig(channel: SaleChannel) {
   return (
@@ -115,10 +123,43 @@ function getPaymentConfig(method: PaymentMethod) {
   )
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-function ReceiptDivider() {
+// ─── Sub-components ─────────────────────────────────────────────────────────
+
+/**
+ * MetaField — small label / value block used in the meta grid.
+ * Keeps every "data point" of the receipt aligned consistently.
+ */
+function MetaField({
+  label,
+  children,
+  className,
+}: {
+  label: string
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <div className="relative -mx-6 flex items-center py-1 print:hidden">
+    <div className={cn("min-w-0 space-y-1", className)}>
+      <p className="text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase print:text-gray-500">
+        {label}
+      </p>
+      <div className="text-sm font-medium text-foreground print:text-black">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Ticket-style divider with rounded "cut-outs" on each side.
+ * Used between the receipt sections to keep that POS / paper-ticket feel.
+ */
+function ReceiptDivider({ className }: { className?: string }) {
+  return (
+    <div
+      aria-hidden
+      className={cn("relative -mx-6 flex items-center print:hidden", className)}
+    >
       <div className="size-4 shrink-0 rounded-full border border-border bg-muted dark:bg-background" />
       <div className="flex-1 border-t border-dashed border-border" />
       <div className="size-4 shrink-0 rounded-full border border-border bg-muted dark:bg-background" />
@@ -126,17 +167,55 @@ function ReceiptDivider() {
   )
 }
 
+/**
+ * Print-only divider — simpler, grayscale, no rounded cut-outs because
+ * those don't translate well to physical paper.
+ */
 function PrintDivider() {
   return (
-    <div className="relative -mx-6 hidden items-center py-1 print:flex">
-      <div className="size-3 shrink-0 rounded-full border border-gray-300" />
-      <div className="flex-1 border-t border-dashed border-gray-300" />
-      <div className="size-3 shrink-0 rounded-full border border-gray-300" />
-    </div>
+    <div
+      aria-hidden
+      className="my-3 hidden border-t border-dashed border-gray-300 print:block"
+    />
   )
 }
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+/**
+ * Compact, accessible list of the workshop phone numbers.
+ * Reused in header (subtle) and footer (printable).
+ */
+function PhoneList({
+  className,
+  itemClassName,
+}: {
+  className?: string
+  itemClassName?: string
+}) {
+  return (
+    <ul
+      className={cn(
+        "flex flex-wrap items-center justify-center gap-x-3 gap-y-1",
+        className
+      )}
+    >
+      {COMPANY.phones.map((phone) => (
+        <li key={phone}>
+          <a
+            href={`tel:${phone.replace(/[^+\d]/g, "")}`}
+            className={cn(
+              "inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground print:text-gray-700 last:text-red-300",
+              itemClassName
+            )}
+          >
+            <span className="tabular-nums">{phone}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────
 export function SaleReceipt({
   open,
   onOpenChange,
@@ -149,15 +228,23 @@ export function SaleReceipt({
   const payment = getPaymentConfig(receipt.paymentMethod)
   const receiptNumber = receipt.id.slice(0, 8).toUpperCase()
   const hasDiscount = receipt.discount > 0
+  const formattedDate = formatDateTimeNI(receipt.createdAt)
+  const itemCount = receipt.items.reduce((sum, i) => sum + i.quantity, 0)
+
+  const handlePrint = () => {
+    if (typeof window !== "undefined") window.print()
+  }
 
   const handleShare = async () => {
     try {
       await navigator.share({
         title: `Recibo #${receiptNumber}`,
-        text: `Recibo de compra – ${receipt.customerName} – Total: $${receipt.total.toFixed(2)}`,
+        text: `Recibo de compra – ${receipt.customerName} – Total: ${receipt.total.toFixed(
+          2
+        )} ${receipt.totalCurrency}`,
       })
     } catch {
-      // share not supported or cancelled
+      /* share not supported or cancelled */
     }
   }
 
@@ -165,50 +252,67 @@ export function SaleReceipt({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "gap-0 overflow-hidden p-0",
+          // ── Layout ─────────────────────────────────────────────
+          "flex flex-col gap-0 overflow-hidden p-0",
           "rounded-2xl border border-border bg-background text-foreground shadow-2xl",
-          "sm:max-w-105",
-          // Print overrides - Standardize for thermal printers (80mm)
-          "print:static print:mx-auto print:block print:w-full print:max-w-[80mm] print:border-0 print:shadow-none",
-          "print:bg-white print:text-black",
-          "max-h-[95dvh] print:max-h-none"
+          "w-[calc(100vw-1.5rem)] sm:w-full sm:max-w-md",
+          "max-h-[min(92dvh,820px)]",
+          // ── Print: behave like an 80mm thermal ticket ──────────
+          "print:static! print:m-0! print:mx-auto print:block!",
+          "print:max-h-none! print:w-full! print:max-w-[80mm]!",
+          "print:rounded-none! print:border-0! print:shadow-none!",
+          "print:bg-white! print:text-black!",
+          "print:overflow-visible!"
         )}
       >
-        {/* ── Header ───────────────────────────────────────────── */}
-        <DialogHeader className="relative border-b border-border print:border-gray-200">
-          {/* Background accent — hidden in print */}
-          <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-primary/2 print:hidden" />
+        {/* ── Accessible labels (visually hidden) ──────────────── */}
+        <DialogTitle className="sr-only">
+          Recibo #{receiptNumber} — {COMPANY.name}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          Recibo de venta para {receipt.customerName} por un total de{" "}
+          {receipt.total} {receipt.totalCurrency}.
+        </DialogDescription>
 
-          <div className="relative px-6 pt-6 pb-5">
-            {/* Brand row */}
-            <div className="flex flex-col items-center justify-center gap-2">
-              {/* Logo / Brand */}
-              <div className="space-y-0.5">
-                <DialogTitle className="text-base leading-none font-bold tracking-tight">
-                  DANIELLS CONFECCIONES
-                </DialogTitle>
-              </div>
+        {/* ─────────────────────────────────────────────────────────
+            HEADER — fixed (never scrolls).
+            ───────────────────────────────────────────────────────── */}
+        <DialogHeader
+          className={cn(
+            "shrink-0 space-y-0 border-b border-border px-6 pt-6 pb-5",
+            "relative",
+            "print:border-gray-200 print:px-4 print:pt-4 print:pb-3"
+          )}
+        >
+          {/* Subtle background accent — hidden in print */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-primary/2 print:hidden"
+          />
 
-              {/* Receipt badge */}
-              <div className="shrink-0 text-center">
-                <DialogDescription asChild>
-                  <div className="flex items-center gap-2 space-y-0.5">
-                    <p className="font-mono text-sm font-bold tracking-wider text-muted-foreground uppercase print:text-gray-400">
-                      Recibo
-                    </p>
-                    <p className="font-mono text-sm font-bold tracking-wider text-muted-foreground uppercase print:text-black">
-                      #{receiptNumber}
-                    </p>
-                  </div>
-                </DialogDescription>
-              </div>
-            </div>
+          <div className="relative flex flex-col items-center gap-2 text-center">
+            <h2 className="text-base leading-none font-bold tracking-tight text-foreground print:text-black">
+              {COMPANY.name}
+            </h2>
 
-            {/* Status + Channel row */}
-            <div className="mt-4 flex items-center justify-center gap-3">
+            <p className="font-mono text-xs font-bold tracking-[0.18em] text-muted-foreground uppercase print:text-black">
+              Recibo{" "}
+              <span className="text-foreground print:text-black">
+                #{receiptNumber}
+              </span>
+            </p>
+
+            <PhoneList className="justify-center" />
+
+            {/* Status + Channel pills */}
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
               <Badge
                 variant="outline"
-                className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400 print:border-gray-300 print:bg-transparent print:text-gray-700"
+                className={cn(
+                  "gap-1.5 border-emerald-200 bg-emerald-50 font-medium text-emerald-700",
+                  "dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-400",
+                  "print:border-gray-400! print:bg-transparent! print:text-black!"
+                )}
               >
                 <CheckCircle2Icon className="size-3" />
                 Pagado
@@ -217,8 +321,9 @@ export function SaleReceipt({
               <Badge
                 variant="secondary"
                 className={cn(
-                  "gap-1.5 text-xs print:border print:border-gray-300 print:bg-transparent print:text-gray-600",
-                  channel.color
+                  "gap-1.5 text-xs font-medium",
+                  channel.color,
+                  "print:border! print:border-gray-400! print:bg-transparent! print:text-black!"
                 )}
               >
                 {channel.icon}
@@ -228,74 +333,90 @@ export function SaleReceipt({
           </div>
         </DialogHeader>
 
-        {/* ── Scrollable body ───────────────────────────────────── */}
-        <ScrollArea className="flex-1 print:flex-none print:overflow-visible">
-          <div className="space-y-5 px-6 py-5 print:py-4">
-            {/* ── Meta grid ──────────────────────────────────────── */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Customer */}
-              <div className="col-span-2 space-y-0.5">
-                <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase print:text-gray-400">
-                  Cliente
-                </p>
-                <p className="text-sm font-semibold text-foreground print:text-black">
+        {/* ─────────────────────────────────────────────────────────
+            BODY — scrolls when content is long.
+            ───────────────────────────────────────────────────────── */}
+        <ScrollArea
+          className={cn(
+            "min-h-0 flex-1",
+            "print:h-auto! print:max-h-none! print:overflow-visible!"
+          )}
+        >
+          <div
+            className={cn(
+              "space-y-5 px-6 py-5",
+              "print:space-y-3 print:px-4 print:py-3"
+            )}
+          >
+            {/* ── Customer + Meta grid ─────────────────────────── */}
+            <section
+              aria-label="Detalles de la transacción"
+              className="space-y-4"
+            >
+              <MetaField label="Cliente">
+                <p className="truncate text-sm font-semibold text-foreground print:text-black">
                   {receipt.customerName}
                 </p>
-              </div>
+              </MetaField>
 
-              {/* Date */}
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase print:text-gray-400">
-                  Fecha
-                </p>
-                <p className="text-xs leading-snug font-medium text-foreground print:text-black">
-                  {formatDateTimeNI(receipt.createdAt)}
-                </p>
-              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <MetaField label="Fecha">
+                  <p className="text-xs leading-snug font-medium text-foreground print:text-black">
+                    {formattedDate}
+                  </p>
+                </MetaField>
 
-              {/* Payment */}
-              <div className="space-y-0.5">
-                <p className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase print:text-gray-400">
-                  Pago
-                </p>
-                <div className="flex items-center gap-1.5 text-xs font-medium text-foreground print:text-black">
-                  <span className="text-muted-foreground print:text-gray-500">
-                    {payment.icon}
+                <MetaField label="Pago">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground print:text-black">
+                    <span className="text-muted-foreground print:text-gray-500">
+                      {payment.icon}
+                    </span>
+                    {payment.label}
                   </span>
-                  {payment.label}
-                </div>
+                </MetaField>
               </div>
-            </div>
+            </section>
 
             <ReceiptDivider />
             <PrintDivider />
 
-            {/* ── Items ──────────────────────────────────────────── */}
-            <div className="space-y-1">
-              <p className="mb-3 text-[10px] font-semibold tracking-widest text-muted-foreground uppercase print:text-gray-400">
-                Artículos ({receipt.items.length})
-              </p>
+            {/* ── Items list ───────────────────────────────────── */}
+            <section aria-label="Artículos comprados" className="space-y-2">
+              <div className="flex items-end justify-between">
+                <p className="text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase print:text-gray-500">
+                  Artículos ({receipt.items.length})
+                </p>
+                <p className="font-mono text-[10px] text-muted-foreground tabular-nums print:text-gray-500">
+                  {itemCount} unid.
+                </p>
+              </div>
 
-              <div className="divide-y divide-border print:divide-gray-200">
+              <ul
+                className={cn(
+                  "divide-y divide-border",
+                  "print:divide-gray-200!"
+                )}
+              >
                 {receipt.items.map((item, idx) => (
-                  <div
+                  <li
                     key={item.id}
                     className={cn(
                       "flex items-start justify-between gap-3 py-2.5",
                       idx === 0 && "pt-0",
-                      idx === receipt.items.length - 1 && "pb-0"
+                      idx === receipt.items.length - 1 && "pb-0",
+                      "print:py-2!"
                     )}
                   >
-                    {/* Item info */}
-                    <div className="min-w-0 flex-1 space-y-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <p className="truncate text-sm font-semibold text-foreground print:text-black">
+                    {/* Description */}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <p className="min-w-0 truncate text-sm font-semibold text-foreground print:text-black">
                           {item.name}
                         </p>
                         {item.size && (
                           <Badge
                             variant="outline"
-                            className="h-4 shrink-0 py-0 text-[10px] font-medium print:border-gray-300 print:text-gray-600"
+                            className="h-4 shrink-0 px-1 py-0 text-[10px] font-medium print:border-gray-300! print:text-gray-700!"
                           >
                             {item.size}
                           </Badge>
@@ -303,18 +424,18 @@ export function SaleReceipt({
                         {item.color && (
                           <Badge
                             variant="outline"
-                            className="h-4 shrink-0 py-0 text-[10px] font-medium print:border-gray-300 print:text-gray-600"
+                            className="h-4 shrink-0 px-1 py-0 text-[10px] font-medium print:border-gray-300! print:text-gray-700!"
                           >
                             {item.color}
                           </Badge>
                         )}
                       </div>
 
-                      <p className="font-mono text-[11px] text-muted-foreground tabular-nums print:text-gray-500">
+                      <p className="font-mono text-[11px] text-muted-foreground tabular-nums print:text-gray-600">
                         {item.quantity} ×{" "}
                         <CurrencyDisplay
                           amount={item.unitPrice}
-                          currency={item.unitPriceCurrency as Currency}
+                          currency={item.unitPriceCurrency}
                           showDual={false}
                           size="sm"
                         />
@@ -322,140 +443,184 @@ export function SaleReceipt({
                     </div>
 
                     {/* Subtotal */}
-                    <span className="shrink-0 font-mono text-sm font-bold text-foreground tabular-nums print:text-black">
+                    <span className="shrink-0 self-center font-mono text-sm font-bold text-foreground tabular-nums print:text-black">
                       <CurrencyDisplay
                         amount={item.subtotal}
-                        currency={item.unitPriceCurrency as Currency}
+                        currency={item.unitPriceCurrency}
                         showDual={false}
                         size="sm"
                       />
                     </span>
-                  </div>
+                  </li>
                 ))}
-              </div>
-            </div>
+              </ul>
+            </section>
 
             <ReceiptDivider />
             <PrintDivider />
 
-            {/* ── Totals ─────────────────────────────────────────── */}
-            <div className="space-y-2">
-              {/* Subtotal row */}
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground print:text-gray-500">
-                  Subtotal
-                </span>
-                <span className="font-mono text-foreground tabular-nums print:text-black">
-                  <CurrencyDisplay
-                    amount={receipt.subtotal}
-                    currency={receipt.totalCurrency as Currency}
-                    showDual={false}
-                    size="sm"
-                  />
-                </span>
-              </div>
-
-              {/* Discount row — only shown if there's a discount */}
-              {hasDiscount && (
+            {/* ── Totals ───────────────────────────────────────── */}
+            <section aria-label="Resumen de totales" className="space-y-2">
+              <dl className="space-y-1.5">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1.5 text-muted-foreground print:text-gray-500">
-                    Descuento
-                    <Badge className="h-4 bg-amber-100 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 print:border print:border-amber-400 print:bg-transparent print:text-amber-700">
-                      −
-                    </Badge>
-                  </span>
-                  <span className="font-mono text-amber-600 tabular-nums dark:text-amber-400 print:text-amber-700">
-                    −
+                  <dt className="text-muted-foreground print:text-gray-700">
+                    Subtotal
+                  </dt>
+                  <dd className="font-mono text-foreground tabular-nums print:text-black">
                     <CurrencyDisplay
-                      amount={receipt.discount}
-                      currency={receipt.totalCurrency as Currency}
+                      amount={receipt.subtotal}
+                      currency={receipt.totalCurrency}
                       showDual={false}
                       size="sm"
                     />
-                  </span>
+                  </dd>
                 </div>
-              )}
 
-              {/* Total row */}
-              <div className="mt-3 rounded-xl bg-foreground/4 px-4 py-3 dark:bg-white/4 print:rounded-lg print:bg-gray-100">
-                <div className="flex items-center justify-between">
+                {hasDiscount && (
+                  <div className="flex items-center justify-between text-sm">
+                    <dt className="flex items-center gap-1.5 text-muted-foreground print:text-gray-700">
+                      Descuento
+                      <Badge
+                        variant="outline"
+                        className="h-4 border-amber-300 bg-amber-50 px-1 text-[10px] font-bold text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300 print:border-gray-400! print:bg-transparent! print:text-black!"
+                      >
+                        −
+                      </Badge>
+                    </dt>
+                    <dd className="font-mono text-amber-600 tabular-nums dark:text-amber-400 print:text-black">
+                      −
+                      <CurrencyDisplay
+                        amount={receipt.discount}
+                        currency={receipt.totalCurrency}
+                        showDual={false}
+                        size="sm"
+                      />
+                    </dd>
+                  </div>
+                )}
+              </dl>
+
+              {/* Highlighted total card */}
+              <div
+                className={cn(
+                  "mt-3 rounded-xl bg-foreground/5 px-4 py-3",
+                  "dark:bg-white/4",
+                  "print:rounded-md! print:bg-gray-100! print:px-3! print:py-2!"
+                )}
+              >
+                <div className="flex items-center justify-between gap-3">
                   <span className="text-base font-bold text-foreground print:text-black">
                     Total
                   </span>
-                  <span className="font-mono text-xl font-bold tracking-tight text-foreground tabular-nums print:text-black">
+                  <span className="text-right font-mono text-xl leading-none font-bold tracking-tight text-foreground tabular-nums print:text-black">
                     <CurrencyDisplay
                       amount={receipt.total}
-                      currency={receipt.totalCurrency as Currency}
+                      currency={receipt.totalCurrency}
                     />
                   </span>
                 </div>
               </div>
 
-              {/* Paid / Change */}
-              <div className="space-y-1.5 pt-1">
-                <Separator className="print:bg-gray-200" />
-                <div className="space-y-1.5 pt-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground print:text-gray-500">
-                      Pagado
-                    </span>
-                    <span className="font-mono font-medium text-foreground tabular-nums print:text-black">
-                      <CurrencyDisplay
-                        amount={receipt.amountPaid}
-                        currency={receipt.totalCurrency as Currency}
-                        showDual={false}
-                        size="sm"
-                      />
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground print:text-gray-500">
-                      Cambio
-                    </span>
-                    <span className="font-mono font-medium text-emerald-600 tabular-nums dark:text-emerald-400 print:text-emerald-700">
-                      <CurrencyDisplay
-                        amount={receipt.changeGiven}
-                        currency={receipt.totalCurrency as Currency}
-                        showDual={false}
-                        size="sm"
-                      />
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+              <Separator className="my-3 print:bg-gray-300!" />
 
-            {/* ── Footer note (print only) ────────────────────────── */}
-            <div className="hidden border-t border-dashed border-gray-300 pt-4 text-center print:block">
-              <p className="text-[10px] tracking-wide text-gray-400">
-                ¡Gracias por su compra! • DANIELLS CONFECCIONES
+              <dl className="space-y-1.5">
+                <div className="flex items-center justify-between text-sm">
+                  <dt className="text-muted-foreground print:text-gray-700">
+                    Pagado
+                  </dt>
+                  <dd className="font-mono font-medium text-foreground tabular-nums print:text-black">
+                    <CurrencyDisplay
+                      amount={receipt.amountPaid}
+                      currency={receipt.totalCurrency}
+                      showDual={false}
+                      size="sm"
+                    />
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <dt className="text-muted-foreground print:text-gray-700">
+                    Cambio
+                  </dt>
+                  <dd
+                    className={cn(
+                      "font-mono font-semibold tabular-nums",
+                      "text-emerald-600 dark:text-emerald-400",
+                      "print:text-black!"
+                    )}
+                  >
+                    <CurrencyDisplay
+                      amount={receipt.changeGiven}
+                      currency={receipt.totalCurrency}
+                      showDual={false}
+                      size="sm"
+                    />
+                  </dd>
+                </div>
+              </dl>
+            </section>
+
+            {/* ── Optional notes ──────────────────────────────── */}
+            {receipt.notes && (
+              <>
+                <ReceiptDivider />
+                <PrintDivider />
+                <section aria-label="Notas" className="space-y-1.5">
+                  <p className="text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase print:text-gray-500">
+                    Notas
+                  </p>
+                  <p className="text-xs leading-relaxed text-foreground print:text-black">
+                    {receipt.notes}
+                  </p>
+                </section>
+              </>
+            )}
+
+            {/* ── Print-only footer ───────────────────────────── */}
+            <div className="hidden border-t border-dashed border-gray-300 pt-3 text-center print:block">
+              <p className="text-[11px] font-semibold tracking-wide text-gray-700">
+                ¡Gracias por su compra!
               </p>
-              <p className="mt-0.5 text-[9px] text-gray-300">
-                #{receiptNumber} • {formatDateTimeNI(receipt.createdAt)}
+              <p className="mt-1 text-[10px] text-gray-600">
+                Para soporte o cambios, contáctanos:
+              </p>
+              <PhoneList className="mt-1.5 justify-center" />
+              <p className="mt-2 font-mono text-[9px] tracking-wider text-gray-500 uppercase">
+                #{receiptNumber} · {formattedDate}
               </p>
             </div>
           </div>
         </ScrollArea>
 
-        {/* ── Footer actions ────────────────────────────────────── */}
-        <DialogFooter className="border-t border-border bg-muted/40 px-6 py-4 dark:bg-muted/20 print:hidden">
+        {/* ─────────────────────────────────────────────────────────
+            FOOTER — fixed at the bottom (shrink-0).
+            ───────────────────────────────────────────────────────── */}
+        <DialogFooter
+          className={cn(
+            "shrink-0 flex-col gap-3 border-t border-border bg-muted/40 px-6 py-4",
+            "dark:bg-muted/20",
+            "sm:flex-col sm:items-stretch sm:space-x-0",
+            "print:hidden"
+          )}
+        >
           <TooltipProvider delayDuration={300}>
-            <div className="flex w-full flex-col gap-2.5">
-              {/* Primary row */}
+            <div className="flex w-full flex-col gap-2">
+              {/* Primary actions */}
               <div className="grid grid-cols-2 gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => window.print()}
+                      onClick={handlePrint}
                       className="w-full gap-2 font-medium"
                     >
                       <PrinterIcon className="size-3.5" />
                       Imprimir
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="top">Imprimir recibo</TooltipContent>
+                  <TooltipContent side="top">
+                    Imprimir recibo (Ctrl/⌘ + P)
+                  </TooltipContent>
                 </Tooltip>
 
                 <Tooltip>
@@ -475,7 +640,7 @@ export function SaleReceipt({
                 </Tooltip>
               </div>
 
-              {/* Secondary row — Share (native API, if available) */}
+              {/* Secondary action — share */}
               {typeof navigator !== "undefined" && !!navigator.share && (
                 <Button
                   type="button"

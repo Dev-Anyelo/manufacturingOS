@@ -68,7 +68,6 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     React.useState<PosCustomer | null>(null)
   const { settings, exchangeRate } = useSettingsStore()
 
-  // Build rate map for convertAmount function
   const rateMap: Record<string, number> = {
     [`${Currency.USD}_${Currency.NIO}`]: exchangeRate,
     [`${Currency.NIO}_${Currency.USD}`]: 1 / exchangeRate,
@@ -148,20 +147,17 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     (paymentMethod !== "credit" || Boolean(dueDate))
 
   function handleAddItem(catalogItem: PosCatalogItem) {
-    // If item has variants, open variant selector
     if (catalogItem.finishedGoods && catalogItem.finishedGoods.length > 0) {
       setSelectedItemForVariant(catalogItem)
       setVariantSelectorOpen(true)
       return
     }
 
-    // Otherwise, add directly to cart
     setAddCounts((previous) => ({
       ...previous,
       [catalogItem.id]: (previous[catalogItem.id] ?? 0) + 1,
     }))
 
-    // Convert price if catalog item currency differs from current POS currency
     const itemUnitPrice =
       convertAmount(
         catalogItem.salePrice,
@@ -248,7 +244,6 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
       [catalogItem.id]: (previous[catalogItem.id] ?? 0) + 1,
     }))
 
-    // Convert price if catalog item currency differs from current POS currency
     const itemUnitPrice =
       convertAmount(
         catalogItem.salePrice,
@@ -318,7 +313,6 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
     const previousCurrency = previousCurrencyRef.current
     if (previousCurrency === currency) return
 
-    // Convert cart items unit prices and discounts
     setCartItems((prev) =>
       prev.map((item) => ({
         ...item,
@@ -464,7 +458,7 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
           name: item.name,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          unitPriceCurrency: currency, // En POS, los items se convierten a la moneda de la transaccion
+          unitPriceCurrency: currency,
           size: item.size,
           color: item.color,
           subtotal: item.unitPrice * item.quantity,
@@ -473,8 +467,6 @@ export function PosInterface({ catalogItems, customers }: PosInterfaceProps) {
 
       setReceiptOpen(true)
       setCartDrawerOpen(false)
-
-      // Revalidate related pages in the background
       revalidatePaths(["/sales", "/inventory", "/reports", "/"]).catch((err) =>
         console.error("[POS] revalidación fallida tras venta:", err)
       )
