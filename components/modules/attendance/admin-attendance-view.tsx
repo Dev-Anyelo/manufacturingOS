@@ -423,7 +423,13 @@ export function AdminAttendanceView({
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem
-                                  onClick={() => setManualRecordOpen(true)}
+                                  onClick={() => {
+                                    setSelectedRecordToEdit({
+                                      employeeId: emp.id,
+                                      employeeName: emp.fullName,
+                                    })
+                                    setManualRecordOpen(true)
+                                  }}
                                 >
                                   <Plus className="size-4" />
                                   Registrar

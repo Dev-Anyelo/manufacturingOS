@@ -174,6 +174,7 @@ export function UserDetailClient({ profile, isAdmin }: UserDetailClientProps) {
           {hasEmployee ? (
             <AttendanceHistoryTable
               employeeId={profile.employee!.id}
+              employeeName={profile.fullName || ""}
               isAdmin={isAdmin}
             />
           ) : (

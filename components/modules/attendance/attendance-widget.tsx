@@ -82,13 +82,13 @@ export function AttendanceWidget() {
     const { present, late, total } = data.teamSummary
     return (
       <div
-        className="flex items-center gap-2 rounded-md border bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground"
+        className="hidden items-center gap-1.5 rounded-lg border border-border/70 bg-card/60 px-2.5 py-1 text-[11px] text-muted-foreground md:inline-flex"
         title="Resumen del equipo hoy"
       >
-        <Users className="size-4" />
+        <Users className="size-3.5" />
         <span className="hidden sm:inline">Equipo hoy:</span>
         <span className="flex items-center gap-1 text-emerald-600">
-          {present} <CircleCheck className="size-4" />
+          {present} <CircleCheck className="size-3.5" />
         </span>
         {late > 0 && <span className="ml-1 text-amber-600">| {late}</span>}
       </div>

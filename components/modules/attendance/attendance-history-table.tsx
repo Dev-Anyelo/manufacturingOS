@@ -78,6 +78,7 @@ interface AttendanceRecord {
 
 interface AttendanceHistoryTableProps {
   employeeId: string
+  employeeName?: string
   isAdmin?: boolean
 }
 
@@ -143,6 +144,7 @@ function getMonthOptions(count = 12) {
 
 export function AttendanceHistoryTable({
   employeeId,
+  employeeName,
   isAdmin = true,
 }: AttendanceHistoryTableProps) {
   const isMobile = useIsMobile()
@@ -528,7 +530,7 @@ export function AttendanceHistoryTable({
           open={manualRecordOpen}
           onOpenChange={setManualRecordOpen}
           employeeId={employeeId}
-          employeeName={employeeId}
+          employeeName={employeeName || employeeId}
         />
       ) : null}
 
