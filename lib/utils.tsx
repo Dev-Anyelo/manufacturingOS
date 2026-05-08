@@ -1,8 +1,14 @@
 import { twMerge } from "tailwind-merge"
 import { clsx, type ClassValue } from "clsx"
-import { Currency, GarmentType, WorkOrderStatus } from "@prisma/client"
-import { InventoryMovementEntry } from "@/components/modules/inventory/movement-history"
 import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
+import { InventoryMovementEntry } from "@/components/modules/inventory/movement-history"
+
+import {
+  Currency,
+  GarmentType,
+  UserRole,
+  WorkOrderStatus,
+} from "@prisma/client"
 
 import {
   ArrowDownCircleIcon,
@@ -392,6 +398,21 @@ export function getGarmetTypeLabel(type: GarmentType) {
       return "Sábanas"
     case GarmentType.blankets:
       return "Edredones"
+    default:
+      return "Otro"
+  }
+}
+
+export function getRoleLabel(role: UserRole) {
+  switch (role) {
+    case UserRole.manager:
+      return "Gerente"
+    case UserRole.admin:
+      return "Administrador"
+    case UserRole.employee:
+      return "Empleado"
+    case UserRole.readonly:
+      return "Solo lectura"
     default:
       return "Otro"
   }

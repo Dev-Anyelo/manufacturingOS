@@ -6,7 +6,11 @@ import { hasPermission } from "@/lib/permissions"
 import { PageHeader } from "@/components/shared/page-header"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { UserForm } from "@/components/modules/settings/user-form"
-import { UsersTable } from "@/components/modules/settings/users-table"
+
+import {
+  UsersTable,
+  UsersTableUser,
+} from "@/components/modules/settings/users-table"
 
 import {
   Dialog,
@@ -29,6 +33,18 @@ export default async function UsersSettingsPage() {
     orderBy: { createdAt: "desc" },
     include: {
       permissionsOwned: true,
+      employee: {
+        include: {
+          attendanceRecords: {
+            where: {
+              date: {
+                gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+              },
+            },
+            orderBy: { date: "desc" },
+          },
+        },
+      },
     },
   })
 
@@ -65,7 +81,23 @@ export default async function UsersSettingsPage() {
       />
 
       <div className="page-content space-y-4">
-        <UsersTable users={users} currentUserId={currentUser.id} />
+        <UsersTable
+          users={users.map(
+            (u): UsersTableUser => ({
+              ...u,
+              email: undefined,
+              employee: u.employee
+                ? {
+                    ...u.employee,
+                    baseSalary: u.employee.baseSalary
+                      ? Number(u.employee.baseSalary)
+                      : null,
+                  }
+                : null,
+            })
+          )}
+          currentUserId={currentUser.id}
+        />
       </div>
     </div>
   )

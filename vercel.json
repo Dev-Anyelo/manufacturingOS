@@ -15,6 +15,10 @@
         {
             "path": "/api/cron/check-payroll-due",
             "schedule": "0 8 * * *"
+        },
+        {
+            "path": "/api/cron/attendance-close-day",
+            "schedule": "0 23 * * 1-6"
         }
     ]
 }

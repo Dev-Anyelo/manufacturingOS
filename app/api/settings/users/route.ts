@@ -25,6 +25,11 @@ const createUserSchema = z.object({
     .string()
     .min(8, "La contrasena debe tener al menos 8 caracteres")
     .optional(),
+  documentId: z.string().optional(),
+  hireDate: z.string().optional(),
+  contractType: z.enum(['fixed_salary', 'per_piece', 'hourly']).optional(),
+  baseSalary: z.number().optional(),
+  baseSalaryCurrency: z.enum(['NIO', 'USD']).optional(),
 })
 
 type SupabaseAdminError = {
@@ -146,6 +151,21 @@ export async function POST(request: Request) {
         isActive: true,
       },
     })
+
+    if (payload.role === 'employee' && payload.documentId && payload.hireDate) {
+      await prisma.employee.create({
+        data: {
+          profileId: data.user.id,
+          fullName: payload.full_name,
+          documentId: payload.documentId,
+          hireDate: new Date(payload.hireDate),
+          contractType: payload.contractType || 'fixed_salary',
+          baseSalary: payload.baseSalary || 0,
+          baseSalaryCurrency: payload.baseSalaryCurrency || 'NIO',
+          isActive: true
+        }
+      })
+    }
 
     await sendWelcomeEmail(normalizedEmail, {
       fullName: payload.full_name,

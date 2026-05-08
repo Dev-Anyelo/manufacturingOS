@@ -46,6 +46,11 @@ enum NotificationType {
   inventory_updated
   expense_recorded
   order_cancelled
+  attendance_late
+  attendance_absent
+  leave_requested
+  leave_approved
+  leave_rejected
 
   @@map("notification_type")
 }
@@ -187,6 +192,9 @@ model Profile {
   catalogMovementsCreated   CatalogMovement[]      @relation("CatalogMovementCreatedBy")
   permissionsOwned          UserModulePermission[] @relation("PermissionOwner")
   permissionsGranted        UserModulePermission[] @relation("PermissionGrantedBy")
+  schedulesCreated          EmployeeSchedule[]     @relation("ScheduleCreatedBy")
+  attendanceEventsCreated   AttendanceEvent[]      @relation("AttendanceEventCreatedBy")
+  leaveRequestsApproved     LeaveRequest[]         @relation("LeaveApprovedBy")
 
   @@map("profiles")
 }
@@ -208,6 +216,9 @@ model Employee {
   profile            Profile?            @relation(fields: [profileId], references: [id], onDelete: SetNull)
   productionSessions ProductionSession[]
   payrollPayments    PayrollPayment[]
+  schedule           EmployeeSchedule?
+  attendanceRecords  AttendanceRecord[]
+  leaveRequests      LeaveRequest[]
 
   @@map("employees")
 }
@@ -600,3 +611,122 @@ model UserModulePermission {
   @@unique([userId, module])
   @@map("user_module_permissions")
 }
+
+enum AttendanceStatus {
+  on_time
+  late
+  early_exit
+  absent
+  permission
+  incomplete
+  no_schedule
+
+  @@map("attendance_status")
+}
+
+enum AttendanceEventType {
+  check_in
+  lunch_start
+  lunch_end
+  check_out
+  note
+
+  @@map("attendance_event_type")
+}
+
+enum LeaveType {
+  vacation
+  medical
+  personal
+  training
+  other
+
+  @@map("leave_type")
+}
+
+enum LeaveStatus {
+  pending
+  approved
+  rejected
+
+  @@map("leave_status")
+}
+
+model EmployeeSchedule {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId         String   @unique @map("employee_id") @db.Uuid
+  expectedCheckIn    String   @map("expected_check_in") // Formato "HH:mm"
+  expectedLunchStart String?  @map("expected_lunch_start")
+  expectedLunchEnd   String?  @map("expected_lunch_end")
+  expectedCheckOut   String   @map("expected_check_out")
+  lateTolerance      Int      @default(15) @map("late_tolerance") // Minutos
+  workDays           Int[]    @map("work_days") // [1,2,3,4,5] (0=Dom, 1=Lun...)
+  isActive           Boolean  @default(true) @map("is_active")
+  createdBy          String?  @map("created_by") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee         Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdByProfile Profile? @relation("ScheduleCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@map("employee_schedules")
+}
+
+model AttendanceRecord {
+  id                   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId           String           @map("employee_id") @db.Uuid
+  date                 DateTime         @db.Date // Un registro por día
+  checkInAt            DateTime?        @map("check_in_at") @db.Timestamptz(6)
+  lunchStartAt         DateTime?        @map("lunch_start_at") @db.Timestamptz(6)
+  lunchEndAt           DateTime?        @map("lunch_end_at") @db.Timestamptz(6)
+  checkOutAt           DateTime?        @map("check_out_at") @db.Timestamptz(6)
+  status               AttendanceStatus
+  checkInLateMinutes   Int?             @map("check_in_late_minutes")
+  lunchOvertimeMinutes Int?             @map("lunch_overtime_minutes")
+  earlyExitMinutes     Int?             @map("early_exit_minutes")
+  totalWorkedMinutes   Int?             @map("total_worked_minutes")
+  notes                String?
+  createdAt            DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  events   AttendanceEvent[]
+
+  @@unique([employeeId, date])
+  @@map("attendance_records")
+}
+
+model AttendanceEvent {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  attendanceRecordId String              @map("attendance_record_id") @db.Uuid
+  eventType          AttendanceEventType @map("event_type")
+  happenedAt         DateTime            @map("happened_at") @db.Timestamptz(6)
+  reason             String?             // Obligatorio para excepciones
+  createdBy          String?             @map("created_by") @db.Uuid // Quien generó el evento (empleado o admin)
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  attendanceRecord AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  createdByProfile Profile?         @relation("AttendanceEventCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@map("attendance_events")
+}
+
+model LeaveRequest {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId   String      @map("employee_id") @db.Uuid
+  leaveDate    DateTime    @map("leave_date") @db.Date
+  leaveType    LeaveType   @map("leave_type")
+  reason       String
+  status       LeaveStatus @default(pending)
+  approvedBy   String?     @map("approved_by") @db.Uuid
+  approvalNote String?     @map("approval_note")
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  approvedByProfile Profile? @relation("LeaveApprovedBy", fields: [approvedBy], references: [id], onDelete: SetNull)
+
+  @@unique([employeeId, leaveDate])
+  @@map("leave_requests")
+}
+

@@ -27,6 +27,11 @@ const subjectPrefixes: Record<NotificationType, string> = {
   inventory_updated: "Inventario actualizado —",
   expense_recorded: "Gasto registrado —",
   order_cancelled: "Pedido cancelado —",
+  attendance_late: "Llegada tarde —",
+  attendance_absent: "Ausencia —",
+  leave_requested: "Permiso solicitado —",
+  leave_approved: "Permiso aprobado —",
+  leave_rejected: "Permiso rechazado —",
 }
 
 export async function sendNotificationEmail({

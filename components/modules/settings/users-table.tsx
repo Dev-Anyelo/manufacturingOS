@@ -7,11 +7,11 @@ import { UserForm } from "./user-form"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { formatDistanceToNow } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Prisma, UserRole } from "@prisma/client"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { EmptyState } from "@/components/shared/empty-state"
 import { UserPermissionsForm } from "./user-permissions-form"
 
@@ -53,10 +53,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type UsersTableUser = Prisma.ProfileGetPayload<{
-  include: { permissionsOwned: true }
-}> & {
+type PrismaUser = Prisma.ProfileGetPayload<{
+  include: {
+    permissionsOwned: true
+    employee: {
+      include: {
+        attendanceRecords: true
+      }
+    }
+  }
+}>
+
+export type UsersTableUser = Omit<PrismaUser, "employee"> & {
   email?: string | null
+  employee: (Omit<NonNullable<PrismaUser["employee"]>, "baseSalary"> & {
+    baseSalary: number | null
+  }) | null
 }
 
 type UserTableProps = {
@@ -201,7 +213,9 @@ export function UsersTable({ users, currentUserId }: UserTableProps) {
                   <TableHead className="w-75">Usuario</TableHead>
                   <TableHead>Rol</TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead>Último acceso</TableHead>
+                  <TableHead>[HOY] Entrada</TableHead>
+                  <TableHead>[HOY] Estado</TableHead>
+                  <TableHead>Asist. (30d)</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -308,12 +322,73 @@ function UserTableRow({
   isCurrentUser: boolean
 }) {
   const roleData = roleMap[user.role]
-  const lastAccess = user.updatedAt
-    ? formatDistanceToNow(new Date(user.updatedAt), {
-        addSuffix: true,
-        locale: es,
+
+  // Attendance logic
+  const todayStr = formatDistanceToNow(new Date(), { locale: es }) // Just to get today string base, actually better:
+  const today = new Date()
+  const todayRecord = user.employee?.attendanceRecords?.find(
+    (r) => new Date(r.date).toDateString() === today.toDateString()
+  )
+
+  let entryTime = "—"
+  let entryStatusBadge = null
+  let todayStatusLabel = "—"
+
+  if (todayRecord) {
+    if (todayRecord.checkInAt) {
+      entryTime = new Date(todayRecord.checkInAt).toLocaleTimeString("es-NI", {
+        hour: "numeric",
+        minute: "2-digit",
       })
-    : "Nunca"
+    }
+
+    switch (todayRecord.status) {
+      case "on_time":
+        entryStatusBadge = <span title="A tiempo">✅</span>
+        todayStatusLabel = "En trabajo"
+        break
+      case "late":
+        entryStatusBadge = <span title="Tarde">🔴</span>
+        todayStatusLabel = "En trabajo"
+        break
+      case "permission":
+        entryStatusBadge = <span title="Permiso">🔵</span>
+        todayStatusLabel = "Permiso"
+        break
+      case "absent":
+        entryStatusBadge = <span title="Ausente">⚫</span>
+        todayStatusLabel = "Ausente"
+        break
+      default:
+        todayStatusLabel = todayRecord.status
+    }
+
+    if (todayRecord.checkOutAt) todayStatusLabel = "Finalizado"
+    if (todayRecord.lunchStartAt && !todayRecord.lunchEndAt)
+      todayStatusLabel = "Almorzando"
+  }
+
+  // Attendance 30d
+  const records30d = user.employee?.attendanceRecords || []
+  let presentCount = 0
+  let totalCount = 0 // total working days based on records (this is an approximation, ideally we check schedule)
+  records30d.forEach((r) => {
+    if (r.status !== "no_schedule" && r.status !== "permission") {
+      totalCount++
+      if (
+        r.status === "on_time" ||
+        r.status === "late" ||
+        r.status === "early_exit" ||
+        r.status === "incomplete"
+      ) {
+        presentCount++
+      }
+    }
+  })
+  const attendanceRate =
+    totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0
+  const rateLabel =
+    totalCount > 0 ? `${attendanceRate}% (${presentCount}/${totalCount})` : "—"
 
   return (
     <TableRow
@@ -346,8 +421,20 @@ function UserTableRow({
           </Badge>
         )}
       </TableCell>
+      <TableCell className="text-xs">
+        {entryTime} {entryStatusBadge}
+      </TableCell>
       <TableCell className="text-xs text-muted-foreground">
-        {lastAccess}
+        {todayStatusLabel !== "—" ? (
+          <Badge variant="secondary" className="text-[10px]">
+            {todayStatusLabel}
+          </Badge>
+        ) : (
+          "—"
+        )}
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground">
+        {rateLabel}
       </TableCell>
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-2">
@@ -475,9 +562,11 @@ function UserActionsMenu({
               Editar
             </DropdownMenuItem>
           </DialogTrigger>
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => router.push(`/settings/users/${user.id}`)}
+          >
             <ActivityIcon className="mr-2 size-4" />
-            Ver actividad
+            Detalles
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

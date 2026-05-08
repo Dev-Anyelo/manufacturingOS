@@ -27,6 +27,13 @@ import {
   type WelcomeEmailTemplateProps,
 } from "@/lib/email/templates/user-welcome"
 
+import {
+  AttendanceEmployeeDailyTemplate,
+  type AttendanceEmployeeDailyProps,
+  AttendanceAdminDigestTemplate,
+  type AttendanceAdminDigestProps,
+} from "@/lib/email/templates/attendance-daily"
+
 export type WelcomeEmailData = WelcomeEmailTemplateProps
 export type OrderReadyEmailData = OrderReadyEmailTemplateProps
 export type LowStockAlertData = { items: LowStockItem[] }
@@ -154,5 +161,21 @@ export async function sendMonthlyReport(
           },
         ]
       : undefined,
+  })
+}
+
+export async function sendAttendanceEmployeeDaily(to: string, data: AttendanceEmployeeDailyProps) {
+  return sendEmail({
+    to,
+    subject: `Resumen de Asistencia - ${data.date}`,
+    react: AttendanceEmployeeDailyTemplate(data),
+  })
+}
+
+export async function sendAttendanceAdminDigest(to: string, data: AttendanceAdminDigestProps) {
+  return sendEmail({
+    to,
+    subject: `Resumen de Asistencia Equipo - ${data.date}`,
+    react: AttendanceAdminDigestTemplate(data),
   })
 }

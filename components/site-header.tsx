@@ -8,6 +8,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import type { CurrentUser } from "@/lib/auth/current-user"
 import { CalendarDaysIcon, ShieldCheckIcon } from "lucide-react"
 import { DashboardHeaderActions } from "@/components/dashboard-header-actions"
+import { AttendanceWidget } from "@/components/modules/attendance/attendance-widget"
 
 type SiteHeaderProps = {
   user: CurrentUser
@@ -52,6 +53,9 @@ export function SiteHeader({ user }: SiteHeaderProps) {
           <div className="hidden items-center gap-1.5 rounded-lg border border-border/70 bg-card/60 px-2.5 py-1 text-[11px] text-muted-foreground md:inline-flex">
             <CalendarDaysIcon className="size-3.5" />
             <span className="capitalize">{todayLabel}</span>
+          </div>
+          <div className="hidden sm:flex">
+            <AttendanceWidget />
           </div>
           <div className="hidden items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] text-primary lg:inline-flex">
             <ShieldCheckIcon className="size-3.5" />
