@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { getNowZoned } from '@/lib/attendance/utils'
 
 export async function GET(request: Request) {
   const supabase = await createServerSupabaseClient()
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
       startDate = new Date(year, m - 1, 1)
       endDate = new Date(year, m, 0) // last day of month
     } else {
-      const now = new Date()
+      const now = getNowZoned()
       startDate = new Date(now.getFullYear(), now.getMonth(), 1)
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0)
     }

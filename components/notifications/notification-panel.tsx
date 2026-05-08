@@ -25,6 +25,11 @@ import {
   WalletIcon,
   CheckCheckIcon,
   BellOff,
+  Clock4Icon,
+  UserXIcon,
+  CalendarPlusIcon,
+  CalendarCheckIcon,
+  CalendarXIcon,
 } from "lucide-react"
 
 type NotificationPanelProps = {
@@ -105,6 +110,31 @@ const configMap = {
     iconClassName: "text-zinc-500",
     toneClassName:
       "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-500/10",
+  },
+  [NotificationType.AttendanceLate]: {
+    icon: Clock4Icon,
+    iconClassName: "text-amber-500",
+    toneClassName: "border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-500/10",
+  },
+  [NotificationType.AttendanceAbsent]: {
+    icon: UserXIcon,
+    iconClassName: "text-red-500",
+    toneClassName: "border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-500/10",
+  },
+  [NotificationType.LeaveRequested]: {
+    icon: CalendarPlusIcon,
+    iconClassName: "text-blue-500",
+    toneClassName: "border-blue-200 bg-blue-50 dark:border-blue-900/50 dark:bg-blue-500/10",
+  },
+  [NotificationType.LeaveApproved]: {
+    icon: CalendarCheckIcon,
+    iconClassName: "text-emerald-500",
+    toneClassName: "border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-500/10",
+  },
+  [NotificationType.LeaveRejected]: {
+    icon: CalendarXIcon,
+    iconClassName: "text-red-500",
+    toneClassName: "border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-500/10",
   },
 } satisfies Record<
   NotificationType,

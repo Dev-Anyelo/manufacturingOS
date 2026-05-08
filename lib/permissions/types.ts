@@ -15,6 +15,7 @@ export const MODULE_KEYS = [
   "catalog",
   "expenses",
   "payroll",
+  "attendance",
   "reports",
   "settings",
 ] as const

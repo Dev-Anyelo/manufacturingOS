@@ -36,6 +36,30 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error) return error.message || fallback
+
+  if (typeof error === "object" && error !== null) {
+    if ("message" in error && typeof error.message === "string") {
+      return error.message
+    }
+
+    if ("error" in error && typeof error.error === "string") {
+      return error.error
+    }
+  }
+
+  return fallback
+}
+
+function getErrorCode(error: unknown) {
+  if (typeof error === "object" && error !== null && "code" in error) {
+    return typeof error.code === "string" ? error.code : undefined
+  }
+
+  return undefined
+}
+
 export function AttendanceWidget() {
   const { data, isLoading, checkIn, lunchStart, lunchEnd, checkOut } =
     useAttendance()
@@ -84,8 +108,8 @@ export function AttendanceWidget() {
       } else {
         toast.success("Entrada registrada exitosamente")
       }
-    } catch (err: any) {
-      toast.error(err.message || "Error al marcar entrada")
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Error al marcar entrada"))
     }
   }
 
@@ -93,8 +117,8 @@ export function AttendanceWidget() {
     try {
       await lunchStart.mutateAsync()
       toast.success("Almuerzo iniciado")
-    } catch (err: any) {
-      toast.error(err.message || "Error")
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Error"))
     }
   }
 
@@ -102,8 +126,8 @@ export function AttendanceWidget() {
     try {
       await lunchEnd.mutateAsync()
       toast.success("Almuerzo finalizado. ¡De vuelta al trabajo!")
-    } catch (err: any) {
-      toast.error(err.message || "Error")
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Error"))
     }
   }
 
@@ -113,12 +137,15 @@ export function AttendanceWidget() {
       toast.success("Salida registrada exitosamente. ¡Buen trabajo!")
       setReasonDialogOpen(false)
       setReason("")
-    } catch (err: any) {
-      if (err.code === "REASON_REQUIRED") {
-        setReasonError(err.message)
+    } catch (err: unknown) {
+      const code = getErrorCode(err)
+      const message = getErrorMessage(err, "Error al marcar salida")
+
+      if (code === "REASON_REQUIRED") {
+        setReasonError(message)
         setReasonDialogOpen(true)
       } else {
-        toast.error(err.error || err.message || "Error al marcar salida")
+        toast.error(message)
       }
     }
   }

@@ -20,7 +20,10 @@ const updateUserSchema = z.object({
     .trim()
     .min(2, "El nombre debe tener al menos 2 caracteres")
     .optional(),
-  documentId: z.string().optional(),
+  phone: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  birthDate: z.string().nullable().optional(),
+  documentId: z.string().min(1, "La cédula es obligatoria").optional(),
   hireDate: z.string().optional(),
   contractType: z.nativeEnum(ContractType).optional(),
   baseSalary: z.number().optional(),
@@ -31,6 +34,44 @@ type RouteParams = {
   id: string
 }
 
+// GET — Full user profile with employee and schedule
+export async function GET(
+  request: Request,
+  context: { params: Promise<RouteParams> | RouteParams }
+) {
+  try {
+    const { profile: authProfile } = await requireAuth()
+    const { id } = await resolveRouteParams(context.params)
+
+    // Allow viewing own profile or require settings.view permission
+    if (authProfile.id !== id) {
+      await requirePermission(authProfile, "settings", "view")
+    }
+
+    const profile = await prisma.profile.findUnique({
+      where: { id },
+      include: {
+        employee: {
+          include: {
+            schedule: true,
+          },
+        },
+      },
+    })
+
+    if (!profile) {
+      return new Response(JSON.stringify({ error: "Usuario no encontrado" }), {
+        status: 404,
+      })
+    }
+
+    return apiSuccess(profile)
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
+// PATCH — Update user profile and optionally upsert employee data
 export async function PATCH(
   request: Request,
   context: { params: Promise<RouteParams> | RouteParams }
@@ -46,9 +87,13 @@ export async function PATCH(
       role: payload.role,
       isActive: payload.is_active,
       fullName: payload.full_name,
+      phone: payload.phone,
+      address: payload.address,
+      birthDate: payload.birthDate ? new Date(payload.birthDate) : undefined,
     }
 
-    if (payload.role === UserRole.employee && payload.documentId && payload.hireDate) {
+    // Upsert employee data for ANY role when documentId and hireDate are provided
+    if (payload.documentId && payload.hireDate) {
       updateData.employee = {
         upsert: {
           create: {
@@ -66,14 +111,21 @@ export async function PATCH(
             baseSalary: payload.baseSalary,
             baseSalaryCurrency: payload.baseSalaryCurrency,
             fullName: payload.full_name,
-          }
-        }
+          },
+        },
       }
     }
 
     const updated = await prisma.profile.update({
       where: { id },
       data: updateData,
+      include: {
+        employee: {
+          include: {
+            schedule: true,
+          },
+        },
+      },
     })
 
     return apiSuccess(updated)

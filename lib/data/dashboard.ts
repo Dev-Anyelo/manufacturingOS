@@ -332,3 +332,25 @@ export async function getFinancialChartData(
     a.date.localeCompare(b.date)
   )
 }
+
+export async function getDashboardAttendanceSummary() {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const records = await prisma.attendanceRecord.findMany({
+    where: { date: today },
+  })
+
+  const pendingLeaves = await prisma.leaveRequest.count({
+    where: { status: "pending" }
+  })
+
+  return {
+    total: records.length,
+    present: records.filter((r) => ["on_time", "late", "incomplete", "no_schedule", "early_exit"].includes(r.status)).length,
+    late: records.filter((r) => r.status === "late" || (r.checkInLateMinutes && r.checkInLateMinutes > 0)).length,
+    absent: records.filter((r) => r.status === "absent").length,
+    permission: records.filter((r) => r.status === "permission").length,
+    pendingLeaves,
+  }
+}

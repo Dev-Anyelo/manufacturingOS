@@ -1,25 +1,14 @@
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import { UserPlusIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { hasPermission } from "@/lib/permissions"
 import { PageHeader } from "@/components/shared/page-header"
 import { requireCurrentUser } from "@/lib/auth/current-user"
-import { UserForm } from "@/components/modules/settings/user-form"
+import { NewUserButton } from "@/components/modules/settings/new-user-button"
 
 import {
   UsersTable,
   UsersTableUser,
 } from "@/components/modules/settings/users-table"
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 
 export default async function UsersSettingsPage() {
   const currentUser = await requireCurrentUser()
@@ -58,26 +47,7 @@ export default async function UsersSettingsPage() {
           { label: "Configuración" },
           { label: "Usuarios" },
         ]}
-        actions={
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <UserPlusIcon className="size-4" />
-                Nuevo usuario
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[90vw] px-4 py-4 sm:max-w-106.25">
-              <DialogHeader>
-                <DialogTitle>Agregar nuevo usuario</DialogTitle>
-                <DialogDescription className="text-sm text-pretty">
-                  Crea una cuenta directamente. Podrás definir su contraseña
-                  inicial y compartirle sus credenciales de acceso.
-                </DialogDescription>
-              </DialogHeader>
-              <UserForm />
-            </DialogContent>
-          </Dialog>
-        }
+        actions={<NewUserButton />}
       />
 
       <div className="page-content space-y-4">

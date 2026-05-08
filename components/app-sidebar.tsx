@@ -32,6 +32,7 @@ import {
   Settings2Icon,
   CommandIcon,
   LayersPlusIcon,
+  ClockIcon,
 } from "lucide-react"
 
 const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -44,6 +45,7 @@ const navIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/sales": ShoppingCartIcon,
   "/expenses": WalletIcon,
   "/payroll": UsersRoundIcon,
+  "/attendance": ClockIcon,
   "/customers": UsersIcon,
   "/settings": Settings2Icon,
 }

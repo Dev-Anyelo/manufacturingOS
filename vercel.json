@@ -19,6 +19,10 @@
         {
             "path": "/api/cron/attendance-close-day",
             "schedule": "0 23 * * 1-6"
+        },
+        {
+            "path": "/api/cron/attendance-daily-email",
+            "schedule": "30 23 * * 1-6"
         }
     ]
 }

@@ -4,6 +4,7 @@ export type DashboardNavItem = {
   title: string
   url: string
   module?: ModuleKey
+  badge?: number | string
   items?: { title: string; url: string; module?: ModuleKey }[]
 }
 
@@ -33,6 +34,7 @@ export const dashboardNavSections: DashboardNavSection[] = [
       { title: "Gastos", url: "/expenses", module: "expenses" },
       { title: "Clientes", url: "/customers", module: "customers" },
       { title: "Planilla", url: "/payroll", module: "payroll" },
+      { title: "Asistencia", url: "/attendance", module: "attendance" },
     ],
   },
   {

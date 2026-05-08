@@ -1,5 +1,5 @@
-import { format, differenceInMinutes, parseISO } from 'date-fns'
-import { toZonedTime } from 'date-fns-tz'
+import { format, differenceInMinutes } from 'date-fns'
+import { toZonedTime, fromZonedTime } from 'date-fns-tz'
 
 export const TIMEZONE = 'America/Managua'
 
@@ -11,18 +11,27 @@ export function getTodayDateString() {
   return format(getNowZoned(), 'yyyy-MM-dd')
 }
 
-// Convert "HH:mm" to a Date object on the current day in Managua timezone
-export function parseScheduleTime(timeString: string, baseDate: Date = getNowZoned()): Date {
-  const [hours, minutes] = timeString.split(':').map(Number)
-  const date = new Date(baseDate)
-  date.setHours(hours, minutes, 0, 0)
-  return date
+/**
+ * Convierte "HH:mm" (hora Nicaragua) + una fecha de referencia (UTC) 
+ * en un Date UTC equivalente
+ */
+export function parseScheduleTime(timeStr: string, referenceUtcDate: Date = new Date()): Date {
+  // Obtener la fecha en Nicaragua
+  const zonedRef = toZonedTime(referenceUtcDate, TIMEZONE)
+  const dateStr = format(zonedRef, "yyyy-MM-dd") // "2026-05-08"
+  // Construir "2026-05-08T07:00:00" como si fuera hora Nicaragua y convertir a UTC
+  return fromZonedTime(new Date(`${dateStr}T${timeStr}:00`), TIMEZONE)
 }
 
-export function calculateLateMinutes(actual: Date, expectedTimeStr: string, tolerance: number): number {
-  const expected = parseScheduleTime(expectedTimeStr, actual)
-  const diff = differenceInMinutes(actual, expected)
-  return diff > tolerance ? diff : 0
+export function calculateLateMinutes(
+  checkInAt: Date,        // UTC timestamp del check-in real
+  expectedCheckIn: string, // "HH:mm" en hora Nicaragua
+  toleranceMinutes: number
+): number {
+  const expectedUtc = parseScheduleTime(expectedCheckIn, checkInAt)
+  const diffMs = checkInAt.getTime() - expectedUtc.getTime()
+  const diffMinutes = Math.floor(diffMs / 60000)
+  return Math.max(0, diffMinutes - toleranceMinutes)
 }
 
 export function calculateEarlyExitMinutes(actual: Date, expectedTimeStr: string): number {
@@ -42,3 +51,4 @@ export function calculateLunchOvertime(start: Date, end: Date, expectedStartStr:
   const diff = actualDuration - expectedDuration
   return diff > 15 ? diff : 0 // 15 mins tolerance for lunch
 }
+

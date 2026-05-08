@@ -58,6 +58,7 @@ export const DEFAULT_PERMISSIONS: Record<string, ResolvedPermissions> = {
     catalog: ALL,
     expenses: ALL,
     payroll: ALL,
+    attendance: ALL,
     reports: ALL,
     settings: ALL,
   },
@@ -73,6 +74,7 @@ export const DEFAULT_PERMISSIONS: Record<string, ResolvedPermissions> = {
     catalog: CRUD,
     expenses: CRUD,
     payroll: NONE,
+    attendance: p(true, true, true, false, true),
     reports: p(true, false, false, false, true),
     settings: NONE,
   },
@@ -90,6 +92,7 @@ export const DEFAULT_PERMISSIONS: Record<string, ResolvedPermissions> = {
     catalog: VIEW_ONLY,
     expenses: NONE,
     payroll: NONE,
+    attendance: p(true, true, true, false, false), // Empleados ven su asistencia y piden permiso
     reports: VIEW_ONLY, // scoped to own production reports at API level
     settings: NONE,
   },
@@ -105,6 +108,7 @@ export const DEFAULT_PERMISSIONS: Record<string, ResolvedPermissions> = {
     catalog: VIEW_ONLY,
     expenses: NONE,
     payroll: NONE,
+    attendance: NONE,
     reports: VIEW_ONLY,
     settings: NONE,
   },
@@ -126,6 +130,7 @@ export function buildDeniedPermissions(): ResolvedPermissions {
     "catalog",
     "expenses",
     "payroll",
+    "attendance",
     "reports",
     "settings",
   ]

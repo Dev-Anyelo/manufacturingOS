@@ -4,7 +4,7 @@ import { toZonedTime } from 'date-fns-tz'
 import { getTodayDateString } from '@/lib/attendance/utils'
 import { AttendanceStatus } from '@prisma/client'
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   // Validate CRON_SECRET for security
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -100,10 +100,22 @@ export async function POST(request: Request) {
       } else {
         // Record exists, check if incomplete
         if (record.checkInAt && !record.checkOutAt) {
+          // Calculate partial worked minutes from checkIn to now
+          const now = new Date()
+          const { differenceInMinutes } = await import('date-fns')
+          let workedMinutes = differenceInMinutes(now, record.checkInAt)
+
+          // Subtract lunch if it was taken
+          if (record.lunchStartAt && record.lunchEndAt) {
+            const lunchMinutes = differenceInMinutes(record.lunchEndAt, record.lunchStartAt)
+            workedMinutes = Math.max(0, workedMinutes - lunchMinutes)
+          }
+
           await prisma.attendanceRecord.update({
             where: { id: record.id },
             data: {
               status: 'incomplete',
+              totalWorkedMinutes: Math.max(0, workedMinutes),
               notes: record.notes ? `${record.notes} | Cierre automático (incomplete)` : 'Cierre automático (incomplete)'
             }
           })
@@ -117,7 +129,7 @@ export async function POST(request: Request) {
     // Trigger emails summary for admin
     // This could also be a separate fetch to the other cron route
     fetch(new URL('/api/cron/attendance-daily-email', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').toString(), {
-      method: 'POST',
+      method: 'GET',
       headers: { 'Authorization': `Bearer ${process.env.CRON_SECRET}` }
     }).catch(console.error)
 

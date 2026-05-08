@@ -3,6 +3,32 @@ import { NextResponse } from "next/server"
 import { scheduleSchema } from "@/lib/validations/attendance"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 
+export async function GET(
+  request: Request,
+  props: { params: Promise<{ id: string }> }
+) {
+  const params = await props.params
+  const supabase = await createServerSupabaseClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  try {
+    const schedule = await prisma.employeeSchedule.findUnique({
+      where: { employeeId: params.id },
+    })
+
+    return NextResponse.json({ data: schedule })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Error desconocido"
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
 export async function POST(
   request: Request,
   props: { params: Promise<{ id: string }> }
@@ -46,7 +72,8 @@ export async function POST(
     })
 
     return NextResponse.json({ data: schedule })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Error desconocido"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

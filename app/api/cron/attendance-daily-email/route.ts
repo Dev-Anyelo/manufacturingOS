@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 import { getTodayDateString } from "@/lib/attendance/utils"
 import { sendAttendanceAdminDigest } from "@/lib/email/send"
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   // Validate CRON_SECRET for security
   const authHeader = request.headers.get("authorization")
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {

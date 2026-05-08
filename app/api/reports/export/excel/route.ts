@@ -1,5 +1,4 @@
 import * as XLSX from "xlsx"
-
 import { prisma } from "@/lib/prisma"
 import { handleApiError, requireAuth } from "@/lib/api/response"
 import { requirePermission } from "@/lib/api/require-permission"
@@ -9,7 +8,7 @@ export async function GET() {
     const { profile } = await requireAuth()
     await requirePermission(profile, "reports", "export")
 
-    const [sales, orders, expenses, inventory] = await Promise.all([
+    const [sales, orders, expenses, inventory, attendance] = await Promise.all([
       prisma.sale.findMany({
         include: {
           customer: {
@@ -33,6 +32,16 @@ export async function GET() {
         where: {
           isActive: true,
         },
+      }),
+      prisma.attendanceRecord.findMany({
+        include: {
+          employee: {
+            select: {
+              fullName: true,
+            },
+          },
+        },
+        orderBy: { date: "desc" },
       }),
     ])
 
@@ -96,6 +105,23 @@ export async function GET() {
         }))
       ),
       "Inventario"
+    )
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      XLSX.utils.json_to_sheet(
+        attendance.map((record) => ({
+          id: record.id,
+          empleado: record.employee.fullName,
+          fecha: record.date.toISOString().slice(0, 10),
+          entrada: record.checkInAt ? record.checkInAt.toISOString().slice(11, 19) : "—",
+          salida: record.checkOutAt ? record.checkOutAt.toISOString().slice(11, 19) : "—",
+          minutos_trabajados: record.totalWorkedMinutes || 0,
+          estado: record.status,
+          notas: record.notes || "",
+        }))
+      ),
+      "Asistencia"
     )
 
     const fileBuffer = XLSX.write(workbook, {

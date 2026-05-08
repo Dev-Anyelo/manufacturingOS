@@ -24,6 +24,14 @@ export default async function DashboardLayout({
 }>) {
   const user = await requireCurrentUser()
 
+  let pendingLeavesCount = 0
+  if (user.role === "admin" || user.role === "manager") {
+    const { prisma } = await import("@/lib/prisma")
+    pendingLeavesCount = await prisma.leaveRequest.count({
+      where: { status: "pending" },
+    })
+  }
+
   const filteredSections: DashboardNavSection[] = []
 
   for (const section of dashboardNavSections) {
@@ -36,7 +44,15 @@ export default async function DashboardLayout({
 
       const hasAccess = await hasPermission(user.id, item.module, "view")
       if (hasAccess) {
-        validItems.push(item)
+        let modifiedItem = { ...item }
+        if (modifiedItem.url === "/attendance") {
+          if (user.role === "employee") {
+            modifiedItem.title = "Mi Asistencia"
+          } else {
+            modifiedItem.badge = pendingLeavesCount
+          }
+        }
+        validItems.push(modifiedItem)
       }
     }
 

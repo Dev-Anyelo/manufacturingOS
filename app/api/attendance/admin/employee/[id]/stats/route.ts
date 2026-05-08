@@ -1,7 +1,10 @@
+import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
-import { differenceInDays, differenceInMinutes, parseISO } from 'date-fns'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { toZonedTime } from 'date-fns-tz'
+import { TIMEZONE } from '@/lib/attendance/utils'
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -30,7 +33,8 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       where: {
         employeeId,
         date: { gte: sixMonthsAgo }
-      }
+      },
+      orderBy: { date: 'desc' }
     })
 
     let totalDays = records.length
@@ -40,16 +44,39 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
     let earlyExitDays = 0
 
     let totalWorkedMinutes = 0
-    // Expected minutes would require knowing the schedule, we can approximate by 8 hours
-    // but we can also use checkInLateMinutes and earlyExitMinutes
+
+    // Distribution counters
+    const distribution = {
+      on_time: 0,
+      late: 0,
+      early_exit: 0,
+      absent: 0,
+      permission: 0,
+    }
+
+    // Collect recent late entries
+    const recentLate: Array<{ date: string; minutes: number }> = []
     
     records.forEach(r => {
+      // Count distribution
+      if (r.status in distribution) {
+        distribution[r.status as keyof typeof distribution]++
+      }
+
       if (r.status === 'on_time' || r.status === 'late' || r.status === 'early_exit' || r.status === 'incomplete') {
         presentDays++
         totalWorkedMinutes += r.totalWorkedMinutes || 0
       }
       
-      if (r.status === 'late' || r.checkInLateMinutes) lateDays++
+      if (r.status === 'late' || r.checkInLateMinutes) {
+        lateDays++
+        if (r.checkInLateMinutes && r.checkInLateMinutes > 0) {
+          recentLate.push({
+            date: format(toZonedTime(r.date, TIMEZONE), 'dd MMM yyyy', { locale: es }),
+            minutes: r.checkInLateMinutes,
+          })
+        }
+      }
       if (r.status === 'early_exit' || r.earlyExitMinutes) earlyExitDays++
       if (r.status === 'absent') absentWithoutReason++
     })
@@ -65,7 +92,9 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
         lateDays,
         earlyExitDays,
         absentWithoutReason,
-        avgMinutesPerDay
+        avgMinutesPerDay,
+        distribution,
+        recentLate: recentLate.slice(0, 10), // last 10 entries
       }
     })
   } catch (error: unknown) {

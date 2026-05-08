@@ -166,6 +166,9 @@ export function PayrollForm({
   const watchDeductions = Number(form.watch("deductions") ?? 0)
   const watchPeriodStart = form.watch("period_start")
   const watchPeriodEnd = form.watch("period_end")
+  const watchHours = form.watch("hours_worked")
+
+  const [attendanceHint, setAttendanceHint] = React.useState<{ records: number; hours: number } | null>(null)
 
   const total = Math.max(watchBaseAmount + watchBonuses - watchDeductions, 0)
 
@@ -204,6 +207,48 @@ export function PayrollForm({
       })
     }
   }, [employees, form, selectedEmployeeId])
+
+  // Auto-fetch hours and pieces
+  React.useEffect(() => {
+    async function fetchEmployeeInfo() {
+      if (!selectedEmployeeId || !watchPeriodStart || !watchPeriodEnd) return
+
+      try {
+        const url = new URL("/api/payroll/info", window.location.origin)
+        url.searchParams.set("employee_id", selectedEmployeeId)
+        url.searchParams.set("from", watchPeriodStart)
+        url.searchParams.set("to", watchPeriodEnd)
+
+        const res = await fetch(url.toString())
+        if (res.ok) {
+          const { data } = await res.json()
+          if (data) {
+            // Only update if current values are 0 or empty to not overwrite manual changes
+            const currentHours = form.getValues("hours_worked")
+            const currentPieces = form.getValues("pieces_produced")
+            
+            if (!currentHours && data.hoursWorked > 0) {
+              form.setValue("hours_worked", data.hoursWorked, { shouldDirty: true })
+            }
+            if (!currentPieces && data.piecesProduced > 0) {
+              form.setValue("pieces_produced", data.piecesProduced, { shouldDirty: true })
+            }
+            
+            if (data.attendanceRecordsCount !== undefined) {
+              setAttendanceHint({ 
+                records: data.attendanceRecordsCount, 
+                hours: data.hoursWorked 
+              })
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch employee info for payroll:", err)
+      }
+    }
+
+    fetchEmployeeInfo()
+  }, [selectedEmployeeId, watchPeriodStart, watchPeriodEnd, form])
 
   async function onSubmit(values: PayrollFormOutput) {
     setIsSubmitting(true)
@@ -629,6 +674,11 @@ export function PayrollForm({
                   >
                     <Clock className="text-info size-3.5" />
                     Horas trabajadas
+                    {attendanceHint && attendanceHint.records > 0 && watchHours === attendanceHint.hours && (
+                      <span className="ml-auto flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-600 border border-blue-500/20">
+                        <Clock className="size-3" /> Desde asistencia
+                      </span>
+                    )}
                   </Label>
                   <Input
                     id="hours_worked"
@@ -639,6 +689,16 @@ export function PayrollForm({
                     {...form.register("hours_worked", { valueAsNumber: true })}
                     className="h-10"
                   />
+                  {selectedEmployee?.contractType === "hourly" && attendanceHint && watchHours === attendanceHint.hours && attendanceHint.records > 0 && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Calculado desde {attendanceHint.records} registros de asistencia del período. Puedes editarlo manualmente.
+                    </p>
+                  )}
+                  {selectedEmployee?.contractType === "hourly" && attendanceHint?.records === 0 && (
+                    <p className="text-[11px] text-muted-foreground italic">
+                      Sin registros de asistencia para este período.
+                    </p>
+                  )}
                 </div>
               </div>
 

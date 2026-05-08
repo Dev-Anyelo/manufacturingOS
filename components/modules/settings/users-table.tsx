@@ -3,7 +3,7 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { es } from "date-fns/locale"
-import { UserForm } from "./user-form"
+import { UserFormSheet } from "./user-form-sheet"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -25,15 +25,6 @@ import {
 } from "@/components/ui/table"
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-
-import {
   SearchIcon,
   MoreHorizontalIcon,
   ShieldAlertIcon,
@@ -42,6 +33,9 @@ import {
   XCircleIcon,
   ActivityIcon,
   PencilLineIcon,
+  CalendarDaysIcon,
+  EyeOffIcon,
+  EyeIcon,
 } from "lucide-react"
 
 import {
@@ -66,9 +60,11 @@ type PrismaUser = Prisma.ProfileGetPayload<{
 
 export type UsersTableUser = Omit<PrismaUser, "employee"> & {
   email?: string | null
-  employee: (Omit<NonNullable<PrismaUser["employee"]>, "baseSalary"> & {
-    baseSalary: number | null
-  }) | null
+  employee:
+    | (Omit<NonNullable<PrismaUser["employee"]>, "baseSalary"> & {
+        baseSalary: number | null
+      })
+    | null
 }
 
 type UserTableProps = {
@@ -324,7 +320,6 @@ function UserTableRow({
   const roleData = roleMap[user.role]
 
   // Attendance logic
-  const todayStr = formatDistanceToNow(new Date(), { locale: es }) // Just to get today string base, actually better:
   const today = new Date()
   const todayRecord = user.employee?.attendanceRecords?.find(
     (r) => new Date(r.date).toDateString() === today.toDateString()
@@ -344,19 +339,35 @@ function UserTableRow({
 
     switch (todayRecord.status) {
       case "on_time":
-        entryStatusBadge = <span title="A tiempo">✅</span>
+        entryStatusBadge = (
+          <span title="A tiempo">
+            <CheckCircle2Icon className="size-4 text-green-500" />
+          </span>
+        )
         todayStatusLabel = "En trabajo"
         break
       case "late":
-        entryStatusBadge = <span title="Tarde">🔴</span>
+        entryStatusBadge = (
+          <span title="Tarde">
+            <XCircleIcon className="size-4 text-red-500" />
+          </span>
+        )
         todayStatusLabel = "En trabajo"
         break
       case "permission":
-        entryStatusBadge = <span title="Permiso">🔵</span>
+        entryStatusBadge = (
+          <span title="Permiso">
+            <CalendarDaysIcon className="size-4 text-blue-500" />
+          </span>
+        )
         todayStatusLabel = "Permiso"
         break
       case "absent":
-        entryStatusBadge = <span title="Ausente">⚫</span>
+        entryStatusBadge = (
+          <span title="Ausente">
+            <XCircleIcon className="size-4 text-red-500" />
+          </span>
+        )
         todayStatusLabel = "Ausente"
         break
       default:
@@ -545,7 +556,7 @@ function UserActionsMenu({
   }
 
   return (
-    <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+    <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="size-8">
@@ -556,12 +567,13 @@ function UserActionsMenu({
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuLabel>Acciones de usuario</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DialogTrigger asChild>
-            <DropdownMenuItem disabled={isCurrentUser}>
-              <PencilLineIcon className="mr-2 size-4" />
-              Editar
-            </DropdownMenuItem>
-          </DialogTrigger>
+          <DropdownMenuItem
+            disabled={isCurrentUser}
+            onClick={() => setIsEditOpen(true)}
+          >
+            <PencilLineIcon className="mr-2 size-4" />
+            Editar
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => router.push(`/settings/users/${user.id}`)}
           >
@@ -574,23 +586,22 @@ function UserActionsMenu({
             className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
             onClick={handleToggleStatus}
           >
+            {user.isActive ? (
+              <EyeOffIcon className="mr-2 size-4" />
+            ) : (
+              <EyeIcon className="mr-2 size-4" />
+            )}
             {user.isActive ? "Desactivar acceso" : "Reactivar acceso"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DialogContent className="p-4 sm:max-w-106.25">
-        <DialogHeader>
-          <DialogTitle className="text-sm text-pretty">
-            Editar información del usuario
-          </DialogTitle>
-          <DialogDescription>
-            Si cambias el rol, asegúrate de revisar sus permisos específicos si
-            los tuviera.
-          </DialogDescription>
-        </DialogHeader>
-        <UserForm initialData={user} onSuccess={() => setIsEditOpen(false)} />
-      </DialogContent>
-    </Dialog>
+      <UserFormSheet
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        initialData={user}
+        onSuccess={() => setIsEditOpen(false)}
+      />
+    </>
   )
 }

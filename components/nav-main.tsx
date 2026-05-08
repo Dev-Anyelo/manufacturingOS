@@ -15,7 +15,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -33,6 +32,7 @@ export function NavMain({
     url: string
     icon?: React.ComponentType<{ className?: string }>
     isActive?: boolean
+    badge?: number | string
     items?: {
       title: string
       url: string
@@ -73,9 +73,17 @@ export function NavMain({
                     <Link
                       href={item.url}
                       aria-current={active ? "page" : undefined}
+                      className="flex w-full items-center justify-between"
                     >
-                      {Icon ? <Icon className="shrink-0" /> : null}
-                      <span>{item.title}</span>
+                      <div className="flex items-center">
+                        {Icon ? <Icon className="mr-3 shrink-0" /> : null}
+                        <span>{item.title}</span>
+                      </div>
+                      {item.badge !== undefined && item.badge !== 0 ? (
+                        <span className="flex h-5 items-center justify-center rounded-full bg-primary/20 px-2 text-[10px] font-medium text-primary">
+                          {item.badge}
+                        </span>
+                      ) : null}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

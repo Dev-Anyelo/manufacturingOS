@@ -69,6 +69,35 @@ export enum NotificationType {
   InventoryUpdated = "inventory_updated",
   ExpenseRecorded = "expense_recorded",
   OrderCancelled = "order_cancelled",
+  AttendanceLate = "attendance_late",
+  AttendanceAbsent = "attendance_absent",
+  LeaveRequested = "leave_requested",
+  LeaveApproved = "leave_approved",
+  LeaveRejected = "leave_rejected",
+}
+
+export enum AttendanceStatusType {
+  OnTime = "on_time",
+  Late = "late",
+  EarlyExit = "early_exit",
+  Absent = "absent",
+  Permission = "permission",
+  Incomplete = "incomplete",
+  NoSchedule = "no_schedule",
+}
+
+export enum LeaveType {
+  Vacation = "vacation",
+  Medical = "medical",
+  Personal = "personal",
+  Training = "training",
+  Other = "other",
+}
+
+export enum LeaveStatusType {
+  Pending = "pending",
+  Approved = "approved",
+  Rejected = "rejected",
 }
 
 export const GARMENT_TYPES = {
@@ -347,3 +376,82 @@ export type CreatePayrollPaymentRequest = PayrollPaymentInput
 export type MarkPayrollPaidRequest = PayrollMarkPaidInput
 export type CreateCatalogItemRequest = CatalogItemInput
 export type UpdateSystemSettingsRequest = SystemSettingsInput
+
+// ---------------------------------------------------------------------------
+// Attendance
+// ---------------------------------------------------------------------------
+
+export interface AttendanceRecord {
+  id: string
+  employeeId: string
+  date: string
+  checkInAt: string | null
+  checkOutAt: string | null
+  lunchStartAt: string | null
+  lunchEndAt: string | null
+  totalWorkedMinutes: number | null
+  checkInLateMinutes: number | null
+  earlyExitMinutes: number | null
+  lunchOvertimeMinutes: number | null
+  status: AttendanceStatusType | string
+  notes: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AttendanceEvent {
+  id: string
+  attendanceRecordId: string
+  eventType: string
+  timestamp: string
+  metadata: Record<string, unknown> | null
+}
+
+export interface EmployeeSchedule {
+  id: string
+  employeeId: string
+  expectedCheckIn: string
+  expectedLunchStart: string | null
+  expectedLunchEnd: string | null
+  expectedCheckOut: string
+  lateTolerance: number
+  workDays: number[]
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface LeaveRequest {
+  id: string
+  employeeId: string
+  leaveDate: string
+  leaveType: LeaveType | string
+  reason: string
+  status: LeaveStatusType | string
+  approvalNote: string | null
+  approvedBy: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AttendanceStatsData {
+  attendanceRate: number
+  presentDays: number
+  totalDays: number
+  avgMinutesPerDay: number
+  lateDays: number
+  earlyExitDays: number
+  absentWithoutReason: number
+  distribution?: {
+    on_time: number
+    late: number
+    early_exit: number
+    absent: number
+    permission: number
+  }
+  recentLate?: Array<{
+    date: string
+    minutes: number
+  }>
+}
+

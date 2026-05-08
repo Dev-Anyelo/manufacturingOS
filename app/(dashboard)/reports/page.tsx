@@ -37,6 +37,14 @@ export default function ReportsPage() {
       items: ["Gastos por categoría", "Planilla mensual", "Balance operativo"],
       tone: "status-warning",
     },
+    {
+      title: "Asistencia",
+      description: "Historial de registros, ausencias y permisos del equipo.",
+      items: ["Resumen por empleado", "Reporte de tardanzas", "Permisos"],
+      tone: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+      active: true,
+      href: "/attendance?tab=history",
+    },
   ]
 
   return (
@@ -122,9 +130,15 @@ export default function ReportsPage() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-semibold">{block.title}</p>
-                    <Badge variant="outline" className={block.tone}>
-                      Planeado
-                    </Badge>
+                    {block.active ? (
+                      <Badge variant="outline" className={block.tone}>
+                        Activo
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className={block.tone}>
+                        Planeado
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-xs text-pretty text-muted-foreground">
                     {block.description}
@@ -136,12 +150,23 @@ export default function ReportsPage() {
                         className="flex items-center justify-between rounded-md border border-border/60 bg-muted/15 px-2.5 py-2"
                       >
                         <p className="text-xs">{item}</p>
-                        <Badge variant="outline" className="text-[10px]">
-                          Próximamente
-                        </Badge>
+                        {block.active ? (
+                          <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                            Disponible
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px]">
+                            Próximamente
+                          </Badge>
+                        )}
                       </div>
                     ))}
                   </div>
+                  {block.active && block.href && (
+                    <Button variant="outline" size="sm" className="w-full mt-2" asChild>
+                      <a href={block.href}>Ir a reporte</a>
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>

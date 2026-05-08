@@ -14,6 +14,11 @@ import {
   WalletIcon,
   CircleSlash2Icon,
   BadgeDollarSignIcon,
+  Clock4Icon,
+  UserXIcon,
+  CalendarPlusIcon,
+  CalendarCheckIcon,
+  CalendarXIcon,
 } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/client"
@@ -36,6 +41,11 @@ function getToastIcon(type: NotificationType) {
     [NotificationType.InventoryUpdated]: <Package2Icon className="size-4" />,
     [NotificationType.ExpenseRecorded]: <ReceiptTextIcon className="size-4" />,
     [NotificationType.OrderCancelled]: <CircleSlash2Icon className="size-4" />,
+    [NotificationType.AttendanceLate]: <Clock4Icon className="size-4" />,
+    [NotificationType.AttendanceAbsent]: <UserXIcon className="size-4" />,
+    [NotificationType.LeaveRequested]: <CalendarPlusIcon className="size-4" />,
+    [NotificationType.LeaveApproved]: <CalendarCheckIcon className="size-4" />,
+    [NotificationType.LeaveRejected]: <CalendarXIcon className="size-4" />,
   }
 
   return iconMap[type] ?? <BellIcon className="size-4" />

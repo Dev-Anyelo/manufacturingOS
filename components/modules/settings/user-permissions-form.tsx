@@ -6,11 +6,17 @@ import { UserRole } from "@prisma/client"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { DEFAULT_PERMISSIONS } from "@/lib/permissions/constants"
-import type { PermissionOverride } from "@/lib/permissions/types"
+import type {
+  PermissionOverride,
+  ModulePermissions,
+  ModuleKey,
+  ActionKey,
+  ResolvedPermissions,
+} from "@/lib/permissions/types"
 import { MODULE_KEYS, ACTION_KEYS } from "@/lib/permissions/types"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -62,7 +68,7 @@ type UserPermissionsFormProps = {
   isActive?: boolean
 }
 
-type MatrixState = Record<string, Record<string, boolean>>
+type MatrixState = Partial<Record<ModuleKey, ModulePermissions>>
 
 const roleLabels: Record<string, string> = {
   admin: "Administrador — Acceso total",
@@ -130,10 +136,9 @@ export function UserPermissionsForm({
     React.useState(initialHasOverrides)
   const [originalRole, setOriginalRole] = React.useState(initialRole)
 
-  const roleDefaults =
-    DEFAULT_PERMISSIONS[currentRole] || DEFAULT_PERMISSIONS["readonly"]
+  const roleDefaults: ResolvedPermissions =
+    DEFAULT_PERMISSIONS[currentRole] || DEFAULT_PERMISSIONS.readonly
   const isAdmin = currentRole === UserRole.admin
-
 
   const hasPendingChanges = React.useMemo(() => {
     if (currentRole !== originalRole) return true
@@ -170,8 +175,10 @@ export function UserPermissionsForm({
         setUseCustom(true)
         setOriginalCustom(true)
         for (const override of overrides) {
-          if (newMatrix[override.module]) {
-            newMatrix[override.module] = {
+          const moduleKey = override.module as ModuleKey
+
+          if (newMatrix[moduleKey]) {
+            newMatrix[moduleKey] = {
               view: override.canView,
               create: override.canCreate,
               edit: override.canEdit,
@@ -189,8 +196,10 @@ export function UserPermissionsForm({
       setOriginalMatrix(JSON.parse(JSON.stringify(newMatrix)))
       setOriginalRole(initialRole)
       setCurrentRole(initialRole)
-    } catch (err: any) {
-      toast.error(err.message || "Error al cargar los permisos")
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Error al cargar los permisos"
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -258,8 +267,10 @@ export function UserPermissionsForm({
 
       setOpen(false)
       await revalidatePaths(["/settings/users"])
-    } catch (err: any) {
-      toast.error(err.message || "Error al guardar permisos")
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Error al guardar permisos"
+      toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -274,7 +285,11 @@ export function UserPermissionsForm({
     setMatrix(newMatrix)
   }
 
-  const toggleAction = (mod: string, action: string, checked: boolean) => {
+  const toggleAction = (
+    mod: ModuleKey,
+    action: ActionKey,
+    checked: boolean
+  ) => {
     if (!useCustom) return
     setMatrix((prev) => ({
       ...prev,
@@ -285,8 +300,8 @@ export function UserPermissionsForm({
     }))
   }
 
-  const isRoleBaseDenied = (mod: string) => {
-    const defaults = (roleDefaults as any)[mod] || {}
+  const isRoleBaseDenied = (mod: ModuleKey) => {
+    const defaults = roleDefaults[mod]
     return (
       !defaults.view &&
       !defaults.create &&
@@ -490,8 +505,7 @@ export function UserPermissionsForm({
                             {ACTION_KEYS.map((action) => {
                               const isChecked = matrix[mod]?.[action] ?? false
                               const isInherited =
-                                (roleDefaults as any)[mod]?.[action] ===
-                                isChecked
+                                roleDefaults[mod][action] === isChecked
                               const isOverridden = useCustom && !isInherited
 
                               return (

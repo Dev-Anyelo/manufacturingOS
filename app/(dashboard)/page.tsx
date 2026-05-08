@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { Currency } from "@prisma/client"
 import { AuditAction } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,13 +16,13 @@ import { StatusBadge } from "@/components/shared/status-badge"
 import { UrlDateFilter } from "@/components/shared/url-date-filter"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { Currency } from "@prisma/client"
 import { formatCurrency, formatDate, formatDateRelative } from "@/lib/utils"
 
 import {
   getDashboardStats,
   getDashboardUrgentOrders,
   getFinancialChartData,
+  getDashboardAttendanceSummary,
 } from "@/lib/data/dashboard"
 
 import {
@@ -33,6 +34,10 @@ import {
   PackageSearchIcon,
   ScissorsIcon,
   ShoppingCartIcon,
+  UsersRoundIcon,
+  ClockIcon,
+  UserCheckIcon,
+  UserXIcon,
 } from "lucide-react"
 
 import {
@@ -162,6 +167,7 @@ export default async function DashboardPage(props: {
     user,
     urgentOrders,
     chartData,
+    attendanceSummary,
   ] = await Promise.all([
     getDashboardStats(),
     prisma.inventoryItem.findMany({
@@ -188,6 +194,7 @@ export default async function DashboardPage(props: {
     requireCurrentUser(),
     getDashboardUrgentOrders(8),
     getFinancialChartData({ dateFrom, dateTo }),
+    getDashboardAttendanceSummary(),
   ])
 
   const inventoryCount = inventorySnapshot.length
@@ -263,6 +270,9 @@ export default async function DashboardPage(props: {
           <>
             {/* Zone 2: KPI principal */}
             <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+
+
+              {/* Operaciones */}
               <StatCard
                 title="Ventas hoy"
                 value={
@@ -305,6 +315,73 @@ export default async function DashboardPage(props: {
                 href="/inventory"
               />
             </div>
+
+            {/* Asistencia del equipo (Solo admin/manager) */}
+            {user.role === "admin" || user.role === "manager" ? (
+              <div className="rounded-xl border border-border/70 bg-card overflow-hidden">
+                <div className="flex w-full items-center justify-between p-4 font-medium">
+                  <div className="flex items-center gap-2">
+                    <UsersRoundIcon className="size-4 text-muted-foreground" />
+                    Asistencia del equipo — hoy
+                  </div>
+                </div>
+                <div className="p-4 pt-0">
+                  {attendanceSummary.present === attendanceSummary.total && attendanceSummary.pendingLeaves === 0 ? (
+                    <div className="flex items-center gap-2 text-sm text-emerald-600 p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                      <UserCheckIcon className="size-4" />
+                      Todo el equipo presente hoy
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+                      <Link href="/attendance" className="block">
+                        <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-shadow hover:shadow-sm">
+                          <div className="flex size-9 shrink-0 items-center justify-center rounded-md [&>svg]:size-4 bg-emerald-500/10 text-emerald-600">
+                            <UserCheckIcon />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="truncate text-xs text-muted-foreground">Presentes</div>
+                            <div className="text-lg font-bold tabular-nums leading-tight">{attendanceSummary.present}</div>
+                          </div>
+                        </div>
+                      </Link>
+                      <Link href="/attendance" className="block">
+                        <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-shadow hover:shadow-sm">
+                          <div className="flex size-9 shrink-0 items-center justify-center rounded-md [&>svg]:size-4 bg-amber-500/10 text-amber-600">
+                            <ClockIcon />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="truncate text-xs text-muted-foreground">Tardanzas</div>
+                            <div className="text-lg font-bold tabular-nums leading-tight">{attendanceSummary.late}</div>
+                          </div>
+                        </div>
+                      </Link>
+                      <Link href="/attendance" className="block">
+                        <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-shadow hover:shadow-sm">
+                          <div className="flex size-9 shrink-0 items-center justify-center rounded-md [&>svg]:size-4 bg-destructive/10 text-destructive">
+                            <UserXIcon />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="truncate text-xs text-muted-foreground">Ausentes</div>
+                            <div className="text-lg font-bold tabular-nums leading-tight">{attendanceSummary.absent}</div>
+                          </div>
+                        </div>
+                      </Link>
+                      <Link href="/attendance?tab=permisos" className="block">
+                        <div className={`flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-shadow hover:shadow-sm ${attendanceSummary.pendingLeaves > 0 ? "animate-pulse border-blue-500/50 ring-1 ring-blue-500/20" : ""}`}>
+                          <div className="flex size-9 shrink-0 items-center justify-center rounded-md [&>svg]:size-4 bg-blue-500/10 text-blue-600">
+                            <ClipboardListIcon />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="truncate text-xs text-muted-foreground">Permisos pendientes</div>
+                            <div className="text-lg font-bold tabular-nums leading-tight">{attendanceSummary.pendingLeaves}</div>
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
 
             {urgentOrders.length > 0 ? (
               <Card className="overflow-hidden rounded-xl border border-border pt-2">

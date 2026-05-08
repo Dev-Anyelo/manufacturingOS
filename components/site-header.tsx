@@ -54,7 +54,7 @@ export function SiteHeader({ user }: SiteHeaderProps) {
             <CalendarDaysIcon className="size-3.5" />
             <span className="capitalize">{todayLabel}</span>
           </div>
-          <div className="hidden sm:flex">
+          <div className="flex">
             <AttendanceWidget />
           </div>
           <div className="hidden items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] text-primary lg:inline-flex">

@@ -242,6 +242,11 @@ export type Database = {
             | "inventory_updated"
             | "expense_recorded"
             | "order_cancelled"
+            | "attendance_late"
+            | "attendance_absent"
+            | "leave_requested"
+            | "leave_approved"
+            | "leave_rejected"
           title: string
           body: string
           metadata: Json | null
@@ -264,6 +269,11 @@ export type Database = {
             | "inventory_updated"
             | "expense_recorded"
             | "order_cancelled"
+            | "attendance_late"
+            | "attendance_absent"
+            | "leave_requested"
+            | "leave_approved"
+            | "leave_rejected"
           title: string
           body: string
           metadata?: Json | null
