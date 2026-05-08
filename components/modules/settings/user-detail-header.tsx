@@ -88,68 +88,61 @@ export function UserDetailHeader({
   onToggleActive,
 }: UserDetailHeaderProps) {
   const roleConfig = ROLE_CONFIG[profile.role] || ROLE_CONFIG.readonly
-
   const router = useRouter()
 
   const onBack = () => {
     router.push("/settings/users")
   }
 
+  const initials = getInitials(profile.fullName)
+
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      {/* Left: Avatar + Info */}
-      <div className="flex items-start gap-4">
-        <Avatar className="size-14 border-2 border-border shadow-sm sm:size-16">
+    <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+        {/* Avatar grande con iniciales */}
+        <Avatar className="h-16 w-16 shrink-0 border-2 border-background shadow-sm">
           <AvatarImage src={profile.avatarUrl || undefined} />
-          <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
-            {getInitials(profile.fullName)}
+          <AvatarFallback className="bg-primary/10 text-xl font-bold text-primary">
+            {initials}
           </AvatarFallback>
         </Avatar>
 
-        <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight">
               {profile.fullName || "Sin nombre"}
             </h1>
-            <Badge variant="outline" className={roleConfig.className}>
+            <Badge variant="outline" className="font-medium">
               {roleConfig.label}
             </Badge>
             <Badge
-              variant="outline"
               className={
                 profile.isActive
-                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600"
-                  : "border-gray-500/20 bg-gray-500/10 text-gray-500"
+                  ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30"
+                  : "bg-red-500/15 text-red-600 border-red-500/30"
               }
             >
-              <span
-                className={`mr-1.5 inline-block size-1.5 rounded-full ${
-                  profile.isActive ? "bg-emerald-500" : "bg-gray-400"
+              <div
+                className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                  profile.isActive ? "bg-emerald-500" : "bg-red-500"
                 }`}
               />
               {profile.isActive ? "Activo" : "Inactivo"}
             </Badge>
           </div>
 
-          {/* Secondary info */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             {profile.employee?.documentId && (
               <span className="flex items-center gap-1">
-                <IdCard className="size-3.5" />
+                <IdCard className="h-3.5 w-3.5" />
                 {profile.employee.documentId}
-              </span>
-            )}
-            {profile.phone && (
-              <span className="flex items-center gap-1">
-                <Phone className="size-3.5" />
-                {profile.phone}
               </span>
             )}
             {profile.employee?.hireDate && (
               <span className="flex items-center gap-1">
-                <CalendarDays className="size-3.5" />
+                <CalendarDays className="h-3.5 w-3.5" />
                 Desde{" "}
-                {format(new Date(profile.employee.hireDate), "MMM yyyy", {
+                {format(new Date(profile.employee.hireDate), "PPP", {
                   locale: es,
                 })}
               </span>
@@ -158,27 +151,23 @@ export function UserDetailHeader({
         </div>
       </div>
 
-      {/* Right: Actions */}
-      <div className="flex shrink-0 items-center gap-2">
-        {/* Back button to users list */}
-        <Button size="sm" variant="outline" onClick={onBack}>
-          <ArrowLeft className="size-3.5" />
-          Volver
+      {/* Acciones — siempre visibles */}
+      <div className="flex items-center gap-2 shrink-0">
+        <Button variant="outline" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-1.5" /> Volver
         </Button>
-
         <Button size="sm" onClick={onEdit}>
-          <PencilLine className="size-3.5" />
-          Editar
+          <PencilLine className="h-4 w-4 mr-1.5" /> Editar
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="outline" className="size-8">
-              <MoreVertical className="size-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onClick={onToggleActive}>
-              {profile.isActive ? "Desactivar" : "Activar"}
+              {profile.isActive ? "Desactivar acceso" : "Reactivar acceso"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -6,21 +6,9 @@ import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Progress } from "@/components/ui/progress"
 import { StatCard } from "@/components/shared/stat-card"
+import { EmptyState } from "@/components/shared/empty-state"
+import { Clock, AlertCircle, CheckCircle2, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-import {
-  TrendingUp,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
-  Calendar,
-  Zap,
-  TrendingDown,
-} from "lucide-react"
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 interface AttendanceStatsData {
   attendanceRate: number
@@ -50,6 +38,19 @@ interface AttendanceStatsProps {
 // Component
 // ---------------------------------------------------------------------------
 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts"
+
 export function AttendanceStats({ employeeId }: AttendanceStatsProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["attendance", "stats", employeeId],
@@ -65,15 +66,16 @@ export function AttendanceStats({ employeeId }: AttendanceStatsProps) {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array(4)
-            .fill(0)
-            .map((_, i) => (
-              <Skeleton key={i} className="h-32" />
-            ))}
+        <Skeleton className="h-32 w-full rounded-2xl" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
         </div>
-        <Skeleton className="h-48" />
-        <Skeleton className="h-48" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Skeleton className="h-80 w-full rounded-2xl" />
+          <Skeleton className="h-80 w-full rounded-2xl" />
+        </div>
       </div>
     )
   }
@@ -82,272 +84,281 @@ export function AttendanceStats({ employeeId }: AttendanceStatsProps) {
 
   if (!stats)
     return (
-      <Card className="border-dashed">
-        <CardContent className="flex items-center justify-center py-12">
-          <p className="text-sm text-muted-foreground">
-            No hay datos de asistencia disponibles
-          </p>
-        </CardContent>
-      </Card>
+      <EmptyState
+        icon={<AlertCircle className="h-10 w-10 text-muted-foreground/20" />}
+        title="Sin estadísticas"
+        description="No hay datos suficientes."
+      />
     )
 
   const avgHours = Math.floor(stats.avgMinutesPerDay / 60)
   const avgMinutes = stats.avgMinutesPerDay % 60
 
-  // Calcular porcentaje de cada estado
-  const total =
-    Object.values(stats.distribution || {}).reduce((a, b) => a + b, 0) || 1
-  const statusPercentages = {
-    on_time: Math.round(((stats.distribution?.on_time || 0) / total) * 100),
-    late: Math.round(((stats.distribution?.late || 0) / total) * 100),
-    early_exit: Math.round(
-      ((stats.distribution?.early_exit || 0) / total) * 100
-    ),
-    absent: Math.round(((stats.distribution?.absent || 0) / total) * 100),
-    permission: Math.round(
-      ((stats.distribution?.permission || 0) / total) * 100
-    ),
-  }
+  const statusData = [
+    {
+      name: "A tiempo",
+      value: stats.distribution?.on_time || 0,
+      color: "#10b981",
+    },
+    {
+      name: "Tardanzas",
+      value: stats.distribution?.late || 0,
+      color: "#f59e0b",
+    },
+    {
+      name: "Ausencias",
+      value: stats.distribution?.absent || 0,
+      color: "#ef4444",
+    },
+    {
+      name: "Permisos",
+      value: stats.distribution?.permission || 0,
+      color: "#3b82f6",
+    },
+  ].filter((d) => d.value > 0)
 
-  // Determinar estado general basado en porcentaje de asistencia
-  const getHealthStatus = () => {
+  const getHealthLevel = () => {
     if (stats.attendanceRate >= 95)
       return {
-        status: "excellent",
-        color: "text-emerald-600",
-        bg: "bg-emerald-50 border-emerald-200",
+        label: "Excelente",
+        color: "text-emerald-600 dark:text-emerald-400",
+        bg: "bg-emerald-50 dark:bg-emerald-950/30",
+        border: "border-emerald-200 dark:border-emerald-800",
       }
     if (stats.attendanceRate >= 85)
       return {
-        status: "good",
-        color: "text-blue-600",
-        bg: "bg-blue-50 border-blue-200",
+        label: "Bueno",
+        color: "text-blue-600 dark:text-blue-400",
+        bg: "bg-blue-50 dark:bg-blue-950/30",
+        border: "border-blue-200 dark:border-blue-800",
       }
-    if (stats.attendanceRate >= 75)
+    if (stats.attendanceRate >= 70)
       return {
-        status: "warning",
-        color: "text-amber-600",
-        bg: "bg-amber-50 border-amber-200",
+        label: "Regular",
+        color: "text-amber-600 dark:text-amber-400",
+        bg: "bg-amber-50 dark:bg-amber-950/30",
+        border: "border-amber-200 dark:border-amber-800",
       }
     return {
-      status: "critical",
-      color: "text-destructive",
-      bg: "bg-destructive/10 border-destructive/30",
+      label: "Crítico",
+      color: "text-red-600 dark:text-red-400",
+      bg: "bg-red-50 dark:bg-red-950/30",
+      border: "border-red-200 dark:border-red-800",
     }
   }
 
-  const health = getHealthStatus()
+  const health = getHealthLevel()
 
   return (
-    <div className="space-y-6">
-      {/* Health Summary Card */}
-      <Card className={cn("border-2", health.bg)}>
-        <CardContent className="pt-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <p
+    <div className="space-y-6 pb-10">
+      {/* ── Health & Rate ── */}
+      <div
+        className={cn(
+          "rounded-xl border p-3 shadow-none",
+          health.bg,
+          health.border
+        )}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <p
+              className={cn(
+                "text-xs font-bold tracking-wider uppercase",
+                health.color
+              )}
+            >
+              Índice de Asistencia General
+            </p>
+            <div className="flex items-baseline gap-2">
+              <h2
                 className={cn(
-                  "text-sm font-medium tracking-wide uppercase",
+                  "text-xl font-black tracking-tight tabular-nums",
                   health.color
                 )}
               >
-                Estado General de Asistencia
-              </p>
-              <div className="flex items-baseline gap-2">
-                <span className={cn("text-4xl font-bold", health.color)}>
-                  {stats.attendanceRate}%
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  ({stats.presentDays} de {stats.totalDays} días)
-                </span>
-              </div>
+                {stats.attendanceRate}%
+              </h2>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "border-none text-xs font-bold uppercase",
+                  health.bg,
+                  health.color
+                )}
+              >
+                {health.label}
+              </Badge>
             </div>
-            <div className={cn("rounded-lg p-3", health.bg)}>
-              {health.status === "excellent" && (
-                <TrendingUp className={cn("size-6", health.color)} />
-              )}
-              {health.status === "good" && (
-                <CheckCircle2 className={cn("size-6", health.color)} />
-              )}
-              {health.status === "warning" && (
-                <AlertCircle className={cn("size-6", health.color)} />
-              )}
-              {health.status === "critical" && (
-                <TrendingDown className={cn("size-6", health.color)} />
-              )}
-            </div>
+            <p className="text-sm font-medium text-pretty text-muted-foreground/70">
+              Registrado en {stats.presentDays} de {stats.totalDays} días
+              laborables
+            </p>
           </div>
-          <div className="mt-4">
-            <Progress value={stats.attendanceRate} className="h-2" />
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Key Metrics Grid */}
+          <div className="w-full max-w-xs space-y-2">
+            <div className="flex justify-between text-xs font-bold tracking-wider text-muted-foreground uppercase">
+              <span>Eficiencia de Puntualidad</span>
+              <span>
+                {Math.round(
+                  ((stats.distribution?.on_time || 0) /
+                    (stats.presentDays || 1)) *
+                    100
+                )}
+                %
+              </span>
+            </div>
+            <Progress
+              value={stats.attendanceRate}
+              className="h-3 bg-white/50"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Key Metrics ── */}
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
-          title="Promedio Diario"
+          icon={<Clock className="size-4" />}
+          title="Promedio de Horas"
           value={`${avgHours}h ${avgMinutes}m`}
-          icon={<Clock className="size-5 text-blue-500" />}
         />
         <StatCard
-          title="Tardanzas"
-          value={`${stats.lateDays}`}
-          icon={<AlertCircle className="size-5 text-amber-500" />}
+          icon={<AlertCircle className="size-4" />}
+          title="Tardanzas Totales"
+          value={stats.lateDays.toString()}
         />
         <StatCard
-          title="Ausentes"
-          value={`${stats.absentWithoutReason}`}
-          icon={<Zap className="size-5 text-destructive" />}
+          icon={<X className="size-4" />}
+          title="Inasistencias"
+          value={stats.absentWithoutReason.toString()}
         />
       </div>
 
-      {/* Distribución de estados */}
-      {stats.distribution &&
-        Object.values(stats.distribution).some((v) => v > 0) && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Calendar className="h-4 w-4" />
-                Distribución de Registros
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* On Time */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    <span className="font-medium">A tiempo</span>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-emerald-200 bg-emerald-50 text-emerald-700"
-                  >
-                    {stats.distribution.on_time} · {statusPercentages.on_time}%
-                  </Badge>
-                </div>
-                <Progress value={statusPercentages.on_time} className="h-2" />
-              </div>
-
-              {/* Late */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-amber-500" />
-                    <span className="font-medium">Tardanza</span>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-amber-200 bg-amber-50 text-amber-700"
-                  >
-                    {stats.distribution.late} · {statusPercentages.late}%
-                  </Badge>
-                </div>
-                <Progress value={statusPercentages.late} className="h-2" />
-              </div>
-
-              {/* Early Exit */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-orange-500" />
-                    <span className="font-medium">Salida Temprana</span>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-orange-200 bg-orange-50 text-orange-700"
-                  >
-                    {stats.distribution.early_exit} ·{" "}
-                    {statusPercentages.early_exit}%
-                  </Badge>
-                </div>
-                <Progress
-                  value={statusPercentages.early_exit}
-                  className="h-2"
-                />
-              </div>
-
-              {/* Permission */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium">Permiso Autorizado</span>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-blue-200 bg-blue-50 text-blue-700"
-                  >
-                    {stats.distribution.permission} ·{" "}
-                    {statusPercentages.permission}%
-                  </Badge>
-                </div>
-                <Progress
-                  value={statusPercentages.permission}
-                  className="h-2"
-                />
-              </div>
-
-              {/* Absent */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <TrendingDown className="h-4 w-4 text-destructive" />
-                    <span className="font-medium">Ausente</span>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-destructive/30 bg-destructive/10 text-destructive"
-                  >
-                    {stats.distribution.absent} · {statusPercentages.absent}%
-                  </Badge>
-                </div>
-                <Progress value={statusPercentages.absent} className="h-2" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-      {/* Últimas tardanzas */}
-      {stats.recentLate && stats.recentLate.length > 0 && (
-        <Card>
+      {/* ── Charts ── */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Distribución Circular */}
+        <Card className="rounded-2xl shadow-none">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              Últimas Tardanzas
+            <CardTitle className="text-sm font-bold tracking-wider text-muted-foreground uppercase">
+              Distribución de Estados
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {stats.recentLate.slice(0, 5).map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2 text-sm transition-colors hover:bg-amber-100/50"
-                >
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-muted-foreground">
-                      {item.date}
-                    </span>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="bg-amber-100 font-semibold text-amber-700"
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={8}
+                    dataKey="value"
                   >
-                    +{item.minutes}m
-                  </Badge>
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              {statusData.map((item) => (
+                <div key={item.name} className="flex items-center gap-2">
+                  <div
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {item.name}:
+                  </span>
+                  <span className="text-xs font-bold">{item.value}</span>
                 </div>
               ))}
-              {stats.recentLate.length > 5 && (
-                <p className="pt-2 text-center text-xs text-muted-foreground">
-                  +{stats.recentLate.length - 5} registros más
-                </p>
-              )}
             </div>
           </CardContent>
         </Card>
-      )}
+
+        {/* Últimas Tardanzas (Tendencia) */}
+        <Card className="rounded-2xl shadow-none">
+          <CardHeader>
+            <CardTitle className="text-sm font-bold tracking-wider text-muted-foreground uppercase">
+              Frecuencia de Tardanzas (Minutos)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 w-full">
+              {stats.recentLate && stats.recentLate.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={stats.recentLate.slice(-7)}>
+                    <defs>
+                      <linearGradient id="colorMin" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="5%"
+                          stopColor="#f59e0b"
+                          stopOpacity={0.1}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#f59e0b"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="#f0f0f0"
+                    />
+                    <XAxis dataKey="date" hide />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: "#999" }}
+                    />
+                    <RechartsTooltip
+                      contentStyle={{
+                        borderRadius: "12px",
+                        border: "none",
+                        boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="minutes"
+                      stroke="#f59e0b"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#colorMin)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center text-center">
+                  <CheckCircle2 className="mb-2 size-8 text-emerald-500/20" />
+                  <p className="text-sm text-muted-foreground">
+                    ¡Excelente puntualidad!
+                  </p>
+                  <p className="text-xs text-pretty text-muted-foreground/60">
+                    No hay tardanzas recientes registradas.
+                  </p>
+                </div>
+              )}
+            </div>
+            <p className="mt-4 text-center text-xs text-pretty text-muted-foreground italic">
+              Tendencia de los últimos 7 registros de impuntualidad.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

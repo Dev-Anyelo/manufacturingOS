@@ -51,8 +51,8 @@ export function LeaveRequestPanel({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>{title}</DrawerTitle>
-            <DrawerDescription>{description}</DrawerDescription>
+            <DrawerTitle className="text-left">{title}</DrawerTitle>
+            <DrawerDescription className="text-left text-pretty">{description}</DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto px-4 pb-6">{form}</div>
         </DrawerContent>
@@ -64,10 +64,10 @@ export function LeaveRequestPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="overflow-y-auto sm:max-w-140">
         <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
+          <SheetTitle className="text-left">{title}</SheetTitle>
+          <SheetDescription className="text-left text-pretty">{description}</SheetDescription>
         </SheetHeader>
-        <div className="px-1 pb-6">{form}</div>
+        <div className="px-1 pb-3">{form}</div>
       </SheetContent>
     </Sheet>
   )

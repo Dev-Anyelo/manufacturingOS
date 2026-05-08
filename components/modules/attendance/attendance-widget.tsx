@@ -273,7 +273,7 @@ export function AttendanceWidget() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setLeaveDialogOpen(true)}>
-              <CalendarPlus className="mr-2 size-4" />
+              <CalendarPlus className="size-4" />
               Solicitar Permiso
             </DropdownMenuItem>
           </DropdownMenuContent>

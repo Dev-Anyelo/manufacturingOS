@@ -8,11 +8,10 @@ import { subMonths, format } from "date-fns"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { formatDistanceToNow } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent } from "@/components/ui/card"
+import { StatCard } from "@/components/shared/stat-card"
 import { EmptyState } from "@/components/shared/empty-state"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { AttendanceManualRecordPanel } from "@/components/modules/attendance/attendance-manual-record-panel"
@@ -23,6 +22,8 @@ import {
   Plus,
   CalendarOff,
   CalendarRange,
+  CalendarCheck,
+  Clock,
 } from "lucide-react"
 
 import {
@@ -206,6 +207,26 @@ export function AttendanceHistoryTable({
     }
   }
 
+  // KPIs Calculation
+  const kpis = useMemo(() => {
+    let worked = 0
+    let late = 0
+    let absent = 0
+    let totalMins = 0
+    records.forEach((r: AttendanceRecord) => {
+      if (r.status !== "absent" && r.status !== "no_schedule") worked++
+      if (r.status === "late") late++
+      if (r.status === "absent") absent++
+      totalMins += r.totalWorkedMinutes || 0
+    })
+    return {
+      workedDays: worked,
+      lateDays: late,
+      absentDays: absent,
+      totalHours: Math.round(totalMins / 60),
+    }
+  }, [records])
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -222,154 +243,173 @@ export function AttendanceHistoryTable({
     selectedMonth
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <Label className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Filtrar por mes
-          </Label>
+    <div className="space-y-6">
+      {/* ── KPIs Compactos ── */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard
+          title="Días Lab."
+          value={kpis.workedDays}
+          icon={<CalendarCheck className="size-4" />}
+        />
+        <StatCard
+          title="Tardanzas"
+          value={kpis.lateDays}
+          icon={<Clock className="size-4" />}
+        />
+        <StatCard
+          title="Ausencias"
+          value={kpis.absentDays}
+          icon={<CalendarOff className="size-4" />}
+        />
+        <StatCard
+          title="Hs Totales"
+          value={`${kpis.totalHours}h`}
+          icon={<CalendarRange className="size-4" />}
+        />
+      </div>
+
+      {/* ── Toolbar ── */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-full sm:w-56">
-              <CalendarRange className="mr-2 size-4" />
-              <SelectValue placeholder="Selecciona mes" />
+            <SelectTrigger className="h-9 w-48 bg-card shadow-none">
+              <SelectValue placeholder="Seleccionar mes" />
             </SelectTrigger>
             <SelectContent>
-              {monthOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {monthOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">{selectedMonthLabel}</p>
+          <div className="hidden h-4 w-px bg-border sm:block" />
+          <p className="text-sm font-medium text-muted-foreground">
+            {records.length} registros encontrados
+          </p>
         </div>
 
-        {isAdmin ? (
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full gap-2 sm:w-auto"
-            onClick={() => setManualRecordOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Agregar registro manual
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-9 shadow-none">
+            <Plus className="size-4" /> Exportar
           </Button>
-        ) : null}
+          {isAdmin && (
+            <Button
+              size="sm"
+              className="h-9 shadow-none"
+              onClick={() => setManualRecordOpen(true)}
+            >
+              <Plus className="size-4" /> Nuevo registro
+            </Button>
+          )}
+        </div>
       </div>
 
+      {/* ── Tabla / Cards ── */}
       {records.length === 0 ? (
         <EmptyState
-          icon={<CalendarOff className="size-4 text-muted-foreground" />}
-          title="No hay registros de asistencia"
-          description={`No se encontraron registros para ${selectedMonthLabel}.`}
-          action={
-            isAdmin ? (
-              <Button
-                variant="outline"
-                onClick={() => setManualRecordOpen(true)}
-              >
-                <Plus className="mr-2 size-4" />
-                Agregar registro manual
-              </Button>
-            ) : null
-          }
+          icon={<CalendarOff className="h-10 w-10 text-muted-foreground/20" />}
+          title="Sin registros de asistencia"
+          description={`No hay actividad registrada para ${selectedMonthLabel}.`}
         />
       ) : isMobile ? (
-        <div className="space-y-3">
+        <div className="grid gap-3">
           {records.map((record: AttendanceRecord) => {
-            const statusConfig = getStatusConfig(record.status)
+            const config = getStatusConfig(record.status)
             return (
-              <Card key={record.id} className="border-border/70">
-                <CardContent className="space-y-3 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {formatDistanceToNow(new Date(record.date), {
-                          addSuffix: false,
-                          locale: es,
-                        })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(record.date), "dd MMM yyyy", {
-                          locale: es,
-                        })}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className={statusConfig.color}>
-                      {statusConfig.label}
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Entrada</p>
-                      <p className="font-medium">
-                        {formatTime(record.checkInAt)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Salida</p>
-                      <p className="font-medium">
-                        {formatTime(record.checkOutAt)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Almuerzo</p>
-                      <p className="font-medium">
-                        {formatTime(record.lunchStartAt)} -{" "}
-                        {formatTime(record.lunchEndAt)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Horas</p>
-                      <p className="font-medium">
-                        {getWorkedHours(record.totalWorkedMinutes ?? null)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {record.notes ? (
-                    <p className="rounded-lg border border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground">
-                      {record.notes}
+              <div
+                key={record.id}
+                className="rounded-xl border bg-card p-4 shadow-none"
+              >
+                <div className="mb-3 flex items-start justify-between">
+                  <div>
+                    <p className="font-bold">
+                      {format(new Date(record.date), "EEEE d 'de' MMMM", {
+                        locale: es,
+                      })}
                     </p>
-                  ) : null}
+                    <p className="text-xs tracking-wide text-muted-foreground uppercase">
+                      {format(new Date(record.date), "yyyy")}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={`${config.color} h-6 font-medium`}
+                  >
+                    {config.label}
+                  </Badge>
+                </div>
 
-                  {isAdmin ? (
-                    <div className="flex justify-end">
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setEditingRecord(record)
-                          setEditStatus(record.status)
-                          setEditNotes(record.notes || "")
-                          setEditCheckIn(record.checkInAt || "")
-                          setEditCheckOut(record.checkOutAt || "")
-                        }}
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="mb-0.5 text-[10px] font-bold text-muted-foreground uppercase">
+                      Entrada
+                    </p>
+                    <p className="text-sm font-medium">
+                      {formatTime(record.checkInAt)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-0.5 text-[10px] font-bold text-muted-foreground uppercase">
+                      Salida
+                    </p>
+                    <p className="text-sm font-medium">
+                      {formatTime(record.checkOutAt)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-0.5 text-[10px] font-bold text-muted-foreground uppercase">
+                      Almuerzo
+                    </p>
+                    <p className="text-sm font-medium">
+                      {formatTime(record.lunchStartAt)} -{" "}
+                      {formatTime(record.lunchEndAt)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-0.5 text-[10px] font-bold text-muted-foreground uppercase">
+                      Hs. Trabajadas
+                    </p>
+                    <p className="text-sm font-bold text-primary">
+                      {getWorkedHours(record.totalWorkedMinutes)}
+                    </p>
+                  </div>
+                </div>
+
+                {record.notes && (
+                  <div className="mt-3 rounded-lg bg-muted/50 p-2 text-[11px] text-muted-foreground italic">
+                    "{record.notes}"
+                  </div>
+                )}
+              </div>
             )
           })}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-hidden rounded-xl border bg-card shadow-none">
           <Table>
             <TableHeader className="bg-muted/30">
               <TableRow>
-                <TableHead className="whitespace-nowrap">Fecha</TableHead>
-                <TableHead className="whitespace-nowrap">Entrada</TableHead>
-                <TableHead className="whitespace-nowrap">Almuerzo</TableHead>
-                <TableHead className="whitespace-nowrap">Salida</TableHead>
-                <TableHead className="whitespace-nowrap">Horas</TableHead>
-                <TableHead className="whitespace-nowrap">Estado</TableHead>
-                <TableHead className="max-w-37.5">Notas</TableHead>
+                <TableHead className="py-4 pl-6 text-[11px] font-bold tracking-wider uppercase">
+                  Fecha
+                </TableHead>
+                <TableHead className="py-4 text-[11px] font-bold tracking-wider uppercase">
+                  Entrada
+                </TableHead>
+                <TableHead className="py-4 text-center text-[11px] font-bold tracking-wider uppercase">
+                  Almuerzo
+                </TableHead>
+                <TableHead className="py-4 text-[11px] font-bold tracking-wider uppercase">
+                  Salida
+                </TableHead>
+                <TableHead className="py-4 text-[11px] font-bold tracking-wider uppercase">
+                  Horas
+                </TableHead>
+                <TableHead className="py-4 text-[11px] font-bold tracking-wider uppercase">
+                  Estado
+                </TableHead>
                 {isAdmin && (
-                  <TableHead className="text-right whitespace-nowrap">
+                  <TableHead className="py-4 pr-6 text-right text-[11px] font-bold tracking-wider uppercase">
                     Acciones
                   </TableHead>
                 )}
@@ -377,66 +417,88 @@ export function AttendanceHistoryTable({
             </TableHeader>
             <TableBody>
               {records.map((record: AttendanceRecord) => {
-                const statusConfig = getStatusConfig(record.status)
+                const config = getStatusConfig(record.status)
                 return (
-                  <TableRow key={record.id}>
-                    <TableCell className="font-medium whitespace-nowrap">
-                      {formatDistanceToNow(new Date(record.date), {
-                        addSuffix: false,
-                        locale: es,
-                      })}
+                  <TableRow
+                    key={record.id}
+                    className="group transition-colors hover:bg-muted/10"
+                  >
+                    <TableCell className="py-4 pl-6">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold capitalize">
+                          {format(new Date(record.date), "eee d", {
+                            locale: es,
+                          })}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground uppercase">
+                          {format(new Date(record.date), "MMMM", {
+                            locale: es,
+                          })}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div>
-                        {formatTime(record.checkInAt)}
+                    <TableCell className="py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {formatTime(record.checkInAt)}
+                        </span>
                         {record.checkInLateMinutes && (
-                          <span className="block text-[10px] text-destructive">
-                            +{record.checkInLateMinutes}m
+                          <span className="text-[10px] font-bold text-red-500">
+                            +{record.checkInLateMinutes} min tarde
                           </span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
-                      {formatTime(record.lunchStartAt)} -{" "}
-                      {formatTime(record.lunchEndAt)}
+                    <TableCell className="py-4 text-center">
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {record.lunchStartAt ? (
+                          <>
+                            {formatTime(record.lunchStartAt)} –{" "}
+                            {formatTime(record.lunchEndAt)}
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </span>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div>
-                        {formatTime(record.checkOutAt)}
+                    <TableCell className="py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {formatTime(record.checkOutAt)}
+                        </span>
                         {record.earlyExitMinutes && (
-                          <span className="block text-[10px] text-amber-600">
-                            -{record.earlyExitMinutes}m
+                          <span className="text-[10px] font-bold text-amber-600">
+                            -{record.earlyExitMinutes} min antes
                           </span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {getWorkedHours(record.totalWorkedMinutes ?? null)}
+                    <TableCell className="py-4">
+                      <span className="text-sm font-bold text-primary">
+                        {getWorkedHours(record.totalWorkedMinutes)}
+                      </span>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={statusConfig.color}>
-                        {statusConfig.label}
+                    <TableCell className="py-4">
+                      <Badge
+                        variant="outline"
+                        className={`${config.color} border-none text-[11px] font-semibold shadow-none`}
+                      >
+                        {config.label}
                       </Badge>
                     </TableCell>
-                    <TableCell
-                      className="max-w-37.5 truncate text-xs text-muted-foreground"
-                      title={record.notes || ""}
-                    >
-                      {record.notes || "—"}
-                    </TableCell>
                     {isAdmin && (
-                      <TableCell className="text-right whitespace-nowrap">
+                      <TableCell className="py-4 pr-6 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
-                              size="icon"
                               variant="ghost"
-                              className="h-8 w-8"
+                              size="icon"
+                              className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
                             >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="w-40">
                             <DropdownMenuItem
                               onClick={() => {
                                 setEditingRecord(record)
@@ -446,7 +508,7 @@ export function AttendanceHistoryTable({
                                 setEditCheckOut(record.checkOutAt || "")
                               }}
                             >
-                              <PencilLine className="mr-2 size-4" />
+                              <PencilLine className="size-4" />
                               Editar registro
                             </DropdownMenuItem>
                           </DropdownMenuContent>

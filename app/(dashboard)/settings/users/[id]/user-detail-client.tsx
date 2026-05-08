@@ -3,6 +3,7 @@
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useState, useCallback } from "react"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import type { UserRole, ContractType, Currency } from "@prisma/client"
 import { UserInfoTab } from "@/components/modules/settings/user-info-tab"
 import { UserFormSheet } from "@/components/modules/settings/user-form-sheet"
@@ -13,6 +14,14 @@ import { UserDetailHeader } from "@/components/modules/settings/user-detail-head
 import { LeaveRequestsTable } from "@/components/modules/attendance/leave-requests-table"
 import { EmployeeScheduleForm } from "@/components/modules/settings/employee-schedule-form"
 import { AttendanceHistoryTable } from "@/components/modules/attendance/attendance-history-table"
+
+import {
+  User,
+  Clock,
+  CalendarCheck,
+  CalendarOff,
+  BarChart2,
+} from "lucide-react"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -100,92 +109,108 @@ export function UserDetailClient({ profile, isAdmin }: UserDetailClientProps) {
   const hasEmployee = !!profile.employee
 
   return (
-    <div className="page-shell">
-      <div className="page-content space-y-4">
-        {/* ── Header ── */}
-        <UserDetailHeader
-          profile={profile}
-          onEdit={() => setFormOpen(true)}
-          onToggleActive={handleToggleActive}
-        />
+    <div className="flex flex-col gap-8 pb-10">
+      {/* ── Header ── */}
+      <UserDetailHeader
+        profile={profile}
+        onEdit={() => setFormOpen(true)}
+        onToggleActive={handleToggleActive}
+      />
 
-        {/* ── Tabs — ALWAYS all visible ── */}
-        <Tabs defaultValue="info" className="w-full">
-          <TabsList>
-            <TabsTrigger value="info">Información</TabsTrigger>
-            <TabsTrigger value="schedule">Horario</TabsTrigger>
-            <TabsTrigger value="attendance">Asistencia</TabsTrigger>
-            <TabsTrigger value="permissions">Permisos</TabsTrigger>
-            <TabsTrigger value="stats">Estadísticas</TabsTrigger>
+      {/* ── Tabs ── */}
+      <Tabs defaultValue="info" className="w-full">
+        {/* Tabs scrollables en móvil */}
+        <ScrollArea className="w-full">
+          <TabsList className="h-10 w-full justify-start bg-muted/50 p-1">
+            <TabsTrigger value="info" className="gap-1.5 text-xs sm:text-sm">
+              <User className="h-3.5 w-3.5" /> Información
+            </TabsTrigger>
+            <TabsTrigger
+              value="schedule"
+              className="gap-1.5 text-xs sm:text-sm"
+            >
+              <Clock className="h-3.5 w-3.5" /> Horario
+            </TabsTrigger>
+            <TabsTrigger
+              value="attendance"
+              className="gap-1.5 text-xs sm:text-sm"
+            >
+              <CalendarCheck className="h-3.5 w-3.5" /> Asistencia
+            </TabsTrigger>
+            <TabsTrigger
+              value="permissions"
+              className="gap-1.5 text-xs sm:text-sm"
+            >
+              <CalendarOff className="h-3.5 w-3.5" /> Permisos
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="gap-1.5 text-xs sm:text-sm">
+              <BarChart2 className="h-3.5 w-3.5" /> Estadísticas
+            </TabsTrigger>
           </TabsList>
+          <ScrollBar orientation="horizontal" className="invisible" />
+        </ScrollArea>
 
-          {/* Tab: Información */}
-          <TabsContent value="info" className="w-full pt-3">
-            <UserInfoTab profile={profile} />
-          </TabsContent>
+        {/* Tab: Información */}
+        <TabsContent value="info" className="mt-6 w-full outline-hidden">
+          <UserInfoTab profile={profile} />
+        </TabsContent>
 
-          {/* Tab: Horario */}
-          <TabsContent value="schedule" className="w-full pt-3">
-            {hasEmployee ? (
-              <div className="max-w-xl">
-                <EmployeeScheduleForm
-                  employeeId={profile.employee!.id}
-                  initialData={profile.employee!.schedule}
-                />
-              </div>
-            ) : (
-              <NoEmployeeState
-                context="el horario"
-                onSetup={openFormForSetup}
-              />
-            )}
-          </TabsContent>
-
-          {/* Tab: Asistencia */}
-          <TabsContent value="attendance" className="w-full pt-3">
-            {hasEmployee ? (
-              <AttendanceHistoryTable
+        {/* Tab: Horario */}
+        <TabsContent value="schedule" className="mt-6 w-full outline-hidden">
+          {hasEmployee ? (
+            <div className="mx-auto w-full">
+              <EmployeeScheduleForm
                 employeeId={profile.employee!.id}
-                isAdmin={isAdmin}
+                initialData={profile.employee!.schedule}
               />
-            ) : (
-              <NoEmployeeState
-                context="la asistencia"
-                onSetup={openFormForSetup}
-              />
-            )}
-          </TabsContent>
+            </div>
+          ) : (
+            <NoEmployeeState context="el horario" onSetup={openFormForSetup} />
+          )}
+        </TabsContent>
 
-          {/* Tab: Permisos */}
-          <TabsContent value="permissions" className="w-full pt-3">
-            {hasEmployee ? (
-              <div>
-                <LeaveRequestsTable
-                  employeeId={profile.employee!.id}
-                  isAdmin={isAdmin}
-                />
-              </div>
-            ) : (
-              <NoEmployeeState
-                context="los permisos"
-                onSetup={openFormForSetup}
-              />
-            )}
-          </TabsContent>
+        {/* Tab: Asistencia */}
+        <TabsContent value="attendance" className="mt-6 w-full outline-hidden">
+          {hasEmployee ? (
+            <AttendanceHistoryTable
+              employeeId={profile.employee!.id}
+              isAdmin={isAdmin}
+            />
+          ) : (
+            <NoEmployeeState
+              context="la asistencia"
+              onSetup={openFormForSetup}
+            />
+          )}
+        </TabsContent>
 
-          {/* Tab: Estadísticas */}
-          <TabsContent value="stats" className="w-full pt-3">
-            {hasEmployee ? (
-              <AttendanceStats employeeId={profile.employee!.id} />
-            ) : (
-              <NoEmployeeState
-                context="las estadísticas"
-                onSetup={openFormForSetup}
-              />
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+        {/* Tab: Permisos */}
+        <TabsContent value="permissions" className="mt-6 w-full outline-hidden">
+          {hasEmployee ? (
+            <LeaveRequestsTable
+              employeeId={profile.employee!.id}
+              isAdmin={isAdmin}
+            />
+          ) : (
+            <NoEmployeeState
+              context="los permisos"
+              onSetup={openFormForSetup}
+            />
+          )}
+        </TabsContent>
+
+        {/* Tab: Estadísticas */}
+        <TabsContent value="stats" className="mt-6 w-full outline-hidden">
+          {hasEmployee ? (
+            <AttendanceStats employeeId={profile.employee!.id} />
+          ) : (
+            <NoEmployeeState
+              context="las estadísticas"
+              onSetup={openFormForSetup}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* ── UserForm Sheet/Drawer ── */}
       <UserFormSheet

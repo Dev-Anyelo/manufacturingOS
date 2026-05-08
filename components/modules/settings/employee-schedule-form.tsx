@@ -13,12 +13,9 @@ import { Separator } from "@/components/ui/separator"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, Clock, Calendar } from "lucide-react"
 import { scheduleSchema } from "@/lib/validations/attendance"
+import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-// ---------------------------------------------------------------------------
-// Types & Constants
-// ---------------------------------------------------------------------------
 
 type ScheduleFormValues = z.infer<typeof scheduleSchema>
 
@@ -45,16 +42,6 @@ const DAYS = [
   { value: 6, label: "Sa" },
   { value: 0, label: "Do" },
 ]
-
-const DAY_LABELS: Record<number, string> = {
-  0: "Domingo",
-  1: "Lunes",
-  2: "Martes",
-  3: "Miércoles",
-  4: "Jueves",
-  5: "Viernes",
-  6: "Sábado",
-}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -83,6 +70,7 @@ export function EmployeeScheduleForm({
   const workDays = form.watch("workDays")
   const checkIn = form.watch("expectedCheckIn")
   const checkOut = form.watch("expectedCheckOut")
+  const isActive = form.watch("isActive")
 
   const onSubmit = async (values: ScheduleFormValues) => {
     setIsSaving(true)
@@ -102,182 +90,212 @@ export function EmployeeScheduleForm({
     }
   }
 
+  const setTolerance = (val: number) => form.setValue("lateTolerance", val)
+
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      {/* ── Resumen Visual del Horario ── */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4" />
-            Resumen del Horario
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Entrada</p>
-              <p className="font-semibold">{checkIn}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Salida</p>
-              <p className="font-semibold">{checkOut}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Tolerancia</p>
-              <p className="font-semibold">{lateTolerance} min</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Días laborales</p>
-              <p className="font-semibold">{workDays.length}/7</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4">
+      {/* ── Vista Previa ── */}
+      <section className="grid w-full grid-cols-1 gap-x-3 sm:grid-cols-2 md:grid-cols-4">
+        <CompactKpiCard
+          label="Entrada"
+          value={checkIn || "—"}
+          icon={<Clock className="size-4" />}
+        />
+        <CompactKpiCard
+          label="Salida"
+          value={checkOut || "—"}
+          icon={<Clock className="size-4" />}
+        />
+        <CompactKpiCard
+          label="Tolerancia"
+          value={`${lateTolerance} min`}
+          icon={<Clock className="size-4" />}
+        />
+        <CompactKpiCard
+          label="Días"
+          value={`${workDays.length}/7`}
+          icon={<Calendar className="size-4" />}
+        />
+      </section>
 
-      {/* ── Horarios ── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Horarios</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* Entrada */}
-            <div className="space-y-2">
-              <Label htmlFor="checkIn">Hora de Entrada *</Label>
-              <Input
-                id="checkIn"
-                type="time"
-                {...form.register("expectedCheckIn")}
-              />
-            </div>
-
-            {/* Salida */}
-            <div className="space-y-2">
-              <Label htmlFor="checkOut">Hora de Salida *</Label>
-              <Input
-                id="checkOut"
-                type="time"
-                {...form.register("expectedCheckOut")}
-              />
-            </div>
-
-            {/* Inicio almuerzo */}
-            <div className="space-y-2">
-              <Label htmlFor="lunchStart">Inicio Almuerzo (Opcional)</Label>
-              <Input
-                id="lunchStart"
-                type="time"
-                {...form.register("expectedLunchStart")}
-              />
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* ── Horarios ── */}
+        <Card className="px-0 pt-4 shadow-none">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold tracking-tight uppercase">
+              Horarios de Trabajo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="checkIn" className="text-xs">
+                  Hora de Entrada <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="checkIn"
+                    type="time"
+                    className="pl-9"
+                    {...form.register("expectedCheckIn")}
+                  />
+                  <Clock className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="checkOut" className="text-xs">
+                  Hora de Salida <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="checkOut"
+                    type="time"
+                    className="pl-9"
+                    {...form.register("expectedCheckOut")}
+                  />
+                  <Clock className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
+              </div>
             </div>
 
-            {/* Fin almuerzo */}
-            <div className="space-y-2">
-              <Label htmlFor="lunchEnd">Fin Almuerzo (Opcional)</Label>
-              <Input
-                id="lunchEnd"
-                type="time"
-                {...form.register("expectedLunchEnd")}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            <Separator />
 
-      {/* ── Tolerancia ── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Tolerancia de Retraso</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Minutos permitidos</Label>
-              <span className="text-sm font-semibold text-primary">
-                {lateTolerance} min
-              </span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="lunchStart" className="text-xs">
+                  Inicio Almuerzo
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="lunchStart"
+                    type="time"
+                    className="pl-9"
+                    {...form.register("expectedLunchStart")}
+                  />
+                  <Clock className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lunchEnd" className="text-xs">
+                  Fin Almuerzo
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="lunchEnd"
+                    type="time"
+                    className="pl-9"
+                    {...form.register("expectedLunchEnd")}
+                  />
+                  <Clock className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
+              </div>
             </div>
-            <Slider
-              value={[lateTolerance]}
-              onValueChange={(value) =>
-                form.setValue("lateTolerance", value[0])
-              }
-              min={0}
-              max={60}
-              step={1}
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground">
-              Rango: 0 a 60 minutos. Después de este tiempo, se registra como
-              tardanza.
+            <p className="text-xs text-pretty text-muted-foreground">
+              Opcional. Si se configura, este tiempo se considera no laborado.
             </p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* ── Días Laborales ── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4" />
-            Días Laborales
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <ToggleGroup
-            type="multiple"
-            value={workDays.map(String)}
-            onValueChange={(values) =>
-              form.setValue("workDays", values.map(Number))
-            }
-            className="justify-start"
-          >
-            {DAYS.map((day) => (
-              <ToggleGroupItem
-                key={day.value}
-                value={String(day.value)}
-                aria-label={DAY_LABELS[day.value]}
-                className="h-9 w-9 text-xs"
-                title={DAY_LABELS[day.value]}
+        <div className="space-y-6">
+          {/* ── Tolerancia ── */}
+          <Card className="shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold tracking-tight text-pretty uppercase">
+                Minutos de Gracia (Tolerancia)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">0 min</span>
+                  <span className="text-sm font-bold text-amber-600">
+                    {lateTolerance} minutos actuales
+                  </span>
+                  <span className="text-xs text-muted-foreground">60 min</span>
+                </div>
+                <Slider
+                  value={[lateTolerance]}
+                  onValueChange={(v) => setTolerance(v[0])}
+                  min={0}
+                  max={60}
+                  step={1}
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {[5, 10, 15, 30].map((t) => (
+                  <Button
+                    key={t}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={`h-7 px-3 text-xs ${lateTolerance === t ? "border-primary bg-primary/5 text-primary" : ""}`}
+                    onClick={() => setTolerance(t)}
+                  >
+                    {t} min
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Días ── */}
+          <Card className="shadow-none">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold tracking-tight uppercase">
+                Días de Trabajo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ToggleGroup
+                type="multiple"
+                value={workDays.map(String)}
+                onValueChange={(v) => form.setValue("workDays", v.map(Number))}
+                className="flex w-full"
               >
-                {day.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          <p className="text-xs text-muted-foreground">
-            Selecciona los días en que el empleado trabaja.
-          </p>
-        </CardContent>
-      </Card>
+                {DAYS.map((day) => (
+                  <ToggleGroupItem
+                    key={day.value}
+                    value={String(day.value)}
+                    className="flex-1 rounded-md border text-xs data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
+                  >
+                    {day.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </CardContent>
+          </Card>
 
-      {/* ── Estado ── */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Configuración</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between rounded-lg border p-3">
+          {/* ── Estado ── */}
+          <div className="flex items-center justify-between rounded-xl border bg-card p-4">
             <div className="space-y-0.5">
-              <Label className="text-sm font-medium">Horario activo</Label>
-              <p className="text-xs text-muted-foreground">
-                Habilita el registro de asistencia para este horario.
+              <p className="text-sm font-semibold">Horario Activo</p>
+              <p className="text-[11px] text-muted-foreground">
+                Habilita el control de asistencia para este empleado
               </p>
             </div>
             <Switch
-              checked={form.watch("isActive")}
-              onCheckedChange={(checked) => form.setValue("isActive", checked)}
+              checked={isActive}
+              onCheckedChange={(c) => form.setValue("isActive", c)}
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Separator />
-
-      {/* ── Botón de Envío ── */}
-      <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
-        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {initialData ? "Guardar cambios" : "Crear horario"}
-      </Button>
+      <div className="flex justify-end gap-3 border-t pt-6">
+        <Button
+          type="submit"
+          disabled={isSaving}
+          className="h-10 min-w-40 font-semibold"
+        >
+          {isSaving ? (
+            <Loader2 className="mr-2 size-4 animate-spin" />
+          ) : (
+            <Calendar className="mr-2 size-4" />
+          )}
+          {initialData ? "Guardar Cambios" : "Configurar Horario"}
+        </Button>
+      </div>
     </form>
   )
 }
