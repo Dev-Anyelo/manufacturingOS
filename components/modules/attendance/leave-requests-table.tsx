@@ -1,6 +1,5 @@
 "use client"
 
-import * as React from "react"
 import { toast } from "sonner"
 import { useState } from "react"
 import { es } from "date-fns/locale"
@@ -14,6 +13,7 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { format, formatDistanceToNow, subMonths } from "date-fns"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { LeaveRequestPanel } from "@/components/modules/attendance/leave-request-panel"
+
 import {
   Loader2,
   Check,
@@ -23,6 +23,7 @@ import {
   MoreHorizontal,
   Funnel,
 } from "lucide-react"
+
 import {
   Tooltip,
   TooltipContent,
@@ -36,12 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 import {
   Table,

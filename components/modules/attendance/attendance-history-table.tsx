@@ -5,6 +5,18 @@ import { toast } from "sonner"
 import { es } from "date-fns/locale"
 import { useState, useMemo } from "react"
 import { subMonths, format } from "date-fns"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { formatDistanceToNow } from "date-fns"
+import { Button } from "@/components/ui/button"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Card, CardContent } from "@/components/ui/card"
+import { EmptyState } from "@/components/shared/empty-state"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { AttendanceManualRecordPanel } from "@/components/modules/attendance/attendance-manual-record-panel"
+
 import {
   MoreHorizontal,
   PencilLine,
@@ -12,17 +24,6 @@ import {
   CalendarOff,
   CalendarRange,
 } from "lucide-react"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { formatDistanceToNow } from "date-fns"
-import { EmptyState } from "@/components/shared/empty-state"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { Card, CardContent } from "@/components/ui/card"
-import { AttendanceManualRecordPanel } from "@/components/modules/attendance/attendance-manual-record-panel"
 
 import {
   Table,
@@ -161,7 +162,10 @@ export function AttendanceHistoryTable({
   const { data, isLoading } = useQuery({
     queryKey: ["attendance", "history", employeeId, selectedMonth],
     queryFn: async () => {
-      const url = new URL(`/api/attendance/admin/employee/${employeeId}`, window.location.origin)
+      const url = new URL(
+        `/api/attendance/admin/employee/${employeeId}`,
+        window.location.origin
+      )
       if (selectedMonth) url.searchParams.set("month", selectedMonth)
       const res = await fetch(url.toString())
       if (!res.ok) throw new Error("Error fetching history")
@@ -499,7 +503,9 @@ export function AttendanceHistoryTable({
                 id="edit-checkin"
                 type="time"
                 value={editCheckIn}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditCheckIn(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setEditCheckIn(e.target.value)
+                }
               />
             </div>
 
@@ -509,7 +515,9 @@ export function AttendanceHistoryTable({
                 id="edit-checkout"
                 type="time"
                 value={editCheckOut}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditCheckOut(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setEditCheckOut(e.target.value)
+                }
               />
             </div>
 
@@ -518,7 +526,9 @@ export function AttendanceHistoryTable({
               <Input
                 id="edit-notes"
                 value={editNotes}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditNotes(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setEditNotes(e.target.value)
+                }
                 placeholder="Ej. Olvidó marcar salida, corregido manual"
               />
             </div>

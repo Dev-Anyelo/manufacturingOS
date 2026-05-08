@@ -1,25 +1,27 @@
 "use client"
 
-import { format, formatDistanceToNow } from "date-fns"
+import { useState } from "react"
 import { es } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { format, formatDistanceToNow } from "date-fns"
+import { ChevronDown, User, Briefcase, Settings2 } from "lucide-react"
+import type { UserRole, ContractType, Currency } from "@prisma/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { Button } from "@/components/ui/button"
-import { ChevronDown, User, Briefcase, Settings2 } from "lucide-react"
-import { useState } from "react"
-import type { UserRole, ContractType, Currency } from "@prisma/client"
 
 // ---------------------------------------------------------------------------
 // Translation helpers

@@ -2,6 +2,7 @@
 
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import type { UserRole } from "@prisma/client"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import {
   IdCard,
   CalendarDays,
   PencilLine,
+  ArrowLeft,
 } from "lucide-react"
 
 import {
@@ -87,6 +89,12 @@ export function UserDetailHeader({
 }: UserDetailHeaderProps) {
   const roleConfig = ROLE_CONFIG[profile.role] || ROLE_CONFIG.readonly
 
+  const router = useRouter()
+
+  const onBack = () => {
+    router.push("/settings/users")
+  }
+
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       {/* Left: Avatar + Info */}
@@ -152,6 +160,12 @@ export function UserDetailHeader({
 
       {/* Right: Actions */}
       <div className="flex shrink-0 items-center gap-2">
+        {/* Back button to users list */}
+        <Button size="sm" variant="outline" onClick={onBack}>
+          <ArrowLeft className="size-3.5" />
+          Volver
+        </Button>
+
         <Button size="sm" onClick={onEdit}>
           <PencilLine className="size-3.5" />
           Editar
