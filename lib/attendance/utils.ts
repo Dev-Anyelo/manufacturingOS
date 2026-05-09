@@ -11,6 +11,13 @@ export function getTodayDateString() {
   return format(getNowZoned(), 'yyyy-MM-dd')
 }
 
+export function formatZonedTime(date: Date | string | null, formatStr: string = "hh:mm a"): string {
+  if (!date) return "—"
+  const d = typeof date === 'string' ? new Date(date) : date
+  const zoned = toZonedTime(d, TIMEZONE)
+  return format(zoned, formatStr)
+}
+
 /**
  * Convierte "HH:mm" (hora Nicaragua) + una fecha de referencia (UTC) 
  * en un Date UTC equivalente

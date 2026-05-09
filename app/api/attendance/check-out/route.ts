@@ -10,6 +10,7 @@ import { AttendanceStatus } from "@prisma/client"
 import {
   getTodayDateString,
   calculateEarlyExitMinutes,
+  formatZonedTime,
 } from "@/lib/attendance/utils"
 
 export async function POST(request: Request) {
@@ -142,7 +143,6 @@ export async function POST(request: Request) {
 
     // Trigger daily summary email to the employee
     if (user.email) {
-      const formatTime = (d: Date | null) => (d ? format(d, "hh:mm a") : "—")
       const h = Math.floor(actualWorked / 60)
       const m = actualWorked % 60
 
@@ -153,11 +153,11 @@ export async function POST(request: Request) {
 
       await sendAttendanceEmployeeDaily(user.email, {
         employeeName: employee.fullName || "Empleado",
-        date: format(now, "d 'de' MMMM, yyyy", { locale: es }),
-        checkIn: formatTime(updated.checkInAt),
-        lunchOut: formatTime(updated.lunchStartAt),
-        lunchIn: formatTime(updated.lunchEndAt),
-        checkOut: formatTime(updated.checkOutAt),
+        date: format(new Date(todayDateStr + "T00:00:00"), "d 'de' MMMM, yyyy", { locale: es }),
+        checkIn: formatZonedTime(updated.checkInAt),
+        lunchOut: formatZonedTime(updated.lunchStartAt),
+        lunchIn: formatZonedTime(updated.lunchEndAt),
+        checkOut: formatZonedTime(updated.checkOutAt),
         totalHours: `${h}h ${m}m`,
         status: statusLabel,
       }).catch(console.error)

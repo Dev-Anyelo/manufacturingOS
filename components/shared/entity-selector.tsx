@@ -154,11 +154,11 @@ export function EntitySelector({
               )}
             </div>
             <CommandList 
-              className="max-h-[300px]"
+              className="max-h-[260px]"
               onWheel={(e) => e.stopPropagation()}
             >
               {filteredEntities.length === 0 ? (
-                <CommandEmpty className="py-6 text-center text-sm">
+                <CommandEmpty className="py-4 text-center text-sm">
                   {emptyMessage}
                 </CommandEmpty>
               ) : (

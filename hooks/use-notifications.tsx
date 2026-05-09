@@ -2,6 +2,11 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { NotificationType } from "@/types"
+import { createClient } from "@/lib/supabase/client"
+import type { Database } from "@/lib/supabase/types"
+import { useNotificationStore } from "@/stores/notificationStore"
+
 import {
   BellIcon,
   BarChart3Icon,
@@ -21,11 +26,6 @@ import {
   CalendarXIcon,
 } from "lucide-react"
 
-import { createClient } from "@/lib/supabase/client"
-import type { Database } from "@/lib/supabase/types"
-import { NotificationType } from "@/types"
-import { useNotificationStore } from "@/stores/notificationStore"
-
 type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"]
 
 function getToastIcon(type: NotificationType) {
@@ -34,7 +34,9 @@ function getToastIcon(type: NotificationType) {
     [NotificationType.OutOfStock]: <CircleSlash2Icon className="size-4" />,
     [NotificationType.OrderReady]: <CheckCircle2Icon className="size-4" />,
     [NotificationType.OrderOverdue]: <Clock3Icon className="size-4" />,
-    [NotificationType.SaleCompleted]: <BadgeDollarSignIcon className="size-4" />,
+    [NotificationType.SaleCompleted]: (
+      <BadgeDollarSignIcon className="size-4" />
+    ),
     [NotificationType.ProductionSaved]: <ScissorsIcon className="size-4" />,
     [NotificationType.PaymentDue]: <WalletIcon className="size-4" />,
     [NotificationType.MonthlyReport]: <BarChart3Icon className="size-4" />,

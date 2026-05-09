@@ -2,8 +2,10 @@
 
 import * as z from "zod"
 import { toast } from "sonner"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
@@ -185,6 +187,8 @@ export function EmployeeScheduleForm({
   initialData,
 }: EmployeeScheduleFormProps) {
   const [isSaving, setIsSaving] = useState(false)
+  const router = useRouter()
+  const queryClient = useQueryClient()
 
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleSchema),
@@ -198,6 +202,21 @@ export function EmployeeScheduleForm({
       isActive: initialData?.isActive ?? true,
     },
   })
+
+  // Re-initialize form when initialData changes (e.g. after server revalidation)
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        expectedCheckIn: initialData.expectedCheckIn,
+        expectedLunchStart: initialData.expectedLunchStart || "12:00",
+        expectedLunchEnd: initialData.expectedLunchEnd || "13:00",
+        expectedCheckOut: initialData.expectedCheckOut,
+        lateTolerance: initialData.lateTolerance,
+        workDays: initialData.workDays,
+        isActive: initialData.isActive,
+      })
+    }
+  }, [initialData, form])
 
   const lateTolerance = form.watch("lateTolerance")
   const workDays = form.watch("workDays")
@@ -215,6 +234,13 @@ export function EmployeeScheduleForm({
       })
       if (!res.ok) throw new Error("Error al guardar el horario")
       toast.success("Horario guardado correctamente")
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["schedule", employeeId] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] }),
+      ])
+      router.refresh()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error desconocido"
       toast.error(msg)

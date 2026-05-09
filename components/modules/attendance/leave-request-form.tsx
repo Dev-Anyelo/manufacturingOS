@@ -87,7 +87,13 @@ export function LeaveRequestForm({
       toast.success("Permiso solicitado correctamente")
       form.reset()
       if (employeeId) {
-        await queryClient.invalidateQueries({ queryKey: ["leave", employeeId] })
+         Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] })
+      ])
       }
       if (onSuccess) onSuccess()
     } catch (err: unknown) {

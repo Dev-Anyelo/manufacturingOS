@@ -1,11 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-
-import { createClient } from "@/lib/supabase/client"
 import { NotificationType } from "@/types"
+import { createClient } from "@/lib/supabase/client"
+import { useQueryClient } from "@tanstack/react-query"
 import { useNotificationStore } from "@/stores/notificationStore"
 
 type InventoryPayload = {

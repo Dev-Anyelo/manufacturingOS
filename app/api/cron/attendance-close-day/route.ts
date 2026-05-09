@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { toZonedTime } from 'date-fns-tz'
-import { getTodayDateString } from '@/lib/attendance/utils'
 import { AttendanceStatus } from '@prisma/client'
 
 export async function GET(request: Request) {
@@ -12,7 +11,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Determine today's date in Managua timezone
+    const { format } = await import('date-fns')
     const managua = toZonedTime(new Date(), 'America/Managua')
     const todayDayOfWeek = managua.getDay() // 0 = Sunday, 1 = Monday, etc.
 
@@ -22,8 +21,8 @@ export async function GET(request: Request) {
       include: { schedule: true }
     })
 
-    const todayStr = getTodayDateString()
-    const todayDate = new Date(todayStr)
+    const todayStr = format(managua, 'yyyy-MM-dd')
+    const todayDate = new Date(todayStr + "T00:00:00")
 
     const results = {
       total: employees.length,

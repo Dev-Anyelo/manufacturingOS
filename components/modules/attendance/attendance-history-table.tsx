@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Skeleton } from "@/components/ui/skeleton"
 import { StatCard } from "@/components/shared/stat-card"
+import { formatZonedTime } from "@/lib/attendance/utils"
 import { EmptyState } from "@/components/shared/empty-state"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { AttendanceManualRecordPanel } from "@/components/modules/attendance/attendance-manual-record-panel"
@@ -118,7 +119,7 @@ function getStatusConfig(status: string) {
 }
 
 function formatTime(dateStr: string | null) {
-  return dateStr ? format(new Date(dateStr), "hh:mm a") : "—"
+  return formatZonedTime(dateStr, "hh:mm a")
 }
 
 function getWorkedHours(minutes: number | null) {
@@ -160,6 +161,8 @@ export function AttendanceHistoryTable({
   const [editNotes, setEditNotes] = useState("")
   const [editCheckIn, setEditCheckIn] = useState("")
   const [editCheckOut, setEditCheckOut] = useState("")
+  const [editLunchStart, setEditLunchStart] = useState("")
+  const [editLunchEnd, setEditLunchEnd] = useState("")
   const monthOptions = useMemo(() => getMonthOptions(), [])
 
   const { data, isLoading } = useQuery({
@@ -192,17 +195,27 @@ export function AttendanceHistoryTable({
           body: JSON.stringify({
             status: editStatus,
             notes: editNotes,
-            checkInAt: editCheckIn ? new Date(editCheckIn) : null,
-            checkOutAt: editCheckOut ? new Date(editCheckOut) : null,
+            checkInAt: editCheckIn || null,
+            checkOutAt: editCheckOut || null,
+            lunchStartAt: editLunchStart || null,
+            lunchEndAt: editLunchEnd || null,
           }),
         }
       )
       if (!res.ok) throw new Error("Error al actualizar registro")
       toast.success("Registro actualizado")
       setEditingRecord(null)
-      queryClient.invalidateQueries({
-        queryKey: ["attendance", "history"],
-      })
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["attendance", "admin", "summary"],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["attendance", "admin", "employee"],
+        }),
+      ])
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error desconocido"
       toast.error(msg)
@@ -506,8 +519,35 @@ export function AttendanceHistoryTable({
                                 setEditingRecord(record)
                                 setEditStatus(record.status)
                                 setEditNotes(record.notes || "")
-                                setEditCheckIn(record.checkInAt || "")
-                                setEditCheckOut(record.checkOutAt || "")
+                                setEditCheckIn(
+                                  record.checkInAt
+                                    ? formatZonedTime(record.checkInAt, "HH:mm")
+                                    : ""
+                                )
+                                setEditCheckOut(
+                                  record.checkOutAt
+                                    ? formatZonedTime(
+                                        record.checkOutAt,
+                                        "HH:mm"
+                                      )
+                                    : ""
+                                )
+                                setEditLunchStart(
+                                  record.lunchStartAt
+                                    ? formatZonedTime(
+                                        record.lunchStartAt,
+                                        "HH:mm"
+                                      )
+                                    : ""
+                                )
+                                setEditLunchEnd(
+                                  record.lunchEndAt
+                                    ? formatZonedTime(
+                                        record.lunchEndAt,
+                                        "HH:mm"
+                                      )
+                                    : ""
+                                )
                               }}
                             >
                               <PencilLine className="size-4" />
@@ -583,6 +623,31 @@ export function AttendanceHistoryTable({
                   setEditCheckOut(e.target.value)
                 }
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="edit-lunch-start">Inicio almuerzo</Label>
+                <Input
+                  id="edit-lunch-start"
+                  type="time"
+                  value={editLunchStart}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setEditLunchStart(e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-lunch-end">Fin almuerzo</Label>
+                <Input
+                  id="edit-lunch-end"
+                  type="time"
+                  value={editLunchEnd}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setEditLunchEnd(e.target.value)
+                  }
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

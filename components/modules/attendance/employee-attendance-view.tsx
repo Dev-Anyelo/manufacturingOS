@@ -192,8 +192,13 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
     },
     onSuccess: () => {
       toast.success("Registro actualizado")
-      queryClient.invalidateQueries({ queryKey: ["attendance", "today"] })
-      queryClient.invalidateQueries({ queryKey: ["attendance", "history"] })
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] })
+      ])
     },
     onError: (err) => toast.error(err.message),
   })

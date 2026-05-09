@@ -1,65 +1,83 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
 export function useAttendance() {
   const queryClient = useQueryClient()
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['attendance', 'today'],
+    queryKey: ["attendance", "today"],
     queryFn: async () => {
-      const res = await fetch('/api/attendance/today')
-      if (!res.ok) throw new Error('Error fetching attendance')
+      const res = await fetch("/api/attendance/today")
+      if (!res.ok) throw new Error("Error fetching attendance")
       return res.json()
-    }
+    },
   })
 
   const checkIn = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/attendance/check-in', { method: 'POST' })
+      const res = await fetch("/api/attendance/check-in", { method: "POST" })
       if (!res.ok) {
         const errorData = await res.json()
-        throw new Error(errorData.error || 'Error marking check-in')
+        throw new Error(errorData.error || "Error marking check-in")
       }
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance', 'today'] })
-    }
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] })
+      ])
+    },
   })
 
   const lunchStart = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/attendance/lunch-start', { method: 'POST' })
+      const res = await fetch("/api/attendance/lunch-start", { method: "POST" })
       if (!res.ok) {
         const errorData = await res.json()
-        throw new Error(errorData.error || 'Error marking lunch start')
+        throw new Error(errorData.error || "Error marking lunch start")
       }
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance', 'today'] })
-    }
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] })
+      ])
+    },
   })
 
   const lunchEnd = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/attendance/lunch-end', { method: 'POST' })
+      const res = await fetch("/api/attendance/lunch-end", { method: "POST" })
       if (!res.ok) {
         const errorData = await res.json()
-        throw new Error(errorData.error || 'Error marking lunch end')
+        throw new Error(errorData.error || "Error marking lunch end")
       }
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance', 'today'] })
-    }
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] })
+      ])
+    },
   })
 
   const checkOut = useMutation({
     mutationFn: async (reason?: string) => {
-      const res = await fetch('/api/attendance/check-out', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
+      const res = await fetch("/api/attendance/check-out", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
       })
       if (!res.ok) {
         const errorData = await res.json()
@@ -68,8 +86,13 @@ export function useAttendance() {
       return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance', 'today'] })
-    }
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] })
+      ])
+    },
   })
 
   return {
@@ -79,6 +102,6 @@ export function useAttendance() {
     checkIn,
     lunchStart,
     lunchEnd,
-    checkOut
+    checkOut,
   }
 }

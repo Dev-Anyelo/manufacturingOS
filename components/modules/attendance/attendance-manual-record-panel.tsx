@@ -19,12 +19,25 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 
+interface InitialRecordData {
+  id: string
+  date: string
+  checkInAt: string | null
+  checkOutAt: string | null
+  lunchStartAt: string | null
+  lunchEndAt: string | null
+  status: string
+  notes: string | null
+}
+
 type AttendanceManualRecordPanelProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   employeeId?: string | null
   employeeName?: string | null
   recordId?: string | null
+  initialRecord?: InitialRecordData | null
+  teamEmployees?: Array<{ id: string; fullName: string }>
 }
 
 export function AttendanceManualRecordPanel({
@@ -33,6 +46,8 @@ export function AttendanceManualRecordPanel({
   employeeId,
   employeeName,
   recordId,
+  initialRecord,
+  teamEmployees,
 }: AttendanceManualRecordPanelProps) {
   const isMobile = useIsMobile()
   const title = recordId ? "Editar registro" : "Agregar registro manual"
@@ -55,6 +70,8 @@ export function AttendanceManualRecordPanel({
               employeeId={employeeId || ""}
               employeeName={employeeName || ""}
               recordId={recordId || undefined}
+              initialRecord={initialRecord}
+              teamEmployees={teamEmployees}
               onSuccess={() => onOpenChange(false)}
             />
           </div>
@@ -77,6 +94,7 @@ export function AttendanceManualRecordPanel({
             employeeId={employeeId || ""}
             employeeName={employeeName || ""}
             recordId={recordId || undefined}
+            teamEmployees={teamEmployees}
             onSuccess={() => onOpenChange(false)}
           />
         </div>

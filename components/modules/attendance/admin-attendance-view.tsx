@@ -229,8 +229,14 @@ export function AdminAttendanceView({
         processAction === "approve" ? "Permiso aprobado" : "Permiso rechazado"
       )
       setLeaveToProcess(null)
-      queryClient.invalidateQueries({ queryKey: ["attendance", "admin"] })
-      queryClient.invalidateQueries({ queryKey: ["attendance", "report"] })
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "leaves"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] })
+      ])
     },
     onError: () => toast.error("Error al procesar la solicitud"),
   })
@@ -765,6 +771,17 @@ export function AdminAttendanceView({
           employeeId={selectedRecordToEdit?.employeeId || null}
           employeeName={selectedRecordToEdit?.employeeName || null}
           recordId={selectedRecordToEdit?.id || null}
+          initialRecord={selectedRecordToEdit?.id ? {
+            id: selectedRecordToEdit.id,
+            date: selectedRecordToEdit.date ?? "",
+            checkInAt: selectedRecordToEdit.checkInAt ?? null,
+            checkOutAt: selectedRecordToEdit.checkOutAt ?? null,
+            lunchStartAt: selectedRecordToEdit.lunchStartAt ?? null,
+            lunchEndAt: selectedRecordToEdit.lunchEndAt ?? null,
+            status: selectedRecordToEdit.status ?? "incomplete",
+            notes: selectedRecordToEdit.notes ?? null,
+          } : null}
+          teamEmployees={teamEmployees}
         />
       )}
     </div>

@@ -138,6 +138,36 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
     },
   })
 
+  // Re-initialize form when initialData changes
+  React.useEffect(() => {
+    if (initialData) {
+      form.reset({
+        id: initialData.id,
+        email: initialData.email || "",
+        full_name: initialData.fullName || "",
+        role: initialData.role || UserRole.employee,
+        password: "",
+        isActive: initialData.isActive ?? true,
+        phone: initialData.phone || "",
+        address: initialData.address || "",
+        birthDate: initialData.birthDate
+          ? new Date(initialData.birthDate)
+          : undefined,
+        documentId: initialData.employee?.documentId || "",
+        hireDate: initialData.employee?.hireDate
+          ? new Date(initialData.employee.hireDate)
+          : undefined,
+        contractType:
+          initialData.employee?.contractType || ContractType.fixed_salary,
+        baseSalary: initialData.employee?.baseSalary
+          ? String(initialData.employee.baseSalary)
+          : "",
+        baseSalaryCurrency:
+          initialData.employee?.baseSalaryCurrency || Currency.NIO,
+      })
+    }
+  }, [initialData, form])
+
   async function onSubmit(data: FormValues) {
     try {
       setIsSubmitting(true)
@@ -319,7 +349,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
                   <FormLabel>Dirección</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Ej: Santa Elanda, calle principal, casa #123"
+                      placeholder="Ej: Santa Elena, calle principal, casa #123"
                       {...field}
                       value={field.value || ""}
                     />
@@ -368,10 +398,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
               render={({ field }) => (
                 <FormItem className="sm:col-span-2">
                   <FormLabel>Rol en el sistema</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecciona un rol" />
@@ -483,10 +510,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipo de contrato</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecciona" />
@@ -528,7 +552,7 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
                       render={({ field: currencyField }) => (
                         <Select
                           onValueChange={currencyField.onChange}
-                          defaultValue={currencyField.value}
+                          value={currencyField.value}
                         >
                           <FormControl>
                             <SelectTrigger className="w-24">

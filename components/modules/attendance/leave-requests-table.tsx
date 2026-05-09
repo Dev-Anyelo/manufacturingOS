@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { format, formatDistanceToNow } from "date-fns"
+import { LeaveStatus, LeaveType } from "@prisma/client"
 import { StatCard } from "@/components/shared/stat-card"
 import { EmptyState } from "@/components/shared/empty-state"
 import { Loader2, Check, X, Plus, CalendarOff, Clock } from "lucide-react"
@@ -34,9 +35,9 @@ import {
 interface LeaveRequest {
   id: string
   leaveDate: string
-  leaveType: string
+  leaveType: LeaveType
   reason: string
-  status: string
+  status: LeaveStatus
   approvalNote: string | null
 }
 
@@ -45,14 +46,7 @@ interface LeaveRequestsTableProps {
   isAdmin?: boolean
 }
 
-const LEAVE_TYPE_LABELS: Record<string, string> = {
-  vacation: "Vacaciones",
-  medical: "Licencia Médica",
-  personal: "Permiso Personal",
-  other: "Otro",
-}
-
-const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
+const STATUS_CONFIG: Record<LeaveStatus, { color: string; label: string }> = {
   pending: {
     color: "bg-amber-500/10 text-amber-600 border-amber-500/20",
     label: "Pendiente",
@@ -67,7 +61,7 @@ const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
   },
 }
 
-const TYPE_CONFIG: Record<string, { label: string; className: string }> = {
+const TYPE_CONFIG: Record<LeaveType, { label: string; className: string }> = {
   vacation: {
     label: "Vacaciones",
     className: "bg-sky-500/10 text-sky-700 border-sky-500/20",
@@ -90,11 +84,7 @@ const TYPE_CONFIG: Record<string, { label: string; className: string }> = {
   },
 }
 
-function getLeaveTypeLabel(leaveType: string): string {
-  return LEAVE_TYPE_LABELS[leaveType] || leaveType
-}
-
-function getStatusConfig(status: string) {
+function getStatusConfig(status: LeaveStatus) {
   return STATUS_CONFIG[status] || STATUS_CONFIG.pending
 }
 
@@ -144,10 +134,16 @@ export function LeaveRequestsTable({
         body: JSON.stringify({ status, approvalNote: note }),
       })
       if (!res.ok) throw new Error("Error saving action")
-      return res.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["leave", employeeId] })
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
+        queryClient.invalidateQueries({ queryKey: ["leave", employeeId] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] })
+      ])
       setSelectedRequest(null)
       setApprovalNote("")
       toast.success("Permiso actualizado correctamente")

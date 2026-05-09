@@ -6,6 +6,18 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useAttendance } from "@/hooks/use-attendance"
 import { LeaveRequestForm } from "./leave-request-form"
+import { formatZonedTime } from "@/lib/attendance/utils"
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 import {
   Clock,
@@ -59,6 +71,19 @@ export function AttendanceWidget() {
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false)
   const [reason, setReason] = useState("")
   const [reasonError, setReasonError] = useState("")
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean
+    action: "check-in" | "lunch-start" | "lunch-end" | "check-out" | null
+    timeStr: string
+  }>({ open: false, action: null, timeStr: "" })
+
+  const openConfirm = (action: "check-in" | "lunch-start" | "lunch-end" | "check-out") => {
+    setConfirmDialog({
+      open: true,
+      action,
+      timeStr: formatZonedTime(new Date(), "hh:mm a")
+    })
+  }
 
   if (isLoading) {
     return <div className="h-9 w-24 animate-pulse rounded-md bg-muted" />
@@ -142,12 +167,23 @@ export function AttendanceWidget() {
     }
   }
 
+  const handleConfirmAction = () => {
+    if (!confirmDialog.action) return
+    const action = confirmDialog.action
+    setConfirmDialog({ ...confirmDialog, open: false })
+    
+    if (action === "check-in") handleCheckIn()
+    else if (action === "lunch-start") handleLunchStart()
+    else if (action === "lunch-end") handleLunchEnd()
+    else if (action === "check-out") handleCheckOut()
+  }
+
   // Define what to render based on current state
   let content = null
 
   if (!record || !record.checkInAt) {
     content = (
-      <Button size="sm" onClick={handleCheckIn} disabled={checkIn.isPending}>
+      <Button size="sm" onClick={() => openConfirm("check-in")} disabled={checkIn.isPending}>
         {checkIn.isPending ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
@@ -165,7 +201,7 @@ export function AttendanceWidget() {
           <Button
             size="sm"
             variant="outline"
-            onClick={handleLunchStart}
+            onClick={() => openConfirm("lunch-start")}
             disabled={lunchStart.isPending}
             className="gap-2"
           >
@@ -179,7 +215,7 @@ export function AttendanceWidget() {
           <Button
             size="sm"
             variant="destructive"
-            onClick={() => handleCheckOut()}
+            onClick={() => openConfirm("check-out")}
             disabled={checkOut.isPending}
             className="gap-2"
           >
@@ -202,7 +238,7 @@ export function AttendanceWidget() {
         <Button
           size="sm"
           variant="secondary"
-          onClick={handleLunchEnd}
+          onClick={() => openConfirm("lunch-end")}
           disabled={lunchEnd.isPending}
           className="gap-2"
         >
@@ -220,7 +256,7 @@ export function AttendanceWidget() {
         <Button
           size="sm"
           variant="destructive"
-          onClick={() => handleCheckOut()}
+          onClick={() => openConfirm("check-out")}
           disabled={checkOut.isPending}
           className="gap-2"
         >
@@ -261,6 +297,31 @@ export function AttendanceWidget() {
           Solicitar permiso
         </Button>
       </div>
+
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar marcación</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Deseas registrar tu{" "}
+              {confirmDialog.action === "check-in"
+                ? "entrada"
+                : confirmDialog.action === "lunch-start"
+                ? "inicio de almuerzo"
+                : confirmDialog.action === "lunch-end"
+                ? "fin de almuerzo"
+                : "salida"}{" "}
+              ahora?
+              <br />
+              Hora registrada: <strong className="text-foreground">{confirmDialog.timeStr}</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAction}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <DialogContent>

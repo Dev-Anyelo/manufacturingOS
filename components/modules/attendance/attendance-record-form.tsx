@@ -15,8 +15,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, Controller } from "react-hook-form"
 import { Separator } from "@/components/ui/separator"
 import { useQueryClient } from "@tanstack/react-query"
+import { formatZonedTime } from "@/lib/attendance/utils"
 import { adminCreateRecordSchema } from "@/lib/validations/attendance"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { EntitySelector } from "@/components/shared/entity-selector"
 
 import {
   CalendarIcon,
@@ -46,10 +48,23 @@ import {
 
 type AttendanceRecordInput = z.infer<typeof adminCreateRecordSchema>
 
+interface InitialRecordData {
+  id: string
+  date: string
+  checkInAt: string | null
+  checkOutAt: string | null
+  lunchStartAt: string | null
+  lunchEndAt: string | null
+  status: string
+  notes: string | null
+}
+
 type AttendanceRecordFormProps = {
   employeeId: string
   employeeName: string
   recordId?: string
+  initialRecord?: InitialRecordData | null
+  teamEmployees?: Array<{ id: string; fullName: string }>
   onSuccess?: () => void
 }
 
@@ -170,10 +185,14 @@ export function AttendanceRecordForm({
   employeeId,
   employeeName,
   recordId,
+  initialRecord,
+  teamEmployees,
   onSuccess,
 }: AttendanceRecordFormProps) {
+  const [selectedEmpId, setSelectedEmpId] = React.useState<string>(employeeId || "")
   const [isSaving, setIsSaving] = React.useState(false)
   const queryClient = useQueryClient()
+  const isEditing = !!recordId && !!initialRecord
 
   const form = useForm<AttendanceRecordInput>({
     resolver: zodResolver(adminCreateRecordSchema),
@@ -188,13 +207,56 @@ export function AttendanceRecordForm({
     },
   })
 
+  // Pre-populate form fields when editing an existing record
+  React.useEffect(() => {
+    if (initialRecord) {
+      form.reset({
+        date: initialRecord.date,
+        checkInAt: initialRecord.checkInAt
+          ? formatZonedTime(initialRecord.checkInAt, "HH:mm")
+          : "08:00",
+        lunchStartAt: initialRecord.lunchStartAt
+          ? formatZonedTime(initialRecord.lunchStartAt, "HH:mm")
+          : "",
+        lunchEndAt: initialRecord.lunchEndAt
+          ? formatZonedTime(initialRecord.lunchEndAt, "HH:mm")
+          : "",
+        checkOutAt: initialRecord.checkOutAt
+          ? formatZonedTime(initialRecord.checkOutAt, "HH:mm")
+          : "",
+        notes: initialRecord.notes ?? "",
+        reason: "Corrección manual autorizada",
+      })
+    } else {
+      form.reset({
+        date: toDateInputValue(),
+        checkInAt: "08:00",
+        lunchStartAt: "",
+        lunchEndAt: "",
+        checkOutAt: "17:00",
+        notes: "",
+        reason: "Registro manual autorizado",
+      })
+    }
+  }, [initialRecord, form])
+
   const selectedDate = form.watch("date")
 
   const onSubmit = async (values: AttendanceRecordInput) => {
+    if (!selectedEmpId) {
+      toast.error("Debes seleccionar un empleado")
+      return
+    }
     setIsSaving(true)
     try {
-      const res = await fetch(`/api/attendance/admin/employee/${employeeId}`, {
-        method: "POST",
+      // When editing, use PATCH to the record endpoint; when creating, POST to employee endpoint
+      const url = isEditing
+        ? `/api/attendance/admin/employee/${selectedEmpId}/record/${recordId}`
+        : `/api/attendance/admin/employee/${selectedEmpId}`
+      const method = isEditing ? "PATCH" : "POST"
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       })
@@ -205,9 +267,13 @@ export function AttendanceRecordForm({
       }
 
       toast.success("Registro manual guardado")
-      await queryClient.invalidateQueries({
-        queryKey: ["attendance"],
-      })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
+        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] })
+      ])
       onSuccess?.()
     } catch (error: unknown) {
       const message =
@@ -221,25 +287,30 @@ export function AttendanceRecordForm({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       {/* Información del Empleado */}
-      <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card px-4 py-3 transition-all hover:border-primary/20 hover:shadow-sm">
-        <div className="relative flex items-center gap-4">
-          <div className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
-            <User className="size-4" />
-          </div>
-          <div>
-            <p className="text-xs font-bold tracking-widest text-muted-foreground/80 uppercase">
-              Empleado Seleccionado
-            </p>
-            <p className="text-base font-black tracking-tight text-foreground">
-              {employeeName || (
-                <span className="text-xs text-muted-foreground italic">
-                  Selecciona un empleado
-                </span>
-              )}
-            </p>
+      {employeeId ? (
+        <div className="group relative overflow-hidden rounded-2xl border border-border/70 bg-card px-4 py-3 transition-all hover:border-primary/20 hover:shadow-sm">
+          <div className="relative flex items-center gap-4">
+            <div className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
+              <User className="size-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold tracking-widest text-muted-foreground/80 uppercase">
+                Empleado Seleccionado
+              </p>
+              <p className="text-base font-black tracking-tight text-foreground">
+                {employeeName}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <EntitySelector
+          entities={teamEmployees || []}
+          value={selectedEmpId}
+          onChange={(id) => setSelectedEmpId(id || "")}
+          label="Seleccionar empleado"
+        />
+      )}
 
       {/* Metadata: Fecha y Razón */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -404,7 +475,7 @@ export function AttendanceRecordForm({
         >
           Limpiar
         </Button>
-        <Button type="submit" disabled={isSaving} size="sm">
+        <Button type="submit" disabled={isSaving || !selectedEmpId} size="sm">
           {isSaving ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
