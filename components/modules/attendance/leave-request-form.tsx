@@ -176,7 +176,7 @@ export function LeaveRequestForm({
         ) : null}
       </div>
 
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center pb-4">
         <Button type="submit" disabled={isSaving} className="w-full gap-2">
           {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
           {submitLabel}

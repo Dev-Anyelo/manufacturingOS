@@ -14,18 +14,10 @@ import {
   Square,
   AlertCircle,
   Loader2,
-  ChevronDown,
   CalendarPlus,
   Users,
   CircleCheck,
 } from "lucide-react"
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 import {
   Dialog,
@@ -155,12 +147,7 @@ export function AttendanceWidget() {
 
   if (!record || !record.checkInAt) {
     content = (
-      <Button
-        size="sm"
-        onClick={handleCheckIn}
-        disabled={checkIn.isPending}
-        className="gap-2 bg-emerald-600 hover:bg-emerald-700"
-      >
+      <Button size="sm" onClick={handleCheckIn} disabled={checkIn.isPending}>
         {checkIn.isPending ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
@@ -265,27 +252,27 @@ export function AttendanceWidget() {
     <>
       <div className="flex items-center gap-2">
         {content}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="h-9 w-9">
-              <ChevronDown className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setLeaveDialogOpen(true)}>
-              <CalendarPlus className="size-4" />
-              Solicitar Permiso
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setLeaveDialogOpen(true)}
+        >
+          <CalendarPlus className="size-4" />
+          Solicitar permiso
+        </Button>
       </div>
 
       <Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Solicitar Permiso</DialogTitle>
-            <DialogDescription className="text-sm text-pretty">
+          <DialogHeader className="px-4 py-4">
+            <DialogTitle className="text-left text-pretty">
+              Solicitar Permiso
+            </DialogTitle>
+            <DialogDescription className="text-left text-sm text-pretty">
               Rellena este formulario para ausentarte justificadamente.
+            </DialogDescription>
+            <DialogDescription className="text-left text-sm text-pretty text-red-400">
+              {reasonError}
             </DialogDescription>
           </DialogHeader>
           <LeaveRequestForm onSuccess={() => setLeaveDialogOpen(false)} />
@@ -293,23 +280,29 @@ export function AttendanceWidget() {
       </Dialog>
 
       <Dialog open={reasonDialogOpen} onOpenChange={setReasonDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Motivo requerido</DialogTitle>
-            <DialogDescription className="mt-2 flex items-center gap-2 text-amber-600">
+        <DialogContent className="md:max-w-md">
+          <DialogHeader className="px-4 py-4">
+            <DialogTitle className="text-left text-pretty">
+              Motivo requerido
+            </DialogTitle>
+            <DialogDescription className="flex items-center gap-2 text-left text-pretty">
               <AlertCircle className="size-4" />
+              Debes indicar el motivo de tu salida detalladamente.
+            </DialogDescription>
+            <DialogDescription className="text-left text-sm text-pretty text-red-400">
               {reasonError}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="px-4">
             <Textarea
+              className="h-full"
               placeholder="Explica el motivo..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              rows={3}
+              rows={10}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="grid grid-cols-2 gap-2 px-4 py-4">
             <Button
               variant="outline"
               onClick={() => setReasonDialogOpen(false)}
