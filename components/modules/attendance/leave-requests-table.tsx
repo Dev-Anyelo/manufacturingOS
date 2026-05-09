@@ -139,10 +139,14 @@ export function LeaveRequestsTable({
       Promise.all([
         queryClient.invalidateQueries({ queryKey: ["attendance", "today"] }),
         queryClient.invalidateQueries({ queryKey: ["attendance", "history"] }),
-        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "summary"] }),
+        queryClient.invalidateQueries({
+          queryKey: ["attendance", "admin", "summary"],
+        }),
         queryClient.invalidateQueries({ queryKey: ["attendance", "report"] }),
         queryClient.invalidateQueries({ queryKey: ["leave", employeeId] }),
-        queryClient.invalidateQueries({ queryKey: ["attendance", "admin", "employee"] })
+        queryClient.invalidateQueries({
+          queryKey: ["attendance", "admin", "employee"],
+        }),
       ])
       setSelectedRequest(null)
       setApprovalNote("")
