@@ -34,8 +34,16 @@ export default async function UserDetailPage(props: {
     notFound()
   }
 
+  // Fetch email from Supabase Auth since it's not in the Profile model
+  const { createSupabaseAdminClient } = await import("@/lib/supabase/admin")
+  const supabaseAdmin = createSupabaseAdminClient()
+  const { data: { user: authUser } } = await supabaseAdmin.auth.admin.getUserById(userId)
+
   // Serialize dates for client component
-  const serializedProfile = JSON.parse(JSON.stringify(profile))
+  const serializedProfile = JSON.parse(JSON.stringify({
+    ...profile,
+    email: authUser?.email || profile.employee?.email || null
+  }))
 
   return <UserDetailClient profile={serializedProfile} isAdmin={isAdmin} />
 }

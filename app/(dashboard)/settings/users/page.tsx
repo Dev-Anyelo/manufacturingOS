@@ -37,6 +37,12 @@ export default async function UsersSettingsPage() {
     },
   })
 
+  // Fetch emails from Supabase Auth as a fallback for the list
+  const { createSupabaseAdminClient } = await import("@/lib/supabase/admin")
+  const supabaseAdmin = createSupabaseAdminClient()
+  const { data: { users: authUsers } } = await supabaseAdmin.auth.admin.listUsers()
+  const emailMap = new Map(authUsers?.map(u => [u.id, u.email]) || [])
+
   return (
     <div className="page-shell">
       <PageHeader
@@ -55,7 +61,7 @@ export default async function UsersSettingsPage() {
           users={users.map(
             (u): UsersTableUser => ({
               ...u,
-              email: undefined,
+              email: u.employee?.email || emailMap.get(u.id) || null,
               employee: u.employee
                 ? {
                     ...u.employee,

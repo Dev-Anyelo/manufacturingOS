@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog"
 
 interface LeaveRequest {
@@ -337,14 +338,12 @@ export function LeaveRequestsTable({
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-8 border-red-200 text-red-600 shadow-none hover:bg-red-50 hover:text-red-700"
                             onClick={() => handleAction(req, "rejected")}
                           >
                             <X className="mr-1 h-3.5 w-3.5" /> Rechazar
                           </Button>
                           <Button
                             size="sm"
-                            className="h-8 bg-emerald-600 shadow-none hover:bg-emerald-700"
                             onClick={() => handleAction(req, "approved")}
                           >
                             <Check className="mr-1 h-3.5 w-3.5" /> Aprobar
@@ -374,12 +373,12 @@ export function LeaveRequestsTable({
         onOpenChange={(o) => !o && setSelectedRequest(null)}
       >
         <DialogContent className="max-w-[90vw] md:max-w-md">
-          <DialogHeader>
+          <DialogHeader className="p-4">
             <DialogTitle>
-              {actionType === "approved" ? "Aprobar" : "Rechazar"} Permiso
+              {actionType === "approved" ? "Aprobar" : "Rechazar"} permiso
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <DialogDescription className="space-y-4 px-4">
             <p className="text-sm text-pretty text-muted-foreground">
               ¿Estás seguro de que deseas{" "}
               <strong>
@@ -404,8 +403,8 @@ export function LeaveRequestsTable({
                 onChange={(e) => setApprovalNote(e.target.value)}
               />
             </div>
-          </div>
-          <DialogFooter>
+          </DialogDescription>
+          <DialogFooter className="grid grid-cols-2 gap-x-2 p-4">
             <Button variant="outline" onClick={() => setSelectedRequest(null)}>
               Cancelar
             </Button>

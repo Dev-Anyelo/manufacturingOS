@@ -88,7 +88,6 @@ const formSchema = z
   )
   .refine(
     (data) => {
-      // Email is required for new users
       if (!data.id && (!data.email || data.email === "")) return false
       return true
     },
@@ -232,21 +231,24 @@ export function UserForm({ initialData, onSuccess }: UserFormProps) {
             Información Personal
           </h4>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {!initialData?.id && (
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="sm:col-span-2">
-                    <FormLabel>Correo Electrónico</FormLabel>
-                    <FormControl>
-                      <Input placeholder="usuario@empresa.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>Correo Electrónico</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="usuario@empresa.com"
+                      {...field}
+                      disabled={!!initialData?.id}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

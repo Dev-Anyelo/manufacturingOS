@@ -10,7 +10,7 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  } from "@/lib/api/response"
+} from "@/lib/api/response"
 
 import { requirePermission } from "@/lib/api/require-permission"
 
@@ -27,9 +27,9 @@ const createUserSchema = z.object({
     .optional(),
   documentId: z.string().optional(),
   hireDate: z.string().optional(),
-  contractType: z.enum(['fixed_salary', 'per_piece', 'hourly']).optional(),
+  contractType: z.enum(["fixed_salary", "per_piece", "hourly"]).optional(),
   baseSalary: z.number().optional(),
-  baseSalaryCurrency: z.enum(['NIO', 'USD']).optional(),
+  baseSalaryCurrency: z.enum(["NIO", "USD"]).optional(),
 })
 
 type SupabaseAdminError = {
@@ -95,6 +95,11 @@ export async function GET() {
         isActive: true,
         phone: true,
         createdAt: true,
+        employee: {
+          select: {
+            email: true,
+          },
+        },
       },
     })
 
@@ -152,18 +157,19 @@ export async function POST(request: Request) {
       },
     })
 
-    if (payload.role === 'employee' && payload.documentId && payload.hireDate) {
+    if (payload.role === "employee" && payload.documentId && payload.hireDate) {
       await prisma.employee.create({
         data: {
           profileId: data.user.id,
           fullName: payload.full_name,
+          email: normalizedEmail,
           documentId: payload.documentId,
           hireDate: new Date(payload.hireDate),
-          contractType: payload.contractType || 'fixed_salary',
+          contractType: payload.contractType || "fixed_salary",
           baseSalary: payload.baseSalary || 0,
-          baseSalaryCurrency: payload.baseSalaryCurrency || 'NIO',
-          isActive: true
-        }
+          baseSalaryCurrency: payload.baseSalaryCurrency || "NIO",
+          isActive: true,
+        },
       })
     }
 

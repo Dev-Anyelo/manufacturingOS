@@ -300,9 +300,9 @@ export function AttendanceWidget() {
 
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar marcación</AlertDialogTitle>
-            <AlertDialogDescription>
+          <AlertDialogHeader className="px-4 py-4">
+            <AlertDialogTitle className="text-left text-pretty">Confirmar marcación</AlertDialogTitle>
+            <AlertDialogDescription className="text-left text-pretty">
               ¿Deseas registrar tu{" "}
               {confirmDialog.action === "check-in"
                 ? "entrada"
@@ -316,7 +316,7 @@ export function AttendanceWidget() {
               Hora registrada: <strong className="text-foreground">{confirmDialog.timeStr}</strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="px-4 py-4 grid grid-cols-2 gap-x-2">
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmAction}>Confirmar</AlertDialogAction>
           </AlertDialogFooter>

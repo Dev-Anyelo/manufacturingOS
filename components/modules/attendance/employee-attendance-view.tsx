@@ -251,6 +251,7 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
   let mainAction = null
   let isEarlyExit = false
 
+
   if (todayLoading) {
     mainAction = <Skeleton className="h-12 w-full" />
   } else if (!record || !record.checkInAt) {

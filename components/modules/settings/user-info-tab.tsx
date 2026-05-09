@@ -11,13 +11,6 @@ import type { UserRole, ContractType, Currency } from "@prisma/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -32,14 +25,6 @@ const CONTRACT_LABELS: Record<string, string> = {
   per_piece: "Por Obra / Destajo",
   hourly: "Por Hora",
 }
-
-const ROLE_LABELS: Record<string, string> = {
-  admin: "Administrador",
-  manager: "Gerente",
-  employee: "Empleado",
-  readonly: "Solo lectura",
-}
-
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -64,37 +49,13 @@ interface UserInfoTabProps {
       baseSalary: number | string | null
       baseSalaryCurrency: Currency | null
       isActive: boolean
+      email?: string | null
     } | null
   }
-  email?: string | null
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
-function InfoRow({
-  label,
-  value,
-  className,
-}: {
-  label: string
-  value: React.ReactNode
-  className?: string
-}) {
-  return (
-    <div
-      className={`flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3 ${className || ""}`}
-    >
-      <dt className="min-w-35 shrink-0 text-xs font-medium text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="text-sm text-foreground">{value || "—"}</dd>
-    </div>
-  )
-}
-
-export function UserInfoTab({ profile, email }: UserInfoTabProps) {
+export function UserInfoTab({ profile }: UserInfoTabProps) {
   const [systemOpen, setSystemOpen] = useState(false)
 
   return (
@@ -138,7 +99,7 @@ export function UserInfoTab({ profile, email }: UserInfoTabProps) {
                 <dt className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   Correo Electrónico
                 </dt>
-                <dd className="text-sm font-medium">{email || "—"}</dd>
+                <dd className="text-sm font-medium">{profile.employee?.email || "—"}</dd>
               </div>
               <div className="space-y-1">
                 <dt className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">

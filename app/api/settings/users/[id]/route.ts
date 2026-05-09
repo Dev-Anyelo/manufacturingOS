@@ -28,6 +28,7 @@ const updateUserSchema = z.object({
   contractType: z.nativeEnum(ContractType).optional(),
   baseSalary: z.number().optional(),
   baseSalaryCurrency: z.nativeEnum(Currency).optional(),
+  email: z.string().email("El correo electronico no es valido").optional(),
 })
 
 type RouteParams = {
@@ -103,6 +104,7 @@ export async function PATCH(
             baseSalary: payload.baseSalary || 0,
             baseSalaryCurrency: payload.baseSalaryCurrency || "NIO",
             fullName: payload.full_name || "Empleado",
+            email: payload.email,
           },
           update: {
             documentId: payload.documentId,
@@ -111,6 +113,7 @@ export async function PATCH(
             baseSalary: payload.baseSalary,
             baseSalaryCurrency: payload.baseSalaryCurrency,
             fullName: payload.full_name,
+            email: payload.email,
           },
         },
       }
