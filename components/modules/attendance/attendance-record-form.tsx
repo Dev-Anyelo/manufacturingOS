@@ -293,7 +293,7 @@ export function AttendanceRecordForm({
       <Separator className="opacity-50" />
 
       {/* Sección de Horarios */}
-      <div className="grid gap-8">
+      <div className="grid gap-6">
         {/* Jornada Principal */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -394,7 +394,7 @@ export function AttendanceRecordForm({
       </div>
 
       {/* Acciones */}
-      <div className="grid grid-cols-2 gap-3 pt-2">
+      <div className="grid grid-cols-2 gap-3 pt-2 pb-0">
         <Button
           type="button"
           variant="ghost"
@@ -406,11 +406,11 @@ export function AttendanceRecordForm({
         </Button>
         <Button type="submit" disabled={isSaving} size="sm">
           {isSaving ? (
-            <Loader2 className="mr-2 size-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : (
-            <CheckCircle2 className="mr-2 size-4" />
+            <CheckCircle2 className="size-4" />
           )}
-          Guardar Registro
+          Guardar registro
         </Button>
       </div>
     </form>

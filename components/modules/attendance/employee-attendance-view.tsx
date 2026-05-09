@@ -24,6 +24,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -56,6 +57,7 @@ import {
   CalendarCheck,
   CalendarDays,
   Loader2,
+  Plus,
 } from "lucide-react"
 
 function formatTime(dateStr: string | null) {
@@ -249,12 +251,11 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
   } else if (!record || !record.checkInAt) {
     mainAction = (
       <Button
-        size="lg"
-        className="h-14 w-full gap-2 bg-primary text-base"
+        size="sm"
         onClick={() => actionMutation.mutate({ action: "check-in" })}
         disabled={actionMutation.isPending}
       >
-        <LogIn className="size-5" /> Registrar entrada
+        <LogIn className="size-4" /> Registrar entrada
       </Button>
     )
   } else if (!record.checkOutAt) {
@@ -267,7 +268,7 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
           onClick={() => actionMutation.mutate({ action: "lunch-start" })}
           disabled={actionMutation.isPending}
         >
-          <UtensilsCrossed className="size-5" /> Iniciar almuerzo
+          <UtensilsCrossed className="size-4" /> Iniciar almuerzo
         </Button>
       )
     } else if (
@@ -283,11 +284,11 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
           onClick={() => actionMutation.mutate({ action: "lunch-end" })}
           disabled={actionMutation.isPending}
         >
-          <CheckCheck className="size-5" /> Fin de almuerzo
+          <CheckCheck className="size-4" /> Fin de almuerzo
         </Button>
       )
     } else {
-      isEarlyExit = true // Might be early, so we allow note
+      isEarlyExit = true
       mainAction = (
         <div className="space-y-3">
           <Button
@@ -301,7 +302,7 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
             }
             disabled={actionMutation.isPending}
           >
-            <LogOut className="size-5" /> Registrar salida
+            <LogOut className="size-4" /> Registrar salida
           </Button>
           <Input
             placeholder="Motivo (si es salida temprana)..."
@@ -319,7 +320,7 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
         disabled
         className="h-14 w-full gap-2 bg-emerald-600 text-base text-white opacity-100"
       >
-        <CheckCheck className="size-5" /> Jornada completada
+        <CheckCheck className="size-4" /> Jornada completada
       </Button>
     )
   }
@@ -344,31 +345,31 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
       />
 
       {/* Card principal del día */}
-      <Card className="overflow-hidden border-border/70 shadow-sm">
+      <Card className="mt-4 overflow-hidden border-border/70 shadow-sm">
         <div className="grid divide-y divide-border/60 md:grid-cols-[1fr_300px] md:divide-x md:divide-y-0">
-          <CardContent className="flex flex-col justify-center gap-6 p-6 sm:p-8">
+          <CardContent className="flex flex-col justify-center gap-3 px-4 py-0">
             <div className="space-y-1">
-              <p className="text-4xl font-light tracking-tight tabular-nums">
+              <p className="text-xl font-light tracking-tight text-pretty tabular-nums md:text-3xl">
                 {currentTime.toLocaleTimeString("es-NI", {
                   timeZone: TIMEZONE,
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
               </p>
-              <p className="text-sm font-medium tracking-wider text-muted-foreground uppercase">
+              <p className="text-sm font-medium tracking-wider text-pretty text-muted-foreground uppercase">
                 {format(currentTime, "EEEE, d 'de' MMMM", { locale: es })}
               </p>
             </div>
             <div className="max-w-md">{mainAction}</div>
           </CardContent>
 
-          <CardContent className="bg-muted/10 p-6">
+          <CardContent className="bg-muted/10 p-4">
             <h3 className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
               Timeline de hoy
             </h3>
             <div className="relative space-y-5 before:absolute before:inset-0 before:ml-[11px] before:h-full before:w-0.5 before:-translate-x-px before:bg-linear-to-b before:from-transparent before:via-border before:to-transparent md:before:mx-auto md:before:translate-x-0">
               <div className="group is-active relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse">
-                <div className="z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground">
+                <div className="z-10 flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground">
                   <LogIn className="size-3" />
                 </div>
                 <div className="ml-4 w-[calc(100%-2.5rem)] text-sm md:ml-0 md:w-[calc(50%-1.5rem)] md:group-odd:pr-6 md:group-even:pl-6">
@@ -390,7 +391,7 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
               {schedule?.expectedLunchStart && (
                 <>
                   <div className="group relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse">
-                    <div className="z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground">
+                    <div className="z-10 flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground">
                       <UtensilsCrossed className="size-3" />
                     </div>
                     <div className="ml-4 w-[calc(100%-2.5rem)] text-sm md:ml-0 md:w-[calc(50%-1.5rem)] md:group-odd:pr-6 md:group-even:pl-6">
@@ -402,7 +403,7 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
                   </div>
 
                   <div className="group relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse">
-                    <div className="z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground">
+                    <div className="z-10 flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground">
                       <CheckCheck className="size-3" />
                     </div>
                     <div className="ml-4 w-[calc(100%-2.5rem)] text-sm md:ml-0 md:w-[calc(50%-1.5rem)] md:group-odd:pr-6 md:group-even:pl-6">
@@ -416,7 +417,7 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
               )}
 
               <div className="group relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse">
-                <div className="z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground">
+                <div className="z-10 flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-background bg-muted text-muted-foreground">
                   <LogOut className="size-3" />
                 </div>
                 <div className="ml-4 w-[calc(100%-2.5rem)] text-sm md:ml-0 md:w-[calc(50%-1.5rem)] md:group-odd:pr-6 md:group-even:pl-6">
@@ -442,7 +443,7 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
           <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200" />
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="grid gap-3 p-4 pt-0 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 p-4 pt-0 grid-cols-2 lg:grid-cols-4">
             <CompactKpiCard
               label="Días trabajados"
               value={workedDays}
@@ -490,6 +491,7 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
               variant="outline"
               onClick={() => setLeaveDialogOpen(true)}
             >
+              <Plus className="size-4" />
               Solicitar permiso
             </Button>
 
@@ -647,8 +649,11 @@ export function EmployeeAttendanceView({ employeeId }: { employeeId: string }) {
 
       <Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Solicitar Permiso</DialogTitle>
+          <DialogHeader className="px-4 py-4">
+            <DialogTitle>Solicitar permiso</DialogTitle>
+            <DialogDescription>
+              Completa el formulario para solicitar un permiso.
+            </DialogDescription>
           </DialogHeader>
           <LeaveRequestForm onSuccess={() => setLeaveDialogOpen(false)} />
         </DialogContent>

@@ -15,7 +15,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray } from "react-hook-form"
 import { revalidatePaths } from "@/lib/ui/revalidatePaths"
-import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { EntitySelector } from "@/components/shared/entity-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -374,7 +373,7 @@ export function ProductionForm({
             <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
               {item.label}
             </span>
-            <span className="mt-0.5 text-sm font-bold tabular-nums">
+            <span className="mt-0.5 max-w-[150px] truncate text-sm font-bold tabular-nums">
               {item.value}
             </span>
           </div>

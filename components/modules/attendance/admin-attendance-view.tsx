@@ -18,6 +18,13 @@ import { AttendanceManualRecordPanel } from "./attendance-manual-record-panel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
+  AttendanceRecord,
+  LeaveRequest,
+  Employee,
+  LeaveStatusType,
+} from "@/types"
+
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -69,6 +76,8 @@ import {
   FileSpreadsheet,
   Loader2,
   Users,
+  Check,
+  X,
 } from "lucide-react"
 
 const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
@@ -110,7 +119,7 @@ const LEAVE_TYPE_LABELS: Record<string, string> = {
   other: "Otro",
 }
 
-function formatTime(dateStr: string | null) {
+function formatTime(dateStr: string | null | undefined) {
   if (!dateStr) return "—"
   const d = new Date(dateStr)
   return d.toLocaleTimeString("es-NI", {
@@ -140,14 +149,18 @@ export function AdminAttendanceView({
   )
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("all")
 
-  const [leaveToProcess, setLeaveToProcess] = useState<any | null>(null)
+  const [leaveToProcess, setLeaveToProcess] = useState<
+    (LeaveRequest & { employee: Employee }) | null
+  >(null)
   const [processAction, setProcessAction] = useState<
     "approve" | "reject" | null
   >(null)
   const [processNote, setProcessNote] = useState("")
 
   const [manualRecordOpen, setManualRecordOpen] = useState(false)
-  const [selectedRecordToEdit, setSelectedRecordToEdit] = useState<any>(null)
+  const [selectedRecordToEdit, setSelectedRecordToEdit] = useState<Partial<
+    AttendanceRecord & { employeeName?: string }
+  > | null>(null)
 
   // 1. Fetch Today Summary
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
@@ -232,12 +245,23 @@ export function AdminAttendanceView({
 
   // Filter for "Equipo hoy"
   const todayStr = format(new Date(), "yyyy-MM-dd")
-  const todayRecords =
-    reportData?.data?.records?.filter((r: any) => r.date === todayStr) || []
+  const todayRecords: Array<
+    AttendanceRecord & {
+      employeeName?: string
+      totalHours?: number
+      checkIn?: string
+      checkOut?: string
+    }
+  > =
+    reportData?.data?.records?.filter(
+      (r: AttendanceRecord) => r.date === todayStr
+    ) || []
 
   // Filter for pending leaves
-  const pendingLeavesList =
-    leavesData?.data?.filter((l: any) => l.status === "pending") || []
+  const pendingLeavesList: Array<LeaveRequest & { employee: Employee }> =
+    leavesData?.data?.filter(
+      (l: LeaveRequest) => l.status === LeaveStatusType.Pending
+    ) || []
 
   return (
     <div className="space-y-6">
@@ -356,7 +380,7 @@ export function AdminAttendanceView({
                 ) : (
                   teamEmployees.map((emp) => {
                     const record = todayRecords.find(
-                      (r: any) => r.employeeName === emp.fullName
+                      (r) => r.employeeName === emp.fullName
                     )
                     const cfg = record
                       ? STATUS_CONFIG[record.status] || STATUS_CONFIG.incomplete
@@ -514,44 +538,53 @@ export function AdminAttendanceView({
                     </TableCell>
                   </TableRow>
                 ) : (
-                  reportData?.data?.records?.map((record: any) => {
-                    const cfg =
-                      STATUS_CONFIG[record.status] || STATUS_CONFIG.incomplete
-                    return (
-                      <TableRow key={record.id}>
-                        <TableCell className="font-medium">
-                          {record.employeeName}
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(record.date), "dd MMM yyyy", {
-                            locale: es,
-                          })}
-                        </TableCell>
-                        <TableCell>{formatTime(record.checkIn)}</TableCell>
-                        <TableCell>{formatTime(record.checkOut)}</TableCell>
-                        <TableCell>
-                          {record.totalHours ? `${record.totalHours}h` : "—"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={cfg.color}>
-                            {cfg.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setSelectedRecordToEdit(record)
-                              setManualRecordOpen(true)
-                            }}
-                          >
-                            <Edit className="size-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
+                  reportData?.data?.records?.map(
+                    (
+                      record: AttendanceRecord & {
+                        employeeName?: string
+                        totalHours?: number
+                        checkIn?: string
+                        checkOut?: string
+                      }
+                    ) => {
+                      const cfg =
+                        STATUS_CONFIG[record.status] || STATUS_CONFIG.incomplete
+                      return (
+                        <TableRow key={record.id}>
+                          <TableCell className="font-medium">
+                            {record.employeeName}
+                          </TableCell>
+                          <TableCell>
+                            {format(new Date(record.date), "dd MMM yyyy", {
+                              locale: es,
+                            })}
+                          </TableCell>
+                          <TableCell>{formatTime(record.checkIn)}</TableCell>
+                          <TableCell>{formatTime(record.checkOut)}</TableCell>
+                          <TableCell>
+                            {record.totalHours ? `${record.totalHours}h` : "—"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={cfg.color}>
+                              {cfg.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedRecordToEdit(record)
+                                setManualRecordOpen(true)
+                              }}
+                            >
+                              <Edit className="size-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    }
+                  )
                 )}
               </TableBody>
             </Table>
@@ -559,7 +592,7 @@ export function AdminAttendanceView({
         </TabsContent>
 
         {/* Tab: Permisos */}
-        <TabsContent value="leaves" className="pt-4">
+        <TabsContent value="leaves" className="pt-2">
           <h3 className="mb-3 text-sm font-semibold">Solicitudes Pendientes</h3>
           {leavesLoading ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -572,10 +605,10 @@ export function AdminAttendanceView({
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {pendingLeavesList.map((leave: any) => (
+              {pendingLeavesList.map((leave) => (
                 <Card
                   key={leave.id}
-                  className="flex flex-col overflow-hidden border-border/70"
+                  className="flex flex-col overflow-hidden border-border/70 py-0"
                 >
                   <CardContent className="flex-1 p-4">
                     <div className="mb-3 flex items-center gap-3">
@@ -602,27 +635,29 @@ export function AdminAttendanceView({
                       "{leave.reason}"
                     </p>
                   </CardContent>
-                  <div className="flex divide-x divide-border/70 border-t border-border/70 bg-muted/20">
-                    <button
+                  <div className="grid grid-cols-2 gap-x-2 divide-x divide-border/70 border-t border-border/70 bg-muted/20 p-4">
+                    <Button
                       onClick={() => {
                         setLeaveToProcess(leave)
                         setProcessAction("reject")
                         setProcessNote("")
                       }}
-                      className="flex-1 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
+                      variant="destructive"
                     >
+                      <X className="size-4" />
                       Rechazar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => {
                         setLeaveToProcess(leave)
                         setProcessAction("approve")
                         setProcessNote("")
                       }}
-                      className="flex-1 py-2 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
+                      variant="default"
                     >
-                      Aprobar ✓
-                    </button>
+                      <Check className="size-4" />
+                      Aprobar
+                    </Button>
                   </div>
                 </Card>
               ))}
@@ -637,7 +672,7 @@ export function AdminAttendanceView({
         onOpenChange={(open) => !open && setLeaveToProcess(null)}
       >
         <DrawerContent>
-          <div className="mx-auto w-full max-w-sm">
+          <div className="mx-auto w-full max-w-2xl">
             <DrawerHeader>
               <DrawerTitle>
                 {processAction === "approve" ? "Aprobar" : "Rechazar"} permiso
@@ -649,7 +684,7 @@ export function AdminAttendanceView({
               </DrawerDescription>
             </DrawerHeader>
             <div className="space-y-4 p-4">
-              <div className="rounded-lg bg-muted/30 p-3 text-sm">
+              <div className="rounded-lg bg-muted p-3 text-sm dark:bg-muted/30">
                 <p className="mb-1 font-medium">
                   {leaveToProcess?.employee?.fullName}
                 </p>
@@ -659,7 +694,7 @@ export function AdminAttendanceView({
                       locale: es,
                     })}
                 </p>
-                <p className="text-muted-foreground italic">
+                <p className="text-pretty text-muted-foreground italic">
                   "{leaveToProcess?.reason}"
                 </p>
               </div>
@@ -672,6 +707,7 @@ export function AdminAttendanceView({
                 <Input
                   value={processNote}
                   onChange={(e) => setProcessNote(e.target.value)}
+                  autoFocus
                   placeholder={
                     processAction === "approve"
                       ? "Ej: Disfruta tu día..."
@@ -680,7 +716,10 @@ export function AdminAttendanceView({
                 />
               </div>
             </div>
-            <DrawerFooter>
+            <DrawerFooter className="grid grid-cols-2 gap-2 pb-6">
+              <DrawerClose asChild>
+                <Button variant="outline">Cancelar</Button>
+              </DrawerClose>
               <Button
                 variant={
                   processAction === "approve" ? "default" : "destructive"
@@ -694,14 +733,15 @@ export function AdminAttendanceView({
                   (processAction === "reject" && !processNote.trim()) ||
                   processLeaveMutation.isPending
                 }
-                onClick={() =>
+                onClick={() => {
+                  if (!leaveToProcess) return
                   processLeaveMutation.mutate({
                     id: leaveToProcess.id,
                     status:
                       processAction === "approve" ? "approved" : "rejected",
                     note: processNote,
                   })
-                }
+                }}
               >
                 {processLeaveMutation.isPending && (
                   <Loader2 className="size-4 animate-spin" />
@@ -709,9 +749,6 @@ export function AdminAttendanceView({
                 Confirmar{" "}
                 {processAction === "approve" ? "aprobación" : "rechazo"}
               </Button>
-              <DrawerClose asChild>
-                <Button variant="outline">Cancelar</Button>
-              </DrawerClose>
             </DrawerFooter>
           </div>
         </DrawerContent>

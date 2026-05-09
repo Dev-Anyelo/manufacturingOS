@@ -26,7 +26,10 @@ export async function POST(request: Request) {
 
     if (!employee) {
       return NextResponse.json(
-        { error: "No employee profile linked to this user" },
+        {
+          error:
+            "No se encontró un perfil de empleado vinculado a este usuario",
+        },
         { status: 403 }
       )
     }
@@ -41,7 +44,7 @@ export async function POST(request: Request) {
 
     if (existing && existing.checkInAt) {
       return NextResponse.json(
-        { error: "Already checked in for today" },
+        { error: "Ya has marcado tu entrada hoy" },
         { status: 400 }
       )
     }
@@ -92,7 +95,7 @@ export async function POST(request: Request) {
             userId: admin.id,
             type: "attendance_late",
             title: "Llegada tardía",
-            body: `${employee.fullName} ha marcado entrada con ${lateMinutes} minutos de retraso.`,
+            body: `${employee.fullName} ha marcado entrada tarde con ${lateMinutes} minutos de retraso.`,
             metadata: {
               employeeId: employee.id,
               lateMinutes,
