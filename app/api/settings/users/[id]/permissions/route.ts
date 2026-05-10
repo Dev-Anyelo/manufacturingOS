@@ -1,12 +1,13 @@
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
+import { MODULE_KEYS } from "@/lib/permissions/types"
 import { invalidatePermissions } from "@/lib/permissions/cache"
 import { requirePermission } from "@/lib/api/require-permission"
 import { apiSuccess, handleApiError, requireAuth } from "@/lib/api/response"
 
 const overrideSchema = z.array(
   z.object({
-    module: z.string(),
+    module: z.enum(MODULE_KEYS),
     canView: z.boolean(),
     canCreate: z.boolean(),
     canEdit: z.boolean(),
