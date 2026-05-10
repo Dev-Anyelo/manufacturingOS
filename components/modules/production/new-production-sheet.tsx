@@ -48,7 +48,7 @@ export function NewProductionSheet({
 
   return (
     <>
-      <Button size="sm" className="max-w-fit" onClick={() => setOpen(true)}>
+      <Button size="sm" className="w-full md:max-w-fit" onClick={() => setOpen(true)}>
         <PlusIcon className="size-4 shrink-0" />
         Nueva sesión
       </Button>

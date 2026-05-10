@@ -74,7 +74,7 @@ export default async function ProductionPage(props: {
             { label: "Producción" },
           ]}
           actions={
-            <div className="flex flex-row gap-3">
+            <div className="flex flex-row flex-wrap gap-3">
               <UrlDateFilter />
               <NewProductionSheet
                 employees={bootstrap.employees}
