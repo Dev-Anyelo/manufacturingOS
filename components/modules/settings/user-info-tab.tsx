@@ -51,6 +51,7 @@ interface UserInfoTabProps {
       isActive: boolean
       email?: string | null
     } | null
+    email?: string | null
   }
 }
 
@@ -99,7 +100,7 @@ export function UserInfoTab({ profile }: UserInfoTabProps) {
                 <dt className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   Correo Electrónico
                 </dt>
-                <dd className="text-sm font-medium">{profile.employee?.email || "—"}</dd>
+                <dd className="text-sm font-medium">{profile.email || profile.employee?.email || "—"}</dd>
               </div>
               <div className="space-y-1">
                 <dt className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">

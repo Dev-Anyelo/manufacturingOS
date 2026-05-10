@@ -42,7 +42,7 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 DECLARE
-  notif_type TEXT;
+  notif_type public.notification_type;
 BEGIN
   IF NEW.is_active IS NOT TRUE THEN
     RETURN NEW;
@@ -52,7 +52,7 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  notif_type := CASE WHEN NEW.quantity = 0 THEN 'out_of_stock' ELSE 'low_stock' END;
+  notif_type := CASE WHEN NEW.quantity = 0 THEN 'out_of_stock'::public.notification_type ELSE 'low_stock'::public.notification_type END;
 
   INSERT INTO public.notifications (user_id, type, title, body, metadata)
   SELECT

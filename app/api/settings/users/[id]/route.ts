@@ -1,5 +1,7 @@
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
+import { requirePermission } from "@/lib/api/require-permission"
+import { createSupabaseAdminClient } from "@/lib/supabase/admin"
 import { UserRole, ContractType, Currency, Prisma } from "@prisma/client"
 
 import {
@@ -9,8 +11,6 @@ import {
   requireAuth,
   resolveRouteParams,
 } from "@/lib/api/response"
-
-import { requirePermission } from "@/lib/api/require-permission"
 
 const updateUserSchema = z.object({
   role: z.nativeEnum(UserRole).optional(),
@@ -66,7 +66,15 @@ export async function GET(
       })
     }
 
-    return apiSuccess(profile)
+    // Get email from Supabase Auth
+    const supabaseAdmin = createSupabaseAdminClient()
+    const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(id)
+    const email = authUser.user?.email ?? null
+
+    return apiSuccess({
+      ...profile,
+      email,
+    })
   } catch (error) {
     return handleApiError(error)
   }
@@ -116,6 +124,26 @@ export async function PATCH(
             email: payload.email,
           },
         },
+      }
+    }
+
+    // Update email in Supabase Auth if provided and different
+    if (payload.email) {
+      const supabaseAdmin = createSupabaseAdminClient()
+      const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(id)
+
+      if (authUser.user && authUser.user.email !== payload.email) {
+        const { error: updateError } =
+          await supabaseAdmin.auth.admin.updateUserById(id, {
+            email: payload.email,
+          })
+
+        if (updateError) {
+          console.error(
+            "[api/settings/users/[id]] update auth email failed",
+            updateError
+          )
+        }
       }
     }
 

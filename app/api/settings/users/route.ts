@@ -97,13 +97,27 @@ export async function GET() {
         createdAt: true,
         employee: {
           select: {
+            id: true,
             email: true,
           },
         },
       },
     })
 
-    return apiSuccess(users)
+    // Get emails from Supabase Auth
+    const supabaseAdmin = createSupabaseAdminClient()
+    const { data: authData } = await supabaseAdmin.auth.admin.listUsers()
+    const authUsers = authData?.users ?? []
+
+    const usersWithEmail = users.map((user) => {
+      const authUser = authUsers.find((au) => au.id === user.id)
+      return {
+        ...user,
+        email: authUser?.email ?? user.employee?.email ?? null,
+      }
+    })
+
+    return apiSuccess(usersWithEmail)
   } catch (error) {
     return handleApiError(error)
   }

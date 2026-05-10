@@ -65,6 +65,7 @@ interface ProfileData {
   createdAt: string | Date
   updatedAt: string | Date
   employee: EmployeeData | null
+  email: string | null
 }
 
 interface UserDetailClientProps {
@@ -226,7 +227,7 @@ export function UserDetailClient({ profile, isAdmin }: UserDetailClientProps) {
           birthDate: profile.birthDate,
           avatarUrl: profile.avatarUrl,
           isActive: profile.isActive,
-          email: profile.employee?.email,
+          email: profile.email || profile.employee?.email,
           employee: profile.employee
             ? {
                 documentId: profile.employee.documentId,

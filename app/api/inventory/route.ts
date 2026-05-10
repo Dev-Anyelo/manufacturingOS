@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
 import { getSearchParam } from "@/lib/api/utils"
-import { Prisma, UserRole } from "@prisma/client"
 import { requirePermission } from "@/lib/api/require-permission"
 import { inventoryItemSchema } from "@/lib/validations/inventory"
 
@@ -9,8 +9,7 @@ import {
   handleApiError,
   parseBodyWithSchema,
   requireAuth,
-  } from "@/lib/api/response"
-
+} from "@/lib/api/response"
 
 export async function GET(request: Request) {
   try {
