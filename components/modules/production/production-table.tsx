@@ -364,7 +364,7 @@ export function ProductionTable({
               value={employeeFilter === "all" ? "" : employeeFilter}
               onChange={(id) => setEmployeeFilter(id || "all")}
               placeholder="Filtrar por empleado..."
-              label="Empleado"
+              label=""
               className="w-full sm:w-[250px]"
             />
 
