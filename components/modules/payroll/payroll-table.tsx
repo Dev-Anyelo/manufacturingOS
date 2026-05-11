@@ -12,6 +12,7 @@ import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { PayrollSheet } from "@/components/modules/payroll/payroll-sheet"
 
 import {
   CheckCircle2Icon,
@@ -55,16 +56,32 @@ export interface PayrollTableRow {
   employeeName: string
   periodStart: string
   periodEnd: string
+  piecesProduced: number | null
+  hoursWorked: number | null
+  baseAmount: number
+  bonuses: number
+  deductions: number
   total: number
   totalCurrency: Currency
+  currency: Currency
   status: "pending" | "paid"
   paymentDate: string | null
   paymentMethod: "cash" | "transfer" | "other" | null
+  notes: string | null
+  receiptUrl: string | null
   createdByName: string
+}
+
+type EmployeeOption = {
+  id: string
+  fullName: string
+  contractType: "fixed_salary" | "per_piece" | "hourly"
+  baseSalary: number | null
 }
 
 interface PayrollTableProps {
   payments: PayrollTableRow[]
+  employees: EmployeeOption[]
   onMarkPaid: (row: PayrollTableRow) => void
   onSendEmail: (id: string) => Promise<void>
   busyId?: string | null
@@ -84,6 +101,7 @@ const statusLabelMap: Record<PayrollTableRow["status"], string> = {
 
 export function PayrollTable({
   payments,
+  employees,
   onMarkPaid,
   onSendEmail,
   busyId,
@@ -92,6 +110,9 @@ export function PayrollTable({
   const router = useRouter()
   const [statusFilter, setStatusFilter] = React.useState("all")
   const [employeeFilter, setEmployeeFilter] = React.useState("all")
+  const [editingPayment, setEditingPayment] = React.useState<PayrollTableRow | null>(
+    null
+  )
   const [paymentToDelete, setPaymentToDelete] =
     React.useState<PayrollTableRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
@@ -237,14 +258,12 @@ export function PayrollTable({
                 </DropdownMenuItem>
                 
                 {row.original.status === "pending" && (
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href={`/payroll/${row.original.id}/edit`}
-                      className="flex items-center gap-2"
-                    >
-                      <PencilLineIcon className="size-4" />
-                      Editar
-                    </Link>
+                  <DropdownMenuItem
+                    className="flex items-center gap-2"
+                    onClick={() => setEditingPayment(row.original)}
+                  >
+                    <PencilLineIcon className="size-4" />
+                    Editar
                   </DropdownMenuItem>
                 )}
 
@@ -287,6 +306,35 @@ export function PayrollTable({
     [busyId, onMarkPaid, onSendEmail, canDelete]
   )
 
+  const toolbar = (
+    <div className="flex flex-wrap items-center gap-2">
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="Estado" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="pending">Pendiente</SelectItem>
+          <SelectItem value="paid">Pagado</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+        <SelectTrigger className="w-44">
+          <SelectValue placeholder="Empleado" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          {employeeOptions.map((employee) => (
+            <SelectItem key={employee.id} value={employee.id}>
+              {employee.fullName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+
   return (
     <div className="space-y-3">
       <DataTable
@@ -296,34 +344,36 @@ export function PayrollTable({
         searchPlaceholder="Buscar empleado..."
         emptyMessage="Sin pagos de planilla"
         emptyDescription="Registra una nueva corrida para calcular y pagar planilla."
-        toolbar={
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="pending">Pendiente</SelectItem>
-                <SelectItem value="paid">Pagado</SelectItem>
-              </SelectContent>
-            </Select>
+        toolbar={toolbar}
+      />
 
-            <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Empleado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {employeeOptions.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.fullName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Edit Payment Sheet */}
+      <PayrollSheet
+        open={Boolean(editingPayment)}
+        onOpenChange={(open) => !open && setEditingPayment(null)}
+        paymentId={editingPayment?.id}
+        employees={employees}
+        defaultValues={
+          editingPayment
+            ? {
+                employee_id: editingPayment.employeeId,
+                period_start: editingPayment.periodStart,
+                period_end: editingPayment.periodEnd,
+                pieces_produced: editingPayment.piecesProduced,
+                hours_worked: editingPayment.hoursWorked,
+                base_amount: editingPayment.baseAmount,
+                base_amount_currency: editingPayment.currency,
+                bonuses: editingPayment.bonuses,
+                bonuses_currency: editingPayment.currency,
+                deductions: editingPayment.deductions,
+                deductions_currency: editingPayment.currency,
+                payment_method: editingPayment.paymentMethod,
+                notes: editingPayment.notes,
+                receipt_url: editingPayment.receiptUrl,
+              }
+            : undefined
         }
+        trigger={null}
       />
 
       <AlertDialog

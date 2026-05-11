@@ -206,7 +206,7 @@ function DateInput({ label, value, onCommit, min, max }: DateInputProps) {
 
   return (
     <div className="flex-1 space-y-1.5">
-      <Label className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+      <Label className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
         {label}
       </Label>
       <Input
@@ -227,7 +227,7 @@ function DateInput({ label, value, onCommit, min, max }: DateInputProps) {
           error && "border-destructive focus-visible:ring-destructive/30"
         )}
       />
-      {error ? <p className="text-[11px] text-destructive">{error}</p> : null}
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
   )
 }
@@ -287,14 +287,14 @@ function Panel({
         )}
       >
         <div className="px-2 pt-1 pb-1.5">
-          <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             Rangos rápidos
           </p>
         </div>
         <div
           className={cn(
             "flex gap-1",
-            layout === "popover" ? "md:flex-col" : "flex-wrap"
+            layout === "popover" ? "md:flex-col" : "grid grid-cols-3"
           )}
         >
           {presets.map((p) => {
@@ -375,7 +375,7 @@ function Panel({
 
         <div className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               Selección
             </p>
             <p className="truncate text-sm font-medium tabular-nums">
@@ -557,8 +557,8 @@ export function DateRangePicker({
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent className="px-0 pb-2">
             <DrawerHeader className="px-4 pb-2 text-left">
-              <DrawerTitle className="text-base">Seleccionar rango</DrawerTitle>
-              <DrawerDescription className="text-xs">
+              <DrawerTitle className="text-base text-left text-pretty">Seleccionar rango</DrawerTitle>
+              <DrawerDescription className="text-xs text-left text-pretty">
                 Elige un rango rápido o escoge fechas en el calendario.
               </DrawerDescription>
             </DrawerHeader>

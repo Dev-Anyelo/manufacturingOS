@@ -73,6 +73,7 @@ type CatalogFormInput = z.input<typeof catalogFormSchema>
 type CatalogFormOutput = z.output<typeof catalogFormSchema>
 
 interface CatalogFormProps {
+  className?: string
   mode: "create" | "edit"
   itemId?: string
   defaultValues?: Partial<CatalogFormInput> & { image_url?: string | null }
@@ -90,6 +91,7 @@ function normalizeOptional(value?: string | null) {
 // Eliminado formatCurrency interno, se usa exchange.ts
 
 export function CatalogForm({
+  className,
   mode,
   itemId,
   defaultValues,
@@ -265,69 +267,72 @@ export function CatalogForm({
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="mx-auto w-full"
+      className={cn("flex h-full min-h-0 flex-col", className)}
       noValidate
     >
-      {/* Quick Stats Bar - Compact Info Bar */}
-      <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
-        {[
-          {
-            label: "Mercado",
-            amount: Number(form.watch("market_price_unit") || 0),
-            currency:
-              (form.watch("market_price_unit_currency") as Currency) ||
-              Currency.USD,
-          },
-          {
-            label: "Nuestro precio",
-            amount: Number(form.watch("our_price_unit") || 0),
-            currency:
-              (form.watch("our_price_unit_currency") as Currency) ||
-              Currency.USD,
-          },
-          {
-            label: "Costo est.",
-            amount: Number(form.watch("estimated_cost") || 0),
-            currency:
-              (form.watch("estimated_cost_currency") as Currency) ||
-              Currency.USD,
-          },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className={cn(
-              "flex shrink-0 flex-col items-center px-4 py-2",
-              i > 0 && "border-l border-border/60"
-            )}
-          >
-            <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-              {item.label}
-            </span>
-            <div className="mt-0.5">
-              <CurrencyDisplay
-                amount={item.amount}
-                currency={item.currency}
-                size="sm"
-              />
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {/* Quick Stats Bar - Compact Info Bar */}
+        <div className="sticky top-0 z-10 flex items-center justify-center border-b border-border/50 bg-background/95 py-2 backdrop-blur-sm">
+          {[
+            {
+              label: "Mercado",
+              amount: Number(form.watch("market_price_unit") || 0),
+              currency:
+                (form.watch("market_price_unit_currency") as Currency) ||
+                Currency.USD,
+            },
+            {
+              label: "Nuestro precio",
+              amount: Number(form.watch("our_price_unit") || 0),
+              currency:
+                (form.watch("our_price_unit_currency") as Currency) ||
+                Currency.USD,
+            },
+            {
+              label: "Costo est.",
+              amount: Number(form.watch("estimated_cost") || 0),
+              currency:
+                (form.watch("estimated_cost_currency") as Currency) ||
+                Currency.USD,
+            },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className={cn(
+                "flex shrink-0 flex-col items-center px-4 py-2",
+                i > 0 && "border-l border-border/60"
+              )}
+            >
+              <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                {item.label}
+              </span>
+              <div className="mt-0.5">
+                <CurrencyDisplay
+                  amount={item.amount}
+                  currency={item.currency}
+                  size="sm"
+                />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+
+        <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
 
       {/* Tabbed Form */}
       <Tabs defaultValue="info" className="w-full">
         <TabsList className="mb-6 grid w-full grid-cols-4">
           <TabsTrigger value="info" className="gap-2">
-            <span className="hidden sm:inline">Información</span>
+            <span>Información</span>
           </TabsTrigger>
           <TabsTrigger value="pricing" className="gap-2">
-            <span className="hidden sm:inline">Precios</span>
+            <span>Precios</span>
           </TabsTrigger>
           <TabsTrigger value="stock" className="gap-2">
-            <span className="hidden sm:inline">Stock</span>
+            <span>Stock</span>
           </TabsTrigger>
           <TabsTrigger value="media" className="gap-2">
-            <span className="hidden sm:inline">Media</span>
+            <span>Media</span>
           </TabsTrigger>
         </TabsList>
 
@@ -656,17 +661,33 @@ export function CatalogForm({
             />
           </div>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+        </div>
+      </div>
 
-      <div className="mt-3 flex w-full items-center justify-center gap-2 md:mt-5">
-        <Button type="submit" disabled={isSubmitting} className="w-full gap-2">
-          {isSubmitting ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Save className="size-4" />
+      {/* ─── Sticky Footer ─────────────────────────────────────────── */}
+      <div className="shrink-0 border-t border-border/70 bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-6 sm:py-4 sm:pb-4">
+        <div className="mx-auto flex max-w-3xl items-center gap-3">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-initial"
+            >
+              Cancelar
+            </Button>
           )}
-          {mode === "create" ? "Crear producto" : "Guardar cambios"}
-        </Button>
+          <Button type="submit" disabled={isSubmitting} className="flex-1 gap-2">
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            <span>{mode === "create" ? "Crear producto" : "Guardar cambios"}</span>
+          </Button>
+        </div>
       </div>
     </form>
   )

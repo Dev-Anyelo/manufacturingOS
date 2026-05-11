@@ -13,22 +13,13 @@ import { cn, getGarmetTypeLabel } from "@/lib/utils"
 import { getStorageUrl } from "@/lib/storage/upload"
 import { useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { DataTable } from "@/components/shared/data-table"
 import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { EmptyState } from "@/components/shared/empty-state"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { CatalogForm } from "@/components/modules/catalog/catalog-form"
+import { CatalogSheet } from "@/components/modules/catalog/catalog-sheet"
 import { BulkPriceDialog } from "@/components/modules/catalog/bulk-price-dialog"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
-
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet"
 
 import {
   ArrowUpRight,
@@ -372,7 +363,11 @@ export function CatalogWorkspace({
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
             {filteredItems.map((item) => (
-              <CatalogCard key={item.id} item={item} />
+              <CatalogCard
+                key={item.id}
+                item={item}
+                onEdit={(item) => setEditingItem(item)}
+              />
             ))}
           </div>
         )
@@ -393,121 +388,56 @@ export function CatalogWorkspace({
         onSuccess={() => {}}
       />
 
-      {/* Create product sheet */}
-      <Sheet open={createOpen} onOpenChange={setCreateOpen}>
-        <SheetContent
-          side={isMobile ? "bottom" : "right"}
-          className={cn(
-            "flex flex-col gap-0 border-border p-0 sm:max-w-2xl",
-            isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
-          )}
-        >
-          <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                <ShoppingBagIcon className="size-4 text-primary" />
-              </div>
-              <div>
-                <SheetTitle className="text-base">Nuevo producto</SheetTitle>
-                <SheetDescription className="text-sm text-pretty">
-                  Agrega un nuevo producto al catálogo de prendas.
-                </SheetDescription>
-              </div>
-            </div>
-          </SheetHeader>
-          <ScrollArea className="flex-1">
-            <div className="px-4 py-4">
-              <CatalogForm
-                mode="create"
-                onSuccess={async () => {
-                  setCreateOpen(false)
-                }}
-                onCancel={() => setCreateOpen(false)}
-              />
-            </div>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
+      {/* Create product — standardized CatalogSheet */}
+      <CatalogSheet
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        trigger={null}
+      />
 
-      {/* Edit product sheet */}
-      <Sheet
+      {/* Edit product — standardized CatalogSheet */}
+      <CatalogSheet
+        itemId={editingItem?.id}
+        defaultValues={editingItem ? {
+          name: editingItem.name,
+          description: null,
+          garment_type:
+            editingItem.garmentType &&
+            Object.prototype.hasOwnProperty.call(
+              GARMENT_TYPES,
+              editingItem.garmentType as GarmentType
+            )
+              ? (editingItem.garmentType as GarmentType)
+              : ("other" as GarmentType),
+          market_price_unit: editingItem.marketPriceUnit ?? 0,
+          market_price_unit_currency:
+            (editingItem.marketPriceUnitCurrency ?? "USD") as Currency,
+          market_price_dozen: editingItem.marketPriceDozen ?? null,
+          market_price_dozen_currency:
+            (editingItem.marketPriceDozenCurrency ?? "USD") as Currency,
+          our_price_unit: editingItem.ourPriceUnit ?? 0,
+          our_price_unit_currency:
+            (editingItem.ourPriceUnitCurrency ?? "USD") as Currency,
+          our_price_dozen: editingItem.ourPriceDozen ?? null,
+          our_price_dozen_currency:
+            (editingItem.ourPriceDozenCurrency ?? "USD") as Currency,
+          estimated_cost: editingItem.estimatedCost ?? null,
+          estimated_cost_currency:
+            (editingItem.estimatedCostCurrency ?? "USD") as Currency,
+          notes: editingItem.notes,
+          image_url: editingItem.imageUrl,
+          stock_entries:
+            editingItem.finishedGoods?.map((fg) => ({
+              size: fg.size,
+              color: fg.color ?? "",
+              quantity: fg.stock,
+              minimumStock: fg.minimumStock,
+            })) ?? [],
+        } : undefined}
         open={Boolean(editingItem)}
         onOpenChange={(open) => !open && setEditingItem(null)}
-      >
-        <SheetContent
-          side={isMobile ? "bottom" : "right"}
-          className={cn(
-            "flex flex-col gap-0 border-border p-0 sm:max-w-2xl",
-            isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
-          )}
-        >
-          <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                <PencilIcon className="size-4 text-primary" />
-              </div>
-              <div>
-                <SheetTitle className="text-base">Editar producto</SheetTitle>
-                <SheetDescription className="text-sm text-pretty">
-                  Actualiza la información del producto seleccionado.
-                </SheetDescription>
-              </div>
-            </div>
-          </SheetHeader>
-          <ScrollArea className="flex-1">
-            <div className="px-4 py-4">
-              {editingItem ? (
-                <CatalogForm
-                  mode="edit"
-                  itemId={editingItem.id}
-                  defaultValues={{
-                    name: editingItem.name,
-                    description: null,
-                    garment_type:
-                      editingItem.garmentType &&
-                      Object.prototype.hasOwnProperty.call(
-                        GARMENT_TYPES,
-                        editingItem.garmentType as GarmentType
-                      )
-                        ? (editingItem.garmentType as GarmentType)
-                        : ("other" as GarmentType),
-                    market_price_unit: editingItem.marketPriceUnit ?? 0,
-                    market_price_unit_currency:
-                      (editingItem.marketPriceUnitCurrency ??
-                        "USD") as Currency,
-                    market_price_dozen: editingItem.marketPriceDozen ?? null,
-                    market_price_dozen_currency:
-                      (editingItem.marketPriceDozenCurrency ??
-                        "USD") as Currency,
-                    our_price_unit: editingItem.ourPriceUnit ?? 0,
-                    our_price_unit_currency:
-                      (editingItem.ourPriceUnitCurrency ?? "USD") as Currency,
-                    our_price_dozen: editingItem.ourPriceDozen ?? null,
-                    our_price_dozen_currency:
-                      (editingItem.ourPriceDozenCurrency ?? "USD") as Currency,
-                    estimated_cost: editingItem.estimatedCost ?? null,
-                    estimated_cost_currency:
-                      (editingItem.estimatedCostCurrency ?? "USD") as Currency,
-                    notes: editingItem.notes,
-                    image_url: editingItem.imageUrl,
-                    stock_entries:
-                      editingItem.finishedGoods?.map((fg) => ({
-                        size: fg.size,
-                        color: fg.color ?? "",
-                        quantity: fg.stock,
-                        minimumStock: fg.minimumStock,
-                      })) ?? [],
-                  }}
-                  onSuccess={async () => {
-                    setEditingItem(null)
-                  }}
-                  onCancel={() => setEditingItem(null)}
-                />
-              ) : null}
-            </div>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
+        trigger={null}
+      />
 
       <AlertDialog
         open={Boolean(itemToDeactivate)}

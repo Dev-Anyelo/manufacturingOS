@@ -3,13 +3,22 @@
 import Link from "next/link"
 import * as React from "react"
 import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ProductionSheet } from "./production-sheet"
 import { type ColumnDef } from "@tanstack/react-table"
+import { ProductionFormValues } from "./production-form"
 import { DataTable } from "@/components/shared/data-table"
 import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { EntitySelector } from "@/components/shared/entity-selector"
 import { DateRangePicker } from "@/components/shared/date-range-picker"
-import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
+
+import {
+  formatDateOnlyNI,
+  normalizeDateOnly,
+  formatDateOnlyInput,
+} from "@/lib/currency/exchange"
 
 import {
   ScissorsIcon,
@@ -25,14 +34,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 import {
   DropdownMenu,
@@ -62,8 +63,27 @@ export interface ProductionTableRow {
   createdByName: string
 }
 
+type EmployeeOption = {
+  id: string
+  fullName: string
+  profileId?: string | null
+}
+
+type InventoryOption = {
+  id: string
+  name: string
+  unit: string
+  quantity: number
+}
+
 interface ProductionTableProps {
   sessions: ProductionTableRow[]
+  bootstrap: {
+    employees: EmployeeOption[]
+    inventoryItems: InventoryOption[]
+  }
+  currentUserId: string
+  currentUserRole: string
   canDelete?: boolean
 }
 
@@ -82,6 +102,9 @@ function initials(value: string) {
 
 export function ProductionTable({
   sessions,
+  bootstrap,
+  currentUserId,
+  currentUserRole,
   canDelete = false,
 }: ProductionTableProps) {
   const [employeeFilter, setEmployeeFilter] = React.useState("all")
@@ -92,15 +115,74 @@ export function ProductionTable({
     React.useState<ProductionTableRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
-  const employeeOptions = React.useMemo(() => {
-    const map = new Map<string, string>()
-    for (const session of sessions) {
-      if (!map.has(session.employeeId)) {
-        map.set(session.employeeId, session.employeeName)
-      }
+  // Edit state
+  const [sessionIdToEdit, setSessionIdToEdit] = React.useState<string | null>(
+    null
+  )
+  const [editingDefaultValues, setEditingDefaultValues] = React.useState<
+    Partial<ProductionFormValues> | undefined
+  >()
+  const [isFetchingSession, setIsFetchingSession] = React.useState(false)
+
+  async function handleEditClick(id: string) {
+    setIsFetchingSession(true)
+    setSessionIdToEdit(id)
+    try {
+      const response = await fetch(`/api/production/${id}`)
+      if (!response.ok) throw new Error("No se pudo obtener la sesión")
+
+      const { data: session } = await response.json()
+
+      setEditingDefaultValues({
+        employee_id: session.employeeId,
+        session_date: formatDateOnlyInput(session.sessionDate),
+        notes: session.notes,
+        items: session.items.map(
+          (item: {
+            inventoryItemId: string
+            garmentType:
+              | "shirt"
+              | "skirt"
+              | "shorts"
+              | "leggings"
+              | "pajamas"
+              | "suit"
+              | "sheets"
+              | "blankets"
+              | "other"
+            size:
+              | "XS"
+              | "S"
+              | "M"
+              | "L"
+              | "XL"
+              | "XXL"
+              | "3XL"
+              | "4XL"
+              | "Personalizada"
+            color: string | null
+            quantity: number
+            yardsUsed: number | string
+            notes: string | null
+          }) => ({
+            inventory_item_id: item.inventoryItemId,
+            garment_type: item.garmentType,
+            size: item.size,
+            color: item.color,
+            quantity: item.quantity,
+            yards_used: Number(item.yardsUsed),
+            is_reuse: false,
+            notes: item.notes,
+          })
+        ),
+      })
+    } catch (error) {
+      toast.error("Error al cargar los datos de la sesión")
+      setSessionIdToEdit(null)
+    } finally {
+      setIsFetchingSession(false)
     }
-    return [...map.entries()].map(([id, fullName]) => ({ id, fullName }))
-  }, [sessions])
+  }
 
   const filtered = React.useMemo(() => {
     return sessions.filter((session) => {
@@ -238,14 +320,17 @@ export function ProductionTable({
                   Detalles
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/production/${row.original.id}/edit`}
-                  className="flex items-center gap-2"
-                >
+              <DropdownMenuItem
+                className="flex items-center gap-2"
+                onClick={() => handleEditClick(row.original.id)}
+                disabled={isFetchingSession}
+              >
+                {isFetchingSession && sessionIdToEdit === row.original.id ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
                   <PencilLineIcon className="size-4" />
-                  Editar
-                </Link>
+                )}
+                Editar
               </DropdownMenuItem>
               {canDelete && (
                 <DropdownMenuItem
@@ -274,19 +359,14 @@ export function ProductionTable({
         emptyDescription="Registra una nueva sesion para comenzar a medir rendimiento."
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
-              <SelectTrigger className="min-h-10 text-xs sm:min-h-9">
-                <SelectValue placeholder="Empleado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los empleados</SelectItem>
-                {employeeOptions.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.fullName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <EntitySelector
+              entities={bootstrap.employees}
+              value={employeeFilter === "all" ? "" : employeeFilter}
+              onChange={(id) => setEmployeeFilter(id || "all")}
+              placeholder="Filtrar por empleado..."
+              label="Empleado"
+              className="w-full sm:w-[250px]"
+            />
 
             <DateRangePicker
               from={dateRange.from}
@@ -330,6 +410,23 @@ export function ProductionTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ProductionSheet
+        employees={bootstrap.employees}
+        inventoryItems={bootstrap.inventoryItems}
+        currentUserId={currentUserId}
+        currentUserRole={currentUserRole}
+        sessionId={sessionIdToEdit || undefined}
+        defaultValues={editingDefaultValues}
+        open={Boolean(editingDefaultValues)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSessionIdToEdit(null)
+            setEditingDefaultValues(undefined)
+          }
+        }}
+        trigger={null}
+      />
     </div>
   )
 }

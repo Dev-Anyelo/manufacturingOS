@@ -5,15 +5,14 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/shared/empty-state"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { PayrollForm } from "@/components/modules/payroll/payroll-form"
+import { PayrollSheet } from "@/components/modules/payroll/payroll-sheet"
 import { MarkPaidDialog } from "@/components/modules/payroll/mark-paid-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -33,14 +32,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
 
 import {
   PayrollTable,
@@ -212,6 +203,7 @@ export function PayrollWorkspace({
         <TabsContent value="payments">
           <PayrollTable
             payments={payments}
+            employees={employees}
             onMarkPaid={(row) => {
               setSelectedPayment(row)
               setMarkPaidOpen(true)
@@ -273,42 +265,13 @@ export function PayrollWorkspace({
         </TabsContent>
       </Tabs>
 
-      {/* Create payment sheet (replaces Dialog) */}
-      <Sheet open={createOpen} onOpenChange={setCreateOpen}>
-        <SheetContent
-          side={isMobile ? "bottom" : "right"}
-          className={cn(
-            "flex flex-col gap-0 border-border p-0 sm:max-w-lg",
-            isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
-          )}
-        >
-          <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
-            <div className="flex items-center gap-3">
-              <div>
-                <SheetTitle className="text-base text-pretty">
-                  Nuevo pago de planilla
-                </SheetTitle>
-                <SheetDescription className="text-sm text-pretty">
-                  Registra un nuevo pago con el período y montos
-                </SheetDescription>
-              </div>
-            </div>
-          </SheetHeader>
-
-          <ScrollArea className="flex-1">
-            <div className="px-4 py-4">
-              <PayrollForm
-                employees={employees}
-                onSuccess={() => {
-                  setCreateOpen(false)
-                  handleRefresh()
-                }}
-                onCancel={() => setCreateOpen(false)}
-              />
-            </div>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
+      {/* Create payment standardized sheet */}
+      <PayrollSheet
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        employees={employees}
+        trigger={null}
+      />
 
       <MarkPaidDialog
         open={markPaidOpen}

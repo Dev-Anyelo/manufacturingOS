@@ -2,6 +2,7 @@
 
 import { z } from "zod"
 import * as React from "react"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { Currency } from "@prisma/client"
 import { useForm } from "react-hook-form"
@@ -80,6 +81,7 @@ type EmployeeOption = {
 }
 
 interface PayrollFormProps {
+  className?: string
   employees: EmployeeOption[]
   paymentId?: string
   defaultValues?: Partial<PayrollFormInput>
@@ -124,6 +126,7 @@ const contractTypeLabels = {
 }
 
 export function PayrollForm({
+  className,
   employees,
   paymentId,
   defaultValues,
@@ -344,26 +347,29 @@ export function PayrollForm({
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="mx-auto w-full space-y-4"
+      className={cn("flex h-full min-h-0 flex-col", className)}
       noValidate
     >
-      {/* Total Summary - Compact Info Bar */}
-      <div className="flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
-        <div className="flex shrink-0 flex-col items-center px-4 py-2">
-          <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-            Total a pagar
-          </span>
-          <div className="mt-0.5">
-            <CurrencyDisplay
-              amount={Number(total || 0)}
-              currency={
-                (form.watch("base_amount_currency") as Currency) || Currency.USD
-              }
-              size="md"
-            />
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {/* Total Summary - Compact Info Bar */}
+        <div className="sticky top-0 z-10 flex items-center justify-center border-b border-border/50 bg-background/95 py-2 backdrop-blur-sm">
+          <div className="flex shrink-0 flex-col items-center px-4 py-2">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+              Total a pagar
+            </span>
+            <div className="mt-0.5">
+              <CurrencyDisplay
+                amount={Number(total || 0)}
+                currency={
+                  (form.watch("base_amount_currency") as Currency) || Currency.USD
+                }
+                size="md"
+              />
+            </div>
           </div>
         </div>
-      </div>
+
+        <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
 
       {/* Tabbed Form */}
       <Tabs defaultValue="employee" className="w-full">
@@ -738,28 +744,33 @@ export function PayrollForm({
             />
           </div>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+        </div>
+      </div>
 
-      {/* Actions */}
-      <div className="mt-6 flex gap-3">
-        {onCancel && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="flex-1"
-          >
-            Cancelar
-          </Button>
-        )}
-        <Button type="submit" disabled={isSubmitting} className="flex-1 gap-2">
-          {isSubmitting ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Banknote className="size-4" />
+      {/* ─── Sticky Footer ─────────────────────────────────────────── */}
+      <div className="shrink-0 border-t border-border/70 bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-6 sm:py-4 sm:pb-4">
+        <div className="mx-auto flex max-w-3xl items-center gap-3">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-initial"
+            >
+              Cancelar
+            </Button>
           )}
-          Registrar
-        </Button>
+          <Button type="submit" disabled={isSubmitting} className="flex-1 gap-2">
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Banknote className="size-4" />
+            )}
+            <span>{paymentId ? "Actualizar pago" : "Registrar pago"}</span>
+          </Button>
+        </div>
       </div>
     </form>
   )

@@ -5,13 +5,15 @@ import * as React from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { UserRole, Currency } from "@prisma/client"
 import { type ColumnDef } from "@tanstack/react-table"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { DataTable } from "@/components/shared/data-table"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { DateRangePicker } from "@/components/shared/date-range-picker"
+import { ExpenseSheet } from "@/components/modules/expenses/expense-sheet"
+import { type ExpenseFormInput } from "@/components/modules/expenses/expense-form"
 import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
 import { ExpenseCategoryBadge } from "@/components/modules/expenses/expense-category-badge"
 
@@ -63,11 +65,22 @@ export interface ExpenseTableRow {
   updatesInventory: boolean
   inventoryItemName: string | null
   receiptUrl: string | null
+  inventoryItemId?: string | null
+  inventoryQuantityAdded?: number | null
+  notes?: string | null
+}
+
+interface InventoryOption {
+  id: string
+  name: string
+  unit: string
+  quantity: number
 }
 
 interface ExpensesTableProps {
   expenses: ExpenseTableRow[]
   currentUserRole: string
+  inventoryItems: InventoryOption[]
 }
 
 function formatDate(value: string) {
@@ -77,6 +90,7 @@ function formatDate(value: string) {
 export function ExpensesTable({
   expenses,
   currentUserRole,
+  inventoryItems,
 }: ExpensesTableProps) {
   const router = useRouter()
   const [categoryFilter, setCategoryFilter] = React.useState("all")
@@ -84,6 +98,8 @@ export function ExpensesTable({
     {}
   )
   const [expenseToDelete, setExpenseToDelete] =
+    React.useState<ExpenseTableRow | null>(null)
+  const [editingExpense, setEditingExpense] =
     React.useState<ExpenseTableRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
@@ -243,15 +259,16 @@ export function ExpensesTable({
                   Detalles
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/expenses/${row.original.id}/edit`}>
-                  <PencilLineIcon className="size-3.5" />
-                  Editar
-                </Link>
+              <DropdownMenuItem
+                className="flex items-center gap-2"
+                onClick={() => setEditingExpense(row.original)}
+              >
+                <PencilLineIcon className="size-3.5" />
+                Editar
               </DropdownMenuItem>
               {canDelete && (
                 <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
+                  className="flex items-center gap-2 text-destructive focus:text-destructive"
                   onClick={() => setExpenseToDelete(row.original)}
                 >
                   <Trash2Icon className="size-3.5" />
@@ -320,6 +337,34 @@ export function ExpensesTable({
         }
       />
 
+      {/* Standardized ExpenseSheet for Editing */}
+      <ExpenseSheet
+        inventoryItems={inventoryItems}
+        itemId={editingExpense?.id}
+        defaultValues={
+          editingExpense
+            ? ({
+                expense_date: editingExpense.expenseDate,
+                category: editingExpense.category as any,
+                concept: editingExpense.concept,
+                supplier: editingExpense.supplier,
+                total: editingExpense.total,
+                total_currency: editingExpense.totalCurrency as Currency,
+                updates_inventory: editingExpense.updatesInventory,
+                inventory_item_id: editingExpense.inventoryItemId,
+                inventory_quantity_added: editingExpense.inventoryQuantityAdded,
+                notes: editingExpense.notes,
+                receipt_url: editingExpense.receiptUrl,
+              } as ExpenseFormInput)
+            : undefined
+        }
+        open={Boolean(editingExpense)}
+        onOpenChange={(open) => {
+          if (!open) setEditingExpense(null)
+        }}
+        trigger={null}
+      />
+
       <AlertDialog
         open={Boolean(expenseToDelete)}
         onOpenChange={(open) =>
@@ -353,31 +398,6 @@ export function ExpensesTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  )
-}
-
-function SummaryTile({
-  label,
-  value,
-  accent = false,
-}: {
-  label: string
-  value: React.ReactNode
-  accent?: boolean
-}) {
-  return (
-    <div className="rounded-lg border border-border/70 bg-card/80 px-3 py-2">
-      <div className="text-[11px] tracking-wide text-muted-foreground uppercase">
-        {label}
-      </div>
-      <div
-        className={
-          accent ? "text-sm font-semibold text-brand" : "text-sm font-semibold"
-        }
-      >
-        {value}
-      </div>
     </div>
   )
 }

@@ -12,10 +12,11 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
+import { Separator } from "@/components/ui/separator"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, useFieldArray } from "react-hook-form"
 import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { EntitySelector } from "@/components/shared/entity-selector"
+import { useForm, useFieldArray, UseFormReturn } from "react-hook-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -43,6 +44,8 @@ import {
   Layers2Icon,
   Loader2,
   Save,
+  Info,
+  PackageOpen,
 } from "lucide-react"
 
 const GARMENT_TYPES = {
@@ -57,51 +60,48 @@ const GARMENT_TYPES = {
   other: "Otro",
 } as const
 
+const productionItemSchema = z.object({
+  inventory_item_id: z.string().uuid("El material seleccionado no es válido"),
+  garment_type: z.enum([
+    "shirt",
+    "skirt",
+    "shorts",
+    "leggings",
+    "pajamas",
+    "suit",
+    "sheets",
+    "blankets",
+    "other",
+  ]),
+  size: z.enum([
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "3XL",
+    "4XL",
+    "Personalizada",
+  ]),
+  color: z.string().trim().max(80).optional().nullable(),
+  quantity: z.number().int().min(1),
+  yards_used: z.number().min(0),
+  is_reuse: z.boolean(),
+  notes: z.string().trim().max(500).optional().nullable(),
+})
+
 const productionFormSchema = z.object({
   employee_id: z.string().uuid("El empleado seleccionado no es válido"),
   session_date: z.string().min(1, "La fecha de sesión es obligatoria"),
   notes: z.string().trim().max(1000).optional().nullable(),
   items: z
-    .array(
-      z.object({
-        inventory_item_id: z
-          .string()
-          .uuid("El material seleccionado no es válido"),
-        garment_type: z.enum([
-          "shirt",
-          "skirt",
-          "shorts",
-          "leggings",
-          "pajamas",
-          "suit",
-          "sheets",
-          "blankets",
-          "other",
-        ]),
-        size: z.enum([
-          "XS",
-          "S",
-          "M",
-          "L",
-          "XL",
-          "XXL",
-          "3XL",
-          "4XL",
-          "Personalizada",
-        ]),
-        color: z.string().trim().max(80).optional().nullable(),
-        quantity: z.coerce.number().int().min(1),
-        yards_used: z.coerce.number().min(0),
-        is_reuse: z.boolean().default(false),
-        notes: z.string().trim().max(500).optional().nullable(),
-      })
-    )
+    .array(productionItemSchema)
     .min(1, "Debes agregar al menos un ítem a la sesión"),
 })
 
-type ProductionFormInput = z.input<typeof productionFormSchema>
-type ProductionFormOutput = z.output<typeof productionFormSchema>
-type ProductionFormValues = ProductionFormOutput
+export type ProductionFormValues = z.infer<typeof productionFormSchema>
+type ProductionFormInput = ProductionFormValues
 
 type EmployeeOption = {
   id: string
@@ -127,6 +127,7 @@ interface ProductionFormProps {
   onSuccess?: () => void
   /** Called when the user cancels — used when embedded in a Sheet */
   onCancel?: () => void
+  className?: string
 }
 
 const sizeOptions: ProductionFormValues["items"][number]["size"][] = [
@@ -173,12 +174,12 @@ function normalizeOptional(value?: string | null) {
 }
 
 function formatDateLabel(value: string) {
-  if (!value) return "Seleccionar"
-
+  if (!value) return "Seleccionar fecha"
   const date = parseInputDate(value)
   return new Intl.DateTimeFormat("es-NI", {
     day: "2-digit",
     month: "short",
+    year: "numeric",
   }).format(date)
 }
 
@@ -203,12 +204,15 @@ export function ProductionForm({
   defaultValues,
   onSuccess,
   onCancel,
+  className,
 }: ProductionFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [employeeOpen, setEmployeeOpen] = React.useState(false)
+  const [activeTab, setActiveTab] = React.useState<"session" | "items">(
+    "session"
+  )
 
-  const form = useForm<ProductionFormInput, unknown, ProductionFormOutput>({
+  const form = useForm<ProductionFormValues>({
     resolver: zodResolver(productionFormSchema),
     defaultValues: defaultValues || {
       employee_id: "",
@@ -229,10 +233,7 @@ export function ProductionForm({
   const isEmployeeRole = currentUserRole === UserRole.Employee
 
   const linkedEmployee = React.useMemo(() => {
-    if (!currentUserId) {
-      return null
-    }
-
+    if (!currentUserId) return null
     return (
       employees.find((employee) => employee.profileId === currentUserId) ?? null
     )
@@ -244,10 +245,7 @@ export function ProductionForm({
       : null
 
   React.useEffect(() => {
-    if (!linkedEmployee) {
-      return
-    }
-
+    if (!linkedEmployee) return
     form.setValue("employee_id", linkedEmployee.id, {
       shouldDirty: false,
       shouldValidate: true,
@@ -278,7 +276,22 @@ export function ProductionForm({
     )
   }, [watchedItems])
 
-  async function onSubmit(values: ProductionFormOutput) {
+  // Ref to the items scroll container — used to scroll newly-added items into view
+  const itemsScrollRef = React.useRef<HTMLDivElement | null>(null)
+
+  function handleAppend() {
+    append(emptyItem())
+    setActiveTab("items")
+    // Defer scroll until the new node is rendered
+    requestAnimationFrame(() => {
+      const node = itemsScrollRef.current
+      if (node) {
+        node.scrollTo({ top: node.scrollHeight, behavior: "smooth" })
+      }
+    })
+  }
+
+  async function onSubmit(values: ProductionFormValues) {
     setIsSubmitting(true)
 
     try {
@@ -309,7 +322,10 @@ export function ProductionForm({
         body: JSON.stringify(payload),
       })
 
-      const result = (await response.json()) as {
+      const result = (await response.json().catch(() => ({
+        success: false,
+        error: "Respuesta inválida del servidor.",
+      }))) as {
         success: boolean
         error?: string
         data?: { id: string }
@@ -327,13 +343,12 @@ export function ProductionForm({
         "/",
       ]
 
+      await revalidatePaths(pathsToRevalidate)
+      toast.success("Sesión de producción registrada")
+
       if (onSuccess) {
-        await revalidatePaths(pathsToRevalidate)
-        toast.success("Sesión de producción registrada")
         onSuccess()
       } else {
-        await revalidatePaths(pathsToRevalidate)
-        toast.success("Sesión de producción registrada")
         router.push(`/production/${result.data.id}`)
       }
     } catch (error) {
@@ -348,415 +363,647 @@ export function ProductionForm({
   }
 
   return (
+    /*
+     * Root layout
+     * -----------
+     * The form is a flex column that fills its parent. Critical pieces:
+     *   - `min-h-0` on every flex container so children can actually shrink
+     *     and trigger their inner overflow.
+     *   - Header / summary / tabs-list / footer are `shrink-0`.
+     *   - The ONLY scrollable area is the active tab's content (`overflow-y-auto`).
+     *   - Footer is a sibling `shrink-0` block — NOT `sticky` — so it is always
+     *     visible regardless of how many items are added.
+     */
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="mx-auto w-full"
+      className={cn("flex h-full min-h-0 flex-col", className)}
       noValidate
     >
-      {/* Summary Stats - Compact Info Bar */}
-      <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
-        {[
-          { label: "Total prendas", value: totalGarments },
-          { label: "Total yardas", value: totalYards.toFixed(1) },
-          {
-            label: "Empleado",
-            value: selectedEmployee?.fullName || "No seleccionado",
-          },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className={cn(
-              "flex shrink-0 flex-col items-center px-4 py-2",
-              i > 0 && "border-l border-border/60"
-            )}
-          >
-            <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-              {item.label}
-            </span>
-            <span className="mt-0.5 max-w-[150px] truncate text-sm font-bold tabular-nums">
-              {item.value}
-            </span>
+      {/* ─── Summary bar ─────────────────────────────────────────────── */}
+      <div className="shrink-0 border-b border-border/70 bg-muted/40 px-4 py-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-5">
+            <SummaryStat
+              label="Prendas"
+              icon={<Scissors className="size-3.5 text-primary" />}
+              value={totalGarments.toString()}
+            />
+            <Separator
+              orientation="vertical"
+              className="data-[orientation=vertical]:h-8"
+            />
+            <SummaryStat
+              label="Yardas"
+              icon={<Ruler className="size-3.5 text-primary" />}
+              value={totalYards.toFixed(1)}
+            />
+            <Separator
+              orientation="vertical"
+              className="hidden data-[orientation=vertical]:h-8 sm:block"
+            />
+            <SummaryStat
+              label="Líneas"
+              icon={<Layers2Icon className="size-3.5 text-primary" />}
+              value={fields.length.toString()}
+              className="hidden sm:flex"
+            />
           </div>
-        ))}
+
+          <div className="flex min-w-0 flex-col items-end">
+            <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              Responsable
+            </span>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <UserCog2 className="size-3.5 shrink-0 text-primary" />
+              <span className="max-w-[140px] truncate text-sm font-medium sm:max-w-[220px]">
+                {selectedEmployee?.fullName || "Pendiente"}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Tabbed Form */}
-      <Tabs defaultValue="session" className="w-full">
-        <TabsList className="mb-4 grid w-full grid-cols-2">
-          <TabsTrigger value="session" className="gap-1.5 text-xs sm:text-sm">
-            <UserCog2 className="size-3.5" />
-            Sesión
-          </TabsTrigger>
-          <TabsTrigger value="items" className="gap-1.5 text-xs sm:text-sm">
-            <Scissors className="size-3.5" />
-            Producción ({fields.length})
-          </TabsTrigger>
-        </TabsList>
+      {/* ─── Tabs (fills remaining space) ────────────────────────────── */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as "session" | "items")}
+        className="flex min-h-0 flex-1 flex-col"
+      >
+        {/* Tabs list — sticky-like (it's a shrink-0 sibling) */}
+        <div className="shrink-0 border-b border-border/70 bg-background px-4 pt-3 pb-2 sm:px-6 sm:pt-4">
+          <TabsList className="grid h-10 w-full grid-cols-2">
+            <TabsTrigger value="session" className="gap-2 text-sm">
+              <UserCog2 className="size-4" />
+              <span>Datos</span>
+            </TabsTrigger>
+            <TabsTrigger value="items" className="gap-2 text-sm">
+              <Factory className="size-4" />
+              <span>Detalle</span>
+              {fields.length > 0 && (
+                <span className="ml-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/15 px-1.5 text-xs font-bold text-primary">
+                  {fields.length}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        {/* Session Tab */}
-        <TabsContent value="session" className="space-y-4">
-          <div className="m-0 border-none bg-none p-0">
-            <div className="space-y-4">
-              {/* Employee + Date Row */}
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <EntitySelector
-                    entities={employees}
-                    value={selectedEmployeeId}
-                    onChange={(id: string | null) => {
-                      form.setValue("employee_id", id || "", {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      })
-                    }}
-                    label="Empleado"
-                    placeholder="Seleccionar empleado..."
-                    emptyMessage="No se encontraron empleados."
-                    disabled={isEmployeeRole}
-                  />
-                  {form.formState.errors.employee_id && (
-                    <p className="text-xs text-destructive">
-                      {form.formState.errors.employee_id.message}
-                    </p>
-                  )}
-                  {employeeLinkError ? (
-                    <p className="text-xs text-destructive">
-                      {employeeLinkError}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Fecha</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-10 w-full justify-start font-normal"
-                      >
-                        <CalendarIcon className="mr-2 size-4 text-muted-foreground" />
-                        {formatDateLabel(selectedSessionDate)}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={
-                          selectedSessionDate
-                            ? parseInputDate(selectedSessionDate)
-                            : undefined
-                        }
-                        onSelect={(date) => {
-                          if (!date) return
-                          form.setValue("session_date", toInputDate(date), {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          })
-                        }}
-                        disabled={(date) => date > today}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+        {/* ─── Scrollable area per tab ──────────────────────────────── */}
+        <TabsContent
+          value="session"
+          forceMount
+          className={cn(
+            "m-0 min-h-0 flex-1 overflow-y-auto overscroll-contain focus-visible:ring-0 focus-visible:outline-none",
+            activeTab === "session" ? "block" : "hidden"
+          )}
+        >
+          <div className="mx-auto max-w-2xl space-y-3 px-4 py-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="employee-selector"
+                  className="text-sm font-semibold"
+                >
+                  Colaborador / Empleado
+                </Label>
+                <EntitySelector
+                  entities={employees}
+                  value={selectedEmployeeId}
+                  onChange={(id) => {
+                    form.setValue("employee_id", id || "", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }}
+                  label=""
+                  placeholder="Seleccionar empleado..."
+                  emptyMessage="No se encontraron empleados."
+                  disabled={isEmployeeRole}
+                />
+                {form.formState.errors.employee_id && (
+                  <p className="text-xs font-medium text-destructive">
+                    {form.formState.errors.employee_id.message}
+                  </p>
+                )}
+                {employeeLinkError ? (
+                  <div className="rounded-md bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
+                    {employeeLinkError}
+                  </div>
+                ) : null}
               </div>
 
-              {/* Notes */}
               <div className="space-y-2">
-                <Label htmlFor="notes" className="text-sm font-medium">
-                  Notas generales
-                </Label>
-                <Textarea
-                  id="notes"
-                  rows={2}
-                  placeholder="Observaciones de la jornada..."
-                  {...form.register("notes")}
-                  className="resize-none"
-                />
+                <Label className="text-sm font-semibold">Fecha</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "h-10 w-full justify-start border-input px-3 text-left font-normal",
+                        !selectedSessionDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 size-4 text-primary" />
+                      {formatDateLabel(selectedSessionDate)}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={
+                        selectedSessionDate
+                          ? parseInputDate(selectedSessionDate)
+                          : undefined
+                      }
+                      onSelect={(date) => {
+                        if (!date) return
+                        form.setValue("session_date", toInputDate(date), {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                      }}
+                      disabled={(date) => date > today}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="text-sm font-semibold">
+                Notas generales de la jornada
+              </Label>
+              <Textarea
+                id="notes"
+                rows={4}
+                placeholder="Observaciones, novedades o pendientes de esta sesión..."
+                {...form.register("notes")}
+                className="min-h-[120px] resize-none border-input focus-visible:ring-primary"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Máximo 1000 caracteres.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <div className="flex gap-3">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <Info className="size-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-sm font-semibold text-primary">
+                    Información de registro
+                  </h4>
+                  <p className="mt-1 text-xs leading-relaxed text-pretty text-muted-foreground">
+                    Los materiales se descontarán automáticamente del inventario
+                    al guardar, a menos que marques la opción de{" "}
+                    <span className="font-medium text-foreground">
+                      Reutilización
+                    </span>{" "}
+                    en cada línea.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </TabsContent>
 
-        {/* Items Tab */}
-        <TabsContent value="items" className="space-y-4">
-          <div className="m-0 border-none bg-none p-0">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-accent/10 dark:bg-accent">
-                  <Factory className="size-4" />
+        <TabsContent
+          value="items"
+          forceMount
+          className={cn(
+            "m-0 min-h-0 flex-1 flex-col focus-visible:ring-0 focus-visible:outline-none",
+            activeTab === "items" ? "flex" : "hidden"
+          )}
+        >
+          {/* Items sub-header */}
+          <div className="shrink-0 border-b border-border/60 bg-background px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Layers2Icon className="size-4 text-primary" />
                 </div>
-                <span className="text-sm font-medium">
-                  {fields.length} línea{fields.length !== 1 ? "s" : ""}
-                </span>
+                <div className="min-w-0">
+                  <h3 className="truncate text-sm font-semibold">
+                    Líneas agregadas
+                  </h3>
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {fields.length} ítem{fields.length !== 1 ? "s" : ""}{" "}
+                    registrado{fields.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
               </div>
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
-                onClick={() => append(emptyItem())}
-                className="gap-1.5"
+                onClick={handleAppend}
+                className="h-9 shrink-0 gap-1.5 px-3"
               >
-                <Plus className="size-3.5" />
-                Agregar
+                <Plus className="size-4" />
+                <span className="xs:inline hidden sm:inline">Agregar ítem</span>
+                <span className="xs:hidden sm:hidden">Agregar</span>
               </Button>
             </div>
+          </div>
 
-            <div className="space-y-3">
-              {fields.map((field, index) => {
-                const selectedItemId = form.watch(
-                  `items.${index}.inventory_item_id`
-                )
-                const selectedMaterial = inventoryItems.find(
-                  (item) => item.id === selectedItemId
-                )
-                const itemQuantity = Number(
-                  form.watch(`items.${index}.quantity`) || 0
-                )
-                const itemYards = Number(
-                  form.watch(`items.${index}.yards_used`) || 0
-                )
-                const itemIsReuse = Boolean(
-                  form.watch(`items.${index}.is_reuse`) || false
-                )
-
-                return (
-                  <div
+          {/* Scrollable list — native overflow for reliable scroll on mobile */}
+          <div
+            ref={itemsScrollRef}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          >
+            <div className="mx-auto max-w-3xl space-y-3 px-3 py-4">
+              {fields.length === 0 ? (
+                <EmptyItemsState onAdd={handleAppend} />
+              ) : (
+                fields.map((field, index) => (
+                  <ItemCard
                     key={field.id}
-                    className="rounded-lg border border-border bg-muted/30 p-3"
-                  >
-                    {/* Item Header */}
-                    <div className="mb-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="flex size-6 items-center justify-center rounded-md bg-accent/10 text-xs font-bold dark:bg-accent">
-                          {index + 1}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {itemQuantity} pz · {itemYards.toFixed(1)} yd
-                        </span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        disabled={fields.length === 1}
-                        onClick={() => remove(index)}
-                        className="size-7 text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
+                    index={index}
+                    fieldId={field.id}
+                    canRemove={fields.length > 1}
+                    form={form}
+                    inventoryItems={inventoryItems}
+                    onRemove={() => remove(index)}
+                  />
+                ))
+              )}
 
-                    {/* Item Fields - Compact Grid */}
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Material
-                        </Label>
-                        <Select
-                          value={
-                            form.watch(`items.${index}.inventory_item_id`) || ""
-                          }
-                          onValueChange={(value) =>
-                            form.setValue(
-                              `items.${index}.inventory_item_id`,
-                              value,
-                              {
-                                shouldDirty: true,
-                                shouldValidate: true,
-                              }
-                            )
-                          }
-                        >
-                          <SelectTrigger className="h-9 w-full text-xs">
-                            <SelectValue placeholder="Seleccionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {inventoryItems.map((item) => (
-                              <SelectItem key={item.id} value={item.id}>
-                                <div className="flex items-center gap-1">
-                                  <Layers2Icon className="size-3 text-muted-foreground" />
-                                  <span className="truncate">{item.name}</span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {selectedMaterial && (
-                          <p className="text-[10px] text-muted-foreground">
-                            Stock: {selectedMaterial.quantity.toFixed(1)}{" "}
-                            {selectedMaterial.unit}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Prenda
-                        </Label>
-                        <Select
-                          value={
-                            form.watch(`items.${index}.garment_type`) || "shirt"
-                          }
-                          onValueChange={(value) =>
-                            form.setValue(
-                              `items.${index}.garment_type`,
-                              value as ProductionFormValues["items"][number]["garment_type"],
-                              { shouldDirty: true, shouldValidate: true }
-                            )
-                          }
-                        >
-                          <SelectTrigger className="h-9 w-full text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {garmentOptions.map((option) => (
-                              <SelectItem
-                                key={option.value}
-                                value={option.value}
-                              >
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Talla
-                        </Label>
-                        <Select
-                          value={form.watch(`items.${index}.size`) || "M"}
-                          onValueChange={(value) =>
-                            form.setValue(
-                              `items.${index}.size`,
-                              value as ProductionFormValues["items"][number]["size"],
-                              { shouldDirty: true, shouldValidate: true }
-                            )
-                          }
-                        >
-                          <SelectTrigger className="h-9 w-full text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {sizeOptions.map((size) => (
-                              <SelectItem key={size} value={size}>
-                                {size}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Color
-                        </Label>
-                        <Input
-                          type="text"
-                          {...form.register(`items.${index}.color`)}
-                          className="h-9 text-xs"
-                          placeholder="Ej. Rojo, Azul"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <Label className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Scissors className="size-3" />
-                          Piezas
-                        </Label>
-                        <Input
-                          type="number"
-                          min={1}
-                          step="1"
-                          {...form.register(`items.${index}.quantity`, {
-                            valueAsNumber: true,
-                          })}
-                          className="h-9 text-xs"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <Label className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Ruler className="size-3" />
-                          Yardas
-                        </Label>
-                        <Input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          {...form.register(`items.${index}.yards_used`, {
-                            valueAsNumber: true,
-                          })}
-                          className="h-9 text-xs"
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-3 space-y-2 sm:col-span-2">
-                      <div className="flex items-center gap-2 pt-1">
-                        <Checkbox
-                          id={`reuse-${field.id}`}
-                          checked={itemIsReuse}
-                          onCheckedChange={(checked) =>
-                            form.setValue(
-                              `items.${index}.is_reuse`,
-                              checked === true,
-                              {
-                                shouldDirty: true,
-                                shouldValidate: true,
-                              }
-                            )
-                          }
-                        />
-                        <Label
-                          htmlFor={`reuse-${field.id}`}
-                          className="cursor-pointer text-xs text-muted-foreground"
-                        >
-                          Reutilizando material de sesión anterior
-                        </Label>
-                      </div>
-                      {itemIsReuse ? (
-                        <p className="text-warning mt-1 text-xs">
-                          No se descontará del inventario
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                )
-              })}
+              {form.formState.errors.items?.message && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-center text-xs font-medium text-destructive">
+                  {form.formState.errors.items.message}
+                </div>
+              )}
             </div>
-
-            {form.formState.errors.items && (
-              <p className="mt-2 text-xs text-destructive">
-                {form.formState.errors.items.message}
-              </p>
-            )}
           </div>
         </TabsContent>
       </Tabs>
 
-      <div className="mt-3 flex w-full items-center justify-center gap-2 md:mt-4">
-        <Button
-          type="submit"
-          size="sm"
-          disabled={isSubmitting || Boolean(employeeLinkError)}
-          className="w-full"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Guardando...
-            </>
-          ) : (
-            <>
-              <Save className="size-4" />
-              Crear sesión
-            </>
-          )}
-        </Button>
+      {/* ─── Sticky footer (always visible) ──────────────────────────── */}
+      <div className="shrink-0 border-t border-border/70 bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-6 sm:py-4 sm:pb-4">
+        <div className="mx-auto flex max-w-3xl items-center gap-2 sm:gap-3">
+          {onCancel ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              size="sm"
+            >
+              Cancelar
+            </Button>
+          ) : null}
+          <Button
+            type="submit"
+            size="sm"
+            variant="default"
+            className="flex-1"
+            disabled={isSubmitting || Boolean(employeeLinkError)}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>Guardando...</span>
+              </>
+            ) : (
+              <>
+                <Save className="size-4" />
+                <span className="truncate">
+                  {sessionId ? "Guardar cambios" : "Crear sesión"}
+                </span>
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </form>
+  )
+}
+
+/* ───────────────────────────── Subcomponents ──────────────────────────── */
+
+function SummaryStat({
+  label,
+  icon,
+  value,
+  className,
+}: {
+  label: string
+  icon: React.ReactNode
+  value: string
+  className?: string
+}) {
+  return (
+    <div className={cn("flex flex-col", className)}>
+      <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+        {label}
+      </span>
+      <div className="flex items-center gap-1.5">
+        {icon}
+        <span className="text-sm font-bold tabular-nums">{value}</span>
+      </div>
+    </div>
+  )
+}
+
+function EmptyItemsState({ onAdd }: { onAdd: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
+      <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+        <PackageOpen className="size-6 text-primary" />
+      </div>
+      <h3 className="mt-3 text-sm font-semibold">Sin líneas agregadas</h3>
+      <p className="mt-1 max-w-xs text-xs text-pretty text-muted-foreground">
+        Comienza agregando una línea de producción para registrar el material y
+        las prendas elaboradas.
+      </p>
+      <Button
+        type="button"
+        size="sm"
+        onClick={onAdd}
+        className="mt-4 h-9 gap-1.5"
+      >
+        <Plus className="size-4" />
+        Agregar primera línea
+      </Button>
+    </div>
+  )
+}
+
+interface ItemCardProps {
+  index: number
+  fieldId: string
+  canRemove: boolean
+  form: UseFormReturn<ProductionFormValues>
+  inventoryItems: InventoryOption[]
+  onRemove: () => void
+}
+
+function ItemCard({
+  index,
+  fieldId,
+  canRemove,
+  form,
+  inventoryItems,
+  onRemove,
+}: ItemCardProps) {
+  const selectedItemId = form.watch(`items.${index}.inventory_item_id`)
+  const selectedMaterial = inventoryItems.find(
+    (item) => item.id === selectedItemId
+  )
+  const itemQuantity = Number(form.watch(`items.${index}.quantity`) || 0)
+  const itemYards = Number(form.watch(`items.${index}.yards_used`) || 0)
+  const itemIsReuse = Boolean(form.watch(`items.${index}.is_reuse`) || false)
+
+  return (
+    <div className="group rounded-xl border border-border bg-card p-3.5 shadow-sm transition-colors hover:border-primary/30 sm:p-4">
+      {/* Card header */}
+      <div className="mb-3 flex items-center justify-between gap-2 border-b border-border/50 pb-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+            {index + 1}
+          </span>
+          <div className="min-w-0">
+            <h4 className="truncate text-xs font-semibold text-foreground">
+              Línea de producción
+            </h4>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Scissors className="size-2.5" />
+                {itemQuantity} und.
+              </span>
+              <span className="size-1 rounded-full bg-border" />
+              <span className="flex items-center gap-1">
+                <Ruler className="size-2.5" />
+                {itemYards.toFixed(1)} yd.
+              </span>
+              {itemIsReuse && (
+                <>
+                  <span className="size-1 rounded-full bg-border" />
+                  <span className="font-medium text-amber-600">
+                    Reutilización
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          disabled={!canRemove}
+          onClick={onRemove}
+          aria-label={`Eliminar línea ${index + 1}`}
+          className="size-9 shrink-0 rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+
+      {/* Field grid — mobile: 1 col, sm: 2 cols, lg: 3 cols */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+        <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+          <Label className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            Material / Tela
+          </Label>
+          <Select
+            value={form.watch(`items.${index}.inventory_item_id`) || ""}
+            onValueChange={(value) =>
+              form.setValue(`items.${index}.inventory_item_id`, value, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+          >
+            <SelectTrigger className="h-10 w-full text-sm">
+              <SelectValue placeholder="Seleccionar material" />
+            </SelectTrigger>
+            <SelectContent>
+              {inventoryItems.map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  <span className="flex items-center gap-2">
+                    <Layers2Icon className="size-3.5 text-primary/70" />
+                    <span className="font-medium">{item.name}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedMaterial && (
+            <div className="flex items-center justify-between gap-x-2 pt-0.5">
+              <span className="text-xs text-muted-foreground">Disponible:</span>
+              <span
+                className={cn(
+                  "text-xs font-bold tabular-nums",
+                  selectedMaterial.quantity < 5
+                    ? "text-destructive"
+                    : "text-emerald-600"
+                )}
+              >
+                {selectedMaterial.quantity.toFixed(1)} {selectedMaterial.unit}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            Tipo de prenda
+          </Label>
+          <Select
+            value={form.watch(`items.${index}.garment_type`) || "shirt"}
+            onValueChange={(value) =>
+              form.setValue(
+                `items.${index}.garment_type`,
+                value as ProductionFormValues["items"][number]["garment_type"],
+                {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                }
+              )
+            }
+          >
+            <SelectTrigger className="h-10 w-full text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {garmentOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            Talla
+          </Label>
+          <Select
+            value={form.watch(`items.${index}.size`) || "M"}
+            onValueChange={(value) =>
+              form.setValue(
+                `items.${index}.size`,
+                value as ProductionFormValues["items"][number]["size"],
+                {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                }
+              )
+            }
+          >
+            <SelectTrigger className="h-10 w-full text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sizeOptions.map((size) => (
+                <SelectItem key={size} value={size}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label
+            htmlFor={`color-${fieldId}`}
+            className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+          >
+            Color / Variante
+          </Label>
+          <Input
+            id={`color-${fieldId}`}
+            type="text"
+            inputMode="text"
+            {...form.register(`items.${index}.color`)}
+            className="h-10 text-sm"
+            placeholder="Ej. Rojo coral"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label
+            htmlFor={`quantity-${fieldId}`}
+            className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+          >
+            Cantidad (piezas)
+          </Label>
+          <Input
+            id={`quantity-${fieldId}`}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            step="1"
+            {...form.register(`items.${index}.quantity`, {
+              valueAsNumber: true,
+            })}
+            className="h-10 text-sm font-semibold tabular-nums"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label
+            htmlFor={`yards-${fieldId}`}
+            className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+          >
+            Consumo (yardas)
+          </Label>
+          <Input
+            id={`yards-${fieldId}`}
+            type="number"
+            inputMode="decimal"
+            min={0}
+            step="0.01"
+            {...form.register(`items.${index}.yards_used`, {
+              valueAsNumber: true,
+            })}
+            className="h-10 text-sm font-semibold tabular-nums"
+          />
+        </div>
+      </div>
+
+      {/* Card footer */}
+      <div className="mt-3.5 flex flex-col gap-3 border-t border-border/50 pt-3.5 sm:gap-4">
+        <label
+          htmlFor={`reuse-${fieldId}`}
+          className="flex cursor-pointer items-start gap-2.5 select-none sm:items-center"
+        >
+          <Checkbox
+            id={`reuse-${fieldId}`}
+            checked={itemIsReuse}
+            onCheckedChange={(checked) =>
+              form.setValue(`items.${index}.is_reuse`, checked === true, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+            className="mt-0.5 size-4 sm:mt-0"
+          />
+          <div className="grid gap-0.5 leading-none">
+            <span className="text-xs font-semibold">
+              Reutilización de material
+            </span>
+            <span className="text-[11px] text-muted-foreground">
+              {itemIsReuse
+                ? "No afectará el stock actual"
+                : "Se descontará del inventario"}
+            </span>
+          </div>
+        </label>
+
+        <div className="w-full">
+          <Input
+            {...form.register(`items.${index}.notes`)}
+            placeholder="Nota opcional por ítem..."
+            className="h-12 border-dashed bg-transparent text-xs"
+            aria-label={`Nota para línea ${index + 1}`}
+          />
+        </div>
+      </div>
+    </div>
   )
 }

@@ -19,6 +19,7 @@ import { useSystemSettings } from "@/hooks/use-system-settings"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { CurrencySelector } from "@/components/shared/currency-selector"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
 
 import {
   Select,
@@ -66,6 +67,7 @@ type InventoryFormOutput = z.output<typeof inventoryFormSchema>
 export type InventoryFormValues = InventoryFormOutput
 
 interface InventoryFormProps {
+  className?: string
   mode: "create" | "edit"
   itemId?: string
   defaultValues?: Partial<InventoryFormValues>
@@ -105,6 +107,7 @@ const unitOptions = ["yd", "metros", "unidades", "rollos"] as const
 // formatCurrency eliminado, se usa exchange.ts
 
 export function InventoryForm({
+  className,
   mode,
   itemId,
   defaultValues,
@@ -217,103 +220,113 @@ export function InventoryForm({
   })
 
   return (
-    <form className="mx-auto w-full" onSubmit={onSubmit} noValidate>
-      {/* Summary Stats - Compact Info Bar */}
-      <div className="mb-4 flex justify-center items-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
-        {[
-          {
-            label: "Valor",
-            amount: Number(totalValue || 0),
-            currency:
-              (form.watch("unit_price_currency") as Currency) || Currency.USD,
-          },
-          {
-            label: "Estado",
-            value:
-              stockStatus === "ok"
-                ? "Óptimo"
-                : stockStatus === "warning"
-                  ? "Moderado"
-                  : stockStatus === "low"
-                    ? "Bajo"
-                    : "Sin stock",
-          },
-          { label: "Unidad", value: unitWatch || "N/A" },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className={cn(
-              "flex shrink-0 flex-col items-center px-4 py-2",
-              i > 0 && "border-l border-border/60"
-            )}
-          >
-            <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-              {item.label}
+    <form
+      onSubmit={onSubmit}
+      className={cn("flex h-full min-h-0 flex-col", className)}
+      noValidate
+    >
+      {/* ─── Summary Bar ─────────────────────────────────────────────── */}
+      <div className="shrink-0 border-b border-border/70 bg-muted/40 px-4 py-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-5">
+            <SummaryStat
+              label="Valor Total"
+              value={totalValue}
+              currency={
+                (form.watch("unit_price_currency") as Currency) || Currency.USD
+              }
+            />
+            <Separator
+              orientation="vertical"
+              className="data-[orientation=vertical]:h-8"
+            />
+            <SummaryStat
+              label="Estado Stock"
+              value={
+                stockStatus === "ok"
+                  ? "Óptimo"
+                  : stockStatus === "warning"
+                    ? "Moderado"
+                    : stockStatus === "low"
+                      ? "Bajo"
+                      : "Sin stock"
+              }
+              status={stockStatus}
+            />
+            <Separator
+              orientation="vertical"
+              className="hidden data-[orientation=vertical]:h-8 sm:block"
+            />
+            <SummaryStat
+              label="Unidad"
+              value={unitWatch || "N/A"}
+              className="hidden sm:flex"
+            />
+          </div>
+
+          <div className="flex min-w-0 flex-col items-end">
+            <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+              Categoría
             </span>
-            <div className="mt-0.5">
-              {"amount" in item ? (
-                <CurrencyDisplay
-                  amount={item.amount ?? 0}
-                  currency={item.currency}
-                  size="sm"
-                />
-              ) : (
-                <span className="text-sm font-bold tabular-nums">
-                  {item.value}
-                </span>
+            <div className="flex min-w-0 items-center gap-1.5">
+              {categoryOptions.find((o) => o.value === category)?.icon && (
+                <div className={cn("size-3.5 shrink-0", categoryOptions.find((o) => o.value === category)?.color)}>
+                  {React.createElement(categoryOptions.find((o) => o.value === category)!.icon, { className: "size-full" })}
+                </div>
               )}
+              <span className="truncate text-sm font-medium">
+                {categoryOptions.find((o) => o.value === category)?.label || "N/A"}
+              </span>
             </div>
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* Tabbed Form */}
-      <Tabs defaultValue="info" className="w-full">
-        <TabsList className="mb-4 grid w-full grid-cols-3">
-          <TabsTrigger value="info" className="gap-1.5 text-xs sm:text-sm">
-            <Tag className="size-3.5" />
-            Información
-          </TabsTrigger>
-          <TabsTrigger value="stock" className="gap-1.5 text-xs sm:text-sm">
-            <Package className="size-3.5" />
-            Stock
-          </TabsTrigger>
-          <TabsTrigger value="media" className="gap-1.5 text-xs sm:text-sm">
-            <ImageIcon className="size-3.5" />
-            Imagen
-          </TabsTrigger>
-        </TabsList>
+      {/* ─── Tabs Content (Scrollable) ──────────────────────────────── */}
+      <Tabs defaultValue="info" className="flex min-h-0 flex-1 flex-col">
+        <div className="shrink-0 border-b border-border/70 bg-background px-4 pt-3 pb-2 sm:px-6 sm:pt-4">
+          <TabsList className="grid h-10 w-full grid-cols-3">
+            <TabsTrigger value="info" className="gap-2 text-sm">
+              <Tag className="size-4" />
+              <span>Información</span>
+            </TabsTrigger>
+            <TabsTrigger value="stock" className="gap-2 text-sm">
+              <Package className="size-4" />
+              <span>Stock</span>
+            </TabsTrigger>
+            <TabsTrigger value="media" className="gap-2 text-sm">
+              <ImageIcon className="size-4" />
+              <span>Imagen</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        {/* Info Tab */}
-        <TabsContent value="info" className="space-y-4">
-          <div className="m-0 border-none bg-none p-0">
-            <div className="space-y-4">
-              {/* Name + Category */}
-              <div className="grid gap-3 sm:grid-cols-2">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <TabsContent value="info" className="m-0 focus-visible:ring-0">
+            <div className="mx-auto max-w-2xl space-y-4 px-4 py-4 sm:px-6">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="name" className="text-sm font-medium">
-                    Nombre <span className="text-destructive">*</span>
+                  <Label htmlFor="name" className="text-sm font-semibold text-foreground/90">
+                    Nombre del material <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="name"
                     {...form.register("name")}
                     placeholder="Ej: Denim azul premium"
-                    className="h-10"
+                    className="h-10 focus-visible:ring-primary"
                   />
                   {form.formState.errors.name && (
-                    <p className="text-xs text-destructive">
+                    <p className="text-xs font-medium text-destructive">
                       {form.formState.errors.name.message}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Categoría</Label>
+                  <Label className="text-sm font-semibold text-foreground/90">Categoría</Label>
                   <Select
                     value={form.watch("category")}
-                    onValueChange={(v) =>
-                      form.setValue("category", v as MaterialCategory)
-                    }
+                    onValueChange={(v) => form.setValue("category", v as MaterialCategory)}
                   >
                     <SelectTrigger className="h-10 w-full">
                       <SelectValue placeholder="Selecciona" />
@@ -335,11 +348,8 @@ export function InventoryForm({
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="supplier"
-                    className="flex items-center gap-1 text-sm font-medium"
-                  >
-                    <Truck className="size-3.5" />
+                  <Label htmlFor="supplier" className="flex items-center gap-1.5 text-sm font-semibold text-foreground/90">
+                    <Truck className="size-3.5 text-primary" />
                     Proveedor
                   </Label>
                   <Input
@@ -351,143 +361,93 @@ export function InventoryForm({
                 </div>
               </div>
 
-              {/* Conditional fields */}
-              {category === MaterialCategory.fabric && (
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {category === MaterialCategory.fabric ? (
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="fabric_type"
-                      className="flex items-center gap-1 text-sm font-medium"
-                    >
-                      <Scissors className="size-3.5" />
+                    <Label htmlFor="fabric_type" className="flex items-center gap-1.5 text-sm font-semibold text-foreground/90">
+                      <Scissors className="size-3.5 text-primary" />
                       Tipo de tela
                     </Label>
-                    <Input
-                      id="fabric_type"
-                      {...form.register("fabric_type")}
-                      placeholder="Ej: Algodón pima"
-                      className="h-10"
-                    />
+                    <Input id="fabric_type" {...form.register("fabric_type")} placeholder="Ej: Algodón pima" className="h-10" />
                   </div>
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="color"
-                      className="flex items-center gap-1 text-sm font-medium"
-                    >
-                      <Palette className="size-3.5" />
+                    <Label htmlFor="color" className="flex items-center gap-1.5 text-sm font-semibold text-foreground/90">
+                      <Palette className="size-3.5 text-primary" />
                       Color
                     </Label>
-                    <Input
-                      id="color"
-                      {...form.register("color")}
-                      placeholder="Ej: Azul marino"
-                      className="h-10"
-                    />
+                    <Input id="color" {...form.register("color")} placeholder="Ej: Azul marino" className="h-10" />
                   </div>
                 </div>
-              )}
-
-              {category !== MaterialCategory.fabric && (
+              ) : (
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="color"
-                    className="flex items-center gap-1 text-sm font-medium"
-                  >
-                    <Palette className="size-3.5" />
+                  <Label htmlFor="color" className="flex items-center gap-1.5 text-sm font-semibold text-foreground/90">
+                    <Palette className="size-3.5 text-primary" />
                     Color / Variante
                   </Label>
-                  <Input
-                    id="color"
-                    {...form.register("color")}
-                    placeholder="Ej: Negro, Plata, etc."
-                    className="h-10"
-                  />
+                  <Input id="color" {...form.register("color")} placeholder="Ej: Negro, Plata, etc." className="h-10" />
                 </div>
               )}
 
-              {/* Notes */}
               <div className="space-y-2">
-                <Label htmlFor="notes" className="text-sm font-medium">
-                  Notas
-                </Label>
+                <Label htmlFor="notes" className="text-sm font-semibold text-foreground/90">Notas adicionales</Label>
                 <Textarea
                   id="notes"
-                  rows={2}
+                  rows={4}
                   {...form.register("notes")}
-                  placeholder="Información adicional..."
-                  className="resize-none"
+                  placeholder="Información relevante sobre el material..."
+                  className="min-h-[100px] resize-none focus-visible:ring-primary"
                 />
               </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        {/* Stock Tab */}
-        <TabsContent value="stock" className="space-y-4">
-          <div className="m-0 border-none bg-none p-0">
-            <div className="space-y-4">
-              {/* Quantity Grid */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <TabsContent value="stock" className="m-0 focus-visible:ring-0">
+            <div className="mx-auto max-w-2xl space-y-5 px-4 py-4 sm:px-6">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="quantity" className="text-sm font-medium">
-                    Cantidad
-                  </Label>
+                  <Label htmlFor="quantity" className="text-sm font-semibold text-foreground/90">Cantidad actual</Label>
                   <Input
                     id="quantity"
                     type="number"
                     min={0}
                     step="0.01"
                     {...form.register("quantity", { valueAsNumber: true })}
-                    className="h-10"
+                    className="h-10 font-medium tabular-nums"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Unidad</Label>
-                  <Select
-                    value={form.watch("unit")}
-                    onValueChange={(v) => form.setValue("unit", v)}
-                  >
+                  <Label className="text-sm font-semibold text-foreground/90">Unidad de medida</Label>
+                  <Select value={form.watch("unit")} onValueChange={(v) => form.setValue("unit", v)}>
                     <SelectTrigger className="h-10 w-full">
-                      <SelectValue placeholder="Unidad" />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
                       {unitOptions.map((u) => (
-                        <SelectItem key={u} value={u}>
-                          {u}
-                        </SelectItem>
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="minimum_stock"
-                    className="text-sm font-medium"
-                  >
-                    Stock mín.
-                  </Label>
+                  <Label htmlFor="minimum_stock" className="text-sm font-semibold text-foreground/90">Stock mínimo alertable</Label>
                   <Input
                     id="minimum_stock"
                     type="number"
                     min={0}
                     step="0.01"
                     {...form.register("minimum_stock", { valueAsNumber: true })}
-                    className="h-10"
+                    className="h-10 font-medium tabular-nums"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="unit_price" className="text-sm font-medium">
-                    Precio
-                  </Label>
+                  <Label htmlFor="unit_price" className="text-sm font-semibold text-foreground/90">Precio por unidad</Label>
                   <div className="flex gap-2">
                     <CurrencySelector
                       value={form.watch("unit_price_currency") || Currency.USD}
-                      onChange={(val) =>
-                        form.setValue("unit_price_currency", val)
-                      }
+                      onChange={(val) => form.setValue("unit_price_currency", val)}
                     />
                     <Input
                       id="unit_price"
@@ -495,108 +455,120 @@ export function InventoryForm({
                       min={0}
                       step="0.01"
                       {...form.register("unit_price", { valueAsNumber: true })}
-                      className="h-10"
+                      className="h-10 flex-1 font-medium tabular-nums"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Stock Status */}
-              <div className="rounded-lg border border-border bg-muted/30 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Estado del stock
+              {/* Stock Status Indicator Pattern */}
+              <div className="rounded-xl border border-border bg-muted/30 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    Estado operativo
                   </span>
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
-                      stockStatus === "ok" && "bg-success/10 text-success",
-                      stockStatus === "warning" && "bg-warning/10 text-warning",
-                      stockStatus === "low" &&
-                        "bg-destructive/10 text-destructive",
-                      stockStatus === "out" &&
-                        "bg-destructive/20 text-destructive"
-                    )}
-                  >
-                    {stockStatus === "ok" && (
-                      <CheckCircle2 className="size-3" />
-                    )}
-                    {stockStatus !== "ok" && (
-                      <AlertTriangle className="size-3" />
-                    )}
-                    {stockStatus === "ok" && "Óptimo"}
-                    {stockStatus === "warning" && "Moderado"}
-                    {stockStatus === "low" && "Bajo"}
-                    {stockStatus === "out" && "Sin stock"}
-                  </span>
+                  <div className={cn(
+                    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold",
+                    stockStatus === "ok" && "bg-emerald-500/10 text-emerald-600",
+                    stockStatus === "warning" && "bg-amber-500/10 text-amber-600",
+                    stockStatus === "low" && "bg-destructive/10 text-destructive",
+                    stockStatus === "out" && "bg-destructive/20 text-destructive"
+                  )}>
+                    {stockStatus === "ok" ? <CheckCircle2 className="size-3.5" /> : <AlertTriangle className="size-3.5" />}
+                    {stockStatus === "ok" ? "Óptimo" : stockStatus === "warning" ? "Moderado" : stockStatus === "low" ? "Stock Bajo" : "Agotado"}
+                  </div>
                 </div>
 
-                {/* Progress bar */}
                 <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
                   <div
                     className={cn(
-                      "h-full rounded-full transition-all duration-500",
-                      stockStatus === "ok" && "bg-success",
-                      stockStatus === "warning" && "bg-warning",
+                      "h-full transition-all duration-500",
+                      stockStatus === "ok" && "bg-emerald-500",
+                      stockStatus === "warning" && "bg-amber-500",
                       stockStatus === "low" && "bg-destructive",
                       stockStatus === "out" && "bg-destructive"
                     )}
-                    style={{
-                      width: `${Math.min((quantityWatch / (minimumStockWatch * 2)) * 100, 100)}%`,
-                    }}
+                    style={{ width: `${Math.min((quantityWatch / (minimumStockWatch * 2 || 1)) * 100, 100)}%` }}
                   />
-                  <div
-                    className="absolute top-0 h-full w-0.5 bg-foreground/20"
-                    style={{ left: "50%" }}
-                  />
+                  <div className="absolute top-0 h-full w-0.5 bg-foreground/20" style={{ left: "50%" }} />
                 </div>
-                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-                  <span>0</span>
-                  <span>Mín: {minimumStockWatch}</span>
-                  <span>{minimumStockWatch * 2}+</span>
+                <div className="mt-1.5 flex justify-between text-[10px] font-medium text-muted-foreground">
+                  <span>Agotado</span>
+                  <span>Mínimo: {minimumStockWatch}</span>
+                  <span>{minimumStockWatch * 2}+ {unitWatch}</span>
                 </div>
               </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        {/* Media Tab */}
-        <TabsContent value="media" className="space-y-4">
-          <div className="m-0 border-none bg-none p-0">
-            {/* Campo oculto para asegurar que react-hook-form capture el valor */}
-            <input type="hidden" {...form.register("image_url")} />
-
-            <MediaUpload
-              bucketType="inventory"
-              recordId={itemId}
-              currentValue={form.watch("image_url") || undefined}
-              onUploadComplete={(path) => {
-                form.setValue("image_url", path as string, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-              }}
-              label="Imagen del material"
-              multiple={false}
-            />
-          </div>
-        </TabsContent>
+          <TabsContent value="media" className="m-0 focus-visible:ring-0">
+            <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
+              <input type="hidden" {...form.register("image_url")} />
+              <MediaUpload
+                bucketType="inventory"
+                recordId={itemId}
+                currentValue={form.watch("image_url") || undefined}
+                onUploadComplete={(path) => {
+                  form.setValue("image_url", path as string, { shouldDirty: true, shouldValidate: true })
+                }}
+                label="Imagen del material"
+                multiple={false}
+              />
+            </div>
+          </TabsContent>
+        </div>
       </Tabs>
 
-      {/* Actions */}
-      <div className="mt-3 grid grid-cols-2 gap-2 md:mt-5">
-        <Button type="button" variant="outline" onClick={onCancel} size="sm">
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={isSubmitting} size="sm">
-          {isSubmitting ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Save className="size-4" />
+      {/* ─── Sticky Footer (Always Visible) ─────────────────────────── */}
+      <div className="shrink-0 border-t border-border/70 bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-6 sm:py-4 sm:pb-4">
+        <div className="mx-auto flex max-w-3xl items-center gap-3">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting} className="flex-1 sm:flex-initial">
+              Cancelar
+            </Button>
           )}
-          {mode === "create" ? "Agregar material" : "Guardar cambios"}
-        </Button>
+          <Button type="submit" disabled={isSubmitting} className="flex-1 gap-2">
+            {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+            <span>{mode === "create" ? "Agregar material" : "Guardar cambios"}</span>
+          </Button>
+        </div>
       </div>
     </form>
+  )
+}
+
+/* ───────────────────────────── Subcomponents ──────────────────────────── */
+
+function SummaryStat({
+  label,
+  value,
+  currency,
+  status,
+  className,
+}: {
+  label: string
+  value: string | number
+  currency?: Currency
+  status?: "ok" | "warning" | "low" | "out"
+  className?: string
+}) {
+  return (
+    <div className={cn("flex flex-col", className)}>
+      <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+        {label}
+      </span>
+      <div className="flex items-center gap-1.5">
+        {currency ? (
+          <CurrencyDisplay amount={Number(value)} currency={currency} size="sm" />
+        ) : (
+          <span className={cn(
+            "text-sm font-bold tabular-nums",
+            status === "low" || status === "out" ? "text-destructive" : ""
+          )}>
+            {value}
+          </span>
+        )}
+      </div>
+    </div>
   )
 }

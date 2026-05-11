@@ -4,8 +4,8 @@ import { KpiSection } from "@/components/shared/kpi-section"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { UsersIcon, ShoppingBagIcon, FileTextIcon } from "lucide-react"
+import { CustomerSheet } from "@/components/modules/customers/customer-sheet"
 import { CustomersTable } from "@/components/modules/customers/customers-table"
-import { NewCustomerSheet } from "@/components/modules/customers/new-customer-sheet"
 
 export default async function CustomersPage() {
   const [customers, currentUser] = await Promise.all([
@@ -40,7 +40,11 @@ export default async function CustomersPage() {
             { label: "Dashboard", href: "/" },
             { label: "Clientes" },
           ]}
-          actions={<NewCustomerSheet />}
+          actions={
+            <div className="flex flex-row flex-wrap gap-3">
+              <CustomerSheet />
+            </div>
+          }
         />
 
         <KpiSection

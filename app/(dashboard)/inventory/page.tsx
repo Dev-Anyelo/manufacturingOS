@@ -7,6 +7,7 @@ import { requireCurrentUser } from "@/lib/auth/current-user"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { InventoryTable } from "@/components/modules/inventory/inventory-table"
+import { InventorySheet } from "@/components/modules/inventory/inventory-sheet"
 
 function getStockStatus(quantity: number, minimumStock: number) {
   if (quantity <= 0) return "out"
@@ -57,6 +58,11 @@ export default async function InventoryPage() {
             { label: "Dashboard", href: "/" },
             { label: "Inventario" },
           ]}
+          actions={
+            <div className="flex flex-row flex-wrap gap-3">
+              <InventorySheet />
+            </div>
+          }
         />
 
         <KpiSection label="Resumen de inventario">

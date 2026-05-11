@@ -5,9 +5,9 @@ import { PageHeader } from "@/components/shared/page-header"
 import { KpiSection } from "@/components/shared/kpi-section"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { ExpenseSheet } from "@/components/modules/expenses/expense-sheet"
 import { ExpensesTable } from "@/components/modules/expenses/expenses-table"
 import { ExpensesSummary } from "@/components/modules/expenses/expenses-summary"
-import { NewExpenseSheet } from "@/components/modules/expenses/new-expense-sheet"
 
 import {
   getExpenses,
@@ -40,6 +40,9 @@ export default async function ExpensesPage() {
     totalCurrency: expense.totalCurrency as Currency,
     updatesInventory: expense.updatesInventory,
     inventoryItemName: expense.inventoryItem?.name ?? null,
+    inventoryItemId: expense.inventoryItemId ?? null,
+    inventoryQuantityAdded: expense.inventoryQuantityAdded ? decimalToNumber(expense.inventoryQuantityAdded) : null,
+    notes: expense.notes ?? null,
     receiptUrl: expense.receiptUrl,
   }))
 
@@ -83,7 +86,11 @@ export default async function ExpensesPage() {
           title="Gastos"
           description="Controla egresos operativos y compras de insumos."
           breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Gastos" }]}
-          actions={<NewExpenseSheet inventoryItems={inventoryItems} />}
+          actions={
+            <div className="flex flex-row flex-wrap gap-3">
+              <ExpenseSheet inventoryItems={inventoryItems} />
+            </div>
+          }
         />
 
         <KpiSection label="Resumen de gastos">
@@ -135,7 +142,7 @@ export default async function ExpensesPage() {
           baseCurrency={overview.baseCurrency}
         />
 
-        <ExpensesTable expenses={rows} currentUserRole={profile.role} />
+        <ExpensesTable expenses={rows} currentUserRole={profile.role} inventoryItems={inventoryItems} />
       </div>
     </section>
   )

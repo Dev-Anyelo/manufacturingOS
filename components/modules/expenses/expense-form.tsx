@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils"
 import { Currency } from "@prisma/client"
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
-import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -15,6 +14,7 @@ import { Switch } from "@/components/ui/switch"
 import { Calendar } from "@/components/ui/calendar"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { useExchangeRates } from "@/hooks/use-exchange-rates"
 import { MediaUpload } from "@/components/shared/media-upload"
@@ -38,12 +38,6 @@ import {
 } from "@/components/ui/select"
 
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-
-import {
   Loader2,
   Calendar as CalendarIcon,
   Receipt,
@@ -51,7 +45,6 @@ import {
   ArrowUpRight,
   Calculator,
   Building2,
-  ChevronDown,
   Save,
 } from "lucide-react"
 
@@ -121,8 +114,8 @@ const expenseFormSchema = z
     }
   })
 
-type ExpenseFormInput = z.input<typeof expenseFormSchema>
-type ExpenseFormOutput = z.output<typeof expenseFormSchema>
+export type ExpenseFormInput = z.input<typeof expenseFormSchema>
+export type ExpenseFormOutput = z.output<typeof expenseFormSchema>
 
 type InventoryOption = {
   id: string
@@ -132,6 +125,7 @@ type InventoryOption = {
 }
 
 interface ExpenseFormProps {
+  className?: string
   inventoryItems: InventoryOption[]
   itemId?: string
   defaultValues?: Partial<ExpenseFormInput> & { receipt_url?: string | null }
@@ -173,6 +167,7 @@ function formatDateLabel(value: string) {
 }
 
 export function ExpenseForm({
+  className,
   inventoryItems,
   itemId,
   defaultValues,
@@ -325,56 +320,63 @@ export function ExpenseForm({
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="mx-auto w-full"
+      className={cn("flex h-full min-h-0 flex-col", className)}
       noValidate
     >
-      {/* Total Summary - Compact Info Bar */}
-      <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
-        <div className="flex shrink-0 flex-col items-center px-4 py-2">
-          <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-            Total a registrar
-          </span>
-          <div className="mt-0.5">
-            <CurrencyDisplay
-              amount={watchedTotal}
-              currency={form.watch("total_currency") as any}
-              size="md"
-            />
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {/* Total Summary - Compact Info Bar */}
+        <div className="sticky top-0 z-10 flex items-center justify-center border-b border-border/50 bg-background/95 py-2 backdrop-blur-sm">
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+              Total a registrar
+            </span>
+            <div className="mt-0.5">
+              <CurrencyDisplay
+                amount={watchedTotal}
+                currency={form.watch("total_currency") as any}
+                size="md"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Tabbed Form */}
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="mb-4 grid w-full grid-cols-3">
-          <TabsTrigger value="basic">
-            <Receipt className="size-3.5" />
-            Detalles
-          </TabsTrigger>
-          <TabsTrigger value="amounts">
-            <Calculator className="size-3.5" />
-            Cálculo
-          </TabsTrigger>
-          <TabsTrigger value="extras">
-            <Package className="size-3.5" />
-            Extras
-          </TabsTrigger>
-        </TabsList>
+        <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
+          {/* Tabbed Form */}
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="mb-6 grid w-full grid-cols-3">
+              <TabsTrigger value="basic" className="gap-2">
+                <Receipt className="size-3.5" />
+                <span className="hidden sm:inline">Detalles</span>
+                <span className="sm:hidden">Detalle</span>
+              </TabsTrigger>
+              <TabsTrigger value="amounts" className="gap-2">
+                <Calculator className="size-3.5" />
+                <span className="hidden sm:inline">Cálculo</span>
+                <span className="sm:hidden">Cálculo</span>
+              </TabsTrigger>
+              <TabsTrigger value="extras" className="gap-2">
+                <Package className="size-3.5" />
+                <span className="hidden sm:inline">Inventario</span>
+                <span className="sm:hidden">Stock</span>
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Basic Tab */}
-        <TabsContent value="basic" className="space-y-4">
-          <div className="dborder-none m-0 bg-none p-0">
-            <div className="space-y-4">
-              {/* Date + Category Row */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {/* Basic Tab */}
+            <TabsContent
+              value="basic"
+              className="m-0 space-y-5 focus-visible:ring-0"
+            >
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Fecha</Label>
+                  <Label className="text-sm font-semibold text-foreground/90">
+                    Fecha
+                  </Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-10 w-full justify-start font-normal"
+                        className="h-10 w-full justify-start font-normal focus-visible:ring-primary"
                       >
                         <CalendarIcon className="mr-2 size-4 text-muted-foreground" />
                         {formatDateLabel(selectedExpenseDate)}
@@ -403,7 +405,9 @@ export function ExpenseForm({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Categoría</Label>
+                  <Label className="text-sm font-semibold text-foreground/90">
+                    Categoría
+                  </Label>
                   <Select
                     value={form.watch("category")}
                     onValueChange={(value) =>
@@ -417,7 +421,7 @@ export function ExpenseForm({
                       )
                     }
                   >
-                    <SelectTrigger className="h-10 w-full">
+                    <SelectTrigger className="h-10 w-full focus-visible:ring-primary">
                       <SelectValue placeholder="Categoría" />
                     </SelectTrigger>
                     <SelectContent>
@@ -433,52 +437,54 @@ export function ExpenseForm({
                 </div>
               </div>
 
-              {/* Concept */}
               <div className="space-y-2">
-                <Label htmlFor="concept" className="text-sm font-medium">
+                <Label
+                  htmlFor="concept"
+                  className="text-sm font-semibold text-foreground/90"
+                >
                   Concepto <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="concept"
                   placeholder="Ej: Compra de hilo industrial"
+                  className="h-10 focus-visible:ring-primary"
                   {...form.register("concept")}
-                  className="h-10"
                 />
                 {form.formState.errors.concept && (
-                  <p className="text-xs text-destructive">
+                  <p className="text-xs font-medium text-destructive">
                     {form.formState.errors.concept.message}
                   </p>
                 )}
               </div>
 
-              {/* Supplier */}
               <div className="space-y-2">
                 <Label
                   htmlFor="supplier"
-                  className="flex items-center gap-1 text-sm font-medium"
+                  className="flex items-center gap-1 text-sm font-semibold text-foreground/90"
                 >
                   <Building2 className="size-3.5" />
-                  Proveedor
+                  Proveedor (Opcional)
                 </Label>
                 <Input
                   id="supplier"
-                  placeholder="Nombre del proveedor (opcional)"
+                  placeholder="Nombre de la empresa o persona"
+                  className="h-10 focus-visible:ring-primary"
                   {...form.register("supplier")}
-                  className="h-10"
                 />
               </div>
-            </div>
-          </div>
-        </TabsContent>
+            </TabsContent>
 
-        {/* Amounts Tab */}
-        <TabsContent value="amounts" className="space-y-4">
-          <div className="dborder-none m-0 bg-none p-0">
-            <div className="space-y-4">
-              {/* Quantity + Unit Price + Total */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {/* Amounts Tab */}
+            <TabsContent
+              value="amounts"
+              className="m-0 space-y-5 focus-visible:ring-0"
+            >
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="quantity" className="text-sm font-medium">
+                  <Label
+                    htmlFor="quantity"
+                    className="text-sm font-semibold text-foreground/90"
+                  >
                     Cantidad
                   </Label>
                   <Input
@@ -487,13 +493,16 @@ export function ExpenseForm({
                     min={0}
                     step="0.01"
                     placeholder="0"
+                    className="h-10 focus-visible:ring-primary"
                     {...form.register("quantity", { valueAsNumber: true })}
-                    className="h-10"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="unit_price" className="text-sm font-medium">
-                    Precio unit.
+                  <Label
+                    htmlFor="unit_price"
+                    className="text-sm font-semibold text-foreground/90"
+                  >
+                    Precio unitario
                   </Label>
                   <div className="flex gap-2">
                     <CurrencySelector
@@ -509,14 +518,17 @@ export function ExpenseForm({
                       min={0}
                       step="0.01"
                       placeholder="0.00"
+                      className="h-10 flex-1 focus-visible:ring-primary"
                       {...form.register("unit_price", { valueAsNumber: true })}
-                      className="h-10"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="total" className="text-sm font-medium">
-                    Total
+                  <Label
+                    htmlFor="total"
+                    className="text-sm font-semibold text-foreground/90"
+                  >
+                    Total final
                   </Label>
                   <div className="flex gap-2">
                     <CurrencySelector
@@ -528,17 +540,17 @@ export function ExpenseForm({
                       type="number"
                       min={0}
                       step="0.01"
+                      className="h-10 flex-1 focus-visible:ring-primary"
                       {...form.register("total", { valueAsNumber: true })}
-                      className="h-10"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Calculated Display */}
-              <div className="rounded-lg bg-muted/50 p-3 text-center">
-                <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-                  Total calculado
+              <div className="rounded-xl border border-dashed border-primary/20 bg-primary/5 p-4 text-center">
+                <p className="text-[10px] font-bold tracking-wider text-primary/70 uppercase">
+                  Total calculado automáticamente
                 </p>
                 <div className="mt-1 flex justify-center">
                   <CurrencyDisplay
@@ -546,75 +558,49 @@ export function ExpenseForm({
                       Number.isFinite(calculatedTotal) ? calculatedTotal : 0
                     }
                     currency={form.watch("total_currency") as Currency}
+                    size="md"
                   />
                 </div>
               </div>
-            </div>
-          </div>
-        </TabsContent>
+            </TabsContent>
 
-        {/* Extras Tab */}
-        <TabsContent value="extras" className="space-y-4">
-          <div className="dborder-none m-0 bg-none p-0">
-            <div className="space-y-4">
-              {/* Inventory Toggle */}
-              <Collapsible open={inventoryOpen} onOpenChange={setInventoryOpen}>
-                <CollapsibleTrigger asChild>
-                  <div className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-muted/30 p-3 transition-colors hover:bg-muted/50">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          "flex size-8 items-center justify-center rounded-lg",
-                          updatesInventory ? "bg-success/10" : "bg-muted"
-                        )}
-                      >
-                        <Package
-                          className={cn(
-                            "size-4",
-                            updatesInventory
-                              ? "text-success"
-                              : "text-muted-foreground"
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">
-                          Actualizar inventario
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Vincular este gasto con el stock
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={updatesInventory}
-                        onCheckedChange={(checked) => {
-                          form.setValue("updates_inventory", checked, {
-                            shouldDirty: true,
-                          })
-                          if (!checked) {
-                            form.setValue("inventory_item_id", null)
-                            form.setValue("inventory_quantity_added", null)
-                          }
-                        }}
-                      />
-                      {updatesInventory && (
-                        <ChevronDown
-                          className={cn(
-                            "size-4 transition-transform",
-                            inventoryOpen && "rotate-180"
-                          )}
-                        />
-                      )}
-                    </div>
+            {/* Extras Tab */}
+            <TabsContent
+              value="extras"
+              className="m-0 space-y-6 focus-visible:ring-0"
+            >
+              {/* Inventory Link Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-semibold">
+                      Vincular al inventario
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Sincroniza este gasto con el stock físico.
+                    </p>
                   </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-3">
-                  {updatesInventory && (
-                    <div className="border-success/30 bg-success/5 grid grid-cols-1 gap-3 rounded-lg border border-dashed p-3 sm:grid-cols-2">
+                  <Switch
+                    checked={updatesInventory}
+                    onCheckedChange={(checked) => {
+                      form.setValue("updates_inventory", checked, {
+                        shouldDirty: true,
+                      })
+                      if (!checked) {
+                        form.setValue("inventory_item_id", null)
+                        form.setValue("inventory_quantity_added", null)
+                      }
+                    }}
+                  />
+                </div>
+
+                {updatesInventory && (
+                  <div className="border-success/20 bg-success/5 animate-in space-y-4 rounded-xl border p-4 duration-200 zoom-in-95 fade-in">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium">Material</Label>
+                        <Label className="text-success/80 text-xs font-semibold uppercase">
+                          Material / Insumo
+                        </Label>
                         <Select
                           value={selectedInventoryItemId ?? ""}
                           onValueChange={(value) =>
@@ -624,8 +610,8 @@ export function ExpenseForm({
                             })
                           }
                         >
-                          <SelectTrigger className="h-10 w-full">
-                            <SelectValue placeholder="Seleccionar" />
+                          <SelectTrigger className="border-success/30 focus-visible:ring-success h-10 w-full">
+                            <SelectValue placeholder="Seleccionar material" />
                           </SelectTrigger>
                           <SelectContent>
                             {inventoryItems.map((item) => (
@@ -636,8 +622,9 @@ export function ExpenseForm({
                           </SelectContent>
                         </Select>
                         {selectedInventoryItem && (
-                          <p className="text-xs text-muted-foreground">
-                            Stock: {selectedInventoryItem.quantity.toFixed(2)}{" "}
+                          <p className="text-success/70 text-[11px] font-medium">
+                            Stock actual:{" "}
+                            {selectedInventoryItem.quantity.toFixed(2)}{" "}
                             {selectedInventoryItem.unit}
                           </p>
                         )}
@@ -645,9 +632,9 @@ export function ExpenseForm({
                       <div className="space-y-2">
                         <Label
                           htmlFor="inventory_quantity_added"
-                          className="text-sm font-medium"
+                          className="text-success/80 text-xs font-semibold uppercase"
                         >
-                          Cantidad a agregar
+                          Cantidad a sumar
                         </Label>
                         <div className="relative">
                           <ArrowUpRight className="text-success pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
@@ -657,63 +644,88 @@ export function ExpenseForm({
                             min={0}
                             step="0.01"
                             placeholder="0"
+                            className="border-success/30 focus-visible:ring-success h-10 pl-8"
                             {...form.register("inventory_quantity_added", {
                               valueAsNumber: true,
                             })}
-                            className="h-10 pl-8"
                           />
                         </div>
                       </div>
                     </div>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
+                  </div>
+                )}
+              </div>
 
-              {/* Receipt Upload */}
-              <div className="space-y-2">
-                {/* Campo oculto para asegurar captura */}
-                <input type="hidden" {...form.register("receipt_url")} />
-
-                <MediaUpload
-                  bucketType="expenses"
-                  currentValue={form.watch("receipt_url") || undefined}
-                  onUploadComplete={(path) => {
-                    form.setValue("receipt_url", path as string, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }}
-                  label="Comprobante / Recibo"
-                  multiple={false}
-                />
+              {/* Receipt Section */}
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">
+                  Evidencia del gasto
+                </Label>
+                <div className="relative">
+                  <input type="hidden" {...form.register("receipt_url")} />
+                  <MediaUpload
+                    bucketType="expenses"
+                    currentValue={form.watch("receipt_url") || undefined}
+                    onUploadComplete={(path) => {
+                      form.setValue("receipt_url", path as string, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }}
+                    label="Subir foto del recibo o factura"
+                    multiple={false}
+                  />
+                </div>
               </div>
 
               {/* Notes */}
               <div className="space-y-2">
-                <Label htmlFor="notes" className="text-sm font-medium">
-                  Notas
+                <Label
+                  htmlFor="notes"
+                  className="text-sm font-semibold text-foreground/90"
+                >
+                  Notas y observaciones
                 </Label>
                 <Textarea
                   id="notes"
-                  rows={2}
-                  placeholder="Observaciones adicionales..."
+                  rows={3}
+                  placeholder="Detalles del pago, método utilizado, etc..."
+                  className="min-h-[80px] resize-none focus-visible:ring-primary"
                   {...form.register("notes")}
-                  className="resize-none"
                 />
               </div>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-      <div className="mt-3 flex w-full items-center justify-center gap-2 md:mt-5">
-        <Button type="submit" disabled={isSubmitting} className="w-full gap-2">
-          {isSubmitting ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Save className="size-4" />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+
+      {/* ─── Sticky Footer ─────────────────────────────────────────── */}
+      <div className="shrink-0 border-t border-border/70 bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-6 sm:py-4 sm:pb-4">
+        <div className="mx-auto flex max-w-3xl items-center gap-3">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-initial"
+            >
+              Cancelar
+            </Button>
           )}
-          Registrar gasto
-        </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 gap-2"
+          >
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            <span>{itemId ? "Guardar cambios" : "Registrar gasto"}</span>
+          </Button>
+        </div>
       </div>
     </form>
   )

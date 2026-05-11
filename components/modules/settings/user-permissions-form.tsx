@@ -10,6 +10,9 @@ import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { DEFAULT_PERMISSIONS } from "@/lib/permissions/constants"
+import { MODULE_KEYS, ACTION_KEYS } from "@/lib/permissions/types"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
 import type {
   PermissionOverride,
   ModulePermissions,
@@ -17,8 +20,6 @@ import type {
   ActionKey,
   ResolvedPermissions,
 } from "@/lib/permissions/types"
-import { MODULE_KEYS, ACTION_KEYS } from "@/lib/permissions/types"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import {
   ShieldCheckIcon,
@@ -84,7 +85,7 @@ const roleColors: Record<string, string> = {
   readonly: "border-muted-foreground/50 text-muted-foreground bg-muted/50",
 }
 
-const actionDescriptions: Record<string, string> = {
+const actionDescriptions: Record<ActionKey, string> = {
   view: "Ver listados y detalles del módulo",
   create: "Crear nuevos registros en el módulo",
   edit: "Modificar registros existentes",
@@ -92,7 +93,7 @@ const actionDescriptions: Record<string, string> = {
   export: "Exportar datos a Excel/PDF",
 }
 
-const actionTranslations: Record<string, string> = {
+const actionTranslations: Record<ActionKey, string> = {
   view: "Ver",
   create: "Crear",
   edit: "Editar",
@@ -100,7 +101,7 @@ const actionTranslations: Record<string, string> = {
   export: "Exportar",
 }
 
-const moduleTranslations: Record<string, string> = {
+const moduleTranslations: Record<ModuleKey, string> = {
   dashboard: "Dashboard",
   inventory: "Inventario",
   production: "Producción",
@@ -112,6 +113,7 @@ const moduleTranslations: Record<string, string> = {
   payroll: "Planilla",
   reports: "Reportes",
   settings: "Configuración",
+  attendance: "Asistencia",
 }
 
 export function UserPermissionsForm({

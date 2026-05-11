@@ -1,26 +1,14 @@
 import Link from "next/link"
 import Image from "next/image"
-import * as React from "react"
-import { GARMENT_TYPES } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getStorageUrl } from "@/lib/storage/upload"
 import { cn, getGarmetTypeLabel } from "@/lib/utils"
 import { Currency, GarmentType } from "@prisma/client"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { ArrowUpRight, ShirtIcon, PencilIcon } from "lucide-react"
+import { ArrowUpRight, ShirtIcon } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { CatalogForm } from "@/components/modules/catalog/catalog-form"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
-
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet"
 
 export interface CatalogCardItem {
   id: string
@@ -50,10 +38,10 @@ export interface CatalogCardItem {
 
 interface CatalogCardProps {
   item: CatalogCardItem
+  onEdit?: (item: CatalogCardItem) => void
 }
 
-export function CatalogCard({ item }: CatalogCardProps) {
-  const [open, setOpen] = React.useState(false)
+export function CatalogCard({ item, onEdit }: CatalogCardProps) {
   return (
     <Card
       className={cn(
@@ -163,7 +151,7 @@ export function CatalogCard({ item }: CatalogCardProps) {
             size="sm"
             variant="outline"
             className="flex-1"
-            onClick={() => setOpen(true)}
+            onClick={() => onEdit?.(item)}
           >
             Editar
           </Button>
@@ -178,77 +166,6 @@ export function CatalogCard({ item }: CatalogCardProps) {
           </Button>
         </div>
       </CardFooter>
-
-      <Sheet open={open} onOpenChange={(o) => !o && setOpen(false)}>
-        <SheetContent
-          side="right"
-          className={cn(
-            "flex flex-col gap-0 border-border p-0 sm:max-w-2xl",
-            ""
-          )}
-        >
-          <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                <PencilIcon className="size-4 text-primary" />
-              </div>
-              <div>
-                <SheetTitle className="text-base">Editar producto</SheetTitle>
-                <SheetDescription className="text-sm text-pretty">
-                  Actualiza la información del producto seleccionado.
-                </SheetDescription>
-              </div>
-            </div>
-          </SheetHeader>
-
-          <ScrollArea className="flex-1">
-            <div className="px-4 py-4">
-              <CatalogForm
-                mode="edit"
-                itemId={item.id}
-                defaultValues={{
-                  name: item.name,
-                  description: null,
-                  garment_type:
-                    item.garmentType &&
-                    Object.prototype.hasOwnProperty.call(
-                      GARMENT_TYPES,
-                      item.garmentType as GarmentType
-                    )
-                      ? (item.garmentType as GarmentType)
-                      : ("other" as GarmentType),
-                  market_price_unit: item.marketPriceUnit ?? 0,
-                  market_price_unit_currency: (item.marketPriceUnitCurrency ??
-                    "USD") as Currency,
-                  market_price_dozen: item.marketPriceDozen ?? null,
-                  market_price_dozen_currency: (item.marketPriceDozenCurrency ??
-                    "USD") as Currency,
-                  our_price_unit: item.ourPriceUnit ?? 0,
-                  our_price_unit_currency: (item.ourPriceUnitCurrency ??
-                    "USD") as Currency,
-                  our_price_dozen: item.ourPriceDozen ?? null,
-                  our_price_dozen_currency: (item.ourPriceDozenCurrency ??
-                    "USD") as Currency,
-                  estimated_cost: item.estimatedCost ?? null,
-                  estimated_cost_currency: (item.estimatedCostCurrency ??
-                    "USD") as Currency,
-                  notes: item.notes,
-                  image_url: item.imageUrl,
-                  stock_entries:
-                    item.finishedGoods?.map((fg) => ({
-                      size: fg.size,
-                      color: fg.color ?? "",
-                      quantity: fg.stock,
-                      minimumStock: fg.minimumStock,
-                    })) ?? [],
-                }}
-                onSuccess={() => setOpen(false)}
-                onCancel={() => setOpen(false)}
-              />
-            </div>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
     </Card>
   )
 }

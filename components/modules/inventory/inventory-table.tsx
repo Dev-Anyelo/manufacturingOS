@@ -16,7 +16,7 @@ import { DataTable } from "@/components/shared/data-table"
 import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { InventoryForm } from "@/components/modules/inventory/inventory-form"
+import { InventorySheet } from "@/components/modules/inventory/inventory-sheet"
 import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { AdjustStockDialog } from "@/components/modules/inventory/adjust-stock-dialog"
 
@@ -328,82 +328,6 @@ function createInventoryColumns(
 }
 
 /** Sheet wrapper for InventoryForm (create or edit) */
-function InventoryFormSheet({
-  open,
-  onOpenChange,
-  mode,
-  item,
-  onSuccess,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  mode: "create" | "edit"
-  item?: InventoryTableRow | null
-  onSuccess: () => void
-}) {
-  const isMobile = useIsMobile()
-
-  const defaultValues =
-    mode === "edit" && item
-      ? {
-          name: item.name,
-          category: item.category,
-          quantity: item.quantity,
-          minimum_stock: item.minimumStock,
-          unit: item.unit,
-          unit_price: item.unitPrice,
-          unit_price_currency: item.unitPriceCurrency,
-          supplier: item.supplier,
-          image_url: item.imageUrl,
-        }
-      : undefined
-
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side={isMobile ? "bottom" : "right"}
-        className={cn(
-          "flex flex-col gap-0 border-border p-0 sm:max-w-2xl",
-          isMobile ? "max-h-[95vh] rounded-t-2xl" : ""
-        )}
-      >
-        <SheetHeader className="shrink-0 border-b border-border/70 px-4 py-4 text-left">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-              <BoxesIcon className="size-4 text-primary" />
-            </div>
-            <div>
-              <SheetTitle className="text-base text-pretty">
-                {mode === "create" ? "Nuevo material" : "Editar material"}
-              </SheetTitle>
-              <SheetDescription className="text-sm text-pretty">
-                {mode === "create"
-                  ? "Agrega un nuevo material al inventario."
-                  : `Edita los datos de "${item?.name}".`}
-              </SheetDescription>
-            </div>
-          </div>
-        </SheetHeader>
-
-        <ScrollArea className="flex-1">
-          <div className="px-4 py-4">
-            <InventoryForm
-              mode={mode}
-              itemId={mode === "edit" ? item?.id : undefined}
-              defaultValues={defaultValues}
-              onSuccess={() => {
-                onOpenChange(false)
-                onSuccess()
-              }}
-              onCancel={() => onOpenChange(false)}
-            />
-          </div>
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
-  )
-}
-
 export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -419,7 +343,6 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
   const [deletingItem, setDeletingItem] =
     React.useState<InventoryTableRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
-  const [createOpen, setCreateOpen] = React.useState(false)
 
   const updateFilters = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -499,31 +422,17 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         searchPlaceholder="Buscar por nombre o proveedor..."
         emptyMessage="No hay materiales registrados"
         emptyDescription="Busca otro termino o agrega el primer material al inventario."
-        emptyAction={
-          <Button size="sm" onClick={() => setCreateOpen(true)}>
-            <PlusIcon className="size-4" />
-            Nuevo material
-          </Button>
-        }
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              className="gap-2"
-              onClick={() => setCreateOpen(true)}
-            >
-              <PlusIcon className="size-4 shrink-0" />
-              Nuevo material
-            </Button>
             <Select
               value={categoryFilter}
               onValueChange={(v) => updateFilters("category", v)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9 w-40">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="all">Todas las categorías</SelectItem>
                 <SelectItem value="fabric">Telas</SelectItem>
                 <SelectItem value="supplies">Insumos</SelectItem>
                 <SelectItem value="tools">Herramientas</SelectItem>
@@ -535,14 +444,14 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
               value={stockFilter}
               onValueChange={(v) => updateFilters("status", v)}
             >
-              <SelectTrigger className="h-8 w-36 text-xs">
-                <SelectValue placeholder="Estado" />
+              <SelectTrigger className="h-9 w-40">
+                <SelectValue placeholder="Estado de stock" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="normal">Óptimo</SelectItem>
                 <SelectItem value="low">Bajo</SelectItem>
-                <SelectItem value="critical">Critico</SelectItem>
+                <SelectItem value="critical">Crítico</SelectItem>
                 <SelectItem value="out">Agotado</SelectItem>
               </SelectContent>
             </Select>
@@ -566,23 +475,25 @@ export function InventoryTable({ items, canDeactivate }: InventoryTableProps) {
         }}
       />
 
-      {/* Create material sheet */}
-      <InventoryFormSheet
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        mode="create"
-        onSuccess={() => {}}
-      />
-
-      {/* Edit material sheet */}
-      <InventoryFormSheet
+      {/* Standardized InventorySheet for Editing */}
+      <InventorySheet
+        itemId={editingItem?.id}
+        defaultValues={editingItem ? {
+          name: editingItem.name,
+          category: editingItem.category,
+          quantity: editingItem.quantity,
+          minimum_stock: editingItem.minimumStock,
+          unit: editingItem.unit,
+          unit_price: editingItem.unitPrice,
+          unit_price_currency: editingItem.unitPriceCurrency,
+          supplier: editingItem.supplier,
+          image_url: editingItem.imageUrl,
+        } : undefined}
         open={Boolean(editingItem)}
         onOpenChange={(open) => {
           if (!open) setEditingItem(null)
         }}
-        mode="edit"
-        item={editingItem}
-        onSuccess={() => {}}
+        trigger={null}
       />
 
       {/* Delete confirmation — professional AlertDialog */}

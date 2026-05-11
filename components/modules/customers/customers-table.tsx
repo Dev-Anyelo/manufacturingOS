@@ -41,6 +41,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
+import { CustomerSheet } from "@/components/modules/customers/customer-sheet"
+
 export type CustomerRow = {
   id: string
   fullName: string
@@ -63,6 +65,8 @@ export function CustomersTable({
 }: CustomersTableProps) {
   const router = useRouter()
   const [customerToDelete, setCustomerToDelete] =
+    React.useState<CustomerRow | null>(null)
+  const [editingCustomer, setEditingCustomer] =
     React.useState<CustomerRow | null>(null)
   const [isDeleting, setIsDeleting] = React.useState(false)
 
@@ -202,14 +206,12 @@ export function CustomersTable({
                   Ver perfil
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/customers/${row.original.id}/edit`}
-                  className="flex items-center gap-2"
-                >
-                  <PencilLineIcon className="size-4" />
-                  Editar
-                </Link>
+              <DropdownMenuItem
+                className="flex items-center gap-2"
+                onClick={() => setEditingCustomer(row.original)}
+              >
+                <PencilLineIcon className="size-4" />
+                Editar
               </DropdownMenuItem>
               {canDelete && (
                 <DropdownMenuItem
@@ -236,6 +238,21 @@ export function CustomersTable({
         searchPlaceholder="Buscar clientes por nombre..."
         emptyMessage="Sin clientes"
         emptyDescription="Agrega tu primer cliente para empezar a gestionar su historial."
+      />
+
+      {/* Standardized CustomerSheet for Editing */}
+      <CustomerSheet
+        customerId={editingCustomer?.id}
+        defaultValues={editingCustomer ? {
+          full_name: editingCustomer.fullName,
+          phone: editingCustomer.phone ?? "",
+          email: editingCustomer.email ?? "",
+        } : undefined}
+        open={Boolean(editingCustomer)}
+        onOpenChange={(open) => {
+          if (!open) setEditingCustomer(null)
+        }}
+        trigger={null}
       />
 
       <AlertDialog

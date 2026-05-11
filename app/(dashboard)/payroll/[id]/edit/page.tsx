@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation"
-import { getPayrollPayment, getPayrollFormBootstrap } from "@/lib/data/payroll"
+import { redirect } from "next/navigation"
+import { decimalToNumber } from "@/lib/api/utils"
+import { Currency, PayrollStatus } from "@prisma/client"
 import { PageHeader } from "@/components/shared/page-header"
 import { PayrollForm } from "@/components/modules/payroll/payroll-form"
-import { Currency, PayrollStatus } from "@prisma/client"
-import { decimalToNumber } from "@/lib/api/utils"
-import { redirect } from "next/navigation"
+import { getPayrollPayment, getPayrollFormBootstrap } from "@/lib/data/payroll"
 
 export default async function EditPayrollPage({
   params,

@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ChevronsUpDownIcon, XIcon, CheckIcon } from "lucide-react"
 
-
 import {
   Command,
   CommandEmpty,
@@ -28,7 +27,7 @@ export interface EntityOption {
   fullName: string
   phone?: string | null
   email?: string | null
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface EntitySelectorProps {
@@ -153,7 +152,7 @@ export function EntitySelector({
                 </Button>
               )}
             </div>
-            <CommandList 
+            <CommandList
               className="max-h-[260px]"
               onWheel={(e) => e.stopPropagation()}
             >

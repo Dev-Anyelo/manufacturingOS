@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
@@ -14,6 +15,7 @@ import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { customerSchema, type CustomerInput } from "@/lib/validations/sales"
 
 interface CustomerFormProps {
+  className?: string
   mode?: "create" | "edit"
   customerId?: string
   defaultValues?: Partial<CustomerInput>
@@ -22,6 +24,7 @@ interface CustomerFormProps {
 }
 
 export function CustomerForm({
+  className,
   mode = "create",
   customerId,
   defaultValues,
@@ -94,100 +97,136 @@ export function CustomerForm({
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="space-y-4"
+      className={cn("flex h-full min-h-0 flex-col", className)}
       noValidate
     >
-      <div className="space-y-2">
-        <Label htmlFor="full_name">
-          Nombre Completo <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id="full_name"
-          placeholder="Ej: Juan Pérez"
-          {...form.register("full_name")}
-        />
-        {form.formState.errors.full_name && (
-          <p className="text-xs text-destructive">
-            {form.formState.errors.full_name.message}
-          </p>
-        )}
-      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="mx-auto max-w-2xl space-y-5 px-4 py-6 sm:px-6">
+          <div className="space-y-2">
+            <Label
+              htmlFor="full_name"
+              className="text-sm font-semibold text-foreground/90"
+            >
+              Nombre Completo <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="full_name"
+              placeholder="Ej: Juan Pérez"
+              className="h-10 focus-visible:ring-primary"
+              {...form.register("full_name")}
+            />
+            {form.formState.errors.full_name && (
+              <p className="text-xs font-medium text-destructive">
+                {form.formState.errors.full_name.message}
+              </p>
+            )}
+          </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="phone">Teléfono</Label>
-          <Input
-            id="phone"
-            placeholder="Ej: 6000-0000"
-            {...form.register("phone")}
-          />
-          {form.formState.errors.phone && (
-            <p className="text-xs text-destructive">
-              {form.formState.errors.phone.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Ej: juan@ejemplo.com"
-            {...form.register("email")}
-          />
-          {form.formState.errors.email && (
-            <p className="text-xs text-destructive">
-              {form.formState.errors.email.message}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="address">Dirección</Label>
-        <Input
-          id="address"
-          placeholder="Ej: Ciudad de Managua, Nicaragua"
-          {...form.register("address")}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="notes">Notas (Opcional)</Label>
-        <Textarea
-          id="notes"
-          rows={3}
-          placeholder="Detalles adicionales del cliente..."
-          className="resize-none"
-          {...form.register("notes")}
-        />
-      </div>
-
-      <div className="flex items-center justify-end gap-3 pt-2">
-        {onCancel && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </Button>
-        )}
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Guardando...
-            </>
-          ) : (
-            <div className="flex items-center gap-2">
-              <SaveIcon className="size-4" />
-              Guardar cambios
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label
+                htmlFor="phone"
+                className="text-sm font-semibold text-foreground/90"
+              >
+                Teléfono
+              </Label>
+              <Input
+                id="phone"
+                placeholder="Ej: 6000-0000"
+                className="h-10 focus-visible:ring-primary"
+                {...form.register("phone")}
+              />
+              {form.formState.errors.phone && (
+                <p className="text-xs font-medium text-destructive">
+                  {form.formState.errors.phone.message}
+                </p>
+              )}
             </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="email"
+                className="text-sm font-semibold text-foreground/90"
+              >
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Ej: juan@ejemplo.com"
+                className="h-10 focus-visible:ring-primary"
+                {...form.register("email")}
+              />
+              {form.formState.errors.email && (
+                <p className="text-xs font-medium text-destructive">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label
+              htmlFor="address"
+              className="text-sm font-semibold text-foreground/90"
+            >
+              Dirección
+            </Label>
+            <Input
+              id="address"
+              placeholder="Ej: Ciudad de Managua, Nicaragua"
+              className="h-10 focus-visible:ring-primary"
+              {...form.register("address")}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label
+              htmlFor="notes"
+              className="text-sm font-semibold text-foreground/90"
+            >
+              Notas adicionales (Opcional)
+            </Label>
+            <Textarea
+              id="notes"
+              rows={4}
+              placeholder="Detalles relevantes sobre el cliente, preferencias de entrega, etc..."
+              className="min-h-[120px] resize-none focus-visible:ring-primary"
+              {...form.register("notes")}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Sticky Footer ─────────────────────────────────────────── */}
+      <div className="shrink-0 border-t border-border/70 bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-6 sm:py-4 sm:pb-4">
+        <div className="mx-auto flex max-w-3xl items-center gap-3">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-initial"
+            >
+              Cancelar
+            </Button>
           )}
-        </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 gap-2"
+          >
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <SaveIcon className="size-4" />
+            )}
+            <span>
+              {mode === "create" ? "Registrar cliente" : "Guardar cambios"}
+            </span>
+          </Button>
+        </div>
       </div>
     </form>
   )

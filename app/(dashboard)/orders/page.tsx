@@ -6,7 +6,7 @@ import { normalizeDateOnly } from "@/lib/currency/exchange"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { getWorkOrders, getOrderFormBootstrap } from "@/lib/data/orders"
-import { NewOrderSheet } from "@/components/modules/orders/new-order-sheet"
+import { OrderSheet } from "@/components/modules/orders/order-sheet"
 import { OrdersWorkspace } from "@/components/modules/orders/orders-workspace"
 
 import {
@@ -72,7 +72,7 @@ export default async function OrdersPage() {
             { label: "Órdenes" },
           ]}
           actions={
-            <NewOrderSheet
+            <OrderSheet
               customers={bootstrap.customers.map((c) => ({
                 id: c.id,
                 fullName: c.fullName,
@@ -137,6 +137,24 @@ export default async function OrdersPage() {
         {/* ── Workspace ── */}
         <OrdersWorkspace
           initialOrders={orderRows}
+          customers={bootstrap.customers.map((c) => ({
+            id: c.id,
+            fullName: c.fullName,
+            phone: c.phone,
+            email: c.email,
+          }))}
+          catalogItems={bootstrap.catalogItems.map((c) => ({
+            id: c.id,
+            name: c.name,
+            garmentType: c.garmentType,
+            salePrice: decimalToNumber(c.salePrice),
+          }))}
+          inventoryItems={bootstrap.inventoryItems.map((i) => ({
+            id: i.id,
+            name: i.name,
+            unit: i.unit,
+            quantity: decimalToNumber(i.quantity),
+          }))}
           canDelete={
             currentUser.role === "admin" || currentUser.role === "manager"
           }

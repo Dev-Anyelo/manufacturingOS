@@ -8,7 +8,7 @@ import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { ScissorsIcon, LayersIcon, CalendarCheckIcon } from "lucide-react"
 import { formatDateOnlyInput, normalizeDateOnly } from "@/lib/currency/exchange"
 import { ProductionTable } from "@/components/modules/production/production-table"
-import { NewProductionSheet } from "@/components/modules/production/new-production-sheet"
+import { ProductionSheet } from "@/components/modules/production/production-sheet"
 
 import {
   getProductionSessions,
@@ -68,7 +68,7 @@ export default async function ProductionPage(props: {
       <div className="page-content space-y-6">
         <PageHeader
           title="Producción"
-          description="Registra sesiones de confección y consumo de materiales."
+          description="Sesiones de confección y consumo de materiales."
           breadcrumbs={[
             { label: "Dashboard", href: "/" },
             { label: "Producción" },
@@ -76,7 +76,7 @@ export default async function ProductionPage(props: {
           actions={
             <div className="flex flex-row flex-wrap gap-3">
               <UrlDateFilter />
-              <NewProductionSheet
+              <ProductionSheet
                 employees={bootstrap.employees}
                 inventoryItems={bootstrap.inventoryItems.map((i) => ({
                   id: i.id,
@@ -125,6 +125,17 @@ export default async function ProductionPage(props: {
 
         <ProductionTable
           sessions={rows}
+          bootstrap={{
+            employees: bootstrap.employees,
+            inventoryItems: bootstrap.inventoryItems.map((i) => ({
+              id: i.id,
+              name: i.name,
+              unit: i.unit,
+              quantity: decimalToNumber(i.quantity),
+            })),
+          }}
+          currentUserId={currentUser.id}
+          currentUserRole={currentUser.role}
           canDelete={
             currentUser.role === "admin" || currentUser.role === "manager"
           }

@@ -1,13 +1,15 @@
 import Link from "next/link"
-import { SaleStatus, Currency } from "@prisma/client"
 import { Button } from "@/components/ui/button"
+import { parseDateParam } from "@/lib/api/utils"
 import { decimalToNumber } from "@/lib/api/utils"
+import { SaleStatus, Currency } from "@prisma/client"
 import { StatCard } from "@/components/shared/stat-card"
 import { PageHeader } from "@/components/shared/page-header"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { SalesTable } from "@/components/modules/sales/sales-table"
 import { requireCurrentUser } from "@/lib/auth/current-user"
 import { getSales, getTodaySalesSummary } from "@/lib/data/sales"
+import { UrlDateFilter } from "@/components/shared/url-date-filter"
+import { SalesTable } from "@/components/modules/sales/sales-table"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
 
 import {
   DollarSignIcon,
@@ -16,9 +18,6 @@ import {
   WalletCardsIcon,
   XCircleIcon,
 } from "lucide-react"
-
-import { UrlDateFilter } from "@/components/shared/url-date-filter"
-import { parseDateParam } from "@/lib/api/utils"
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -66,7 +65,7 @@ export default async function SalesPage(props: { searchParams: SearchParams }) {
           description="Punto de venta y seguimiento de cobros."
           breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Ventas" }]}
           actions={
-            <div className="flex flex-row gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <UrlDateFilter />
               <Button asChild size="sm">
                 <Link href="/sales/new">
@@ -89,10 +88,10 @@ export default async function SalesPage(props: { searchParams: SearchParams }) {
           <StatCard
             title="Total del día"
             value={
-              <CurrencyDisplay 
-                amount={todaySummary.total_amount} 
-                currency={Currency.USD} 
-                size="lg" 
+              <CurrencyDisplay
+                amount={todaySummary.total_amount}
+                currency={Currency.USD}
+                size="lg"
               />
             }
             description="Ingreso neto del día"

@@ -141,6 +141,7 @@ type OrderFormOutput = z.output<typeof orderFormSchema>
 type MeasurementMode = "standard" | "exact"
 
 interface OrderFormProps {
+  className?: string
   customers: PosCustomer[]
   catalogItems: CatalogChoice[]
   inventoryItems: InventoryChoice[]
@@ -208,6 +209,7 @@ function normalizeMeasurements(
 }
 
 export function OrderForm({
+  className,
   customers,
   catalogItems,
   inventoryItems,
@@ -417,48 +419,51 @@ export function OrderForm({
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="mx-auto w-full"
+      className={cn("flex h-full min-h-0 flex-col", className)}
       noValidate
     >
-      {/* Summary Stats - Compact Info Bar */}
-      <div className="mb-4 flex items-center justify-center gap-0 overflow-x-auto border-t border-b bg-muted/20 py-1">
-        {[
-          { label: "Total", amount: estimatedTotal },
-          { label: "Unidades", value: totalUnits.toString() },
-          { label: "Saldo", amount: pendingBalance },
-          {
-            label: "Entrega",
-            value: watchedDeliveryDate
-              ? formatDateLabel(watchedDeliveryDate)
-              : "N/A",
-          },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className={cn(
-              "flex shrink-0 flex-col items-center px-4 py-2",
-              i > 0 && "border-l border-border/60"
-            )}
-          >
-            <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-              {item.label}
-            </span>
-            <div className="mt-0.5">
-              {"amount" in item ? (
-                <CurrencyDisplay
-                  amount={Number(item.amount || 0)}
-                  currency={(orderCurrency as Currency) || Currency.USD}
-                  size="sm"
-                />
-              ) : (
-                <span className="text-sm font-bold tabular-nums">
-                  {item.value}
-                </span>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {/* Summary Stats - Compact Info Bar */}
+        <div className="sticky top-0 z-10 flex items-center justify-center border-b border-border/50 bg-background/95 py-2 backdrop-blur-sm">
+          {[
+            { label: "Total", amount: estimatedTotal },
+            { label: "Unidades", value: totalUnits.toString() },
+            { label: "Saldo", amount: pendingBalance },
+            {
+              label: "Entrega",
+              value: watchedDeliveryDate
+                ? formatDateLabel(watchedDeliveryDate)
+                : "N/A",
+            },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className={cn(
+                "flex shrink-0 flex-col items-center px-4 py-2",
+                i > 0 && "border-l border-border/60"
               )}
+            >
+              <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                {item.label}
+              </span>
+              <div className="mt-0.5">
+                {"amount" in item ? (
+                  <CurrencyDisplay
+                    amount={Number(item.amount || 0)}
+                    currency={(orderCurrency as Currency) || Currency.USD}
+                    size="sm"
+                  />
+                ) : (
+                  <span className="text-sm font-bold tabular-nums">
+                    {item.value}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+
+        <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
 
       {/* Tabbed Form */}
       <Tabs defaultValue="customer" className="w-full">
@@ -1056,26 +1061,32 @@ export function OrderForm({
           </div>
         </TabsContent>
       </Tabs>
+        </div>
+      </div>
 
-      <div className="mt-3 flex w-full items-center justify-center gap-2 md:mt-4">
-        <Button
-          type="submit"
-          size="sm"
-          disabled={isSubmitting}
-          className="w-full"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Guardando...
-            </>
-          ) : (
-            <>
-              <Save className="size-4" />
-              Crear pedido
-            </>
+      {/* ─── Sticky Footer ─────────────────────────────────────────── */}
+      <div className="shrink-0 border-t border-border/70 bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-6 sm:py-4 sm:pb-4">
+        <div className="mx-auto flex max-w-3xl items-center gap-3">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-initial"
+            >
+              Cancelar
+            </Button>
           )}
-        </Button>
+          <Button type="submit" disabled={isSubmitting} className="flex-1 gap-2">
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            <span>{orderId ? "Guardar cambios" : "Crear pedido"}</span>
+          </Button>
+        </div>
       </div>
     </form>
   )

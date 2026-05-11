@@ -11,9 +11,27 @@ import { OrdersTable } from "@/components/modules/orders/orders-table"
 import type { OrderSummaryItem } from "@/components/modules/orders/types"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChangeStatusDialog } from "@/components/modules/orders/change-status-dialog"
+import type { PosCustomer } from "@/components/modules/sales/types"
+
+type CatalogChoice = {
+  id: string
+  name: string
+  garmentType: string | null
+  salePrice: number
+}
+
+type InventoryChoice = {
+  id: string
+  name: string
+  unit: string
+  quantity: number
+}
 
 interface OrdersWorkspaceProps {
   initialOrders: OrderSummaryItem[]
+  customers: PosCustomer[]
+  catalogItems: CatalogChoice[]
+  inventoryItems: InventoryChoice[]
   canDelete?: boolean
 }
 
@@ -52,6 +70,9 @@ function matchesPipeline(order: OrderSummaryItem, filter: PipelineFilter) {
 
 export function OrdersWorkspace({
   initialOrders,
+  customers,
+  catalogItems,
+  inventoryItems,
   canDelete = false,
 }: OrdersWorkspaceProps) {
   const [orders, setOrders] = React.useState(initialOrders)
@@ -141,6 +162,9 @@ export function OrdersWorkspace({
         <TabsContent value="table" className="mt-0 focus-visible:outline-none">
           <OrdersTable
             orders={filteredOrders}
+            customers={customers}
+            catalogItems={catalogItems}
+            inventoryItems={inventoryItems}
             suppressStatusFilter
             canDelete={canDelete}
           />

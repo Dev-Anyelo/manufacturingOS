@@ -465,7 +465,7 @@ export function AttendanceRecordForm({
       </div>
 
       {/* Acciones */}
-      <div className="grid grid-cols-2 gap-3 pt-2 pb-0">
+      <div className="grid grid-cols-2 gap-3 pt-2 pb-4 md:pb-0">
         <Button
           type="button"
           variant="ghost"
