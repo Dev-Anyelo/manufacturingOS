@@ -100,7 +100,7 @@ export function EntitySelector({
     <div className={cn("space-y-1.5", className)}>
       {label && <Label className="text-sm font-medium">{label}</Label>}
 
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={false}>
         <PopoverTrigger asChild>
           <Button
             type="button"
@@ -129,7 +129,13 @@ export function EntitySelector({
             <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0 sm:w-[400px]" align="start">
+        <PopoverContent 
+          className="w-[300px] p-0 sm:w-[400px]" 
+          align="start"
+          data-vaul-no-drag
+          onPointerDown={(e) => e.stopPropagation()}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           <Command>
             <div
               className="flex items-center border-b p-2"
@@ -153,8 +159,13 @@ export function EntitySelector({
               )}
             </div>
             <CommandList
-              className="max-h-[260px]"
+              className="max-h-[260px] touch-pan-y overflow-y-auto overscroll-contain"
+              style={{ WebkitOverflowScrolling: "touch" }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
+              data-vaul-no-drag
             >
               {filteredEntities.length === 0 ? (
                 <CommandEmpty className="py-4 text-center text-sm">
