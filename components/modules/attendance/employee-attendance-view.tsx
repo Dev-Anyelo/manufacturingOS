@@ -62,8 +62,6 @@ import {
 
 function formatTime(dateStr: string | null) {
   if (!dateStr) return "—"
-  // Needs to convert UTC string to Nicaraguan time?
-  // No, dateStr from Prisma is ISO, we assume it's correctly handled or we format it.
   const d = new Date(dateStr)
   return d.toLocaleTimeString("es-NI", {
     timeZone: TIMEZONE,
