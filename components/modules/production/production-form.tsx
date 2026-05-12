@@ -808,29 +808,22 @@ function ItemCard({
           <Label className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
             Material / Tela
           </Label>
-          <Select
-            value={form.watch(`items.${index}.inventory_item_id`) || ""}
-            onValueChange={(value) =>
-              form.setValue(`items.${index}.inventory_item_id`, value, {
+          <EntitySelector
+            entities={inventoryItems.map((item) => ({
+              id: item.id,
+              fullName: item.name,
+            }))}
+            value={form.watch(`items.${index}.inventory_item_id`) || null}
+            onChange={(value) =>
+              form.setValue(`items.${index}.inventory_item_id`, value || "", {
                 shouldDirty: true,
                 shouldValidate: true,
               })
             }
-          >
-            <SelectTrigger className="h-10 w-full text-sm">
-              <SelectValue placeholder="Seleccionar material" />
-            </SelectTrigger>
-            <SelectContent>
-              {inventoryItems.map((item) => (
-                <SelectItem key={item.id} value={item.id}>
-                  <span className="flex items-center gap-2">
-                    <Layers2Icon className="size-3.5 text-primary/70" />
-                    <span className="font-medium">{item.name}</span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            label=""
+            placeholder="Seleccionar material..."
+            emptyMessage="No se encontraron materiales."
+          />
           {selectedMaterial && (
             <div className="flex items-center justify-between gap-x-2 pt-0.5">
               <span className="text-xs text-muted-foreground">Disponible:</span>
