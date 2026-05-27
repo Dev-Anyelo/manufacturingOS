@@ -30,7 +30,6 @@ import {
   UsersIcon,
   ShirtIcon,
   Settings2Icon,
-  CommandIcon,
   LayersPlusIcon,
   ClockIcon,
 } from "lucide-react"

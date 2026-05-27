@@ -5,16 +5,16 @@ import * as React from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { UserRole, Currency } from "@prisma/client"
 import { type ColumnDef } from "@tanstack/react-table"
 import { revalidatePaths } from "@/lib/ui/revalidatePaths"
 import { DataTable } from "@/components/shared/data-table"
+import { UserRole, Currency, ExpenseCategory } from "@prisma/client"
 import { CompactKpiCard } from "@/components/shared/compact-kpi-card"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
 import { DateRangePicker } from "@/components/shared/date-range-picker"
 import { ExpenseSheet } from "@/components/modules/expenses/expense-sheet"
-import { type ExpenseFormInput } from "@/components/modules/expenses/expense-form"
 import { formatDateOnlyNI, normalizeDateOnly } from "@/lib/currency/exchange"
+import { type ExpenseFormInput } from "@/components/modules/expenses/expense-form"
 import { ExpenseCategoryBadge } from "@/components/modules/expenses/expense-category-badge"
 
 import {
@@ -85,6 +85,18 @@ interface ExpensesTableProps {
 
 function formatDate(value: string) {
   return formatDateOnlyNI(value)
+}
+const categoryLabels: Record<string, string> = {
+  [ExpenseCategory.fabrics]: "Fabricas",
+  [ExpenseCategory.supplies]: "Suministros",
+  [ExpenseCategory.tools]: "Herramientas",
+  [ExpenseCategory.machinery]: "Maquinaria",
+  [ExpenseCategory.outsourced_labor]: "Mano de obra externa",
+  [ExpenseCategory.services]: "Servicios",
+  [ExpenseCategory.packaging]: "Empaques",
+  [ExpenseCategory.office]: "Oficina",
+  [ExpenseCategory.payroll]: "Nómina",
+  [ExpenseCategory.other]: "Otro",
 }
 
 export function ExpensesTable({
@@ -322,7 +334,8 @@ export function ExpensesTable({
                 <SelectItem value="all">Todas</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
-                    {category}
+                    {categoryLabels[category] ||
+                      category.charAt(0).toUpperCase() + category.slice(1)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -345,7 +358,7 @@ export function ExpensesTable({
           editingExpense
             ? ({
                 expense_date: editingExpense.expenseDate,
-                category: editingExpense.category as any,
+                category: editingExpense.category as ExpenseCategory,
                 concept: editingExpense.concept,
                 supplier: editingExpense.supplier,
                 total: editingExpense.total,
