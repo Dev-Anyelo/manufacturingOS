@@ -349,18 +349,10 @@ export default async function CustomerDetailPage({
                                 {formatCurrencyNI(net, sale.totalCurrency)}
                               </TableCell>
                               <TableCell className="text-right tabular-nums">
-                                <span
-                                  className={
-                                    decimalToNumber(sale.balanceDue) > 0
-                                      ? "font-medium text-amber-600 dark:text-amber-400"
-                                      : "text-muted-foreground"
-                                  }
-                                >
-                                  {formatCurrencyNI(
-                                    decimalToNumber(sale.balanceDue),
-                                    sale.totalCurrency
-                                  )}
-                                </span>
+                                <CurrencyDisplay
+                                  amount={decimalToNumber(sale.balanceDue)}
+                                  currency={sale.totalCurrency}
+                                />
                               </TableCell>
                               <TableCell>
                                 <StatusBadge status={sale.status} type="sale" />
