@@ -1,8 +1,11 @@
 import Link from "next/link"
-import { DownloadIcon, ReceiptIcon } from "lucide-react"
+import { Currency } from "@prisma/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DownloadIcon, ReceiptIcon } from "lucide-react"
+import { formatDateOnlyNI } from "@/lib/currency/exchange"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
+
 import {
   Card,
   CardContent,
@@ -10,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { formatDateOnlyNI } from "@/lib/currency/exchange"
 
 export interface PayslipPreviewData {
   id: string
@@ -26,6 +28,13 @@ export interface PayslipPreviewData {
   total: number
   notes: string | null
   receiptUrl: string | null
+  baseAmountCurrency: Currency
+  expenses?: {
+    id: string
+    concept: string
+    expenseDate: string
+    total: number
+  }[]
 }
 
 interface PayslipPreviewProps {
@@ -49,6 +58,8 @@ function formatDate(value: string | null) {
 export function PayslipPreview({ payment }: PayslipPreviewProps) {
   const grossAmount = payment.baseAmount + payment.bonuses
 
+  console.log(payment.baseAmountCurrency)
+
   return (
     <Card className="border border-border shadow-sm">
       <CardHeader className="border-b border-border px-4">
@@ -71,7 +82,11 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Devengado</p>
-            <CurrencyDisplay amount={grossAmount} className="font-semibold" />
+            <CurrencyDisplay
+              amount={grossAmount}
+              className="font-semibold"
+              currency={payment.baseAmountCurrency}
+            />
           </div>
           <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Deducciones</p>
@@ -79,11 +94,16 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
               amount={-payment.deductions}
               className="font-semibold"
               colored
+              currency={payment.baseAmountCurrency}
             />
           </div>
           <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
             <p className="text-xs text-muted-foreground">Neto a pagar</p>
-            <CurrencyDisplay amount={payment.total} className="font-semibold" />
+            <CurrencyDisplay
+              amount={payment.total}
+              className="font-semibold"
+              currency={payment.baseAmountCurrency}
+            />
           </div>
         </div>
 
@@ -116,20 +136,37 @@ export function PayslipPreview({ payment }: PayslipPreviewProps) {
         <div className="space-y-2 rounded-xl border border-border p-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Monto base</span>
-            <CurrencyDisplay amount={payment.baseAmount} size="sm" />
+            <CurrencyDisplay
+              amount={payment.baseAmount}
+              size="sm"
+              currency={payment.baseAmountCurrency}
+            />
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Bonos</span>
-            <CurrencyDisplay amount={payment.bonuses} size="sm" />
+            <CurrencyDisplay
+              amount={payment.bonuses}
+              size="sm"
+              currency={payment.baseAmountCurrency}
+            />
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Deducciones</span>
-            <CurrencyDisplay amount={-payment.deductions} size="sm" colored />
+            <CurrencyDisplay
+              amount={-payment.deductions}
+              size="sm"
+              currency={payment.baseAmountCurrency}
+              colored
+            />
           </div>
           <div className="border-t border-border pt-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Total neto</span>
-              <CurrencyDisplay amount={payment.total} size="lg" />
+              <CurrencyDisplay
+                amount={payment.total}
+                size="lg"
+                currency={payment.baseAmountCurrency}
+              />
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               Estado de pago:{" "}

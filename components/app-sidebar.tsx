@@ -6,7 +6,6 @@ import { UserRole } from "@/types"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import type { CurrentUser } from "@/lib/auth/current-user"
-
 import type { DashboardNavSection } from "@/lib/nav/dashboard-links"
 
 import {

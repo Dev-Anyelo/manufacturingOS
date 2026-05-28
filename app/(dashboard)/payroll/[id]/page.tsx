@@ -34,12 +34,7 @@ export default async function PayrollDetailPage({
           { label: `Pago #${payment.id.slice(0, 8).toUpperCase()}` },
         ]}
         actions={
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="max-w-fit"
-          >
+          <Button asChild variant="outline" size="sm" className="max-w-fit">
             <Link href="/payroll">
               <ArrowLeftIcon className="size-4" />
               Volver
@@ -64,6 +59,13 @@ export default async function PayrollDetailPage({
             total: decimalToNumber(payment.total),
             notes: payment.notes,
             receiptUrl: payment.receiptUrl,
+            baseAmountCurrency: payment.baseAmountCurrency,
+            expenses: payment.expenses.map((e) => ({
+              id: e.id,
+              concept: e.concept,
+              expenseDate: e.expenseDate.toISOString(),
+              total: decimalToNumber(e.total),
+            })),
           }}
         />
 

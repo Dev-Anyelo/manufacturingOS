@@ -75,7 +75,6 @@ export function PayrollWorkspace({
   canDelete = false,
 }: PayrollWorkspaceProps) {
   const router = useRouter()
-  const isMobile = useIsMobile()
   const [createOpen, setCreateOpen] = React.useState(false)
   const [markPaidOpen, setMarkPaidOpen] = React.useState(false)
   const [selectedPayment, setSelectedPayment] =
@@ -89,8 +88,6 @@ export function PayrollWorkspace({
   const totalPending = payments
     .filter((p) => p.status === "pending")
     .reduce((acc, p) => {
-      // For now, let's just use the number. The user said most are USD anyway.
-      // In a real scenario we'd use the exchange rate here too.
       return acc + p.total
     }, 0)
 
