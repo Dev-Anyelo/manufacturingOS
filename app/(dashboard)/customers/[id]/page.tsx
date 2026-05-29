@@ -10,7 +10,6 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { CustomerForm } from "@/components/modules/customers/customer-form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -24,7 +23,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -466,31 +464,6 @@ export default async function CustomerDetailPage({
             </Card>
           </TabsContent>
         </Tabs>
-
-        {/* Inline Edit Form */}
-        <Card>
-          <CardHeader className="border-b border-border">
-            <div className="flex items-center gap-2">
-              <CardTitle>Editar información del cliente</CardTitle>
-            </div>
-            <CardDescription className="text-pretty">
-              Actualiza los datos básicos de contacto y notas del cliente.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CustomerForm
-              mode="edit"
-              customerId={customer.id}
-              defaultValues={{
-                full_name: customer.fullName,
-                phone: customer.phone,
-                email: customer.email,
-                address: customer.address,
-                notes: customer.notes,
-              }}
-            />
-          </CardContent>
-        </Card>
       </div>
     </div>
   )

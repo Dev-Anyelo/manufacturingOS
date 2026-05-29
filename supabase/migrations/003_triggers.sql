@@ -117,10 +117,11 @@ DO $$
 BEGIN
   IF to_regclass('public.sales') IS NOT NULL THEN
     EXECUTE 'DROP TRIGGER IF EXISTS trg_update_customer_stats ON public.sales';
-    EXECUTE 'CREATE TRIGGER trg_update_customer_stats
-      AFTER INSERT OR UPDATE OR DELETE ON public.sales
-      FOR EACH ROW
-      EXECUTE FUNCTION public.fn_update_customer_stats()';
+    -- Trigger intentionally disabled; customer total purchases are maintained in application logic.
+    -- EXECUTE 'CREATE TRIGGER trg_update_customer_stats
+    --   AFTER INSERT OR UPDATE OR DELETE ON public.sales
+    --   FOR EACH ROW
+    --   EXECUTE FUNCTION public.fn_update_customer_stats()';
   END IF;
 END
 $$;

@@ -191,7 +191,7 @@ export function CustomerForm({
               id="notes"
               rows={4}
               placeholder="Detalles relevantes sobre el cliente, preferencias de entrega, etc..."
-              className="min-h-[120px] resize-none focus-visible:ring-primary"
+              className="min-h-30 resize-none focus-visible:ring-primary"
               {...form.register("notes")}
             />
           </div>

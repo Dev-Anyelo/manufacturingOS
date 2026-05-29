@@ -6,6 +6,8 @@ import { toLocalDate, toPrismaDecimal } from "@/lib/api/utils"
 import { requirePermission } from "@/lib/api/require-permission"
 import { SaleStatus, InventoryMovementType, Prisma } from "@prisma/client"
 
+import { recalculateCustomerTotalPurchases } from "@/lib/api/sales/customer-totals"
+
 import {
   ApiRouteError,
   apiSuccess,
@@ -66,6 +68,14 @@ export async function PATCH(
 
     if (!sale) {
       throw new ApiRouteError("Venta no encontrada", 404)
+    }
+
+    const customerIdsToRecalculate = new Set<string>()
+    if (sale.customerId) {
+      customerIdsToRecalculate.add(sale.customerId)
+    }
+    if (payload.customer_id) {
+      customerIdsToRecalculate.add(payload.customer_id)
     }
 
     const saleDate = toLocalDate(payload.sale_date)
@@ -176,6 +186,10 @@ export async function PATCH(
           notes: payload.notes,
         },
       })
+
+      for (const customerId of customerIdsToRecalculate) {
+        await recalculateCustomerTotalPurchases(tx, customerId)
+      }
 
       // 4. Create new items and deduct stock
       for (const item of payload.items) {
@@ -291,6 +305,8 @@ export async function DELETE(
       throw new ApiRouteError("Venta no encontrada", 404)
     }
 
+    const previousCustomerId = sale.customerId
+
     await prisma.$transaction(async (tx) => {
       // Create audit log before deletion
       await tx.auditLog.create({
@@ -307,6 +323,10 @@ export async function DELETE(
       await tx.sale.delete({
         where: { id },
       })
+
+      if (previousCustomerId) {
+        await recalculateCustomerTotalPurchases(tx, previousCustomerId)
+      }
     })
 
     return apiSuccess({ id, deleted: true })

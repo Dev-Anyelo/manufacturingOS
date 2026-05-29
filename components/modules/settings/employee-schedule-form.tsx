@@ -122,10 +122,10 @@ function TimeField({
       <div className="flex items-center gap-1.5">
         <div className="flex items-center rounded-lg border bg-background p-1 shadow-sm transition-shadow focus-within:ring-1 focus-within:ring-primary/20">
           <Select value={hourString} onValueChange={handleHourChange}>
-            <SelectTrigger className="h-8 w-[64px] border-none bg-transparent font-bold tabular-nums shadow-none focus:ring-0">
+            <SelectTrigger className="h-8 w-16 border-none bg-transparent font-bold tabular-nums shadow-none focus:ring-0">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="min-w-[70px]">
+            <SelectContent className="min-w-17.5">
               {Array.from({ length: 12 }, (_, i) =>
                 (i + 1).toString().padStart(2, "0")
               ).map((h) => (
@@ -139,10 +139,10 @@ function TimeField({
           <span className="px-0.5 font-bold text-muted-foreground/50">:</span>
 
           <Select value={minutes} onValueChange={handleMinuteChange}>
-            <SelectTrigger className="h-8 w-[64px] border-none bg-transparent font-bold tabular-nums shadow-none focus:ring-0">
+            <SelectTrigger className="h-8 w-16 border-none bg-transparent font-bold tabular-nums shadow-none focus:ring-0">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="min-w-[70px]">
+            <SelectContent className="min-w-17.5">
               {Array.from({ length: 60 }, (_, i) =>
                 i.toString().padStart(2, "0")
               ).map((m) => (
@@ -407,7 +407,7 @@ export function EmployeeScheduleForm({
                       key={day.value}
                       value={String(day.value)}
                       className={cn(
-                        "min-w-[60px] flex-1 rounded-xl border border-muted-foreground/20 text-xs font-semibold transition-all",
+                        "min-w-15 flex-1 rounded-xl border border-muted-foreground/20 text-xs font-semibold transition-all",
                         "hover:bg-muted/50 data-[state=on]:border-primary data-[state=on]:bg-primary/5 data-[state=on]:text-primary"
                       )}
                     >

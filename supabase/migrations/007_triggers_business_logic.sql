@@ -83,10 +83,11 @@ END;
 $$;
 
 DROP TRIGGER IF EXISTS trg_update_customer_stats ON public.sales;
-CREATE TRIGGER trg_update_customer_stats
-AFTER INSERT OR UPDATE OR DELETE ON public.sales
-FOR EACH ROW
-EXECUTE FUNCTION public.fn_update_customer_stats();
+-- Trigger intentionally disabled; customer total purchases are maintained in application logic.
+-- CREATE TRIGGER trg_update_customer_stats
+-- AFTER INSERT OR UPDATE OR DELETE ON public.sales
+-- FOR EACH ROW
+-- EXECUTE FUNCTION public.fn_update_customer_stats();
 
 CREATE OR REPLACE FUNCTION public.fn_create_payroll_expense()
 RETURNS TRIGGER

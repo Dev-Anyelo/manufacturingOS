@@ -690,7 +690,7 @@ export function ExpenseForm({
                   id="notes"
                   rows={3}
                   placeholder="Detalles del pago, método utilizado, etc..."
-                  className="min-h-[80px] resize-none focus-visible:ring-primary"
+                  className="min-h-20 resize-none focus-visible:ring-primary"
                   {...form.register("notes")}
                 />
               </div>

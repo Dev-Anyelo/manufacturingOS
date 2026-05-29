@@ -4,8 +4,8 @@ import * as React from "react"
 import { cn, formatCurrency } from "@/lib/utils"
 import { Currency, Prisma } from "@prisma/client"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useSystemSettings } from "@/hooks/use-system-settings"
 import { useExchangeRates } from "@/hooks/use-exchange-rates"
+import { useSystemSettings } from "@/hooks/use-system-settings"
 
 interface CurrencyDisplayProps {
   amount: number | string | Prisma.Decimal

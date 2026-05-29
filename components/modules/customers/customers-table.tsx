@@ -4,13 +4,16 @@ import Link from "next/link"
 import * as React from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { Currency } from "@prisma/client"
 import { useRouter } from "next/navigation"
-import { revalidatePaths } from "@/lib/ui/revalidatePaths"
-import { formatCurrencyNI } from "@/lib/currency/exchange"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/shared/data-table"
+import { revalidatePaths } from "@/lib/ui/revalidatePaths"
+import { CurrencyDisplay } from "@/components/shared/currency-display"
+import { CustomerSheet } from "@/components/modules/customers/customer-sheet"
+
 import {
   MailIcon,
   UserIcon,
@@ -20,8 +23,6 @@ import {
   Eye,
   PencilLineIcon,
 } from "lucide-react"
-import { Currency } from "@prisma/client"
-import { CurrencyDisplay } from "@/components/shared/currency-display"
 
 import {
   DropdownMenu,
@@ -40,8 +41,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-
-import { CustomerSheet } from "@/components/modules/customers/customer-sheet"
 
 export type CustomerRow = {
   id: string
@@ -243,11 +242,15 @@ export function CustomersTable({
       {/* Standardized CustomerSheet for Editing */}
       <CustomerSheet
         customerId={editingCustomer?.id}
-        defaultValues={editingCustomer ? {
-          full_name: editingCustomer.fullName,
-          phone: editingCustomer.phone ?? "",
-          email: editingCustomer.email ?? "",
-        } : undefined}
+        defaultValues={
+          editingCustomer
+            ? {
+                full_name: editingCustomer.fullName,
+                phone: editingCustomer.phone ?? "",
+                email: editingCustomer.email ?? "",
+              }
+            : undefined
+        }
         open={Boolean(editingCustomer)}
         onOpenChange={(open) => {
           if (!open) setEditingCustomer(null)

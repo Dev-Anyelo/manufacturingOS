@@ -40,6 +40,7 @@ import {
   toLocalDate,
   toPrismaDecimal,
 } from "@/lib/api/utils"
+import { recalculateCustomerTotalPurchases } from "@/lib/api/sales/customer-totals"
 
 export async function GET(request: Request) {
   try {
@@ -291,50 +292,9 @@ export async function POST(request: Request) {
         (item) => item.stock < item.minimumStock
       )
 
-      // Update customer total purchases if applicable
+      // Recalculate customer total purchases from active sales only.
       if (payload.customer_id) {
-        const customer = await tx.customer.findUnique({
-          where: { id: payload.customer_id },
-          select: { totalPurchases: true, totalPurchasesCurrency: true },
-        })
-
-        if (customer) {
-          // FIX #1: If totalPurchases == 0, set currency to sale currency; else convert & accumulate
-          let newTotalPurchases: Prisma.Decimal
-          let newCurrency = customer.totalPurchasesCurrency
-
-          if (customer.totalPurchases.eq(0)) {
-            // First sale: use sale currency directly
-            newTotalPurchases = netTotal
-            newCurrency = payload.total_currency
-          } else if (
-            customer.totalPurchasesCurrency === payload.total_currency
-          ) {
-            // Same currency: simple add
-            newTotalPurchases = customer.totalPurchases.add(netTotal)
-          } else {
-            // Different currency: convert sale to customer currency and accumulate
-            const saleTotalInCustomerCurrency = await convertCurrency(
-              netTotal,
-              payload.total_currency,
-              customer.totalPurchasesCurrency,
-              saleDate
-            )
-            newTotalPurchases = customer.totalPurchases.add(
-              saleTotalInCustomerCurrency
-            )
-          }
-
-          await tx.customer.update({
-            where: { id: payload.customer_id },
-            data: {
-              totalPurchases: newTotalPurchases,
-              ...(customer.totalPurchases.eq(0) && {
-                totalPurchasesCurrency: newCurrency,
-              }),
-            },
-          })
-        }
+        await recalculateCustomerTotalPurchases(tx, payload.customer_id)
       }
 
       return { sale, lowFinishedGoods }

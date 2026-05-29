@@ -21,6 +21,8 @@ import {
   resolveRouteParams,
 } from "@/lib/api/response"
 
+import { recalculateCustomerTotalPurchases } from "@/lib/api/sales/customer-totals"
+
 import { requirePermission } from "@/lib/api/require-permission"
 
 const updateStatusSchema = z.object({
@@ -109,6 +111,10 @@ export async function PATCH(
             },
           })
         }
+      }
+
+      if (currentSale.customerId) {
+        await recalculateCustomerTotalPurchases(tx, currentSale.customerId)
       }
 
       return updatedSale
