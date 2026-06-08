@@ -2,6 +2,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { UserRole } from "@prisma/client"
 import { sendWelcomeEmail } from "@/lib/email/send"
+import { requirePermission } from "@/lib/api/require-permission"
 import { createSupabaseAdminClient } from "@/lib/supabase/admin"
 
 import {
@@ -12,7 +13,6 @@ import {
   requireAuth,
 } from "@/lib/api/response"
 
-import { requirePermission } from "@/lib/api/require-permission"
 
 const createUserSchema = z.object({
   email: z.string().trim().email("El correo electronico no es valido"),
