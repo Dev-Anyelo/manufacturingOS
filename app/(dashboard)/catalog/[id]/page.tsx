@@ -13,7 +13,6 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { PageHeader } from "@/components/shared/page-header"
 import { ArrowLeftIcon, BoxesIcon, ImageOff } from "lucide-react"
 import { CurrencyDisplay } from "@/components/shared/currency-display"
-import { CatalogForm } from "@/components/modules/catalog/catalog-form"
 import { ProfitMarginIndicator } from "@/components/modules/catalog/profit-margin-indicator"
 
 import {
@@ -251,53 +250,6 @@ export default async function CatalogDetailPage({
             )}
           </CardContent>
         </Card>
-
-        <CatalogForm
-          mode="edit"
-          itemId={item.id}
-          defaultValues={{
-            name: item.name,
-            description: item.description,
-            garment_type:
-              item.garmentType &&
-              Object.prototype.hasOwnProperty.call(
-                GARMENT_TYPES,
-                item.garmentType as GarmentType
-              )
-                ? (item.garmentType as GarmentType)
-                : ("other" as GarmentType),
-            market_price_unit: item.marketPriceUnit
-              ? decimalToNumber(item.marketPriceUnit)
-              : 0,
-            market_price_unit_currency:
-              item.marketPriceUnitCurrency as Currency,
-            market_price_dozen: item.marketPriceDozen
-              ? decimalToNumber(item.marketPriceDozen)
-              : null,
-            market_price_dozen_currency:
-              item.marketPriceDozenCurrency as Currency,
-            our_price_unit: item.ourPriceUnit
-              ? decimalToNumber(item.ourPriceUnit)
-              : 0,
-            our_price_unit_currency: item.ourPriceUnitCurrency as Currency,
-            our_price_dozen: item.ourPriceDozen
-              ? decimalToNumber(item.ourPriceDozen)
-              : null,
-            our_price_dozen_currency: item.ourPriceDozenCurrency as Currency,
-            estimated_cost: item.estimatedCost
-              ? decimalToNumber(item.estimatedCost)
-              : null,
-            estimated_cost_currency: item.estimatedCostCurrency as Currency,
-            notes: item.notes,
-            image_url: item.imageUrl,
-            stock_entries: item.finishedGoods.map((fg) => ({
-              size: fg.size,
-              color: fg.color ?? "",
-              quantity: fg.stock,
-              minimumStock: fg.minimumStock,
-            })),
-          }}
-        />
       </div>
     </div>
   )
