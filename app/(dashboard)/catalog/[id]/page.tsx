@@ -1,6 +1,5 @@
 import Link from "next/link"
 import Image from "next/image"
-import { GARMENT_TYPES } from "@/types"
 import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
