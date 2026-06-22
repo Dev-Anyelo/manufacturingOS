@@ -41,11 +41,13 @@ import {
   toPrismaDecimal,
 } from "@/lib/api/utils"
 import { recalculateCustomerTotalPurchases } from "@/lib/api/sales/customer-totals"
+import { repairLegacySalesData } from "@/lib/data/sales-balance"
 
 export async function GET(request: Request) {
   try {
     const { profile } = await requireAuth()
     await requirePermission(profile, "sales", "view")
+    await repairLegacySalesData(prisma)
 
     const { searchParams } = new URL(request.url)
     const dateFrom = parseDateParam(getSearchParam(searchParams, "date_from"))

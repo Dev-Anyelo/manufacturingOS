@@ -25,6 +25,10 @@ import {
 } from "@/lib/api/response"
 
 import { convertCurrency } from "@/lib/currency/exchange"
+import {
+  calculateSaleBalanceDue,
+  repairLegacySalesData,
+} from "@/lib/data/sales-balance"
 
 const registerPaymentSchema = z.object({
   amount_paid: z.number().min(0, "El monto debe ser mayor o igual a 0"),
@@ -49,6 +53,7 @@ export async function PATCH(
 
     const payload = await parseBodyWithSchema(request, registerPaymentSchema)
     const { id } = await resolveRouteParams(context.params)
+    await repairLegacySalesData(prisma)
 
     const sale = await prisma.sale.findUnique({
       where: { id },
@@ -84,7 +89,11 @@ export async function PATCH(
       finalAmountPaid = netTotal
     }
 
-    const balanceDue = Math.max(0, netTotal - finalAmountPaid)
+    const balanceDue = calculateSaleBalanceDue({
+      total: netTotal,
+      discount: 0,
+      amountPaid: finalAmountPaid,
+    })
     const newStatus = balanceDue <= 0 ? SaleStatus.paid : SaleStatus.partial
 
     const notesParts = [sale.notes, payload.notes].filter(Boolean)
@@ -96,6 +105,7 @@ export async function PATCH(
       UPDATE public.sales 
       SET amount_paid = ${finalAmountPaid},
           change_given = ${changeGiven},
+          balance_due = ${balanceDue},
           status = CAST(${newStatus} AS public.sale_status),
           payment_method = CAST(${payload.payment_method} AS public.payment_method),
           notes = ${notes}

@@ -1,5 +1,9 @@
 # Next.js template
 
+## Project Guidance
+
+Before modifying this repository, read [AGENTS.md](./AGENTS.md) and the internal documentation under [.ai/](./.ai/).
+
 This is a Next.js template with shadcn/ui.
 
 ## Adding components

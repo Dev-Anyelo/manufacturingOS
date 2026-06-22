@@ -7,6 +7,7 @@ import { requirePermission } from "@/lib/api/require-permission"
 import { SaleStatus, InventoryMovementType, Prisma } from "@prisma/client"
 
 import { recalculateCustomerTotalPurchases } from "@/lib/api/sales/customer-totals"
+import { repairLegacySalesData } from "@/lib/data/sales-balance"
 
 import {
   ApiRouteError,
@@ -28,6 +29,7 @@ export async function GET(
   try {
     const { profile } = await requireAuth()
     const { id } = await resolveRouteParams(context.params)
+    await repairLegacySalesData(prisma)
 
     const sale = await prisma.sale.findUnique({
       where: { id },
@@ -60,6 +62,7 @@ export async function PATCH(
     await requirePermission(profile, "sales", "edit")
     const { id } = await resolveRouteParams(context.params)
     const payload = await parseBodyWithSchema(request, saleSchema)
+    await repairLegacySalesData(prisma)
 
     const sale = await prisma.sale.findUnique({
       where: { id },
@@ -295,6 +298,7 @@ export async function DELETE(
     }
 
     const { id } = await resolveRouteParams(context.params)
+    await repairLegacySalesData(prisma)
 
     const sale = await prisma.sale.findUnique({
       where: { id },

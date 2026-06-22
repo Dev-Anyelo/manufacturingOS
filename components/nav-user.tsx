@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -24,6 +25,7 @@ import {
 } from "lucide-react"
 
 import { UserRole } from "@/types"
+import { useMounted } from "@/hooks/use-mounted"
 
 export function NavUser({
   user,
@@ -36,6 +38,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const mounted = useMounted()
   const initials = user.name
     .split(" ")
     .map((part) => part.charAt(0).toUpperCase())
@@ -48,6 +51,35 @@ export function NavUser({
     [UserRole.Employee]: "Empleado",
     [UserRole.Readonly]: "Solo lectura",
   }[user.role]
+
+  if (!mounted) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            size="lg"
+            className="h-12 rounded-xl border border-sidebar-border/60 bg-sidebar-accent/35"
+          >
+            <Avatar className="h-8 w-8 rounded-lg border border-sidebar-border/60">
+              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarFallback className="rounded-lg bg-brand/15 text-brand">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate text-[13px] font-medium">
+                {user.name}
+              </span>
+              <span className="truncate text-[11px] text-muted-foreground/85">
+                {roleLabel}
+              </span>
+            </div>
+            <EllipsisVerticalIcon className="ml-auto size-4" />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
 
   return (
     <SidebarMenu>

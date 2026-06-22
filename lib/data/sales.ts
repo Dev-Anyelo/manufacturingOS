@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { decimalToNumber } from "@/lib/api/utils"
 import { Currency } from "@prisma/client"
 import { getExchangeRate } from "@/lib/currency/exchange"
+import { repairLegacySalesData } from "./sales-balance"
 
 export type SaleFilters = {
   dateFrom?: Date
@@ -13,6 +14,8 @@ export type SaleFilters = {
 }
 
 export async function getSales(filters?: SaleFilters) {
+  await repairLegacySalesData(prisma)
+
   const where: Prisma.SaleWhereInput = {}
 
   if (filters?.dateFrom || filters?.dateTo) {
@@ -46,6 +49,8 @@ export async function getSales(filters?: SaleFilters) {
 }
 
 export async function getSale(id: string) {
+  await repairLegacySalesData(prisma)
+
   return prisma.sale.findUnique({
     where: { id },
     include: {
@@ -60,6 +65,8 @@ export async function getSale(id: string) {
 }
 
 export async function getSaleById(id: string) {
+  await repairLegacySalesData(prisma)
+
   return prisma.sale.findUnique({
     where: { id },
     include: {

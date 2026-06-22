@@ -1,8 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import * as React from "react"
 import { usePathname } from "next/navigation"
 import { ChevronRight } from "lucide-react"
+import { useMounted } from "@/hooks/use-mounted"
 
 import {
   Collapsible,
@@ -40,6 +42,7 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
+  const mounted = useMounted()
 
   const isItemActive = (url: string) => {
     if (url === "/") {
@@ -66,7 +69,7 @@ export function NavMain({
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    tooltip={item.title}
+                    tooltip={mounted ? item.title : undefined}
                     isActive={active}
                     className="h-8 rounded border-l-2 border-transparent px-3 text-sm text-sidebar-foreground/82 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground data-[active=true]:border-primary data-[active=true]:bg-primary/10 data-[active=true]:font-medium data-[active=true]:text-primary [&>svg]:mr-2.5 [&>svg]:size-4.5 [&>svg]:text-current"
                   >
@@ -86,6 +89,34 @@ export function NavMain({
                       ) : null}
                     </Link>
                   </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            }
+
+            if (!mounted) {
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <div className="space-y-1">
+                    <div className="flex h-8 items-center gap-2 rounded border-l-2 border-transparent px-3 text-sm font-medium text-sidebar-foreground/82">
+                      {Icon ? <Icon className="size-4.5 shrink-0" /> : null}
+                      <span>{item.title}</span>
+                    </div>
+                    <SidebarMenuSub>
+                      {item.items?.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={pathname.startsWith(subItem.url)}
+                            className="h-8 rounded border-l-2 border-transparent px-3 text-sm text-sidebar-foreground/82 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground data-[active=true]:border-primary data-[active=true]:bg-primary/10 data-[active=true]:font-medium data-[active=true]:text-primary"
+                          >
+                            <Link href={subItem.url}>
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </div>
                 </SidebarMenuItem>
               )
             }

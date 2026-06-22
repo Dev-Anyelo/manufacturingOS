@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { BellIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useMounted } from "@/hooks/use-mounted"
 import { NotificationPanel } from "./notification-panel"
 import { useNotificationStore } from "@/stores/notificationStore"
 import type { AppNotification } from "@/stores/notificationStore"
@@ -34,11 +35,7 @@ type NotificationBellProps = {
 
 export function NotificationBell({ unreadCount }: NotificationBellProps) {
   const isMobile = useIsMobile()
-  const [mounted, setMounted] = React.useState(false)
-  
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useMounted()
 
   const notifications = useNotificationStore((state) => state.notifications)
   const storeUnreadCount = useNotificationStore((state) => state.unreadCount)
@@ -77,6 +74,10 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
       ) : null}
     </Button>
   )
+
+  if (!mounted) {
+    return triggerButton
+  }
 
   if (isMobile) {
     return (
