@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
+import { getStorageUrl } from "@/lib/storage/upload"
 import { getInventoryItem } from "@/lib/data/inventory"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatusBadge } from "@/components/shared/status-badge"
@@ -9,7 +10,6 @@ import { StockIndicator } from "@/components/modules/inventory/stock-indicator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MovementHistory } from "@/components/modules/inventory/movement-history"
 import { InventoryDetailActions } from "@/components/modules/inventory/inventory-detail-actions"
-import { getStorageUrl } from "@/lib/storage/upload"
 
 import {
   Collapsible,
